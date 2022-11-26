@@ -1,4 +1,4 @@
-extension BSON.Value
+extension AnyBSON
 {
     /// Attempts to unwrap and parse an array-decoder from this variant.
     ///
@@ -69,7 +69,7 @@ extension BSON.Value
         }
     }
 }
-extension BSON.Value
+extension AnyBSON
 {
     /// Attempts to load a dictionary-decoder from this variant.
     /// 

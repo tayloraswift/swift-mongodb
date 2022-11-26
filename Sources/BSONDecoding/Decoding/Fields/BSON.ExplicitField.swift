@@ -6,10 +6,10 @@ extension BSON
         public
         let key:Key
         public
-        let value:BSON.Value<Bytes>
+        let value:AnyBSON<Bytes>
 
         @inlinable public
-        init(key:Key, value:BSON.Value<Bytes>)
+        init(key:Key, value:AnyBSON<Bytes>)
         {
             self.key = key
             self.value = value
@@ -22,7 +22,7 @@ extension BSON.ExplicitField:DecoderField
     /// Throws a ``BSON/RecursiveError`` wrapping the underlying
     /// error if decoding fails.
     @inlinable public
-    func decode<T>(with decode:(BSON.Value<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
     {
         do
         {

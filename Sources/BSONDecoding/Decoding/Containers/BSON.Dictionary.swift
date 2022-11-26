@@ -6,10 +6,10 @@ extension BSON
     struct Dictionary<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         public
-        var items:[String: BSON.Value<Bytes>]
+        var items:[String: AnyBSON<Bytes>]
         
         @inlinable public
-        init(_ items:[String: BSON.Value<Bytes>])
+        init(_ items:[String: AnyBSON<Bytes>])
         {
             self.items = items
         }
@@ -21,10 +21,10 @@ extension BSON.Dictionary
     /// ``DictionaryKeyError`` if more than one document field contains a key with
     /// the same name.
     @inlinable public
-    init(fields:[(key:String, value:BSON.Value<Bytes>)]) throws
+    init(fields:[(key:String, value:AnyBSON<Bytes>)]) throws
     {
         self.items = .init(minimumCapacity: fields.count)
-        for (key, value):(String, BSON.Value<Bytes>) in fields
+        for (key, value):(String, AnyBSON<Bytes>) in fields
         {
             if case _? = self.items.updateValue(value, forKey: key)
             {

@@ -1,24 +1,28 @@
 extension BSON
 {
     @frozen public
-    struct Fields:Sendable
+    struct Elements:Sendable
     {
         public
         var output:BSON.Output<[UInt8]>
+        public
+        var counter:Int
 
         @inlinable public
         init(output:BSON.Output<[UInt8]> = .init(capacity: 0))
         {
             self.output = output
+            self.counter = 0
         }
     }
 }
-extension BSON.Fields
+extension BSON.Elements
 {
     @inlinable public mutating
-    func append(key:String, with serialize:(inout BSON.Field) -> ())
+    func append(with serialize:(inout BSON.Field) -> ())
     {
-        self.output.with(key: key, do: serialize)
+        self.output.with(key: self.counter.description, do: serialize)
+        self.counter += 1
     }
     @inlinable public
     var isEmpty:Bool
@@ -26,7 +30,7 @@ extension BSON.Fields
         self.output.destination.isEmpty
     }
 }
-extension BSON.Fields
+extension BSON.Elements
 {
     /// Creates an empty encoding view and initializes it with the given closure.
     @inlinable public
@@ -34,14 +38,5 @@ extension BSON.Fields
     {
         self.init()
         try populate(&self)
-    }
-    /// Creates an encoding view around the given [`[UInt8]`]()-backed
-    /// document.
-    ///
-    /// >   Complexity: O(1).
-    @inlinable public
-    init(bson:BSON.Document<[UInt8]>)
-    {
-        self.init(output: .init(preallocated: bson.bytes))
     }
 }

@@ -1,8 +1,7 @@
 // swift-tools-version:5.7
 import PackageDescription
 
-let package = Package(
-    name: "swift-mongodb",
+let package:Package = .init(name: "swift-mongodb",
     products: 
     [
         .library(name: "BSON", targets: ["BSON"]),
@@ -141,7 +140,7 @@ let package = Package(
         .executableTarget(name: "BSONTests",
             dependencies:
             [
-                .target(name: "BSON"),
+                .target(name: "BSONPrimitives"),
                 .product(name: "Base16", package: "swift-hash"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 

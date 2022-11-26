@@ -23,7 +23,7 @@ extension BSON
     /// To convert a UTF-8 string to a native Swift ``String`` (repairing invalid UTF-8),
     /// use the ``description`` property.
     @frozen public
-    struct UTF8<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct UTF8<Bytes> where Bytes:BidirectionalCollection<UInt8>
     {
         /// The UTF-8 code units backing this string. This collection does *not*
         /// include the trailing null byte that typically appears when this value
@@ -38,37 +38,74 @@ extension BSON
         }
     }
 }
+extension BSON.UTF8 where Bytes:RangeReplaceableCollection
+{
+    /// Creates a BSON UTF-8 string by copying the UTF-8 code units of
+    /// the given string to dedicated backing storage.
+    /// When possible, prefer using a specialization of this type where
+    /// `Bytes` is `String/UTF8View` or `Substring/UTF8View`, because
+    /// instances of those specializations can be constructed as
+    /// copy-less collection views.
+    ///
+    /// >   Complexity:
+    ///     O(*n*), where *n* is the length of the string.
+    @inlinable public
+    init(from string:some StringProtocol)
+    {
+        self.init(bytes: .init(string.utf8))
+    }
+}
+extension BSON.UTF8<String.UTF8View>:ExpressibleByStringLiteral,
+    ExpressibleByExtendedGraphemeClusterLiteral, 
+    ExpressibleByUnicodeScalarLiteral
+{
+    @inlinable public
+    init(stringLiteral:String)
+    {
+        self.init(stringLiteral)
+    }
+
+    /// Creates a BSON UTF-8 string backed by a ``String/UTF8View``, making
+    /// the base string contiguous, if it is not already.
+    ///
+    /// >   Complexity:
+    ///     O(1) if the string is already a contiguous UTF-8 string;
+    ///     otherwise O(*n*), where *n* is the length of the string.
+    @inlinable public
+    init(_ string:String)
+    {
+        var string:String = string
+            string.makeContiguousUTF8()
+        self.init(bytes: string.utf8)
+    }
+}
+extension BSON.UTF8<Substring.UTF8View>
+{
+    /// Creates a BSON UTF-8 string backed by a ``Substring/UTF8View``, making
+    /// the base substring contiguous, if it is not already.
+    ///
+    /// >   Complexity:
+    ///     O(1) if the substring is already a contiguous UTF-8 substring;
+    ///     otherwise O(*n*), where *n* is the length of the substring.
+    @inlinable public
+    init(_ string:Substring)
+    {
+        var string:Substring = string
+            string.makeContiguousUTF8()
+        self.init(bytes: string.utf8)
+    }
+}
 extension BSON.UTF8:Equatable
 {
     /// Performs a unicode-aware string comparison on two UTF-8 strings.
     @inlinable public static
-    func == (lhs:Self, rhs:BSON.UTF8<some RandomAccessCollection<UInt8>>) -> Bool
+    func == (lhs:Self, rhs:BSON.UTF8<some BidirectionalCollection<UInt8>>) -> Bool
     {
         lhs.description == rhs.description
     }
 }
 extension BSON.UTF8:Sendable where Bytes:Sendable
 {
-}
-extension BSON.UTF8:ExpressibleByStringLiteral,
-    ExpressibleByExtendedGraphemeClusterLiteral, 
-    ExpressibleByUnicodeScalarLiteral
-    where Bytes:RangeReplaceableCollection<UInt8>
-{
-    /// Initializes a BSON UTF-8 string by copying the UTF-8 code units
-    /// backing the given string.
-    ///
-    /// >   Complexity: O(*n*), where *n* is the length of the string.
-    @inlinable public
-    init(_ string:some StringProtocol)
-    {
-        self.init(bytes: .init(string.utf8))
-    }
-    @inlinable public
-    init(stringLiteral:String)
-    {
-        self.init(stringLiteral)
-    }
 }
 
 extension BSON.UTF8:CustomStringConvertible
@@ -83,7 +120,7 @@ extension BSON.UTF8:CustomStringConvertible
         .init(decoding: self.bytes, as: Unicode.UTF8.self)
     }
 }
-extension BSON.UTF8:VariableLengthBSON
+extension BSON.UTF8:VariableLengthBSON where Bytes:RandomAccessCollection<UInt8>
 {
     public
     typealias Frame = BSON.UTF8Frame

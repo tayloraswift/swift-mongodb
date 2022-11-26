@@ -1,6 +1,6 @@
 import Testing
 import Base16
-import BSON
+import BSONPrimitives
 
 @main 
 enum Main:SynchronousTests
@@ -344,12 +344,12 @@ enum Main:SynchronousTests
         {
             $0.test(name: "ascii",
                 canonical: "1A0000000C610002000000620056E1FC72E0C917E9C471416100",
-                expected: ["a": .pointer("b", .init(
+                expected: ["a": .pointer(.init(from: "b"), .init(
                     timestamp: 0x56e1fc72, (0xe0, 0xc9, 0x17, 0xe9, 0xc4), (0x71, 0x41, 0x61)))])
             
             $0.test(name: "unicode",
                 canonical: "1B0000000C610003000000C3A90056E1FC72E0C917E9C471416100",
-                expected: ["a": .pointer("é", .init(
+                expected: ["a": .pointer(.init(from: "é"), .init(
                     timestamp: 0x56e1fc72, (0xe0, 0xc9, 0x17, 0xe9, 0xc4), (0x71, 0x41, 0x61)))])
             
             $0.test(name: "invalid-length-negative",
@@ -664,27 +664,27 @@ enum Main:SynchronousTests
         {
             $0.test(name: "empty",
                 canonical: "0D0000000D6100010000000000",
-                expected: ["a": .javascript("")])
+                expected: ["a": .javascript(.init(from: ""))])
             
             $0.test(name: "single-character",
                 canonical: "0E0000000D610002000000620000",
-                expected: ["a": .javascript("b")])
+                expected: ["a": .javascript(.init(from: "b"))])
             
             $0.test(name: "multiple-character",
                 canonical: "190000000D61000D0000006162616261626162616261620000",
-                expected: ["a": .javascript("abababababab")])
+                expected: ["a": .javascript(.init(from: "abababababab"))])
             
             $0.test(name: "utf-8-double-code-unit",
                 canonical: "190000000D61000D000000C3A9C3A9C3A9C3A9C3A9C3A90000",
-                expected: ["a": .javascript("\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}")])
+                expected: ["a": .javascript(.init(from: "\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}"))])
             
             $0.test(name: "utf-8-triple-code-unit",
                 canonical: "190000000D61000D000000E29886E29886E29886E298860000",
-                expected: ["a": .javascript("\u{2606}\u{2606}\u{2606}\u{2606}")])
+                expected: ["a": .javascript(.init(from: "\u{2606}\u{2606}\u{2606}\u{2606}"))])
             
             $0.test(name: "utf-8-null-bytes",
                 canonical: "190000000D61000D0000006162006261620062616261620000",
-                expected: ["a": .javascript("ab\u{00}bab\u{00}babab")])
+                expected: ["a": .javascript(.init(from: "ab\u{00}bab\u{00}babab"))])
             
             $0.test(name: "missing-trailing-null-byte",
                 invalid: "0C000000_0D_6100_00000000_00",
@@ -716,23 +716,23 @@ enum Main:SynchronousTests
         {
             $0.test(name: "empty",
                 canonical: "160000000F61000E0000000100000000050000000000",
-                expected: ["a": .javascriptScope([:], "")])
+                expected: ["a": .javascriptScope([:], .init(from: ""))])
             
             $0.test(name: "empty-scope",
                 canonical: "1A0000000F610012000000050000006162636400050000000000",
-                expected: ["a": .javascriptScope([:], "abcd")])
+                expected: ["a": .javascriptScope([:], .init(from: "abcd"))])
             
             $0.test(name: "empty-code",
                 canonical: "1D0000000F61001500000001000000000C000000107800010000000000",
-                expected: ["a": .javascriptScope(["x": .int32(1)], "")])
+                expected: ["a": .javascriptScope(["x": .int32(1)], .init(from: ""))])
             
             $0.test(name: "non-empty",
                 canonical: "210000000F6100190000000500000061626364000C000000107800010000000000",
-                expected: ["a": .javascriptScope(["x": .int32(1)], "abcd")])
+                expected: ["a": .javascriptScope(["x": .int32(1)], .init(from: "abcd"))])
             
             $0.test(name: "unicode",
                 canonical: "1A0000000F61001200000005000000C3A9006400050000000000",
-                expected: ["a": .javascriptScope([:], "\u{e9}\u{00}d")])
+                expected: ["a": .javascriptScope([:], .init(from: "\u{e9}\u{00}d"))])
             
             // note: we do not validate the redundant field length,
             // so those tests are not included

@@ -1,5 +1,3 @@
-import BSON
-
 public
 protocol CollectionViewBSON<Bytes>:Equatable
 {
@@ -7,6 +5,5 @@ protocol CollectionViewBSON<Bytes>:Equatable
     /// implementations satisfy this with generics.
     associatedtype Bytes:RandomAccessCollection<UInt8>
 
-    init(_:BSON.Value<Bytes>) throws
-    var bson:BSON.Value<Bytes> { get }
+    init(_:AnyBSON<Bytes>) throws
 }

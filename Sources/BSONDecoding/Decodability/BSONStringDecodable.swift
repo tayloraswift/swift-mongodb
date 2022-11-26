@@ -20,7 +20,7 @@ extension BSONStringDecodable
     /// who implement ``LosslessStringConvertible``, but expect to be
     /// decoded from a variant value that is not a string.
     @inlinable public
-    init(bson:BSON.Value<some RandomAccessCollection<UInt8>>) throws
+    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {
         let string:String = try .init(bson: bson)
         if  let value:Self = .init(string)

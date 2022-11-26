@@ -59,7 +59,7 @@ extension MongoWire.Message.Sequence where Bytes:RangeReplaceableCollection<UInt
         let size:Int = documents.reduce(id.utf8.count + 1) { $0 + $1.size }
         var output:BSON.Output<Bytes> = .init(capacity: size)
         // do *not* emit the length header!
-        output.serialize(cString: id)
+        output.serialize(key: id)
         for document:BSON.Document<Other> in documents
         {
             output.serialize(document: document)

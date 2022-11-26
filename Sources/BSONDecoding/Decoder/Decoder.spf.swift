@@ -10,7 +10,7 @@ extension BSON.Decoder:SingleValueDecodingContainer
     public
     func decodeNil() -> Bool
     {
-        self.value.is(Void.self)
+        self.value.null != nil
     }
     public
     func decode(_:Bool.Type) throws -> Bool
@@ -93,7 +93,7 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
     }
     func decodeNil(forKey key:Key) throws -> Bool
     {
-        try self.diagnose(key) { $0.is(Void.self) }
+        try self.diagnose(key) { $0.null != nil }
     }
     public
     func decode(_:Bool.Type, forKey key:Key) throws -> Bool
@@ -181,7 +181,7 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
         typed _:Key.Type = Key.self) throws -> BSON.Decoder<Bytes>
         where Key:CodingKey
     {
-        let value:BSON.Value<Bytes> = try self.diagnose(key){ $0 }
+        let value:AnyBSON<Bytes> = try self.diagnose(key){ $0 }
         let decoder:BSON.Decoder<Bytes> = .init(value, 
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder
@@ -215,7 +215,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     public mutating 
     func decodeNil() throws -> Bool
     {
-        try self.diagnose { $0.is(Void.self) }
+        try self.diagnose { $0.null != nil }
     }
     public mutating 
     func decode(_:Bool.Type) throws -> Bool
@@ -297,7 +297,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     func singleValueContainer() throws -> BSON.Decoder<Bytes>
     {
         let key:BSON.TupleKey = .init(intValue: self.currentIndex) 
-        let value:BSON.Value<Bytes> = try self.diagnose { $0 }
+        let value:AnyBSON<Bytes> = try self.diagnose { $0 }
         let decoder:BSON.Decoder<Bytes> = .init(value, 
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder

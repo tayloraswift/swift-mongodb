@@ -6,10 +6,10 @@ extension BSON
     struct Array<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         public
-        var elements:[BSON.Value<Bytes>]
+        var elements:[AnyBSON<Bytes>]
 
         @inlinable public
-        init(_ elements:[BSON.Value<Bytes>])
+        init(_ elements:[AnyBSON<Bytes>])
         {
             self.elements = elements
         }

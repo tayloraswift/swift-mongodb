@@ -63,25 +63,6 @@ extension BSON.Document:VariableLengthBSON
 
 extension BSON.Document
 {
-    /// Splits this document’s inline key-value pairs into an array.
-    ///
-    /// >   Complexity: O(*n*), where *n* is the size of this document’s backing storage.
-    @inlinable public
-    func parse() throws -> [(key:String, value:BSON.Value<Bytes.SubSequence>)]
-    {
-        var input:BSON.Input<Bytes> = .init(self.bytes)
-        var items:[(key:String, value:BSON.Value<Bytes.SubSequence>)] = []
-        while let code:UInt8 = input.next()
-        {
-            let type:BSON = try .init(code: code)
-            let key:String = try input.parse(as: String.self)
-            items.append((key, try input.parse(variant: type)))
-        }
-        return items
-    }
-}
-extension BSON.Document
-{
     /// The length that would be encoded in this document’s prefixed header.
     /// Equal to [`self.size`]().
     @inlinable public
@@ -112,39 +93,6 @@ extension BSON.Document<[UInt8]>
     }
 }
 
-extension BSON.Document:ExpressibleByDictionaryLiteral 
-    where Bytes:RangeReplaceableCollection<UInt8>
-{
-    /// Creates a document containing the given fields.
-    /// The order of the fields will be preserved.
-    @inlinable public
-    init(_ fields:some Collection<(key:String, value:BSON.Value<some RandomAccessCollection<UInt8>>)>)
-    {
-        self.init(bytes: BSON.Output<Bytes>.init(fields: fields).destination)
-    }
-
-    /// Creates a document containing a single key-value pair.
-    @inlinable public
-    init<Other>(key:String, value:BSON.Value<Other>)
-        where Other:RandomAccessCollection<UInt8>
-    {
-        self.init(CollectionOfOne<(key:String, value:BSON.Value<Other>)>.init((key, value)))
-    }
-
-    @inlinable public
-    init(dictionaryLiteral:(String, BSON.Value<Bytes>)...)
-    {
-        self.init(dictionaryLiteral)
-    }
-    /// Recursively parses and re-encodes this document, and any embedded documents
-    /// (and tuple-documents) in its elements. The keys will not be changed or re-ordered.
-    @inlinable public
-    func canonicalized() throws -> Self
-    {
-        .init(try self.parse().map { ($0.key, try $0.value.canonicalized()) })
-    }
-}
-
 extension BSON.Document:CustomStringConvertible
 {
     public
@@ -159,43 +107,5 @@ extension BSON.Document:CustomStringConvertible
             """
         }.joined(separator: "_")))
         """
-    }
-}
-extension BSON.Document
-{
-    /// Performs a type-aware equivalence comparison by parsing each operand and recursively
-    /// comparing the elements. Returns [`false`]() if either operand fails to parse.
-    ///
-    /// Some documents that do not compare equal under byte-wise
-    /// `==` comparison may compare equal under this operator, due to normalization
-    /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
-    /// will compare equal to a `BSON//Value.string(_:)` value with the same contents.
-    @inlinable public static
-    func ~~ <Other>(lhs:Self, rhs:BSON.Document<Other>) -> Bool
-    {
-        if  let lhs:[(key:String, value:BSON.Value<Bytes.SubSequence>)] = try? lhs.parse(),
-            let rhs:[(key:String, value:BSON.Value<Other.SubSequence>)] = try? rhs.parse(),
-                rhs.count == lhs.count
-        {
-            for (lhs, rhs):
-            (
-                (key:String, value:BSON.Value<Bytes.SubSequence>),
-                (key:String, value:BSON.Value<Other.SubSequence>)
-            )
-            in zip(lhs, rhs)
-            {
-                guard   lhs.key   ==  rhs.key,
-                        lhs.value ~~ rhs.value
-                else
-                {
-                    return false
-                }
-            }
-            return true
-        }
-        else
-        {
-            return false
-        }
     }
 }

@@ -54,14 +54,14 @@ extension BSON
     public 
     struct Decoder<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
-        let value:Value<Bytes>
+        let value:AnyBSON<Bytes>
         public 
         let codingPath:[any CodingKey]
         public 
         let userInfo:[CodingUserInfoKey: Any]
         
         public 
-        init(_ value:Value<Bytes>, path:[any CodingKey],
+        init(_ value:AnyBSON<Bytes>, path:[any CodingKey],
             userInfo:[CodingUserInfoKey: Any] = [:])
         {
             self.value = value 
@@ -72,7 +72,7 @@ extension BSON
 }
 extension BSON.Decoder
 {
-    func diagnose<T>(_ decode:(BSON.Value<Bytes>) throws -> T?) throws -> T
+    func diagnose<T>(_ decode:(AnyBSON<Bytes>) throws -> T?) throws -> T
     {
         do 
         {
@@ -117,7 +117,7 @@ extension BSON.Decoder:Decoder
     }
 }
 
-extension BSON.Value:Decoder 
+extension AnyBSON:Decoder 
 {
     @inlinable public 
     var codingPath:[any CodingKey] 

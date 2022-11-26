@@ -100,6 +100,41 @@ extension BSON.Input
             throw self.expected(.bytes(12))
         }
     }
+    /// Parses a boolean.
+    @inlinable public mutating
+    func parse(as _:Bool.Type = Bool.self) throws -> Bool
+    {
+        switch self.next()
+        {
+        case 0?:
+            return false
+        case 1?:
+            return true
+        case let code?:
+            throw BSON.BooleanSubtypeError.init(invalid: code)
+        case nil:
+            throw BSON.InputError.init(expected: .bytes(1))
+        }
+    }
+    @inlinable public mutating
+    func parse(as _:BSON.Decimal128.Type = BSON.Decimal128.self) throws -> BSON.Decimal128
+    {
+        let low:UInt64 = try self.parse(as: UInt64.self)
+        let high:UInt64 = try self.parse(as: UInt64.self)
+        return .init(high: high, low: low)
+    }
+    @inlinable public mutating
+    func parse(as _:BSON.Millisecond.Type = BSON.Millisecond.self) throws -> BSON.Millisecond
+    {
+        .init(try self.parse(as: Int64.self))
+    }
+    @inlinable public mutating
+    func parse(as _:BSON.Regex.Type = BSON.Regex.self) throws -> BSON.Regex
+    {
+        let pattern:String = try self.parse(as: String.self)
+        let options:String = try self.parse(as: String.self)
+        return try .init(pattern: pattern, options: options)
+    }
     /// Parses a little-endian integer.
     @inlinable public mutating
     func parse<LittleEndian>(as _:LittleEndian.Type = LittleEndian.self) throws -> LittleEndian
@@ -167,95 +202,5 @@ extension BSON.Input
     {
         .init(expected: expectation,
             encountered: self.source.distance(from: self.index, to: self.source.endIndex))
-    }
-}
-extension BSON.Input
-{
-    /// Parses a variant BSON value, assuming it is of the specified `variant` type.
-    @inlinable public mutating
-    func parse(variant:BSON) throws -> BSON.Value<Source.SubSequence>
-    {
-        switch variant
-        {
-        case .double:
-            return .double(.init(bitPattern: try self.parse(as: UInt64.self)))
-        
-        case .string:
-            return .string(try self.parse(as: BSON.UTF8<Source.SubSequence>.self))
-        
-        case .document:
-            return .document(try self.parse(as: BSON.Document<Source.SubSequence>.self))
-        
-        case .tuple:
-            return .tuple(try self.parse(as: BSON.Tuple<Source.SubSequence>.self))
-        
-        case .binary:
-            return .binary(try self.parse(as: BSON.Binary<Source.SubSequence>.self))
-        
-        case .null:
-            return .null
-        
-        case .id:
-            return .id(try self.parse(as: BSON.Identifier.self))
-        
-        case .bool:
-            switch self.next()
-            {
-            case 0?:
-                return .bool(false)
-            case 1?:
-                return .bool(true)
-            case let code?:
-                throw BSON.BooleanSubtypeError.init(invalid: code)
-            case nil:
-                throw BSON.InputError.init(expected: .bytes(1))
-            }
-        
-        case .millisecond:
-            return .millisecond(.init(try self.parse(as: Int64.self)))
-        
-        case .regex:
-            let pattern:String = try self.parse(as: String.self)
-            let options:String = try self.parse(as: String.self)
-            return .regex(try .init(pattern: pattern, options: options))
-        
-        case .pointer:
-            let database:BSON.UTF8<Source.SubSequence> = try self.parse(
-                as: BSON.UTF8<Source.SubSequence>.self)
-            let object:BSON.Identifier = try self.parse(
-                as: BSON.Identifier.self)
-            return .pointer(database, object)
-        
-        case .javascript:
-            return .javascript(try self.parse(as: BSON.UTF8<Source.SubSequence>.self))
-        
-        case .javascriptScope:
-            // possible micro-optimization here
-            let _:Int32 = try self.parse(as: Int32.self)
-            let code:BSON.UTF8<Source.SubSequence> = 
-                try self.parse(as: BSON.UTF8<Source.SubSequence>.self)
-            let scope:BSON.Document<Source.SubSequence> = 
-                try self.parse(as: BSON.Document<Source.SubSequence>.self)
-            return .javascriptScope(scope, code)
-        
-        case .int32:
-            return .int32(try self.parse(as: Int32.self))
-        
-        case .uint64:
-            return .uint64(try self.parse(as: UInt64.self))
-        
-        case .int64:
-            return .int64(try self.parse(as: Int64.self))
-        
-        case .decimal128:
-            let low:UInt64 = try self.parse(as: UInt64.self)
-            let high:UInt64 = try self.parse(as: UInt64.self)
-            return .decimal128(.init(high: high, low: low))
-        
-        case .max:
-            return .max
-        case .min:
-            return .min
-        }
     }
 }

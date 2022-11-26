@@ -8,7 +8,7 @@ protocol BSONDocumentDecodable:BSONDecodable
 extension BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Value<Bytes>) throws
+    init<Bytes>(bson:AnyBSON<Bytes>) throws
     {
         try self.init(bson: try BSON.Document<Bytes>.init(bson))
     }

@@ -7,7 +7,7 @@ protocol BSONArrayDecodable:BSONDecodable
 extension BSONArrayDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Value<Bytes>) throws
+    init<Bytes>(bson:AnyBSON<Bytes>) throws
     {
         try self.init(bson: try bson.array())
     }

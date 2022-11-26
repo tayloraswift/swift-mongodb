@@ -29,16 +29,12 @@ enum Main:SynchronousTests
                 encoded: .init
                 {
                     $0["default"] = 1.0
-                    $0["a"] = 1.0 as Float
-                    $0["b"] = 1.0 as Double
-                    $0["c"] = 1.0 as Float80
+                    $0["a"] = 1.0 as Double
                 },
                 literal:
                 [
                     "default": 1.0,
                     "a": .double(1.0),
-                    "b": .double(1.0),
-                    "c": .double(1.0),
                 ])
             
             $0.test(name: "string",
@@ -46,15 +42,15 @@ enum Main:SynchronousTests
                 {
                     $0["a"] = "string"
                     $0["b"] = "string"
-                    $0["c"] = "string" as BSON.UTF8<[UInt8]>
-                    $0["d"] = "string" as BSON.UTF8<[UInt8]>
+                    $0["c"] = "string" as BSON.UTF8<String.UTF8View>
+                    $0["d"] = "string" as BSON.UTF8<String.UTF8View>
                 },
                 literal:
                 [
                     "a": "string",
                     "b": "string",
-                    "c": .string("string" as BSON.UTF8<[UInt8]>),
-                    "d": .string("string" as BSON.UTF8<[UInt8]>),
+                    "c": .string(.init(from: "string")),
+                    "d": .string(.init(from: "string")),
                 ])
             
             $0.test(name: "optionals",

@@ -11,7 +11,7 @@ protocol BSONStringEncodable:BSONEncodable
 }
 extension BSONStringEncodable
 {
-    /// Returns the ``description`` of this instance as a BSON UTF-8 string.
+    /// Encodes the ``description`` of this instance as a BSON UTF-8 string.
     ///
     /// This default implementation is provided on an extension on a
     /// dedicated protocol rather than an extension on ``BSONEncodable``
@@ -19,8 +19,8 @@ extension BSONStringEncodable
     /// who implement ``LosslessStringConvertible``, but expect to be
     /// encoded as something besides a UTF-8 string.
     @inlinable public
-    var bson:BSON.Value<[UInt8]>
+    func encode(to field:inout BSON.Field)
     {
-        .string(self.description)
+        self.description.encode(to: &field)
     }
 }

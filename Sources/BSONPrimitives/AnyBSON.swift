@@ -1,58 +1,62 @@
 extension BSON
 {
-    /// A BSON variant value.
-    @frozen public
-    enum Value<Bytes> where Bytes:RandomAccessCollection<UInt8>
-    {
-        /// A general embedded document.
-        case document(Document<Bytes>)
-        /// An embedded tuple-document.
-        case tuple(Tuple<Bytes>)
-        /// A binary array.
-        case binary(Binary<Bytes>)
-        /// A boolean.
-        case bool(Bool)
-        /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
-        case decimal128(Decimal128)
-        /// A double-precision float.
-        case double(Double)
-        /// A MongoDB object reference.
-        case id(Identifier)
-        /// A 32-bit signed integer.
-        case int32(Int32)
-        /// A 64-bit signed integer.
-        case int64(Int64)
-        /// Javascript code.
-        /// The payload is a library type to permit efficient document traversal.
-        case javascript(UTF8<Bytes>)
-        /// A javascript scope containing code. This variant is maintained for 
-        /// backward-compatibility with older versions of BSON and 
-        /// should not be generated. (Prefer ``javascript(_:)``.)
-        case javascriptScope(Document<Bytes>, UTF8<Bytes>)
-        /// The MongoDB max-key.
-        case max
-        /// UTC milliseconds since the Unix epoch.
-        case millisecond(Millisecond)
-        /// The MongoDB min-key.
-        case min
-        /// An explicit null.
-        case null
-        /// A MongoDB database pointer. This variant is maintained for
-        /// backward-compatibility with older versions of BSON and
-        /// should not be generated. (Prefer ``id(_:)``.)
-        case pointer(UTF8<Bytes>, Identifier)
-        /// A regex.
-        case regex(Regex)
-        /// A UTF-8 string, possibly containing invalid code units.
-        /// The payload is a library type to permit efficient document traversal.
-        case string(UTF8<Bytes>)
-        /// A 64-bit unsigned integer.
-        ///
-        /// MongoDB also uses this type internally to represent timestamps.
-        case uint64(UInt64)
-    }
+    @available(*, deprecated, renamed: "AnyBSON")
+    public
+    typealias Value = AnyBSON
 }
-extension BSON.Value
+    
+/// A BSON variant value.
+@frozen public
+enum AnyBSON<Bytes> where Bytes:RandomAccessCollection<UInt8>
+{
+    /// A general embedded document.
+    case document(BSON.Document<Bytes>)
+    /// An embedded tuple-document.
+    case tuple(BSON.Tuple<Bytes>)
+    /// A binary array.
+    case binary(BSON.Binary<Bytes>)
+    /// A boolean.
+    case bool(Bool)
+    /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
+    case decimal128(BSON.Decimal128)
+    /// A double-precision float.
+    case double(Double)
+    /// A MongoDB object reference.
+    case id(BSON.Identifier)
+    /// A 32-bit signed integer.
+    case int32(Int32)
+    /// A 64-bit signed integer.
+    case int64(Int64)
+    /// Javascript code.
+    /// The payload is a library type to permit efficient document traversal.
+    case javascript(BSON.UTF8<Bytes>)
+    /// A javascript scope containing code. This variant is maintained for 
+    /// backward-compatibility with older versions of BSON and 
+    /// should not be generated. (Prefer ``javascript(_:)``.)
+    case javascriptScope(BSON.Document<Bytes>, BSON.UTF8<Bytes>)
+    /// The MongoDB max-key.
+    case max
+    /// UTC milliseconds since the Unix epoch.
+    case millisecond(BSON.Millisecond)
+    /// The MongoDB min-key.
+    case min
+    /// An explicit null.
+    case null
+    /// A MongoDB database pointer. This variant is maintained for
+    /// backward-compatibility with older versions of BSON and
+    /// should not be generated. (Prefer ``id(_:)``.)
+    case pointer(BSON.UTF8<Bytes>, BSON.Identifier)
+    /// A regex.
+    case regex(BSON.Regex)
+    /// A UTF-8 string, possibly containing invalid code units.
+    /// The payload is a library type to permit efficient document traversal.
+    case string(BSON.UTF8<Bytes>)
+    /// A 64-bit unsigned integer.
+    ///
+    /// MongoDB also uses this type internally to represent timestamps.
+    case uint64(UInt64)
+}
+extension AnyBSON
 {
     /// The type of this variant value.
     @inlinable public
@@ -128,20 +132,8 @@ extension BSON.Value
         }
     }
 }
-extension BSON.Value
-{
-    /// Parses a variant BSON value from a collection of bytes, 
-    /// assuming it is of the specified `variant` type.
-    // @inlinable public
-    // init<Source>(parsing source:Source, as variant:BSON) throws
-    //     where Source:RandomAccessCollection<UInt8>, Source.SubSequence == Bytes
-    // {
-    //     var input:BSON.Input<Source> = .init(source)
-    //     self = try input.parse(variant: variant)
-    //     try input.finish()
-    // }
-}
-extension BSON.Value
+
+extension AnyBSON
 {
     /// Performs a type-aware equivalence comparison.
     /// If both operands are a ``document(_:)`` (or ``tuple(_:)``), performs a recursive
@@ -166,7 +158,7 @@ extension BSON.Value
     ///     The embedded UTF-8 string in the deprecated `pointer(_:_:)` variant
     ///     also receives type-aware treatment.
     @inlinable public static
-    func ~~ (lhs:Self, rhs:BSON.Value<some RandomAccessCollection<UInt8>>) -> Bool
+    func ~~ (lhs:Self, rhs:AnyBSON<some RandomAccessCollection<UInt8>>) -> Bool
     {
         switch (lhs, rhs)
         {
@@ -214,13 +206,13 @@ extension BSON.Value
         }
     }
 }
-extension BSON.Value:Equatable
+extension AnyBSON:Equatable
 {
 }
-extension BSON.Value:Sendable where Bytes:Sendable, Bytes.SubSequence:Sendable
+extension AnyBSON:Sendable where Bytes:Sendable
 {
 }
-extension BSON.Value:ExpressibleByStringLiteral,
+extension AnyBSON:ExpressibleByStringLiteral,
     ExpressibleByArrayLiteral,
     ExpressibleByExtendedGraphemeClusterLiteral, 
     ExpressibleByUnicodeScalarLiteral,
@@ -230,17 +222,17 @@ extension BSON.Value:ExpressibleByStringLiteral,
     @inlinable public
     init(stringLiteral:String)
     {
-        self = .string(stringLiteral)
+        self = .string(.init(from: stringLiteral))
     }
     @inlinable public
     init(arrayLiteral:Self...)
     {
-        self = .tuple(.init(arrayLiteral))
+        self = .tuple(.init(elements: arrayLiteral))
     }
     @inlinable public
     init(dictionaryLiteral:(String, Self)...)
     {
-        self = .document(.init(dictionaryLiteral))
+        self = .document(.init(fields: dictionaryLiteral))
     }
     /// Recursively parses and re-encodes any embedded documents (and tuple-documents)
     /// in this variant value.
@@ -275,28 +267,8 @@ extension BSON.Value:ExpressibleByStringLiteral,
             return self
         }
     }
-
-    /// Copies the UTF-8 code units backing the given string into a
-    /// variant of ``case string(_:)``.
-    ///
-    /// >   Complexity: O(*n*), where *n* is the length of the string.
-    @inlinable public static
-    func string(_ string:some StringProtocol) -> Self
-    {
-        .string(.init(string))
-    }
-    @inlinable public static
-    func javascript(_ string:some StringProtocol) -> Self
-    {
-        .javascript(.init(string))
-    }
-    @inlinable public static
-    func javascriptScope(_ scope:BSON.Document<Bytes>, _ string:some StringProtocol) -> Self
-    {
-        .javascriptScope(scope, .init(string))
-    }
 }
-extension BSON.Value:ExpressibleByFloatLiteral
+extension AnyBSON:ExpressibleByFloatLiteral
 {
     @inlinable public
     init(floatLiteral:Double)
@@ -304,7 +276,7 @@ extension BSON.Value:ExpressibleByFloatLiteral
         self = .double(floatLiteral)
     }
 }
-extension BSON.Value:ExpressibleByIntegerLiteral
+extension AnyBSON:ExpressibleByIntegerLiteral
 {
     /// Creates an instance initialized to the specified integer value.
     ///
@@ -317,7 +289,7 @@ extension BSON.Value:ExpressibleByIntegerLiteral
         self = .int64(Int64.init(integerLiteral))
     }
 }
-extension BSON.Value:ExpressibleByBooleanLiteral
+extension AnyBSON:ExpressibleByBooleanLiteral
 {
     @inlinable public
     init(booleanLiteral:Bool)
@@ -326,7 +298,7 @@ extension BSON.Value:ExpressibleByBooleanLiteral
     }
 }
 
-extension BSON.Value:CustomStringConvertible
+extension AnyBSON:CustomStringConvertible
 {
     public
     var description:String
@@ -352,9 +324,9 @@ extension BSON.Value:CustomStringConvertible
         case .int64(let int64):
             return ".int64(\(int64))"
         case .javascript(let javascript):
-            return ".javascript(\(javascript))"
+            return ".javascript(\"\(javascript)\")"
         case .javascriptScope(let scope, let javascript):
-            return ".javascriptScope(\(scope), \(javascript))"
+            return ".javascriptScope(\(scope), \"\(javascript)\")"
         case .max:
             return ".max"
         case .millisecond(let millisecond):
@@ -368,46 +340,37 @@ extension BSON.Value:CustomStringConvertible
         case .regex(let regex):
             return ".regex(\(regex))"
         case .string(let string):
-            return ".string(\(string))"
+            return ".string(\"\(string)\")"
         case .uint64(let uint64):
             return ".uint64(\(uint64))"
         }
     }
 }
 
-extension BSON.Value
+extension AnyBSON
 {
-    /// Indicates if this variant is ``null``.
+    /// Promotes a [`nil`]() result to a thrown ``TypecastError``.
+    /// 
+    /// If `T` conforms to ``BSONDecodable``, prefer calling its throwing
+    /// ``BSONDecodable/.init(bson:)`` to calling this method directly.
+    ///
+    /// >   Throws: A ``TypecastError`` if the given curried method returns [`nil`]().
+    @inline(__always)
     @inlinable public 
-    func `is`(_:Void.Type) -> Bool
+    func cast<T>(with cast:(Self) throws -> T?) throws -> T
     {
-        switch self 
+        if let value:T = try cast(self)
         {
-        case .null: return true 
-        default:    return false
+            return value 
+        }
+        else 
+        {
+            throw BSON.TypecastError<T>.init(invalid: self.type)
         }
     }
-    // /// Indicates if this variant is ``max``.
-    // @inlinable public 
-    // func `is`(_:BSON.Max.Type) -> Bool
-    // {
-    //     switch self 
-    //     {
-    //     case .max:  return true 
-    //     default:    return false
-    //     }
-    // }
-    // /// Indicates if this variant is ``min``.
-    // @inlinable public 
-    // func `is`(_:BSON.Min.Type) -> Bool
-    // {
-    //     switch self 
-    //     {
-    //     case .min:  return true 
-    //     default:    return false
-    //     }
-    // }
-
+}
+extension AnyBSON
+{
     /// Attempts to load an instance of ``Bool`` from this variant.
     /// 
     /// -   Returns:
@@ -600,7 +563,7 @@ extension BSON.Value
         }
     }
 }
-extension BSON.Value
+extension AnyBSON
 {
     /// Attempts to load an explicit ``null`` from this variant.
     /// 
@@ -609,7 +572,11 @@ extension BSON.Value
     @inlinable public 
     var null:Void?
     {
-        self.is(Void.self) ? () : nil
+        switch self 
+        {
+        case .null: return () 
+        default:    return nil
+        }
     }
     /// Attempts to load a ``max`` key from this variant.
     /// 
@@ -638,7 +605,7 @@ extension BSON.Value
         }
     }
 }
-extension BSON.Value
+extension AnyBSON
 {
     /// Attempts to unwrap a binary array from this variant.
     /// 

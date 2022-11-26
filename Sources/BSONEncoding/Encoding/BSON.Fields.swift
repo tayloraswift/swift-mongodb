@@ -20,23 +20,7 @@ extension BSON.Fields
         {
             if let value:Encodable
             {
-                self.output.serialize(key: key, value: value.bson)
-            }
-        }
-    }
-    @inlinable public
-    subscript<View>(key:String) -> View?
-        where View:CollectionViewBSON
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let value:View
-            {
-                self.output.serialize(key: key, value: value.bson)
+                self.append(key: key, with: value.encode(to:))
             }
         }
     }
@@ -51,7 +35,7 @@ extension BSON.Fields
         {
             if let _:Void = value
             {
-                self.output.serialize(key: key, value: BSON.Value<[UInt8]>.null)
+                self.append(key: key) { $0.encode(null: ()) }
             }
         }
     }
@@ -78,7 +62,7 @@ extension BSON.Fields
         {
             if let value:Encodable, !(elide && value.isEmpty)
             {
-                self.output.serialize(key: key, value: value.bson)
+                self.append(key: key, with: value.encode(to:))
             }
         }
     }
@@ -93,7 +77,7 @@ extension BSON.Fields
         {
             if let value:Self, !(elide && value.isEmpty)
             {
-                self.output.serialize(key: key, value: value.bson)
+                self.append(key: key, with: value.encode(to:))
             }
         }
     }

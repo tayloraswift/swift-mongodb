@@ -10,10 +10,10 @@ extension BSON
         public
         let key:String
         public
-        let value:BSON.Value<Bytes>?
+        let value:AnyBSON<Bytes>?
 
         @inlinable public
-        init(key:String, value:BSON.Value<Bytes>?)
+        init(key:String, value:AnyBSON<Bytes>?)
         {
             self.key = key
             self.value = value
@@ -41,9 +41,9 @@ extension BSON.ImplicitField
     /// if it is [`nil`](). This is a distinct condition from an explicit
     /// ``BSON.null`` value, which will be returned without throwing an error.
     @inlinable public
-    func decode() throws -> BSON.Value<Bytes>
+    func decode() throws -> AnyBSON<Bytes>
     {
-        if let value:BSON.Value<Bytes> = self.value
+        if let value:AnyBSON<Bytes> = self.value
         {
             return value 
         }
@@ -60,12 +60,12 @@ extension BSON.ImplicitField:DecoderField
     /// ``BSON/RecursiveError.document(_:in:)`` wrapping the underlying error if
     /// decoding fails.
     @inlinable public
-    func decode<T>(with decode:(BSON.Value<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
     {
         // we cannot *quite* shove this into the `do` block, because we 
         // do not want to throw a ``RecursiveError`` just because the key 
         // was not found.
-        let value:BSON.Value<Bytes> = try self.decode()
+        let value:AnyBSON<Bytes> = try self.decode()
         do 
         {
             return try decode(value)

@@ -6,7 +6,7 @@ protocol DecoderField<Value>
 
     func decode<T>(with decode:(Value) throws -> T) throws -> T
 }
-extension DecoderField where Value == BSON.Value<Bytes>
+extension DecoderField where Value == AnyBSON<Bytes>
 {
     @inlinable public
     func decode<T>(as _:BSON.Array<Bytes.SubSequence>.Type,
