@@ -1,3 +1,5 @@
+import BSONUnions
+
 extension DecodingError
 {
     init<T>(annotating error:any Error, initializing _:T.Type, path:[any CodingKey]) 

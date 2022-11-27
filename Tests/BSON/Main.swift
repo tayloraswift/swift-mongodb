@@ -1,6 +1,7 @@
-import Testing
 import Base16
-import BSONPrimitives
+import BSON
+import BSONUnions
+import Testing
 
 @main 
 enum Main:SynchronousTests

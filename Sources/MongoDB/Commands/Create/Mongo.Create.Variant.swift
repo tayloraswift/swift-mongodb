@@ -8,7 +8,7 @@ extension Mongo.Create
         case collection(cap:Mongo.Cap? = nil,
             validationAction:Mongo.ValidationAction? = nil,
             validationLevel:Mongo.ValidationLevel? = nil,
-            validator:BSON.Fields = [:])
+            validator:BSON.Fields = .init())
         
         case timeseries(Mongo.Timeseries)
 

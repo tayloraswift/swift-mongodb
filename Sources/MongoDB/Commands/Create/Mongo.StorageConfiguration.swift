@@ -1,4 +1,5 @@
 import BSONSchema
+import BSONUnions
 
 extension Mongo
 {
@@ -20,7 +21,10 @@ extension Mongo.StorageConfiguration:BSONDocumentEncodable
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson = .init(self.engines.lazy.map { ($0.name, $0.options.bson) })
+        for (name, options):(String, BSON.Fields) in self
+        {
+            bson[name] = options
+        }
     }
 }
 extension Mongo.StorageConfiguration:BSONDocumentDecodable

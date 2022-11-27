@@ -126,7 +126,16 @@ extension String:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(string: BSON.UTF8<String.UTF8View>.init(self))
+        field.encode(string: .init(self))
+    }
+}
+extension Substring:BSONEncodable
+{
+    /// Encodes this substring as a value of type ``BSON.string``.
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(string: .init(self))
     }
 }
 extension Optional:BSONEncodable where Wrapped:BSONEncodable
@@ -163,7 +172,7 @@ extension BSONEncodable where Self:Sequence, Element:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(tuple: .init(.init(self)))
+        field.encode(tuple: .init(.init(elements: self)))
     }
 }
 extension Array:BSONEncodable where Element:BSONEncodable

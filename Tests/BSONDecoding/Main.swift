@@ -44,7 +44,7 @@ enum Main:SynchronousTests
             ]
 
             $0.test(name: "int32-to-uint8", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
+                failure: BSON.DecodingError<String>.init(
                     BSON.IntegerOverflowError<UInt8>.int32(0x7fff_ffff),
                     in: "int32"))
             {
@@ -88,7 +88,7 @@ enum Main:SynchronousTests
             ]
 
             $0.test(name: "none-to-two", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
+                failure: BSON.DecodingError<String>.init(
                     BSON.ArrayShapeError.init(count: 0, expected: 2),
                     in: "none"))
             {
@@ -108,7 +108,7 @@ enum Main:SynchronousTests
             }
 
             $0.test(name: "three-to-two", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
+                failure: BSON.DecodingError<String>.init(
                     BSON.ArrayShapeError.init(count: 3, expected: 2),
                     in: "three"))
             {
@@ -119,7 +119,7 @@ enum Main:SynchronousTests
             }
 
             $0.test(name: "three-by-two", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
+                failure: BSON.DecodingError<String>.init(
                     BSON.ArrayShapeError.init(count: 3, expected: nil),
                     in: "three"))
             {
@@ -145,8 +145,8 @@ enum Main:SynchronousTests
             }
 
             $0.test(name: "map-invalid", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
-                    BSON.RecursiveError<Int>.init(
+                failure: BSON.DecodingError<String>.init(
+                    BSON.DecodingError<Int>.init(
                         BSON.TypecastError<String>.init(invalid: .int64), in: 2),
                     in: "heterogenous"))
             {
@@ -162,8 +162,8 @@ enum Main:SynchronousTests
             }
 
             $0.test(name: "element-invalid", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
-                    BSON.RecursiveError<Int>.init(
+                failure: BSON.DecodingError<String>.init(
+                    BSON.DecodingError<Int>.init(
                         BSON.TypecastError<String>.init(invalid: .int64), in: 2),
                     in: "heterogenous"))
             {
@@ -206,7 +206,7 @@ enum Main:SynchronousTests
             }
 
             $0.test(name: "key-not-matching", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
+                failure: BSON.DecodingError<String>.init(
                     BSON.TypecastError<String>.init(invalid: .bool),
                     in: "inhabited"))
             {
@@ -214,7 +214,7 @@ enum Main:SynchronousTests
             }
 
             $0.test(name: "key-not-matching-inhabited", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
+                failure: BSON.DecodingError<String>.init(
                     BSON.TypecastError<Bool>.init(invalid: .null),
                     in: "present"))
             {
@@ -253,7 +253,7 @@ enum Main:SynchronousTests
 
             // should throw an error instead of returning [`nil`]().
             $0.test(name: "key-optional-not-inhabited", decoding: bson,
-                failure: BSON.RecursiveError<String>.init(
+                failure: BSON.DecodingError<String>.init(
                     BSON.TypecastError<Bool>.init(invalid: .null),
                     in: "present"))
             {

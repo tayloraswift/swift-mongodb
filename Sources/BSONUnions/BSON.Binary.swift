@@ -1,4 +1,6 @@
-extension BSON.Binary:CollectionViewBSON
+import BSON
+
+extension BSON.Binary
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws

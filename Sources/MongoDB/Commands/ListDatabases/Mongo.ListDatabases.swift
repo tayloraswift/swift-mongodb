@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSONSchema
 
 extension Mongo
 {
@@ -19,7 +18,7 @@ extension Mongo
         let filter:BSON.Fields
 
         public
-        init(authorizedDatabases:Bool? = nil, filter:BSON.Fields = [:])
+        init(authorizedDatabases:Bool? = nil, filter:BSON.Fields = .init())
         {
             self.authorizedDatabases = authorizedDatabases
             self.filter = filter

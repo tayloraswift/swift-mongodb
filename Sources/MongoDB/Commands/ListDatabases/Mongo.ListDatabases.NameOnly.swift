@@ -25,7 +25,7 @@ extension Mongo.ListDatabases
 extension Mongo.ListDatabases.NameOnly
 {
     public
-    init(authorizedDatabases:Bool? = nil, filter:BSON.Fields = [:])
+    init(authorizedDatabases:Bool? = nil, filter:BSON.Fields = .init())
     {
         self.init(.init(authorizedDatabases: authorizedDatabases, filter: filter))
     }

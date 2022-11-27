@@ -1,4 +1,6 @@
-extension BSON.UTF8:CollectionViewBSON where Bytes:RandomAccessCollection<UInt8>
+import BSON
+
+extension BSON.UTF8 where Bytes:RandomAccessCollection<UInt8>
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws

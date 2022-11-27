@@ -1,12 +1,17 @@
+import BSONUnions
+
+/// A type that represents a scope for decoding operations.
 public
-protocol DecoderField<Value>
+protocol BSONScope<Bytes>
 {
     associatedtype Bytes:RandomAccessCollection<UInt8>
-    associatedtype Value
 
-    func decode<T>(with decode:(Value) throws -> T) throws -> T
+    /// Attempts to load a BSON variant value and passes it to the given
+    /// closure, returns its result. If decoding fails, the implementation
+    /// should annotate the error with appropriate context and re-throw it.
+    func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
 }
-extension DecoderField where Value == AnyBSON<Bytes>
+extension BSONScope
 {
     @inlinable public
     func decode<T>(as _:BSON.Array<Bytes.SubSequence>.Type,
@@ -22,7 +27,7 @@ extension DecoderField where Value == AnyBSON<Bytes>
     }
     @inlinable public
     func decode<View, T>(as _:View.Type,
-        with decode:(View) throws -> T) throws -> T where View:CollectionViewBSON<Bytes>
+        with decode:(View) throws -> T) throws -> T where View:BSONDecodableView<Bytes>
     {
         try self.decode { try decode(try .init($0)) }
     }

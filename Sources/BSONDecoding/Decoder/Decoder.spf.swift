@@ -1,4 +1,4 @@
-
+import BSONUnions
 
 extension BSON.Decoder:SingleValueDecodingContainer
 {

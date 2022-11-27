@@ -1,4 +1,4 @@
-import MongoSchema
+import BSONEncoding
 
 extension Mongo
 {
@@ -48,17 +48,17 @@ extension Mongo
         init(collection:Collection, returning batching:Int,
             timeout:Milliseconds? = nil,
             tailing:Tailing? = nil,
-            `let`:BSON.Fields = [:],
-            filter:BSON.Fields = [:],
-            sort:BSON.Fields = [:],
-            projection:BSON.Fields = [:],
+            `let`:BSON.Fields = .init(),
+            filter:BSON.Fields = .init(),
+            sort:BSON.Fields = .init(),
+            projection:BSON.Fields = .init(),
             skip:Int = 0,
             limit:Int = 0,
             collation:Collation? = nil,
             readConcern:ReadConcern? = nil,
             hint:IndexHint? = nil,
-            min:BSON.Fields = [:],
-            max:BSON.Fields = [:],
+            min:BSON.Fields = .init(),
+            max:BSON.Fields = .init(),
             returnKey:Bool? = nil,
             showRecordIdentifier:Bool? = nil)
         {

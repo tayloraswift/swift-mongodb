@@ -1,3 +1,5 @@
+import BSONUnions
+
 extension BSON
 {
     @frozen public
@@ -16,10 +18,10 @@ extension BSON
         }
     }
 }
-extension BSON.ExplicitField:DecoderField
+extension BSON.ExplicitField:BSONScope
 {
     /// Decodes the value of this field with the given decoder.
-    /// Throws a ``BSON/RecursiveError`` wrapping the underlying
+    /// Throws a ``BSON/DecodingError`` wrapping the underlying
     /// error if decoding fails.
     @inlinable public
     func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
@@ -30,7 +32,7 @@ extension BSON.ExplicitField:DecoderField
         }
         catch let error 
         {
-            throw BSON.RecursiveError.init(error, in: self.key)
+            throw BSON.DecodingError.init(error, in: self.key)
         }
     }
 }

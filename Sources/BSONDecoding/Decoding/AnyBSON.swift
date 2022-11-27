@@ -1,3 +1,5 @@
+import BSONUnions
+
 extension AnyBSON
 {
     /// Attempts to unwrap and parse an array-decoder from this variant.

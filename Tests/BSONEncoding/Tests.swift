@@ -1,5 +1,6 @@
-import Testing
 import BSONEncoding
+import BSONUnions
+import Testing
 
 extension Tests
 {

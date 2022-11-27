@@ -1,3 +1,5 @@
+import BSON
+
 extension BSON.Output
 {
     /// Serializes the given variant value, without encoding its type.
@@ -87,25 +89,5 @@ extension BSON.Output
         {
             self.serialize(key: key, value: value)
         }
-    }
-}
-extension BSON.Output
-{
-    /// Serializes the given fields, making two passes over the collection
-    /// of fields in order to encode the output without reallocations.
-    ///
-    /// The destination buffer will not include the trailing null byte
-    /// found when a sequence of fields is stored within a BSON document,
-    /// but the destination buffer *will* contain space for a null byte to
-    /// be appended by the caller without triggering a reallocation, as
-    /// long as the `Destination` type supports preallocation.
-    @inlinable public
-    init(fields:some Collection<(key:String, value:AnyBSON<some RandomAccessCollection<UInt8>>)>)
-    {
-        let size:Int = fields.reduce(0) { $0 + 2 + $1.key.utf8.count + $1.value.size }
-        self.init(capacity: size)
-        self.serialize(fields: fields)
-        assert(self.destination.count == size,
-            "precomputed size (\(size)) does not match output size (\(self.destination.count))")
     }
 }

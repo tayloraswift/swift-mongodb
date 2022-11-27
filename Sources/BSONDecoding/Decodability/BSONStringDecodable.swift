@@ -1,3 +1,5 @@
+import BSONUnions
+
 /// A type that can be decoded from a BSON UTF-8 string. This protocol
 /// exists to allow types that also conform to ``LosslessStringConvertible``
 /// to opt-in to automatic ``BSONDecodable`` conformance as well.

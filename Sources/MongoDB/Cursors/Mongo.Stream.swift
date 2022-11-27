@@ -1,5 +1,3 @@
-import MongoSchema
-
 extension Mongo
 {
     @frozen public

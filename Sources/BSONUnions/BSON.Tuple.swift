@@ -1,4 +1,6 @@
-extension BSON.Tuple:CollectionViewBSON
+import BSON
+
+extension BSON.Tuple
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws

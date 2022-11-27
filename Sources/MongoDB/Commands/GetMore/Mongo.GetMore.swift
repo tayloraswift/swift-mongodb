@@ -1,9 +1,9 @@
-import MongoSchema
+import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct GetMore<Element> where Element:MongoDecodable
+    struct GetMore<Element>:Sendable where Element:MongoDecodable
     {
         public
         let collection:Collection

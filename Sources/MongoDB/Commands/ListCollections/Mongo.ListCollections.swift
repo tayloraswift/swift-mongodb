@@ -15,7 +15,7 @@ extension Mongo
         let filter:BSON.Fields
 
         public
-        init(authorizedCollections:Bool? = nil, filter:BSON.Fields = [:])
+        init(authorizedCollections:Bool? = nil, filter:BSON.Fields = .init())
         {
             self.authorizedCollections = authorizedCollections
             self.filter = filter

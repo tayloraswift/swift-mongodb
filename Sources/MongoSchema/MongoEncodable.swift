@@ -1,2 +1,6 @@
+import BSONEncoding
+
 public
-typealias MongoEncodable = BSONDocumentEncodable & Sendable
+protocol MongoEncodable:BSONDocumentEncodable, Sendable
+{
+}

@@ -1,11 +1,12 @@
-import MongoSchema
+import BSONDecoding
+import BSONEncoding
 import MongoWire
 import NIOCore
 
 /// A type that can encode a MongoDB command document. All command types
 /// (and command protocols) eventually inherit from this protocol.
 public
-protocol MongoCommand<Response>:MongoEncodable
+protocol MongoCommand<Response>:BSONDocumentEncodable, Sendable
 {
     /// The server response this command expects to receive.
     ///

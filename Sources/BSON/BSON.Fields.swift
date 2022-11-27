@@ -7,9 +7,9 @@ extension BSON
         var output:BSON.Output<[UInt8]>
 
         @inlinable public
-        init(output:BSON.Output<[UInt8]> = .init(capacity: 0))
+        init(bytes:[UInt8] = [])
         {
-            self.output = output
+            self.output = .init(preallocated: bytes)
         }
     }
 }
@@ -40,8 +40,8 @@ extension BSON.Fields
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(bson:BSON.Document<[UInt8]>)
+    init(_ bson:BSON.Document<[UInt8]>)
     {
-        self.init(output: .init(preallocated: bson.bytes))
+        self.init(bytes: bson.bytes)
     }
 }

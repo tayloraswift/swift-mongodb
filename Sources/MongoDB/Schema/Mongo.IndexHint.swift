@@ -6,18 +6,20 @@ extension Mongo
     enum IndexHint:Sendable
     {
         case id(String)
-        case index(BSON.Document<[UInt8]>)
+        case index(BSON.Fields)
     }
 }
 extension Mongo.IndexHint:BSONEncodable
 {
     public
-    var bson:BSON.Value<[UInt8]>
+    func encode(to field:inout BSON.Field)
     {
         switch self
         {
-        case .id(let string):       return .string(string)
-        case .index(let document):  return .document(document)
+        case .id(let string):
+            string.encode(to: &field)
+        case .index(let fields):
+            fields.encode(to: &field)
         }
     }
 }

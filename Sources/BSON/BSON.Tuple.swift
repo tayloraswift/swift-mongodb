@@ -78,8 +78,8 @@ extension BSON.Tuple<[UInt8]>
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ fields:BSON.Elements)
+    init(_ elements:BSON.Elements)
     {
-        self.init(bytes: fields.output.destination)
+        self.init(bytes: elements.output.destination)
     }
 }

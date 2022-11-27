@@ -1,3 +1,5 @@
+import BSONUnions
+
 extension BSON
 {
     struct KeyedDecoder<Bytes, Key> where Bytes:RandomAccessCollection<UInt8>, Key:CodingKey

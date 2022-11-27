@@ -1,1 +1,1 @@
-@_exported import BSONPrimitives
+@_exported import BSON

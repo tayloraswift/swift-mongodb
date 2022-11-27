@@ -1,10 +1,5 @@
-extension BSON
-{
-    @available(*, deprecated, renamed: "AnyBSON")
-    public
-    typealias Value = AnyBSON
-}
-    
+import BSON
+
 /// A BSON variant value.
 @frozen public
 enum AnyBSON<Bytes> where Bytes:RandomAccessCollection<UInt8>

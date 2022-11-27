@@ -1,4 +1,6 @@
-extension BSON.Document:CollectionViewBSON
+import BSON
+
+extension BSON.Document
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws
@@ -28,12 +30,20 @@ extension BSON.Document
 extension BSON.Document:ExpressibleByDictionaryLiteral 
     where Bytes:RangeReplaceableCollection<UInt8>
 {
-    /// Creates a document containing the given fields.
+    /// Creates a document containing the given fields, making two passes over
+    /// the list of fields in order to encode the output without reallocations.
     /// The order of the fields will be preserved.
     @inlinable public
     init(fields:some Collection<(key:String, value:AnyBSON<some RandomAccessCollection<UInt8>>)>)
     {
-        self.init(bytes: BSON.Output<Bytes>.init(fields: fields).destination)
+        let size:Int = fields.reduce(0) { $0 + 2 + $1.key.utf8.count + $1.value.size }
+        var output:BSON.Output<Bytes> = .init(capacity: size)
+            output.serialize(fields: fields)
+        
+        assert(output.destination.count == size,
+            "precomputed size (\(size)) does not match output size (\(output.destination.count))")
+
+        self.init(bytes: output.destination)
     }
 
     /// Creates a document containing a single key-value pair.

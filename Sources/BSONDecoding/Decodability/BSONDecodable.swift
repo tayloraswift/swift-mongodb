@@ -1,7 +1,17 @@
-/// A type that can be decoded from a BSON variant value.
+import BSONUnions
+
+/// A type that can be decoded from a BSON variant value backed by
+/// some type of storage not particular to the decoded type.
+///
+/// This protocol is parallel and unrelated to ``BSONDecodableView`` to
+/// emphasize the performance characteristics of types that conform to
+/// this protocol and not ``BSONDecodableView``.
 public
 protocol BSONDecodable
 {
+    /// Attempts to cast a BSON variant backed by some storage type to an
+    /// instance of this type. The implementation can copy the contents
+    /// of the backing storage if needed.
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
 }
 
@@ -55,6 +65,11 @@ extension BSON.Min:BSONDecodable
 }
 extension BSON.Regex:BSONDecodable
 {
+    /// Attempts to unwrap a ``BSON/Regex`` from the given variant.
+    /// The library always eagerly-parses regexes, so this initializer
+    /// does not perform any copying.
+    ///
+    /// >   Complexity: O(1).
     @inlinable public
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {
@@ -63,6 +78,10 @@ extension BSON.Regex:BSONDecodable
 }
 extension String:BSONDecodable
 {
+    /// Attempts to unwrap a ``BSON/UTF8`` string from the given variant.
+    /// Its UTF-8 code units will be copied, validated, and repaired if needed.
+    ///
+    /// >   Complexity: O(*n*), where *n* is the length of the string.
     @inlinable public
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {

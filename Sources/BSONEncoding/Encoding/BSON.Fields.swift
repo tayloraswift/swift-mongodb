@@ -1,9 +1,23 @@
 extension BSON.Fields
 {
-    /// Appends the given key-value pair to this document builder as a field
-    /// by accessing the value’s ``BSONEncodable.bson`` property witness, if
-    /// it is not [`nil`](), does nothing otherwise. The getter always returns
-    /// [`nil`]().
+    @inlinable public
+    init<Encodable>(fields:some Sequence<(key:String, value:Encodable)>)
+        where Encodable:BSONEncodable
+    {
+        self.init
+        {
+            for (key, value):(String, Encodable) in fields
+            {
+                $0.append(key: key, with: value.encode(to:))
+            }
+        }
+    }
+}
+extension BSON.Fields
+{
+    /// Appends the given key-value pair to this list of fields by delegating
+    /// to the value’s ``BSONEncodable.encode(to:)`` witness, if it is not
+    /// [`nil`](); does nothing otherwise. The getter always returns [`nil`]().
     ///
     /// Every non-[`nil`]() assignment to this subscript (including mutations
     /// that leave the value in a non-[`nil`]() state after returning) will add

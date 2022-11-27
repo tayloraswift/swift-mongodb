@@ -1,5 +1,5 @@
-import Testing
 import BSONEncoding
+import Testing
 
 @main 
 enum Main:SynchronousTests

@@ -1,3 +1,5 @@
+import BSONUnions
+
 extension BSON
 {
     /// A field that may or may not exist in a document. This type is
@@ -53,17 +55,16 @@ extension BSON.ImplicitField
         }
     }
 }
-extension BSON.ImplicitField:DecoderField
+extension BSON.ImplicitField:BSONScope
 {
     /// Decodes the value of this implicit field with the given decoder, throwing a
     /// ``BSON/DictionaryKeyError`` if it does not exist. Throws a
-    /// ``BSON/RecursiveError.document(_:in:)`` wrapping the underlying error if
-    /// decoding fails.
+    /// ``BSON/DecodingError`` wrapping the underlying error if decoding fails.
     @inlinable public
     func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
     {
         // we cannot *quite* shove this into the `do` block, because we 
-        // do not want to throw a ``RecursiveError`` just because the key 
+        // do not want to throw a ``DecodingError`` just because the key 
         // was not found.
         let value:AnyBSON<Bytes> = try self.decode()
         do 
@@ -72,7 +73,7 @@ extension BSON.ImplicitField:DecoderField
         }
         catch let error 
         {
-            throw BSON.RecursiveError.init(error, in: key)
+            throw BSON.DecodingError.init(error, in: key)
         }
     }
 }

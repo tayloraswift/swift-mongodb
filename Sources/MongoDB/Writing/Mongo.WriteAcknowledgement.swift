@@ -1,4 +1,5 @@
 import BSONSchema
+import BSONUnions
 
 extension Mongo
 {
@@ -13,23 +14,23 @@ extension Mongo
 extension Mongo.WriteAcknowledgement:BSONEncodable
 {
     public
-    var bson:BSON.Value<[UInt8]>
+    func encode(to field:inout BSON.Field)
     {
         switch self
         {
         case .majority:
-            return .string("majority")
+            "majority".encode(to: &field)
         case .custom(let concern):
-            return .string(concern)
+            concern.encode(to: &field)
         case .count(let instances):
-            return .int64(Int64.init(instances))
+            instances.encode(to: &field)
         }
     }
 }
 extension Mongo.WriteAcknowledgement:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.Value<some RandomAccessCollection<UInt8>>) throws
+    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {
         if case .string(let string) = bson
         {

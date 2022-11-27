@@ -1,3 +1,4 @@
+import BSONUnions
 @basis 
 let nonthrowing:[Never] = 
 [

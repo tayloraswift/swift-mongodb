@@ -1,7 +1,7 @@
 extension BSON.Elements
 {
     @inlinable public
-    init<Encodable>(_ elements:some Sequence<Encodable>) where Encodable:BSONEncodable
+    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONEncodable
     {
         self.init
         {

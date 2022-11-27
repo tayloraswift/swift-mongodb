@@ -1,5 +1,6 @@
 import Base16
-import BSONPrimitives
+import BSON
+import BSONUnions
 import Testing
 
 extension Tests

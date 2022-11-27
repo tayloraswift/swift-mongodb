@@ -139,7 +139,7 @@ extension Mongo.CollectionMetadata.Options
                     to: Mongo.ValidationAction.self),
                 validationLevel: try bson["validationLevel"]?.decode(
                     to: Mongo.ValidationLevel.self),
-                validator: try bson["validator"]?.decode(to: BSON.Fields.self) ?? [:])
+                validator: try bson["validator"]?.decode(to: BSON.Fields.self) ?? .init())
         
         case .timeseries:
             variant = .timeseries(try bson["timeseries"].decode(to: Mongo.Timeseries.self))

@@ -8,6 +8,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
         .library(name: "BSONSchema", targets: ["BSONSchema"]),
+        .library(name: "BSONUnions", targets: ["BSONUnions"]),
 
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
@@ -23,7 +24,7 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.3")),
         
-        // used by the _BSON module
+        // this is used to generate `Sources/BSONDecoding/Decoder/Decoder.spf.swift`
         .package(url: "https://github.com/kelvin13/swift-package-factory.git",
             revision: "swift-DEVELOPMENT-SNAPSHOT-2022-11-11-a"),
         
@@ -47,27 +48,27 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONTraversal"),
             ]),
-        .target(name: "BSONPrimitives",
-            dependencies:
-            [
-                .target(name: "BSON"),
-            ]),
         .target(name: "BSONDecoding",
             dependencies:
             [
-                .target(name: "BSONPrimitives"),
+                .target(name: "BSONUnions"),
                 .target(name: "TraceableErrors"),
             ]),
         .target(name: "BSONEncoding",
             dependencies:
             [
-                .target(name: "BSONPrimitives"),
+                .target(name: "BSON"),
             ]),
         .target(name: "BSONSchema",
             dependencies:
             [
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
+            ]),
+        .target(name: "BSONUnions",
+            dependencies:
+            [
+                .target(name: "BSON"),
             ]),
         
         .target(name: "SCRAM",
@@ -97,18 +98,12 @@ let package:Package = .init(name: "swift-mongodb",
                 // retroactive conformances.
                 .target(name: "BSONSchema"),
             ]),
-        
-        .target(name: "MongoSchema",
-            dependencies: 
-            [
-                .target(name: "BSONSchema"),
-            ]),
 
         .target(name: "MongoDriver",
             dependencies: 
             [
+                .target(name: "BSONSchema"),
                 .target(name: "Mongo"),
-                .target(name: "MongoSchema"),
                 .target(name: "MongoWire"),
                 .target(name: "SCRAM"),
                 .target(name: "TraceableErrors"),
@@ -123,10 +118,17 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Atomics",               package: "swift-atomics"),
             ]),
         
+        .target(name: "MongoSchema",
+            dependencies: 
+            [
+                .target(name: "BSONSchema"),
+            ]),
+        
         .target(name: "MongoDB",
             dependencies: 
             [
                 .target(name: "MongoDriver"),
+                .target(name: "MongoSchema"),
             ]),
 
         // connection uri strings.
@@ -140,7 +142,7 @@ let package:Package = .init(name: "swift-mongodb",
         .executableTarget(name: "BSONTests",
             dependencies:
             [
-                .target(name: "BSONPrimitives"),
+                .target(name: "BSONUnions"),
                 .product(name: "Base16", package: "swift-hash"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
@@ -158,6 +160,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "BSONEncoding"),
+                .target(name: "BSONUnions"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/BSONEncoding"),

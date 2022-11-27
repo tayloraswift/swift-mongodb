@@ -4,7 +4,7 @@ extension BSON
 {
     /// An error occurred while decoding a document field.
     @frozen public
-    struct RecursiveError<Location>:Error
+    struct DecodingError<Location>:Error
     {
         /// The location (key or index) where the error occurred.
         public
@@ -21,8 +21,12 @@ extension BSON
         }
     }
 }
-extension BSON.RecursiveError:Equatable where Location:Equatable
+extension BSON.DecodingError:Equatable where Location:Equatable
 {
+    /// Compares the ``location`` properties and the ``underlying``
+    /// errors of the operands for equality, returning [`true`]()
+    /// if they are equal. Always returns [`false`]() if (any of)
+    /// the underlying ``Error`` existentials are not ``Equatable``.
     public static
     func == (lhs:Self, rhs:Self) -> Bool
     {
@@ -30,9 +34,11 @@ extension BSON.RecursiveError:Equatable where Location:Equatable
         lhs.underlying == rhs.underlying
     }
 }
-extension BSON.RecursiveError:TraceableError, CustomStringConvertible
+extension BSON.DecodingError:TraceableError, CustomStringConvertible
     where Location:CustomStringConvertible
 {
+    /// Returns a single note that says
+    /// [`"while decoding value for field '_'"`]().
     public 
     var notes:[String] 
     {

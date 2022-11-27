@@ -1,3 +1,5 @@
+import BSON
+
 extension BSON.Input
 {
     /// Parses a variant BSON value, assuming it is of the specified `variant` type.

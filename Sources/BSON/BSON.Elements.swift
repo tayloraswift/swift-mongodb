@@ -9,9 +9,9 @@ extension BSON
         var counter:Int
 
         @inlinable public
-        init(output:BSON.Output<[UInt8]> = .init(capacity: 0))
+        init(bytes:[UInt8] = [])
         {
-            self.output = output
+            self.output = .init(preallocated: bytes)
             self.counter = 0
         }
     }

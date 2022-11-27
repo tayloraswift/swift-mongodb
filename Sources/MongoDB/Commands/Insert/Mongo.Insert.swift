@@ -1,4 +1,4 @@
-import MongoSchema
+import BSONEncoding
 
 extension Mongo
 {
@@ -50,7 +50,7 @@ extension Mongo.Insert:MongoDatabaseCommand, MongoImplicitSessionCommand
     {
         bson["insert"] = self.collection
         bson["bypassDocumentValidation"] = self.bypassDocumentValidation
-        bson["documents"] = BSON.Tuple<[UInt8]>.init(self.elements.lazy.map(\.bson))
+        bson["documents"] = BSON.Tuple<[UInt8]>.init(.init(elements: self.elements))
         bson["ordered"] = self.ordered
         bson["writeConcern"] = self.writeConcern
     }

@@ -1,5 +1,3 @@
-import MongoSchema
-
 public
 protocol MongoStreamableCommand<Element>:MongoDatabaseCommand, MongoImplicitSessionCommand
     where Response == Mongo.Cursor<Element>

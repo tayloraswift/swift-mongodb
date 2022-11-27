@@ -1,3 +1,5 @@
+import BSONUnions
+
 /// A type that can be decoded from a BSON document. Tuple-documents
 /// count as documents, from the perspective of this protocol.
 public
@@ -19,10 +21,8 @@ extension BSON.Fields:BSONDocumentDecodable
     /// copying its backing storage if it is not already backed by
     /// a native Swift array.
     ///
-    /// If the document is already backed by a Swift array, this
-    /// initializer will only be called in dynamic contexts, because
-    /// overload resolution will prefer the non-generic ``init(bson:)``
-    /// overload.
+    /// If the document is statically known to be backed by a Swift array,
+    /// prefer calling the non-generic ``init(_:)``.
     ///
     /// >   Complexity:
     ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
@@ -33,9 +33,9 @@ extension BSON.Fields:BSONDocumentDecodable
         switch bson
         {
         case let bson as BSON.Document<[UInt8]>:
-            self.init(bson: bson)
+            self.init(bson)
         case let bson:
-            self.init(output: .init(preallocated: [UInt8].init(bson.bytes)))
+            self.init(.init(bytes: .init(bson.bytes)))
         }
     }
 }

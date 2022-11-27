@@ -44,9 +44,9 @@ extension Mongo.Hello:MongoCommand
             ],
             "os":
             [
-                "type": .string(Self.os),
+                "type": .string(.init(from: Self.os)),
             ],
         ]
-        bson["saslSupportedMechs"] = self.user?.description
+        bson["saslSupportedMechs"] = self.user
     }
 }
