@@ -47,11 +47,11 @@ This package vends the following library products:
 
     Does not re-export `BSON`.
 
-1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoDriver`*](Sources/MongoDriver), [`MongoSchema`*](Sources/MongoSchema))
+1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoDriver`*](Sources/MongoDriver), [`MongoSchema`](Sources/MongoSchema))
 
     Vends Swift bindings for MongoDB’s command API, and also implements cursors and managed cursor streams. Most package consumers will depend this module, unless it is possible to depend on one of its constituent dependencies.
 
-    Depends on SwiftNIO (indirectly), and re-exports `MongoDriver` and `MongoSchema`.
+    Depends on SwiftNIO (indirectly), and re-exports `MongoDriver`.
 
 1.  [**`MongoDriver`**](Sources/MongoDriver)
 ([`Mongo`*](Sources/Mongo),

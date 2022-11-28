@@ -1,3 +1,5 @@
+import MongoSchema
+
 extension Mongo
 {
     @frozen public
@@ -14,6 +16,19 @@ extension Mongo
             self.manager = manager
             self.first = first
         }
+    }
+}
+extension Mongo.Stream
+{
+    /// Returns the cursor associated with this stream, or [`nil`]()
+    /// if the cursor has been exhausted. Cursor exhaustion is not the
+    /// same thing as stream exhaustion; if a query returns a single
+    /// batch, the cursor will be exhausted but the stream will contain
+    /// buffered elements.
+    public
+    var cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)?
+    {
+        self.manager.map { ($0.cursor, $0.namespace) }
     }
 }
 extension Mongo.Stream:AsyncSequence, AsyncIteratorProtocol
@@ -48,9 +63,12 @@ extension Mongo.Stream:AsyncSequence, AsyncIteratorProtocol
         if manager.cursor == .none
         {
             self.manager = nil
+            return batch.isEmpty ? nil : batch
         }
-        
-        return batch
+        else
+        {
+            return batch
+        }
     }
 }
 

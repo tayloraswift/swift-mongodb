@@ -148,52 +148,9 @@ enum Main:AsynchronousTests
             }
         }
 
-        await tests.with(database: "collection-iteration", cluster: cluster)
+        await tests.with(database: "collection-find", cluster: cluster)
         {
-            (tests:inout Tests, database:Mongo.Database, builtin:[Mongo.Database]) in
-
-            let collection:Mongo.Collection = "ordinals"
-            let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
-
-            await tests.do(name: "initialize")
-            {
-                let expected:Mongo.InsertResponse = .init(inserted: 100)
-                let response:Mongo.InsertResponse = try await cluster.run(
-                    command: Mongo.Insert<Ordinals>.init(collection: collection,
-                        elements: ordinals),
-                    against: database)
-                
-                $0.assert(response ==? expected, name: "response")
-            }
-            // await tests.do(name: "single-batch")
-            // {
-            //     let expected:Mongo.Cursor<Ordinal> = .init(id: 0,
-            //         namespace: .init(database, collection),
-            //         elements: [Ordinal].init(ordinals.prefix(10)))
-            //     let cursor:Mongo.Cursor<Ordinal> = try await cluster.run(
-            //         command: Mongo.Find<Ordinal>.init(collection: collection,
-            //             returning: .batch(of: 10)),
-            //         against: database)
-
-            //     $0.assert(cursor ==? expected, name: "cursor")
-            // }
-            await tests.do(name: "multiple-batches")
-            {
-                _ in
-
-                let session:Mongo.Session = try await cluster.session(on: .any)
-
-                for try await batch:[Ordinal] in try await session.run(
-                    query: Mongo.Find<Ordinal>.init(collection: collection,
-                        returning: 10),
-                    against: database)
-                {
-                    print(batch)
-                    break
-                }
-            }
+            await $0.find(cluster: cluster, database: $1, builtin: $2)
         }
-
-        try? await Task.sleep(for: .milliseconds(2000))
     }
 }
