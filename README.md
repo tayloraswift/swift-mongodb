@@ -60,8 +60,6 @@ This package vends the following library products:
 [`SCRAM`](Sources/SCRAM),
 [`TraceableErrors`](Sources/TraceableErrors),
 [`UUID`](Sources/UUID),
-[`Base64`](https://github.com/kelvin13/swift-hash/tree/master/Sources/Base64),
-[`MessageAuthentication`](https://github.com/kelvin13/swift-hash/tree/master/Sources/MessageAuthentication),
 [`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),
 `NIOCore`,
 `NIOPosix`,
