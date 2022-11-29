@@ -89,7 +89,7 @@ enum Main:SynchronousTests
 
             $0.test(name: "none-to-two", decoding: bson,
                 failure: BSON.DecodingError<String>.init(
-                    BSON.ArrayShapeError.init(count: 0, expected: 2),
+                    BSON.ArrayShapeError.init(invalid: 0, expected: 2),
                     in: "none"))
             {
                 try $0["none"].decode
@@ -109,7 +109,7 @@ enum Main:SynchronousTests
 
             $0.test(name: "three-to-two", decoding: bson,
                 failure: BSON.DecodingError<String>.init(
-                    BSON.ArrayShapeError.init(count: 3, expected: 2),
+                    BSON.ArrayShapeError.init(invalid: 3, expected: 2),
                     in: "three"))
             {
                 try $0["three"].decode
@@ -120,7 +120,7 @@ enum Main:SynchronousTests
 
             $0.test(name: "three-by-two", decoding: bson,
                 failure: BSON.DecodingError<String>.init(
-                    BSON.ArrayShapeError.init(count: 3, expected: nil),
+                    BSON.ArrayShapeError.init(invalid: 3, expected: nil),
                     in: "three"))
             {
                 try $0["three"].decode
@@ -147,7 +147,8 @@ enum Main:SynchronousTests
             $0.test(name: "map-invalid", decoding: bson,
                 failure: BSON.DecodingError<String>.init(
                     BSON.DecodingError<Int>.init(
-                        BSON.TypecastError<String>.init(invalid: .int64), in: 2),
+                        BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .int64),
+                        in: 2),
                     in: "heterogenous"))
             {
                 try $0["heterogenous"].decode(to: [String].self)
@@ -164,7 +165,8 @@ enum Main:SynchronousTests
             $0.test(name: "element-invalid", decoding: bson,
                 failure: BSON.DecodingError<String>.init(
                     BSON.DecodingError<Int>.init(
-                        BSON.TypecastError<String>.init(invalid: .int64), in: 2),
+                        BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .int64),
+                        in: 2),
                     in: "heterogenous"))
             {
                 try $0["heterogenous"].decode
@@ -207,7 +209,7 @@ enum Main:SynchronousTests
 
             $0.test(name: "key-not-matching", decoding: bson,
                 failure: BSON.DecodingError<String>.init(
-                    BSON.TypecastError<String>.init(invalid: .bool),
+                    BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .bool),
                     in: "inhabited"))
             {
                 try $0["inhabited"].decode(to: String.self)
@@ -280,6 +282,55 @@ enum Main:SynchronousTests
                     $0
                 }
                 $0.assert(md5 == decoded, name: "value")
+            }
+        }
+
+        tests.group("losslessstringconvertible")
+        {
+            let bson:BSON.Document<[UInt8]> =
+            [
+                "string": "e\u{0301}e\u{0301}",
+                "character": "e\u{0301}",
+                "unicode-scalar": "e",
+            ]
+
+            $0.test(name: "unicode-scalar-from-string", decoding: bson,
+                failure: BSON.DecodingError<String>.init(
+                    BSON.ValueError<String, Unicode.Scalar>.init(invalid: "e\u{0301}e\u{0301}"),
+                    in: "string"))
+            {
+                try $0["string"].decode(to: Unicode.Scalar.self)
+            }
+            $0.test(name: "unicode-scalar-from-character", decoding: bson,
+                failure: BSON.DecodingError<String>.init(
+                    BSON.ValueError<String, Unicode.Scalar>.init(invalid: "e\u{0301}"),
+                    in: "character"))
+            {
+                try $0["character"].decode(to: Unicode.Scalar.self)
+            }
+            $0.test(name: "unicode-scalar", decoding: bson,
+                expecting: "e")
+            {
+                try $0["unicode-scalar"].decode(to: Unicode.Scalar.self)
+            }
+
+            $0.test(name: "character-from-string", decoding: bson,
+                failure: BSON.DecodingError<String>.init(
+                    BSON.ValueError<String, Character>.init(invalid: "e\u{0301}e\u{0301}"),
+                    in: "string"))
+            {
+                try $0["string"].decode(to: Character.self)
+            }
+            $0.test(name: "character", decoding: bson,
+                expecting: "e\u{0301}")
+            {
+                try $0["character"].decode(to: Character.self)
+            }
+            
+            $0.test(name: "string", decoding: bson,
+                expecting: "e\u{0301}e\u{0301}")
+            {
+                try $0["string"].decode(to: String.self)
             }
         }
     }

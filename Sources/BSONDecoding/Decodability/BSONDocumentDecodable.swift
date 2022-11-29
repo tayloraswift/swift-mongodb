@@ -10,9 +10,9 @@ protocol BSONDocumentDecodable:BSONDecodable
 extension BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:AnyBSON<Bytes>) throws
+    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {
-        try self.init(bson: try BSON.Document<Bytes>.init(bson))
+        try self.init(bson: try .init(bson))
     }
 }
 extension BSON.Fields:BSONDocumentDecodable

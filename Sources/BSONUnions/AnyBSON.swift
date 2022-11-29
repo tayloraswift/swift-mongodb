@@ -511,51 +511,20 @@ extension AnyBSON
             return nil 
         }
     }
-    /// Attempts to load an instance of ``String`` from this variant. Its UTF-8 code
-    /// units will be validated (and repaired if needed).
+    /// Attempts to load an instance of ``String`` from this variant.
+    /// Its UTF-8 code units will be validated (and repaired if needed).
     /// 
     /// -   Returns:
     ///     The payload of this variant, decoded to a ``String``, if it matches
-    ///     ``case string(_:)``, [`nil`]() otherwise.
+    ///     either ``case string(_:)`` or ``case javascript(_:)``, [`nil`]()
+    ///     otherwise.
     ///
     /// >   Complexity: 
     ///     O(*n*), where *n* is the length of the string.
     @inlinable public 
     func `as`(_:String.Type) -> String?
     {
-        switch self 
-        {
-        case .string(let string):   return string.description
-        default:                    return nil
-        }
-    }
-    @inlinable public 
-    func `as`(_:Character.Type) -> Character?
-    {
-        if  let string:String = self.as(String.self),
-                string.startIndex < string.endIndex,
-                string.index(after: string.startIndex) == string.endIndex
-        {
-            return string[string.startIndex]
-        }
-        else
-        {
-            return nil
-        }
-    }
-    @inlinable public 
-    func `as`(_:Unicode.Scalar.Type) -> Unicode.Scalar?
-    {
-        if  let string:String.UnicodeScalarView = self.as(String.self)?.unicodeScalars,
-                string.startIndex < string.endIndex,
-                string.index(after: string.startIndex) == string.endIndex
-        {
-            return string[string.startIndex]
-        }
-        else
-        {
-            return nil
-        }
+        self.utf8.map(String.init(bson:))
     }
 }
 extension AnyBSON
@@ -658,23 +627,58 @@ extension AnyBSON
         default:                return nil
         }
     }
-    /// Attempts to unwrap an instance of ``UTF8`` from this variant. Its UTF-8 code
-    /// units will *not* be validated, which allowes this method to return in
-    /// constant time.
+    // /// Attempts to unwrap an instance of ``BSON/.string``-typed ``UTF8`` from this
+    // /// variant. Its UTF-8 code units will *not* be validated, which allowes this 
+    // /// method toreturn in constant time.
+    // /// 
+    // /// -   Returns:
+    // ///     The payload of this variant if it matches ``case string(_:)``,
+    // ///     [`nil`]() otherwise.
+    // ///
+    // /// >   Complexity: O(1).
+    // @inlinable public 
+    // var string:BSON.UTF8<Bytes>?
+    // {
+    //     switch self 
+    //     {
+    //     case .string(let string):   return string
+    //     default:                    return nil
+    //     }
+    // }
+    // /// Attempts to unwrap an instance of ``BSON/.javascript``-typed ``UTF8`` from
+    // /// this variant. Its UTF-8 code units will *not* be validated, which allowes
+    // /// this method to return in constant time.
+    // /// 
+    // /// -   Returns:
+    // ///     The payload of this variant if it matches ``case javascript(_:)``,
+    // ///     [`nil`]() otherwise.
+    // ///
+    // /// >   Complexity: O(1).
+    // @inlinable public 
+    // var javascript:BSON.UTF8<Bytes>?
+    // {
+    //     switch self 
+    //     {
+    //     case .javascript(let code): return code
+    //     default:                    return nil
+    //     }
+    // }
+    /// Attempts to unwrap an instance of ``UTF8`` from this variant. Its UTF-8
+    /// code units will *not* be validated, which allowes this method to return
+    /// in constant time.
     /// 
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case string(_:)``,
-    ///     [`nil`]() otherwise.
+    ///     The payload of this variant if it matches either ``case string(_:)``
+    ///     or ``case javascript(_:)``, [`nil`]() otherwise.
     ///
     /// >   Complexity: O(1).
-    ///
-    /// To obtain a swift ``String``, use the ``as(_:)`` method.
     @inlinable public 
     var utf8:BSON.UTF8<Bytes>?
     {
         switch self 
         {
-        case .string(let string):   return string
+        case .javascript(let code): return code
+        case .string(let code):     return code
         default:                    return nil
         }
     }

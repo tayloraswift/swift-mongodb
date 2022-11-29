@@ -47,6 +47,10 @@ This package vends the following library products:
 
     Does not re-export `BSON`.
 
+1.  [**`BSON_UUID`**](Sources/BSON_UUID) ([`BSON_Schema`](Sources/BSONSchema), [`UUID`](Sources/UUID))
+
+    A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the `UUID` type.
+
 1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoDriver`*](Sources/MongoDriver), [`MongoSchema`](Sources/MongoSchema))
 
     Vends Swift bindings for MongoDB’s command API, and also implements cursors and managed cursor streams. Most package consumers will depend this module, unless it is possible to depend on one of its constituent dependencies.
@@ -57,9 +61,9 @@ This package vends the following library products:
 ([`Mongo`*](Sources/Mongo),
 [`MongoWire`](Sources/MongoWire),
 [`BSONSchema`](Sources/BSONSchema),
+[`BSON_UUID`](Sources/BSON_UUID),
 [`SCRAM`](Sources/SCRAM),
 [`TraceableErrors`](Sources/TraceableErrors),
-[`UUID`](Sources/UUID),
 [`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),
 `NIOCore`,
 `NIOPosix`,

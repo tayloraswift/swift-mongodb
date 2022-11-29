@@ -9,6 +9,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
         .library(name: "BSONSchema", targets: ["BSONSchema"]),
         .library(name: "BSONUnions", targets: ["BSONUnions"]),
+        .library(name: "BSON_UUID", targets: ["BSON_UUID"]),
 
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
@@ -21,7 +22,6 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     dependencies: 
     [
-        .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.3")),
         
         // this is used to generate `Sources/BSONDecoding/Decoder/Decoder.spf.swift`
@@ -70,6 +70,12 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSON"),
             ]),
+        .target(name: "BSON_UUID",
+            dependencies:
+            [
+                .target(name: "BSONSchema"),
+                .target(name: "UUID"),
+            ]),
         
         .target(name: "SCRAM",
             dependencies: 
@@ -103,11 +109,11 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies: 
             [
                 .target(name: "BSONSchema"),
+                .target(name: "BSON_UUID"),
                 .target(name: "Mongo"),
                 .target(name: "MongoWire"),
                 .target(name: "SCRAM"),
                 .target(name: "TraceableErrors"),
-                .target(name: "UUID"),
                 .product(name: "SHA2",                  package: "swift-hash"),
                 .product(name: "NIOCore",               package: "swift-nio"),
                 .product(name: "NIOPosix",              package: "swift-nio"),

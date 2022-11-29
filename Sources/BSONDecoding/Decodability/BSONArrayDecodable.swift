@@ -9,7 +9,7 @@ protocol BSONArrayDecodable:BSONDecodable
 extension BSONArrayDecodable
 {
     @inlinable public
-    init<Bytes>(bson:AnyBSON<Bytes>) throws
+    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {
         try self.init(bson: try bson.array())
     }
@@ -18,7 +18,7 @@ extension BSONArrayDecodable
 extension Array:BSONArrayDecodable, BSONDecodable where Element:BSONDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Array<Bytes>) throws
+    init(bson:BSON.Array<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.map { try $0.decode(to: Element.self) }
     }
@@ -26,7 +26,7 @@ extension Array:BSONArrayDecodable, BSONDecodable where Element:BSONDecodable
 extension Set:BSONArrayDecodable, BSONDecodable where Element:BSONDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Array<Bytes>) throws
+    init(bson:BSON.Array<some RandomAccessCollection<UInt8>>) throws
     {
         self.init(try bson.lazy.map { try $0.decode(to: Element.self) })
     }

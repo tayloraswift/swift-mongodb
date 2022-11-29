@@ -42,7 +42,7 @@ extension AnyBSON
         }
         else 
         {
-            throw BSON.ArrayShapeError.init(count: array.count, expected: count)
+            throw BSON.ArrayShapeError.init(invalid: array.count, expected: count)
         }
     }
 
@@ -67,7 +67,7 @@ extension AnyBSON
         }
         else 
         {
-            throw BSON.ArrayShapeError.init(count: array.count)
+            throw BSON.ArrayShapeError.init(invalid: array.count)
         }
     }
 }

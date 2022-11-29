@@ -1,4 +1,5 @@
 import BSONDecoding
+import BSON_UUID
 import UUID
 
 extension Mongo.CollectionMetadata
@@ -25,6 +26,6 @@ extension Mongo.CollectionMetadata.Info:BSONDictionaryDecodable
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {
         self.init(readOnly: try bson["readOnly"].decode(to: Bool.self),
-            uuid: try bson["uuid"].decode(as: BSON.Binary<Bytes>.self) { .init($0.bytes) })
+            uuid: try bson["uuid"].decode(to: UUID.self))
     }
 }

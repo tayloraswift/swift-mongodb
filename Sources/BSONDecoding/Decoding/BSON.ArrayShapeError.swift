@@ -1,6 +1,6 @@
 extension BSON
 {
-    /// A document had an invalid key schema.
+    /// A tuple-document had an invalid scheme.
     @frozen public
     struct ArrayShapeError:Equatable, Error
     {
@@ -10,9 +10,9 @@ extension BSON
         let expected:Int?
 
         @inlinable public
-        init(count:Int, expected:Int? = nil)
+        init(invalid:Int, expected:Int? = nil)
         {
-            self.count = count
+            self.count = invalid
             self.expected = expected
         }
     }

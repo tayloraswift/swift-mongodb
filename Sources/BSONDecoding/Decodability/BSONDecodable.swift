@@ -76,18 +76,6 @@ extension BSON.Regex:BSONDecodable
         self = try bson.cast { $0.as(Self.self) }
     }
 }
-extension String:BSONDecodable
-{
-    /// Attempts to unwrap a ``BSON/UTF8`` string from the given variant.
-    /// Its UTF-8 code units will be copied, validated, and repaired if needed.
-    ///
-    /// >   Complexity: O(*n*), where *n* is the length of the string.
-    @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
-    {
-        self = try bson.cast { $0.as(Self.self) }
-    }
-}
 
 extension UInt8:BSONDecodable {}
 extension UInt16:BSONDecodable {}

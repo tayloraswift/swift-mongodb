@@ -110,14 +110,11 @@ extension BSON.UTF8:Sendable where Bytes:Sendable
 
 extension BSON.UTF8:CustomStringConvertible
 {
-    /// Decodes ``bytes`` into a string. This is the preferred way to
-    /// get the string value of this UTF-8 string.
-    ///
-    /// >   Complexity: O(*n*), where *n* is the length of the string.
+    /// Equivalent to calling ``String.init(bson:)`` on this instance.
     @inlinable public
     var description:String
     {
-        .init(decoding: self.bytes, as: Unicode.UTF8.self)
+        .init(bson: self)
     }
 }
 extension BSON.UTF8:VariableLengthBSON where Bytes:RandomAccessCollection<UInt8>
@@ -150,5 +147,20 @@ extension BSON.UTF8
     var size:Int
     {
         5 + self.bytes.count
+    }
+}
+
+extension String
+{
+    /// Copies and validates the backing storage of the given UTF-8 string to a
+    /// native Swift string, repairing invalid code units if needed.
+    ///
+    /// This is the preferred way to get the string value of a UTF-8 string.
+    ///
+    /// >   Complexity: O(*n*), where *n* is the length of the string.
+    @inlinable public
+    init(bson:BSON.UTF8<some BidirectionalCollection<UInt8>>)
+    {
+        self.init(decoding: bson.bytes, as: Unicode.UTF8.self)
     }
 }

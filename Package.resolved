@@ -19,15 +19,6 @@
       }
     },
     {
-      "identity" : "swift-grammar",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kelvin13/swift-grammar",
-      "state" : {
-        "revision" : "9951511e213741b18de71264f22be1392163428e",
-        "version" : "0.2.0"
-      }
-    },
-    {
       "identity" : "swift-hash",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kelvin13/swift-hash",

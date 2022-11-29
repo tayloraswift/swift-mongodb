@@ -1,6 +1,6 @@
 extension BSON
 {
-    /// A document had an invalid key schema.
+    /// A document had an invalid key scheme.
     @frozen public
     enum DictionaryKeyError:Equatable, Error
     {
