@@ -10,5 +10,5 @@ protocol MongoImplicitSessionCommand<Response>:MongoSessionCommand
     /// For example, some commands mutate database state, and
     /// therefore must be sent to a master node.
     static
-    var node:Mongo.InstanceSelector { get }
+    var node:Mongo.ServerSelector { get }
 }

@@ -3,22 +3,22 @@ import TraceableErrors
 extension Mongo
 {
     public
-    struct ConnectivityError:Error, Sendable
+    struct ConnectionErrors:Error, Sendable
     {
         public
-        let selector:InstanceSelector
+        let selector:ServerSelector
         public
         let errors:[(host:Host, error:any Error)]
         
         public 
-        init(selector:InstanceSelector, errors:[(host:Host, error:any Error)])
+        init(selector:ServerSelector, errors:[(host:Host, error:any Error)])
         {
             self.selector = selector
             self.errors = errors
         }
     }
 }
-extension Mongo.ConnectivityError:Equatable
+extension Mongo.ConnectionErrors:Equatable
 {
     public static
     func == (lhs:Self, rhs:Self) -> Bool
@@ -31,12 +31,12 @@ extension Mongo.ConnectivityError:Equatable
         }
     }
 }
-extension Mongo.ConnectivityError:TraceableError
+extension Mongo.ConnectionErrors:TraceableError
 {
     public
     var underlying:any Error
     {
-        Mongo.InstanceSelectorError.init(self.selector) as any Error
+        Mongo.ServerSelectionError.init(self.selector) as any Error
     }
     public
     var notes:[String]

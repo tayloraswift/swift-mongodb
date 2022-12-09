@@ -1,18 +1,18 @@
 extension Mongo
 {
     public
-    struct InstanceSelectorError:Equatable, Error
+    struct ServerSelectionError:Equatable, Error
     {
         public
-        let selector:InstanceSelector
+        let selector:ServerSelector
 
-        init(_ selector:InstanceSelector)
+        init(_ selector:ServerSelector)
         {
             self.selector = selector
         }
     }
 }
-extension Mongo.InstanceSelectorError:CustomStringConvertible
+extension Mongo.ServerSelectionError:CustomStringConvertible
 {
     public
     var description:String

@@ -36,7 +36,7 @@ extension Mongo
 extension Mongo.GetMore:MongoDatabaseCommand
 {
     public static
-    var node:Mongo.InstanceSelector
+    var node:Mongo.ServerSelector
     {
         .any
     }

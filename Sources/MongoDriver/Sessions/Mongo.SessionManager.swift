@@ -7,8 +7,7 @@ extension Mongo
         let cluster:Mongo.Cluster
         let id:Session.ID
 
-        private
-        init(cluster:Mongo.Cluster, id:Session.ID)
+        init(id:Session.ID, cluster:Mongo.Cluster)
         {
             self.cluster = cluster
             self.id = id
@@ -27,13 +26,5 @@ extension Mongo
                 [id, cluster] in await cluster.releaseSession(id)
             }
         }
-    }
-}
-extension Mongo.SessionManager
-{
-    convenience
-    init(cluster:Mongo.Cluster) async
-    {
-        self.init(cluster: cluster, id: await cluster.startSession())
     }
 }

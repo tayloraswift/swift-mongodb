@@ -38,15 +38,14 @@ enum Main:AsynchronousTests
                 username: "root",
                 password: "password")
             await $0.do(name: "unsupported", 
-                expecting: Mongo.ConnectivityError.init(selector: .master, 
+                expecting: Mongo.ConnectionErrors.init(selector: .master, 
                     errors:
                     [
                         (
                             host, 
                             Mongo.AuthenticationError.init(
                                 Mongo.AuthenticationUnsupportedError.init(.x509),
-                                credentials: x509)
-                        )
+                            credentials: x509))
                     ]))
             {
                 _ in _ = try await Mongo.Cluster.init(
@@ -60,15 +59,14 @@ enum Main:AsynchronousTests
                 username: "root",
                 password: "1234")
             await $0.do(name: "wrong-password",
-                expecting: Mongo.ConnectivityError.init(selector: .master, 
+                expecting: Mongo.ConnectionErrors.init(selector: .master, 
                     errors:
                     [
                         (
                             host, 
                             Mongo.AuthenticationError.init(
                                 Mongo.ServerError.init(message: "Authentication failed."),
-                                credentials: sha256)
-                        )
+                            credentials: sha256))
                     ]))
             {
                 _ in _ = try await Mongo.Cluster.init(
@@ -89,6 +87,27 @@ enum Main:AsynchronousTests
                     servers: [host],
                     group: group)
             }
+        }
+
+        await tests.do(name: "shutdown")
+        {
+            _ in
+
+            do
+            {
+                let cluster:Mongo.Cluster = try await .init(
+                    settings: .init(
+                        credentials: .init(authentication: .sasl(.sha256),
+                            username: "root",
+                            password: "password"),
+                        timeout: .seconds(10)),
+                    servers: [host],
+                    group: group)
+                // need to generate at least one session
+                let _:Mongo.Session = try await cluster.session(on: .master)
+            }
+
+            try await Task.sleep(for: .milliseconds(100))
         }
     }
 }

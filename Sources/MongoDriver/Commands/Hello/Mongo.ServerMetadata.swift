@@ -3,27 +3,9 @@ import MongoWire
 
 extension Mongo
 {
-    @frozen public
-    struct Instance
+    //@frozen public
+    struct ServerMetadata
     {
-        //  all instances:
-
-        /// A boolean value that reports when this node is writable.
-        ///
-        /// If [`true`](), then this instance is a
-        /// [primary](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary)
-        /// in a [replica set](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-replica-set),
-        /// or a [`mongos`](https://www.mongodb.com/docs/manual/reference/program/mongos/#mongodb-binary-bin.mongos) instance,
-        /// or a standalone [`mongod`](https://www.mongodb.com/docs/manual/reference/program/mongod/#mongodb-binary-bin.mongod).
-        ///
-        /// This field will be [`false`]() if the instance is a
-        /// [secondary](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-secondary)
-        /// member of a replica set or if the member is an
-        /// [arbiter](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-arbiter)
-        /// of a replica set.
-        public
-        let isWritablePrimary:Bool
-
         /// The maximum permitted size of a BSON object in bytes for this
         /// [mongod](https://www.mongodb.com/docs/manual/reference/program/mongod/#mongodb-binary-bin.mongod)
         /// process.
@@ -57,41 +39,27 @@ extension Mongo
         /// to the client.
         /// This is called `connectionId` in the server reply.
         public
-        let connection:ConnectionIdentifier
+        let token:ConnectionToken
 
         /// The range of versions of the wire protocol that this `mongod` or `mongos`
         /// instance is capable of using to communicate with clients.
         /// This is called `minWireVersion` and `maxWireVersion` in the server reply.
-        public
-        let wireVersions:ClosedRange<MongoWire>
-
-        /// A boolean value that, when true, indicates that the `mongod` or `mongos`
-        /// instance is running in read-only mode.
-        /// This is called `readOnly` in the server reply.
-        public
-        let isReadOnly:Bool
+        //public
+        //let wireVersions:ClosedRange<MongoWire>
 
         /// An array of SASL mechanisms used to create the user's credential or credentials.
         public
         let saslSupportedMechs:Set<Authentication.SASL>?
 
-        /// Fields present when the server is a sharded instance.
-        /// There are no such fields, so this property is only useful for
-        /// determining if an instance is sharded or not.
-        public
-        let sharded:Sharded?
-
-        /// Fields present when the server is a member of a replica set.
-        public
-        let set:ReplicaSet?
+        let type:Server
     }
 }
-extension Mongo.Instance:BSONDictionaryDecodable
+extension Mongo.ServerMetadata:BSONDictionaryDecodable
 {
     public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {
-        self.isWritablePrimary = try bson["isWritablePrimary"].decode(to: Bool.self)
+        //self.isWritablePrimary = try bson["isWritablePrimary"].decode(to: Bool.self)
 
         self.maxBsonObjectSize = try bson["maxBsonObjectSize"]?.decode(
             to: Int.self) ?? 16 * 1024 * 1024
@@ -104,37 +72,71 @@ extension Mongo.Instance:BSONDictionaryDecodable
         self.logicalSessionTimeoutMinutes = try bson["logicalSessionTimeoutMinutes"].decode(
             to: Mongo.Minutes.self)
         
-        self.connection = try bson["connectionId"].decode(
-            to: Mongo.ConnectionIdentifier.self)
+        self.token = try bson["connectionId"].decode(to: Mongo.ConnectionToken.self)
         
         let minWireVersion:MongoWire = try bson["minWireVersion"].decode(as: Int32.self,
             with: MongoWire.init(rawValue:))
         let maxWireVersion:MongoWire = try bson["maxWireVersion"].decode(as: Int32.self,
             with: MongoWire.init(rawValue:))
         
-        guard minWireVersion <= maxWireVersion
+        //  consider maxWireVersion authoritative
+        guard maxWireVersion >= 17
         else
         {
-            fatalError("unimplemented: server returned inverted wire version bounds!")
+            throw Mongo.VersionRequirementError.init(
+                invalid: min(minWireVersion, maxWireVersion) ... maxWireVersion)
         }
-        self.wireVersions = minWireVersion ... maxWireVersion
-
-        self.isReadOnly = try bson["readOnly"].decode(to: Bool.self)
 
         self.saslSupportedMechs = try bson["saslSupportedMechs"]?.decode(
             to: Set<Mongo.Authentication.SASL>.self)
 
-        self.sharded = try bson["msg"]?.decode(as: String.self)
+        if let set:String = try bson["setName"]?.decode(to: String.self)
         {
-            if $0 == "isdbgrid"
+            let tags:BSON.Fields = try bson["tags"]?.decode(to: BSON.Fields.self) ?? .init()
+            let peerlist:Mongo.Peerlist = .init(
+                primary: try bson["primary"].decode(to: Mongo.Host.self),
+                arbiters: try bson["arbiters"]?.decode(to: [Mongo.Host].self) ?? [],
+                passives: try bson["passives"]?.decode(to: [Mongo.Host].self) ?? [],
+                hosts: try bson["hosts"].decode(to: [Mongo.Host].self),
+                me: try bson["me"].decode(to: Mongo.Host.self))
+
+            if      case true? =
+                    try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
             {
-                return .init()
+                self.type = .replica(.primary(.init(regime: .init(
+                            election: try bson["electionId"].decode(to: BSON.Identifier.self),
+                            version: try bson["setVersion"].decode(to: Int64.self)),
+                        tags: tags,
+                        set: set)),
+                    peerlist)
+            }
+            else if case true? = try bson["secondary"]?.decode(to: Bool.self)
+            {
+                self.type = .replica(.secondary(.init(tags: tags, set: set)), peerlist)
+            }
+            else if case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
+            {
+                self.type = .replica(.arbiter(.init(tags: tags, set: set)), peerlist)
             }
             else
             {
-                fatalError("unimplemented: server returned invalid 'msg' value ('\($0)')!")
+                self.type = .replica(.other(.init(tags: tags, set: set)), peerlist)
             }
         }
-        self.set = try .init(from: bson)
+        else
+        {
+            if      case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
+            {
+                self.type = .replicaGhost
+            }
+            else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
+            {
+                self.type = .router(.init())
+            }
+            else
+            {
+                self.type = .single(.init())
+            }
+        }
     }
 }

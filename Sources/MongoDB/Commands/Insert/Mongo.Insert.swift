@@ -41,7 +41,7 @@ extension Mongo
 extension Mongo.Insert:MongoDatabaseCommand, MongoImplicitSessionCommand
 {
     @inlinable public static
-    var node:Mongo.InstanceSelector
+    var node:Mongo.ServerSelector
     {
         .master
     }

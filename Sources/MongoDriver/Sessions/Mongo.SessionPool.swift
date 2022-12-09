@@ -27,6 +27,20 @@ extension Mongo
 extension Mongo.SessionPool
 {
     mutating
+    func drain() -> [Mongo.Session.ID]
+    {
+        guard self.claimed.isEmpty
+        else
+        {
+            fatalError("unreachable: draining session pool while sessions are still in use!")
+        }
+        defer
+        {
+            self.available = [:]
+        }
+        return .init(self.available.keys)
+    }
+    mutating
     func checkout() -> Mongo.Session.ID
     {
         let now:ContinuousClock.Instant = .now

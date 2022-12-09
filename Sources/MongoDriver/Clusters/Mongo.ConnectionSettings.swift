@@ -5,19 +5,17 @@ extension Mongo
     @frozen public
     struct ConnectionSettings:Sendable
     {
-        public
-        let credentials:Credentials?
+        // public
+        // let heartbeat:Milliseconds
         public
         let timeout:Milliseconds
         public
         let tls:TLS?
 
         @inlinable public
-        init(credentials:Credentials? = nil,
-            timeout:Milliseconds = .seconds(15),
-            tls:TLS? = nil)
+        init(timeout:Milliseconds = .seconds(15), tls:TLS? = nil)
         {
-            self.credentials = credentials
+            // self.heartbeat = .milliseconds(1000)
             self.timeout = timeout
             self.tls = tls
         }

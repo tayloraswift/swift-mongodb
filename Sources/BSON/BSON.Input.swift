@@ -87,12 +87,7 @@ extension BSON.Input
                 alignment: MemoryLayout<UInt32>.alignment)
             {
                 $0.copyBytes(from: self.source[start ..< end])
-                //  timestamp is big-endian!
-                return .init(timestamp: .init(bigEndian: $0.load(as: UInt32.self)), 
-                    $0.loadUnaligned(fromByteOffset: 4,
-                        as: BSON.Identifier.Seed.self), 
-                    $0.loadUnaligned(fromByteOffset: 9, 
-                        as: BSON.Identifier.Ordinal.self))
+                return .init(bitPattern: $0.load(as: (UInt32, UInt32, UInt32).self))
             }
         }
         else

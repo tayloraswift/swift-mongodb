@@ -33,7 +33,7 @@ extension Mongo.Session
     func timeout() -> ContinuousClock.Instant
     {
         // allow 1 min padding time
-        let timeout:Mongo.Minutes = self.connection.instance.logicalSessionTimeoutMinutes
+        let timeout:Mongo.Minutes = self.connection.server.logicalSessionTimeoutMinutes
         return .now.advanced(by: .minutes(max(0, timeout - 1)))
     }
 

@@ -36,7 +36,7 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand
     typealias Response = [Mongo.Database]
 
     public static
-    let node:Mongo.InstanceSelector = .any
+    let node:Mongo.ServerSelector = .any
 
     public
     func encode(to bson:inout BSON.Fields)

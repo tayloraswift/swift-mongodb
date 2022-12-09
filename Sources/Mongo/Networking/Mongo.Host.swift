@@ -22,6 +22,14 @@ extension Mongo
         }
     }
 }
+extension Mongo.Host:Comparable
+{
+    @inlinable public static
+    func < (lhs:Self, rhs:Self) -> Bool
+    {
+        (lhs.name, lhs.port) < (rhs.name, rhs.port)
+    }
+}
 extension Mongo.Host
 {        
     // @inlinable public static

@@ -75,15 +75,7 @@ extension BSON.Output
     @inlinable public mutating
     func serialize(id:BSON.Identifier)
     {
-        withUnsafeBytes(of: id.timestamp.bigEndian)
-        {
-            self.append($0)
-        }
-        withUnsafeBytes(of: id.seed)
-        {
-            self.append($0)
-        }
-        withUnsafeBytes(of: id.ordinal)
+        withUnsafeBytes(of: id.bitPattern)
         {
             self.append($0)
         }

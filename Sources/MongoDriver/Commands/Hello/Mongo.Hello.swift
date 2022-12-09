@@ -30,7 +30,7 @@ extension Mongo.Hello
 }
 extension Mongo.Hello:MongoCommand
 {
-    typealias Response = Mongo.Instance
+    typealias Response = Mongo.ServerMetadata
     
     func encode(to bson:inout BSON.Fields)
     {

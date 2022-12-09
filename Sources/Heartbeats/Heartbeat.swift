@@ -11,17 +11,28 @@ struct Heart:Sendable
 extension Heart
 {
     init(yieldingTo continuation:AsyncThrowingStream<Void, any Error>.Continuation,
-        every interval:Duration)
+        every interval:Duration,
+        skip:Int)
     {
         self.init(continuation)
         let beats:Task<Void, any Error> = .init
         {
             [self] in
 
+            let clock:ContinuousClock = .init()
+            var next:ContinuousClock.Instant = clock.now
+            
+            if  skip > 0
+            {
+                next = next.advanced(by: interval * skip)
+                try await Task.sleep(until: next, clock: clock)
+            }
             while true
             {
+                next = next.advanced(by: interval)
+                
                 self.beat()
-                try await Task.sleep(for: interval)
+                try await Task.sleep(until: next, clock: clock)
             }
         }
         self.continuation.onTermination = 
@@ -39,9 +50,9 @@ extension Heart
         self.continuation.yield()
     }
     public
-    func stop()
+    func stop(throwing error:(any Error)? = nil)
     {
-        self.continuation.finish()
+        self.continuation.finish(throwing: error)
     }
 }
 
@@ -54,14 +65,14 @@ struct Heartbeat
     let heart:Heart
 
     public
-    init(interval:Duration)
+    init(interval:Duration, skip:Int = 0)
     {
         var heart:Heart? = nil
         self.stream = .init(bufferingPolicy: .bufferingOldest(1))
         {
             (continuation:AsyncThrowingStream<Void, any Error>.Continuation) in
 
-            heart = .init(yieldingTo: continuation, every: interval)
+            heart = .init(yieldingTo: continuation, every: interval, skip: skip)
         }
         self.heart = heart!
     }

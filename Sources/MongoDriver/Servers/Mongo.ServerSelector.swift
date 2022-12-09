@@ -1,24 +1,24 @@
 extension Mongo
 {
     @frozen public
-    enum InstanceSelector:Sendable
+    enum ServerSelector:Sendable
     {
         case master
         case any
     }
 }
-extension Mongo.InstanceSelector
+extension Mongo.ServerSelector
 {
     static
-    func ~= (self:Self, instance:Mongo.Instance) -> Bool
+    func ~= (self:Self, server:Mongo.Server) -> Bool
     {
         if case .master = self
         {
-            if  instance.isReadOnly
+            if  server.isReadOnly
             {
                 return false
             }
-            if !instance.isWritablePrimary
+            if !server.isWritablePrimary
             {
                 return false
             }

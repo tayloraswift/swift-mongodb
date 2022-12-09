@@ -44,7 +44,7 @@ extension Mongo
 extension Mongo.Create:MongoDatabaseCommand, MongoImplicitSessionCommand
 {
     public static
-    let node:Mongo.InstanceSelector = .master
+    let node:Mongo.ServerSelector = .master
     
     public
     func encode(to bson:inout BSON.Fields)

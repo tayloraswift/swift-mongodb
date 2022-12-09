@@ -319,20 +319,29 @@ enum Main:SynchronousTests
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/oid.json
         tests.group("id")
         {
+            let id:BSON.Identifier = .init(0x0123_4567, 0x89AB_CDEF, 0x4567_3210)
+
+            $0.assert(id.timestamp ==? 0x0123_4567,
+                name: "timestamp")
+            $0.assert(id.seed == (0x89, 0xAB, 0xCD, 0xEF, 0x45),
+                name: "seed")
+            $0.assert(id.ordinal == (0x67, 0x32, 0x10),
+                name: "ordinal")
+
+            $0.assert(id ==? .init(timestamp: id.timestamp, seed: id.seed, ordinal: id.ordinal),
+                name: "components")
+
             $0.test(name: "zeroes",
                 canonical: "1400000007610000000000000000000000000000",
-                expected: ["a": .id(.init(timestamp: 0x0000_0000, 
-                    (0x00, 0x00, 0x00, 0x00, 0x00), (0x00, 0x00, 0x00)))])
+                expected: ["a": .id(.init(0x00000000, 0x00000000, 0x00_000000))])
             
             $0.test(name: "ones",
                 canonical: "14000000076100FFFFFFFFFFFFFFFFFFFFFFFF00",
-                expected: ["a": .id(.init(timestamp: 0xffff_ffff, 
-                    (0xff, 0xff, 0xff, 0xff, 0xff), (0xff, 0xff, 0xff)))])
+                expected: ["a": .id(.init(0xffffffff, 0xffffffff, 0xff_ffffff))])
             
             $0.test(name: "random",
                 canonical: "1400000007610056E1FC72E0C917E9C471416100",
-                expected: ["a": .id(.init(timestamp: 0x56e1_fc72, 
-                    (0xe0, 0xc9, 0x17, 0xe9, 0xc4), (0x71, 0x41, 0x61)))])
+                expected: ["a": .id(.init(0x56e1fc72, 0xe0c917e9, 0xc4_714161))])
             
             $0.test(name: "truncated",
                 invalid: "12000000_07_6100_56E1FC72E0C917E9C471",
@@ -346,12 +355,12 @@ enum Main:SynchronousTests
             $0.test(name: "ascii",
                 canonical: "1A0000000C610002000000620056E1FC72E0C917E9C471416100",
                 expected: ["a": .pointer(.init(from: "b"), .init(
-                    timestamp: 0x56e1fc72, (0xe0, 0xc9, 0x17, 0xe9, 0xc4), (0x71, 0x41, 0x61)))])
+                    0x56e1fc72, 0xe0c917e9, 0xc4_714161))])
             
             $0.test(name: "unicode",
                 canonical: "1B0000000C610003000000C3A90056E1FC72E0C917E9C471416100",
                 expected: ["a": .pointer(.init(from: "é"), .init(
-                    timestamp: 0x56e1fc72, (0xe0, 0xc9, 0x17, 0xe9, 0xc4), (0x71, 0x41, 0x61)))])
+                    0x56e1fc72, 0xe0c917e9, 0xc4_714161))])
             
             $0.test(name: "invalid-length-negative",
                 invalid: "1A000000_0C_6100_FFFFFFFF_620056E1FC72E0C917E9C471416100",

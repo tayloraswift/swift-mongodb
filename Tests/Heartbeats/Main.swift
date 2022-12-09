@@ -8,15 +8,14 @@ enum Main:AsynchronousTests
     func run(tests:inout Tests) async
     {
         let clock:ContinuousClock = .init()
-
-        await tests.do(name: "intervals")
+        await tests.do(name: "drift")
         {
-            var last:ContinuousClock.Instant = .now
-            let t:(ContinuousClock.Instant, ContinuousClock.Instant)
+            let t0:ContinuousClock.Instant = clock.now
 
-            t.0 = last
+            let interval:Duration = .microseconds(5000)
+            let tolerance:Duration = .microseconds(2500)
+            let heartbeat:Heartbeat = .init(interval: interval)
 
-            let heartbeat:Heartbeat = .init(interval: .milliseconds(50))
             var count:Int = 0
 
             heartbeats:
@@ -25,42 +24,37 @@ enum Main:AsynchronousTests
                 defer
                 {
                     count += 1
-                    last = .now
                 }
                 switch count
                 {
-                case 0:
-                    // first heartbeat should appear immediately
-                    $0.assert(.milliseconds(0) ... .milliseconds(10) ~=? last.duration(to: .now),
-                        name: count.description)
-                case 1 ..< 20:
-                    // first heartbeat should appear immediately
-                    $0.assert(.milliseconds(45) ... .milliseconds(55) ~=? last.duration(to: .now),
+                case 0 ..< 400:
+                    //  heartbeats should not skew over time
+                    let center:Duration = interval * count
+                    let expected:ClosedRange<Duration> =
+                        center - tolerance ... 
+                        center + tolerance
+                    
+                    $0.assert(expected ~=? t0.duration(to: .now),
                         name: count.description)
                 case _:
                     break heartbeats
                 }
             }
 
-            t.1 = .now
-
-            // accuracy should be within 1 percent
-            $0.assert(.milliseconds(990) ... .milliseconds(1010) ~=? t.0.duration(to: t.1),
+            let t1:ContinuousClock.Instant = clock.now
+            $0.assert(.milliseconds(1995) ... .milliseconds(2005) ~=? t0.duration(to: t1),
                 name: "elapsed-time")
         }
 
-        await tests.do(name: "buffering")
+        await tests.do(name: "buffered")
         {
-            let t:(ContinuousClock.Instant, ContinuousClock.Instant)
-
-            t.0 = .now
-                
+            let t0:ContinuousClock.Instant = clock.now
             let heartbeat:Heartbeat = .init(interval: .milliseconds(250))
 
             // heartbeat should be buffered
-            try await Task.sleep(for: .milliseconds(125))
+            try await Task.sleep(until: t0.advanced(by: .milliseconds(125)), clock: clock)
 
-            $0.assert(.milliseconds(120) ... .milliseconds(130) ~=? t.0.duration(to: .now),
+            $0.assert(.milliseconds(120) ... .milliseconds(130) ~=? t0.duration(to: .now),
                 name: "sleep")
 
             var last:ContinuousClock.Instant = .now
@@ -77,29 +71,26 @@ enum Main:AsynchronousTests
                 {
                 case 0:
                     // first heartbeat should be immediately available
-                    $0.assert(.milliseconds(0) ... .milliseconds(10) ~=? last.duration(to: .now),
+                    $0.assert(.milliseconds(0) ... .milliseconds(5) ~=? last.duration(to: .now),
                         name: count.description)
                 case 1:
                     // second heartbeat should appear on normal schedule (not delayed)
-                    $0.assert(.milliseconds(245) ... .milliseconds(255) ~=? t.0.duration(to: .now),
+                    $0.assert(.milliseconds(245) ... .milliseconds(255) ~=? t0.duration(to: .now),
                         name: count.description)
                 case _:
                     break heartbeats
                 }
             }
 
-            t.1 = .now
+            let t1:ContinuousClock.Instant = clock.now
 
-            $0.assert(.milliseconds(495) ... .milliseconds(505) ~=? t.0.duration(to: t.1),
+            $0.assert(.milliseconds(495) ... .milliseconds(505) ~=? t0.duration(to: t1),
                 name: "elapsed-time")
         }
 
-        await tests.do(name: "skipping")
+        await tests.do(name: "skipped")
         {
-            let t:(ContinuousClock.Instant, ContinuousClock.Instant)
-
-            t.0 = .now
-
+            let t0:ContinuousClock.Instant = clock.now
             let heartbeat:Heartbeat = .init(interval: .milliseconds(100))
 
             var last:ContinuousClock.Instant = .now
@@ -116,41 +107,44 @@ enum Main:AsynchronousTests
                 {
                 case 0:
                     /// only one heartbeat should be buffered
-                    try await Task.sleep(for: .milliseconds(350))
-                    $0.assert(.milliseconds(345) ... .milliseconds(355) ~=? t.0.duration(to: .now),
+                    try await Task.sleep(until: t0.advanced(by: .milliseconds(350)),
+                        clock: clock)
+                    $0.assert(.milliseconds(345) ... .milliseconds(355) ~=? t0.duration(to: .now),
                         name: "sleep")
                 
                 case 1:
                     // second heartbeat should be immediately available
-                    $0.assert(.milliseconds(0) ... .milliseconds(10) ~=? last.duration(to: .now),
+                    $0.assert(.milliseconds(0) ... .milliseconds(5) ~=? last.duration(to: .now),
                         name: count.description)
                 case 2:
                     // third heartbeat should appear on normal schedule (not immediate, and not delayed)
-                    $0.assert(.milliseconds(395) ... .milliseconds(405) ~=? t.0.duration(to: .now),
+                    $0.assert(.milliseconds(395) ... .milliseconds(405) ~=? t0.duration(to: .now),
                         name: count.description)
                 case _:
                     break heartbeats
                 }
             }
 
-            t.1 = .now
+            let t1:ContinuousClock.Instant = clock.now
 
-            $0.assert(.milliseconds(495) ... .milliseconds(505) ~=? t.0.duration(to: t.1),
+            $0.assert(.milliseconds(495) ... .milliseconds(505) ~=? t0.duration(to: t1),
                 name: "elapsed-time")
         }
 
         await tests.do(name: "manual")
         {
-            let t:(ContinuousClock.Instant, ContinuousClock.Instant)
-
-            t.0 = .now
-
+            let t0:ContinuousClock.Instant = clock.now
             let heartbeat:Heartbeat = .init(interval: .milliseconds(100))
 
             Task<Void, Never>.init
             {
-                try? await Task.sleep(for: .milliseconds(150))
+                try? await Task.sleep(until: t0.advanced(by: .milliseconds(150)), clock: clock)
                 heartbeat.heart.beat()
+            }
+            Task<Void, Never>.init
+            {
+                try? await Task.sleep(until:  t0.advanced(by: .milliseconds(250)), clock: clock)
+                heartbeat.heart.stop()
             }
 
             var last:ContinuousClock.Instant = .now
@@ -167,7 +161,7 @@ enum Main:AsynchronousTests
                 {
                 case 0:
                     // first heartbeat should be immediately available
-                    $0.assert(.milliseconds(0) ... .milliseconds(10) ~=? last.duration(to: .now),
+                    $0.assert(.milliseconds(0) ... .milliseconds(5) ~=? last.duration(to: .now),
                         name: count.description)
                 
                 case 1:
@@ -175,20 +169,21 @@ enum Main:AsynchronousTests
                         name: count.description)
                 case 2:
                     // manual heartbeat should appear immediately
-                    $0.assert(.milliseconds(145) ... .milliseconds(155) ~=? t.0.duration(to: .now),
+                    $0.assert(.milliseconds(145) ... .milliseconds(155) ~=? t0.duration(to: .now),
                         name: count.description)
                 case 3:
                     // fourth (automatic) heartbeat should appear on normal schedule
-                    $0.assert(.milliseconds(195) ... .milliseconds(205) ~=? t.0.duration(to: .now),
+                    $0.assert(.milliseconds(195) ... .milliseconds(205) ~=? t0.duration(to: .now),
                         name: count.description)
                 case _:
-                    break heartbeats
+                    // we should never get here
+                    $0.assert(false, name: "termination")
                 }
             }
 
-            t.1 = .now
+            let t1:ContinuousClock.Instant = clock.now
 
-            $0.assert(.milliseconds(295) ... .milliseconds(305) ~=? t.0.duration(to: t.1),
+            $0.assert(.milliseconds(245) ... .milliseconds(255) ~=? t0.duration(to: t1),
                 name: "elapsed-time")
         }
     }

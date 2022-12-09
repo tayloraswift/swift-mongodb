@@ -21,7 +21,7 @@ extension Mongo
 extension Mongo.KillCursors:MongoDatabaseCommand, MongoSessionCommand
 {
     public static
-    var node:Mongo.InstanceSelector
+    var node:Mongo.ServerSelector
     {
         .any
     }

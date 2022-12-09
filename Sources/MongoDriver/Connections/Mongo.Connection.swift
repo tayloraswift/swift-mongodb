@@ -1,4 +1,5 @@
 import BSONEncoding
+import Heartbeats
 import MongoWire
 import NIOCore
 import NIOPosix
@@ -9,8 +10,8 @@ import SHA2
 extension Mongo
 {
     /// @import(NIOCore)
-    /// A connection to a `mongod`/`mongos` host that we have completed an initial
-    /// handshake with.
+    /// A connection to a `mongod`/`mongos` host. This type is an API wrapper around
+    /// an NIO ``Channel``.
     ///
     /// > Warning: This type is not managed! If you are storing instances of this type, 
     /// there must be code elsewhere responsible for closing the wrapped NIO ``Channel``!
@@ -19,13 +20,13 @@ extension Mongo
     {
         private
         let channel:any Channel
-        let instance:Instance
+        let heart:Heart
 
         private
-        init(instance:Instance, channel:any Channel)
+        init(channel:any Channel, heart:Heart)
         {
-            self.instance = instance
             self.channel = channel
+            self.heart = heart
         }
         func close()
         {
@@ -36,38 +37,57 @@ extension Mongo
 extension Mongo.Connection
 {
     static
-    func connect(to host:Mongo.Host, settings:Mongo.ConnectionSettings,
-        resolver:(some Resolver)?,
-        group:any EventLoopGroup) async throws -> Self
+    func === (lhs:Self, rhs:Self) -> Bool
     {
-        let channel:any Channel = try await Self.channel(to: host, settings: settings,
-            resolver: resolver,
-            group: group)
-        do
-        {
-            return try await .init(channel: channel, credentials: settings.credentials)
-        }
-        catch let error
-        {
-            try await channel.close()
-            throw error
-        }
+        lhs.channel === rhs.channel
     }
-
-    /// Reinitializes a connection, performing authentication with the given credentials,
-    /// if possible.
-    mutating
-    func reinit(credentials:Mongo.Credentials?) async throws
+    static
+    func !== (lhs:Self, rhs:Self) -> Bool
     {
-        self = try await .init(channel: self.channel, credentials: credentials)
+        lhs.channel !== rhs.channel
     }
+    
+    // var closeFuture:EventLoopFuture<Void>
+    // {
+    //     self.channel.closeFuture
+    // }
 }
 extension Mongo.Connection
 {
-    private static
-    func channel(to host:Mongo.Host, settings:Mongo.ConnectionSettings,
-        resolver:(some Resolver)?,
-        group:any EventLoopGroup) async throws -> any Channel
+    // static
+    // func connect(to host:Mongo.Host, settings:Mongo.ConnectionSettings,
+    //     resolver:(some Resolver)?,
+    //     group:any EventLoopGroup) async throws -> Self
+    // {
+    //     let channel:any Channel = try await Self.channel(to: host, settings: settings,
+    //         resolver: resolver,
+    //         group: group)
+    //     do
+    //     {
+    //         return try await .init(channel: channel, credentials: settings.credentials)
+    //     }
+    //     catch let error
+    //     {
+    //         try await channel.close()
+    //         throw error
+    //     }
+    // }
+
+    /// Reinitializes a connection, performing authentication with the given credentials,
+    /// if possible.
+    // mutating
+    // func reinit(credentials:Mongo.Credentials?) async throws
+    // {
+    //     self = try await .init(channel: self.channel, credentials: credentials)
+    // }
+}
+extension Mongo.Connection
+{
+    static
+    func connect(to host:Mongo.Host, settings:Mongo.ConnectionSettings,
+        resolver:DNS.Connection? = nil,
+        heart:Heart,
+        group:some EventLoopGroup) async throws -> Self
     {
         let bootstrap:ClientBootstrap = .init(group: group)
             .resolver(resolver)
@@ -100,59 +120,69 @@ extension Mongo.Connection
                 return channel.eventLoop.makeFailedFuture(error)
             }
         }
+
+        let channel:any Channel = try await bootstrap.connect(
+            host: host.name,
+            port: host.port).get()
         
-        return try await bootstrap.connect(host: host.name, port: host.port).get()
+        channel.closeFuture.whenComplete
+        {
+            //  when the checker task is cancelled, it will also close the
+            //  connection again, which will be a no-op.
+            switch $0
+            {
+            case .success(()):
+                heart.stop()
+            case .failure(let error):
+                heart.stop(throwing: error)
+            }
+        }
+        
+        return .init(channel: channel, heart: heart)
     }
 
-    /// Initializes a connection, performing authentication with the given credentials,
-    /// if possible.
-    private
-    init(channel:any Channel, credentials:Mongo.Credentials?) async throws
+    /// Establishes a connection, performing authentication with the given credentials,
+    /// if possible. If establishment fails, the connection’s TCP channel will *not*
+    /// be closed.
+    func establish(credentials:Mongo.Credentials?) async throws -> Mongo.ServerMetadata
     {
-        let message:MongoWire.Message<ByteBufferView> = try await withCheckedThrowingContinuation
+        let hello:Mongo.Hello
+        // if we don’t have an explicit authentication mode, ask the server
+        // what it supports (for the current user).
+        if  let credentials:Mongo.Credentials,
+            case nil = credentials.authentication
         {
-            (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
-
-            let hello:Mongo.Hello
-            // if we don’t have an explicit authentication mode, ask the server
-            // what it supports (for the current user).
-            if  let credentials:Mongo.Credentials,
-                case nil = credentials.authentication
-            {
-                hello = .init(user: credentials.user)
-            } 
-            else
-            {
-                hello = .init(user: nil)
-            }
-            var command:BSON.Fields = .init(with: hello.encode(to:))
-                command.add(database: .admin)
-            
-            channel.writeAndFlush((command, continuation), promise: nil)
-        }
-
-        self.init(instance: try Mongo.Hello.decode(message: message), channel: channel)
-
-        guard let credentials:Mongo.Credentials
+            hello = .init(user: credentials.user)
+        } 
         else
         {
-            return
+            hello = .init(user: nil)
         }
-        do
+
+        let metadata:Mongo.ServerMetadata = try await self.run(command: hello)
+
+        if let credentials:Mongo.Credentials
         {
-            try await self.authenticate(with: credentials)
+            do
+            {
+                try await self.authenticate(with: credentials,
+                    mechanisms: metadata.saslSupportedMechs)
+            }
+            catch let error
+            {
+                throw Mongo.AuthenticationError.init(error, credentials: credentials)
+            }
         }
-        catch let error
-        {
-            throw Mongo.AuthenticationError.init(error, credentials: credentials)
-        }
+
+        return metadata
     }
 }
 
 extension Mongo.Connection
 {
     private
-    func authenticate(with credentials:Mongo.Credentials) async throws
+    func authenticate(with credentials:Mongo.Credentials,
+        mechanisms:Set<Mongo.Authentication.SASL>?) async throws
     {
         let sasl:Mongo.Authentication.SASL
         switch credentials.authentication
@@ -179,7 +209,7 @@ extension Mongo.Connection
             //  mechanism negotiation, then SCRAM-SHA-1 MUST be used when talking to
             //  servers >= 3.0. Prior to server 3.0, MONGODB-CR MUST be used.
             //  '''
-            if case true? = self.instance.saslSupportedMechs?.contains(.sha256)
+            if case true? = mechanisms?.contains(.sha256)
             {
                 sasl = .sha256
             }
@@ -268,34 +298,17 @@ extension Mongo.Connection
     }
 }
 
-
-extension Mongo.Connection:Identifiable
-{
-    public
-    var id:Mongo.ConnectionIdentifier
-    {
-        self.instance.connection
-    }
-}
-extension Mongo.Connection
-{
-    var closeFuture:EventLoopFuture<Void> 
-    {
-        self.channel.closeFuture
-    }
-}
+// extension Mongo.Connection:Identifiable
+// {
+//     public
+//     var id:Mongo.ConnectionIdentifier
+//     {
+//         self.server.connection
+//     }
+// }
 
 extension Mongo.Connection
 {
-    /// Runs an authentication command against the specified `database`.
-    func run<Command>(command:__owned Command,
-        against database:Mongo.Database) async throws -> Mongo.SASLResponse
-        where Command:MongoAuthenticationCommand
-    {
-        try Command.decode(message: try await self.run(command: command,
-            against: database,
-            session: nil))
-    }
     func run(command:__owned some MongoCommand,
         against database:Mongo.Database,
         transaction:Never? = nil,
@@ -326,5 +339,31 @@ extension Mongo.Connection
 
             self.channel.writeAndFlush((command, continuation), promise: nil)
         }
+    }
+    /// Runs an authentication command against the specified `database`,
+    /// and decodes its response.
+    func run<Command>(command:__owned Command,
+        against database:Mongo.Database) async throws -> Mongo.SASLResponse
+        where Command:MongoAuthenticationCommand
+    {
+        try Command.decode(message: try await self.run(command: command,
+            against: database,
+            session: nil))
+    }
+    /// Runs a ``Mongo/Hello`` command, and decodes its response.
+    func run(command:Mongo.Hello) async throws -> Mongo.ServerMetadata
+    {
+        return try Mongo.Hello.decode(message: try await self.run(
+            command: command,
+            against: .admin, 
+            session: nil))
+    }
+    /// Runs a ``Mongo/EndSessions`` command, and decodes its response.
+    func run(command:Mongo.EndSessions) async throws -> Mongo.EndSessions.Response
+    {
+        return try Mongo.EndSessions.decode(message: try await self.run(
+            command: command,
+            against: .admin, 
+            session: nil))
     }
 }

@@ -121,7 +121,7 @@ extension Mongo.Find
 extension Mongo.Find:MongoStreamableCommand
 {
     public static
-    var node:Mongo.InstanceSelector
+    var node:Mongo.ServerSelector
     {
         .any
     }

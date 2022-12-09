@@ -11,6 +11,8 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONUnions", targets: ["BSONUnions"]),
         .library(name: "BSON_UUID", targets: ["BSON_UUID"]),
 
+        .library(name: "Heartbeats", targets: ["Heartbeats"]),
+
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
         .library(name: "MongoSchema", targets: ["MongoSchema"]),
@@ -22,7 +24,8 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     dependencies: 
     [
-        .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.3")),
+        //.package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.3")),
+        .package(url: "https://github.com/kelvin13/swift-hash", branch: "testing-improvements-2"),
         
         // this is used to generate `Sources/BSONDecoding/Decoder/Decoder.spf.swift`
         .package(url: "https://github.com/kelvin13/swift-package-factory.git",
@@ -77,6 +80,8 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "UUID"),
             ]),
         
+        .target(name: "Heartbeats"),
+        
         .target(name: "SCRAM",
             dependencies: 
             [
@@ -110,6 +115,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONSchema"),
                 .target(name: "BSON_UUID"),
+                .target(name: "Heartbeats"),
                 .target(name: "Mongo"),
                 .target(name: "MongoWire"),
                 .target(name: "SCRAM"),
@@ -167,6 +173,14 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/BSONEncoding"),
+        
+        .executableTarget(name: "HeartbeatsTests",
+            dependencies:
+            [
+                .target(name: "Heartbeats"),
+                .product(name: "Testing", package: "swift-hash"),
+            ], 
+            path: "Tests/Heartbeats"),
         
         .executableTarget(name: "MongoDBTests",
             dependencies:
