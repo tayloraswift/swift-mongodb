@@ -1,55 +1,78 @@
 extension Mongo
 {
-    private
+    enum TransactionState
+    {
+        case started
+        case aborted
+        case committed
+    }
+}
+extension Mongo
+{
+    struct Transaction
+    {
+        var number:Int64
+        var state:TransactionState?
+
+        init()
+        {
+            self.number = 1
+            self.state = nil
+        }
+    }
+}
+extension Mongo
+{
+    struct SessionState
+    {
+        var transaction:Transaction
+        var touched:ContinuousClock.Instant
+    }
+}
+extension Mongo
+{
     struct SessionMetadata
     {
-        /// The instant of time at which the driver believes the associated
-        /// session is likely to time out.
-        var timeout:ContinuousClock.Instant
+        let id:SessionIdentifier
+        var state:SessionState
+    }
+}
+extension Mongo
+{
+    struct SessionContext
+    {
+        let connection:Mongo.Connection
+        let timeout:Mongo.Minutes
     }
 }
 extension Mongo
 {
     struct SessionPool
     {
-        private
-        var available:[Session.ID: SessionMetadata]
-        private
-        var claimed:[Session.ID: SessionMetadata]
+        private(set)
+        var available:[SessionIdentifier: SessionState]
+        private(set)
+        var claimed:Set<SessionIdentifier>
 
         init()
         {
             self.available = [:]
-            self.claimed = [:]
+            self.claimed = []
         }
     }
 }
 extension Mongo.SessionPool
 {
     mutating
-    func drain() -> [Mongo.Session.ID]
-    {
-        guard self.claimed.isEmpty
-        else
-        {
-            fatalError("unreachable: draining session pool while sessions are still in use!")
-        }
-        defer
-        {
-            self.available = [:]
-        }
-        return .init(self.available.keys)
-    }
-    mutating
-    func checkout() -> Mongo.Session.ID
+    func checkout(context:Mongo.SessionContext) -> Mongo.SessionMetadata
     {
         let now:ContinuousClock.Instant = .now
-        while case let (session, metadata)? = self.available.popFirst()
+        while case let (id, session)? = self.available.popFirst()
         {
-            if now < metadata.timeout
+            if now < session.touched.advanced(by: .minutes(context.timeout - 1))
             {
-                self.claimed.updateValue(metadata, forKey: session)
-                return session
+                self.claimed.update(with: id)
+                return .init(id: id, state: session)
             }
         }
         // very unlikely, but do not generate a session id that we have
@@ -58,36 +81,25 @@ extension Mongo.SessionPool
         // to maintain local dictionary invariants.
         while true
         {
-            let session:Mongo.Session.ID = .random()
-            if  !self.available.keys.contains(session),
-                !self.claimed.keys.contains(session)
+            let id:Mongo.SessionIdentifier = .random()
+            if case nil = self.claimed.update(with: id)
             {
-                self.claimed.updateValue(.init(timeout: now), forKey: session)
-                return session
+                return .init(id: id, state: .init(transaction: .init(), touched: now))
             }
         }
     }
     mutating
-    func extend(_ session:Mongo.Session.ID, timeout:ContinuousClock.Instant)
+    func checkin(_ session:Mongo.SessionMetadata)
     {
-        guard case ()? = self.claimed[session]?.timeout = timeout
+        guard case _? = self.claimed.remove(session.id)
         else
         {
-            fatalError("unreachable: retained an unknown session! (\(session))")
+            fatalError("unreachable: released an unknown session! (\(session.id))")
         }
-    }
-    mutating
-    func checkin(_ session:Mongo.Session.ID)
-    {
-        guard let metadata:Mongo.SessionMetadata = self.claimed.removeValue(forKey: session)
+        guard case nil = self.available.updateValue(session.state, forKey: session.id)
         else
         {
-            fatalError("unreachable: released an unknown session! (\(session))")
-        }
-        guard case nil = self.available.updateValue(metadata, forKey: session)
-        else
-        {
-            fatalError("unreachable: released an duplicate session! (\(session))")
+            fatalError("unreachable: released an duplicate session! (\(session.id))")
         }
     }
 }

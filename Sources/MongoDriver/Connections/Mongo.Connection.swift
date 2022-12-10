@@ -144,7 +144,7 @@ extension Mongo.Connection
     /// Establishes a connection, performing authentication with the given credentials,
     /// if possible. If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
-    func establish(credentials:Mongo.Credentials?) async throws -> Mongo.ServerMetadata
+    func establish(credentials:Mongo.Credentials?) async throws -> Mongo.Hello.Response
     {
         let hello:Mongo.Hello
         // if we don’t have an explicit authentication mode, ask the server
@@ -159,14 +159,14 @@ extension Mongo.Connection
             hello = .init(user: nil)
         }
 
-        let metadata:Mongo.ServerMetadata = try await self.run(command: hello)
+        let response:Mongo.Hello.Response = try await self.run(command: hello)
 
         if let credentials:Mongo.Credentials
         {
             do
             {
                 try await self.authenticate(with: credentials,
-                    mechanisms: metadata.saslSupportedMechs)
+                    mechanisms: response.saslSupportedMechs)
             }
             catch let error
             {
@@ -174,7 +174,7 @@ extension Mongo.Connection
             }
         }
 
-        return metadata
+        return response
     }
 }
 
@@ -312,12 +312,12 @@ extension Mongo.Connection
     func run(command:__owned some MongoCommand,
         against database:Mongo.Database,
         transaction:Never? = nil,
-        session:Mongo.Session.ID?) async throws -> MongoWire.Message<ByteBufferView>
+        session:Mongo.SessionIdentifier?) async throws -> MongoWire.Message<ByteBufferView>
     {
         var command:BSON.Fields = .init(with: command.encode(to:))
             command.add(database: database)
         
-        if let session:Mongo.Session.ID
+        if let session:Mongo.SessionIdentifier
         {
             command.add(session: session)
         }
@@ -351,7 +351,7 @@ extension Mongo.Connection
             session: nil))
     }
     /// Runs a ``Mongo/Hello`` command, and decodes its response.
-    func run(command:Mongo.Hello) async throws -> Mongo.ServerMetadata
+    func run(command:Mongo.Hello) async throws -> Mongo.Hello.Response
     {
         return try Mongo.Hello.decode(message: try await self.run(
             command: command,

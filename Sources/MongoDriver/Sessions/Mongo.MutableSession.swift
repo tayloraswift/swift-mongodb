@@ -3,15 +3,15 @@ import NIOCore
 
 extension Mongo
 {
-    // not sendable! not even a little bit!
     public
-    struct Session
+    struct MutableSession
     {
         private
         let connection:Connection
         private
         let manager:SessionManager
 
+        private
         init(connection:Connection, manager:SessionManager)
         {
             self.connection = connection
@@ -19,35 +19,38 @@ extension Mongo
         }
     }
 }
-extension Mongo.Session:Identifiable
+extension Mongo.MutableSession
 {
     public
-    var id:ID
+    init(on deployment:Mongo.Deployment) async
     {
-        self.manager.id
+        let (context, metadata):(Mongo.SessionContext, Mongo.SessionMetadata) =
+            await deployment.session(on: .master)
+        self.init(connection: context.connection, manager: .init(metadata: metadata,
+            deployment: deployment))
     }
 }
-extension Mongo.Session
+extension Mongo.MutableSession:Identifiable
 {
-    private
-    func timeout() -> ContinuousClock.Instant
+    public
+    var id:Mongo.SessionIdentifier
     {
-        // allow 1 min padding time
-        let timeout:Mongo.Minutes = self.connection.server.logicalSessionTimeoutMinutes
-        return .now.advanced(by: .minutes(max(0, timeout - 1)))
+        self.manager.metadata.id
     }
-
+}
+extension Mongo.MutableSession
+{
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
     public
     func run<Command>(command:Command) async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        let timeout:ContinuousClock.Instant = self.timeout()
+        let touched:ContinuousClock.Instant = .now
         let message:MongoWire.Message<ByteBufferView> = try await self.connection.run(
             command: command, against: .admin,
             transaction: nil,
             session: self.id)
-        self.manager.extend(timeout: timeout)
+        self.manager.metadata.state.touched = touched
         return try Command.decode(message: message)
     }
     
@@ -57,12 +60,12 @@ extension Mongo.Session
         against database:Mongo.Database) async throws -> Command.Response
         where Command:MongoDatabaseCommand
     {
-        let timeout:ContinuousClock.Instant = self.timeout()
+        let touched:ContinuousClock.Instant = .now
         let message:MongoWire.Message<ByteBufferView> = try await self.connection.run(
             command: command, against: database,
             transaction: nil,
             session: self.id)
-        self.manager.extend(timeout: timeout)
+        self.manager.metadata.state.touched = touched
         return try Command.decode(message: message)
     }
 }

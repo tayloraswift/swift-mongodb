@@ -2,11 +2,11 @@ import BSONEncoding
 
 extension Mongo
 {
-    struct EndSessions:Sendable
+    struct EndSessions:Error, Sendable
     {
-        let sessions:[Session.ID]
+        let sessions:[SessionIdentifier]
 
-        init(_ sessions:[Session.ID])
+        init(_ sessions:[SessionIdentifier])
         {
             self.sessions = sessions
         }

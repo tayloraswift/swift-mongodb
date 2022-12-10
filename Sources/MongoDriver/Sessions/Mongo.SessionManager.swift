@@ -4,26 +4,19 @@ extension Mongo
     {
         // TODO: implement time gossip
         private
-        let cluster:Mongo.Cluster
-        let id:Session.ID
+        let deployment:Mongo.Deployment
+        var metadata:SessionMetadata
 
-        init(id:Session.ID, cluster:Mongo.Cluster)
+        init(metadata:SessionMetadata, deployment:Mongo.Deployment)
         {
-            self.cluster = cluster
-            self.id = id
-        }
-        func extend(timeout:ContinuousClock.Instant)
-        {
-            Task.init
-            {
-                [id] in await self.cluster.extendSession(id, timeout: timeout)
-            }
+            self.deployment = deployment
+            self.metadata = metadata
         }
         deinit
         {
             Task.init
             {
-                [id, cluster] in await cluster.releaseSession(id)
+                [metadata, deployment] in await deployment.checkin(session: metadata)
             }
         }
     }

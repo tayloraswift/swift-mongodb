@@ -13,7 +13,7 @@ extension BSON.Fields
 {
     /// Adds a MongoDB session identifier to this list of fields, under the key [`"lsid"`]().
     mutating
-    func add(session:Mongo.Session.ID)
+    func add(session:Mongo.SessionIdentifier)
     {
         self["lsid"] = session
     }

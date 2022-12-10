@@ -1,10 +1,10 @@
 import BSONDecoding
 import MongoWire
 
-extension Mongo
+extension Mongo.Hello
 {
     //@frozen public
-    struct ServerMetadata
+    struct Response
     {
         /// The maximum permitted size of a BSON object in bytes for this
         /// [mongod](https://www.mongodb.com/docs/manual/reference/program/mongod/#mongodb-binary-bin.mongod)
@@ -33,13 +33,13 @@ extension Mongo
         /// within this threshold are cleared from the cache. State associated with
         /// an expired session may be cleaned up by the server at any time.
         public
-        let logicalSessionTimeoutMinutes:Minutes
+        let logicalSessionTimeoutMinutes:Mongo.Minutes
 
         /// An identifier for the `mongod`/`mongos` instance's outgoing connection
         /// to the client.
         /// This is called `connectionId` in the server reply.
         public
-        let token:ConnectionToken
+        let token:Mongo.ConnectionToken
 
         /// The range of versions of the wire protocol that this `mongod` or `mongos`
         /// instance is capable of using to communicate with clients.
@@ -49,12 +49,20 @@ extension Mongo
 
         /// An array of SASL mechanisms used to create the user's credential or credentials.
         public
-        let saslSupportedMechs:Set<Authentication.SASL>?
+        let saslSupportedMechs:Set<Mongo.Authentication.SASL>?
 
-        let type:Server
+        /// Type-specific metadata about the server.
+        let server:Mongo.Server
     }
 }
-extension Mongo.ServerMetadata:BSONDictionaryDecodable
+extension Mongo.Hello.Response
+{
+    var metadata:Mongo.ServerMetadata
+    {
+        .init(sessionTimeout: self.logicalSessionTimeoutMinutes, type: self.server)
+    }
+}
+extension Mongo.Hello.Response:BSONDictionaryDecodable
 {
     public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
@@ -103,7 +111,7 @@ extension Mongo.ServerMetadata:BSONDictionaryDecodable
             if      case true? =
                     try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
             {
-                self.type = .replica(.primary(.init(regime: .init(
+                self.server = .replica(.primary(.init(regime: .init(
                             election: try bson["electionId"].decode(to: BSON.Identifier.self),
                             version: try bson["setVersion"].decode(to: Int64.self)),
                         tags: tags,
@@ -112,30 +120,30 @@ extension Mongo.ServerMetadata:BSONDictionaryDecodable
             }
             else if case true? = try bson["secondary"]?.decode(to: Bool.self)
             {
-                self.type = .replica(.secondary(.init(tags: tags, set: set)), peerlist)
+                self.server = .replica(.secondary(.init(tags: tags, set: set)), peerlist)
             }
             else if case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
             {
-                self.type = .replica(.arbiter(.init(tags: tags, set: set)), peerlist)
+                self.server = .replica(.arbiter(.init(tags: tags, set: set)), peerlist)
             }
             else
             {
-                self.type = .replica(.other(.init(tags: tags, set: set)), peerlist)
+                self.server = .replica(.other(.init(tags: tags, set: set)), peerlist)
             }
         }
         else
         {
             if      case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
             {
-                self.type = .replicaGhost
+                self.server = .replicaGhost
             }
             else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
             {
-                self.type = .router(.init())
+                self.server = .router(.init())
             }
             else
             {
-                self.type = .single(.init())
+                self.server = .single(.init())
             }
         }
     }

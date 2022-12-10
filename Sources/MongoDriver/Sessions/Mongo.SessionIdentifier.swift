@@ -2,10 +2,10 @@ import BSONSchema
 import BSON_UUID
 import UUID
 
-extension Mongo.Session
+extension Mongo
 {
     public 
-    struct ID:Hashable, Sendable 
+    struct SessionIdentifier:Hashable, Sendable 
     {
         public
         let uuid:UUID
@@ -17,7 +17,7 @@ extension Mongo.Session
         }
     }
 }
-extension Mongo.Session.ID
+extension Mongo.SessionIdentifier
 {
     static
     func random() -> Self
@@ -26,7 +26,7 @@ extension Mongo.Session.ID
     }
 }
 
-extension Mongo.Session.ID:BSONDictionaryDecodable, BSONDocumentEncodable
+extension Mongo.SessionIdentifier:BSONDictionaryDecodable, BSONDocumentEncodable
 {
     @inlinable public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws

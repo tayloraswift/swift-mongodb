@@ -30,6 +30,10 @@ extension Mongo.Topology.Single
             return nil
         }
     }
+    func end(sessions command:inout Mongo.EndSessions?)
+    {
+        self.state.end(sessions: &command)
+    }
     mutating
     func clear(host:Mongo.Host, status:(any Error)?) -> Void?
     {
@@ -41,5 +45,12 @@ extension Mongo.Topology.Single
     {
         self.host != host ? nil :
         self.state.update(connection: connection, metadata: metadata)
+    }
+}
+extension Mongo.Topology.Single
+{
+    var master:Mongo.Connection?
+    {
+        self.state.connection
     }
 }

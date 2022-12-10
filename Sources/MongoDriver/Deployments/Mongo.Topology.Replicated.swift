@@ -56,6 +56,29 @@ extension Mongo.Topology.Replicated
             return nil
         }
     }
+    func end(sessions command:inout Mongo.EndSessions?)
+    {
+        var replicas:[Mongo.Host: Mongo.ConnectionState<Mongo.Replica?>] = self.replicas
+        //  ``EndSessions`` should be sent to the primary.
+        if  let primary:Mongo.Host = self.primary,
+            let primary:Mongo.ConnectionState<Mongo.Replica?> = replicas.removeValue(
+                forKey: primary)
+        {
+            primary.end(sessions: &command)
+        }
+        //  ``EndSessions`` should be sent to any available secondary otherwise.
+        for slave:Mongo.ConnectionState<Mongo.Replica?> in replicas.values
+        {
+            if case .secondary(_)? = slave.metadata
+            {
+                slave.end(sessions: &command)
+            }
+            else
+            {
+                slave.end()
+            }
+        }
+    }
     mutating
     func remove(host:Mongo.Host) -> Void?
     {
@@ -195,7 +218,7 @@ extension Mongo.Topology.Replicated
             break
         
         case (nil, let new?):
-            if case .connected(_, metadata: .primary(_)?)? = self.replicas[new]
+            if case .primary(_)?? = self.replicas[new]?.metadata
             {
                 self.primary = new
             }
@@ -206,7 +229,7 @@ extension Mongo.Topology.Replicated
             {
                 fallthrough
             }
-            if case .connected(_, metadata: .primary(_)?)? = self.replicas[new]
+            if case .primary(_)?? = self.replicas[new]?.metadata
             {
                 self.primary = new
             }
@@ -216,8 +239,7 @@ extension Mongo.Topology.Replicated
             }
             if  let old:Dictionary<Mongo.Host, Mongo.ConnectionState<Mongo.Replica?>>.Index =
                     self.replicas.index(forKey: old),
-                case .connected(let connection, metadata: .primary(_)?) = 
-                    self.replicas.values[old]
+                let connection:Mongo.Connection = self.replicas.values[old].primary
             {
                 //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-monitoring.rst#requesting-an-immediate-check
                 connection.heart.beat()
@@ -225,12 +247,44 @@ extension Mongo.Topology.Replicated
             }
         
         case (let old?, nil):
-            guard case .connected(_, metadata: .primary(_)?)? = self.replicas[old]
+            guard case .primary(_)?? = self.replicas[old]?.metadata
             else
             {
                 self.primary = nil
                 break
             }
         }
+    }
+}
+extension Mongo.Topology.Replicated
+{
+    /// Returns a connection to the primary replica, if available.
+    var master:Mongo.Connection?
+    {
+        if let primary:Mongo.Host = self.primary
+        {
+            return self.replicas[primary]?.primary
+        }
+        else
+        {
+            return nil
+        }
+    }
+    /// Returns a connection to any available primary or secondary replica.
+    var any:Mongo.Connection?
+    {
+        for replica:Mongo.ConnectionState<Mongo.Replica?> in self.replicas.values
+        {
+            switch replica
+            {
+            case    .connected(let connection, metadata: .primary(_)?),
+                    .connected(let connection, metadata: .secondary(_)?):
+                return connection
+            
+            default:
+                continue
+            }
+        }
+        return nil
     }
 }

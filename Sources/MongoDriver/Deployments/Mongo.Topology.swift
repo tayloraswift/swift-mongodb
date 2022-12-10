@@ -65,6 +65,29 @@ extension Mongo.Topology
         }
     }
     mutating
+    func removeAll(throwing command:inout Mongo.EndSessions?)
+    {
+        defer
+        {
+            self = .unknown(.init())
+        }
+        switch self
+        {
+        case .unknown(_):
+            //  no connections available. (and no connections to close.)
+            break
+        
+        case .single(let topology):
+            topology.end(sessions: &command)
+        
+        case .sharded(let topology):
+            topology.end(sessions: &command)
+        
+        case .replicated(let topology):
+            topology.end(sessions: &command)
+        }
+    }
+    mutating
     func clear(host:Mongo.Host, status:(any Error)?) -> Void?
     {
         switch self
@@ -176,6 +199,65 @@ extension Mongo.Topology
                 // remove and stop monitoring
                 return topology.remove(host: host)
             }
+        }
+    }
+}
+
+extension Mongo.Topology
+{
+    /// Returns a connection to a master server, if one is available, and
+    /// according to the current topology type.
+    ///
+    /// For ``case single(_:)`` topologies, this will return a connection
+    /// to the lone server, if available.
+    ///
+    /// For ``case sharded(_:)`` topologies, this will return any available
+    /// router.
+    ///
+    /// For ``case replicated(_:)`` topologies, this will return a connection
+    /// to the primary replica, if available.
+    ///
+    /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
+    var master:Mongo.Connection?
+    {
+        switch self
+        {
+        case .unknown(_):               return nil
+        case .single(let topology):     return topology.master
+        case .sharded(let topology):    return topology.any
+        case .replicated(let topology): return topology.master
+        }
+    }
+    /// Returns a connection to any data-bearing server, if one is available,
+    /// and according to the current topology type.
+    ///
+    /// For ``case single(_:)`` topologies, this will return a connection
+    /// to the lone server, if available.
+    ///
+    /// For ``case sharded(_:)`` topologies, this will return any available
+    /// router.
+    ///
+    /// For ``case replicated(_:)`` topologies, this will return a connection
+    /// to any available primary or secondary replica.
+    ///
+    /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
+    var any:Mongo.Connection?
+    {
+        switch self
+        {
+        case .unknown(_):               return nil
+        case .single(let topology):     return topology.master
+        case .sharded(let topology):    return topology.any
+        case .replicated(let topology): return topology.any
+        }
+    }
+
+    subscript(selector:Mongo.ServerSelector) -> Mongo.Connection?
+    {
+        switch selector
+        {
+        case .master:   return self.master
+        case .any:      return self.any
         }
     }
 }

@@ -25,6 +25,14 @@ extension Mongo.Topology.Sharded
             return nil
         }
     }
+    func end(sessions command:inout Mongo.EndSessions?)
+    {
+        //  ``EndSessions`` can be sent to any `mongos`.
+        for router:Mongo.ConnectionState<Mongo.Router> in self.routers.values
+        {
+            router.end(sessions: &command)
+        }
+    }
     mutating
     func remove(host:Mongo.Host) -> Void?
     {
@@ -40,5 +48,20 @@ extension Mongo.Topology.Sharded
     func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Router) -> Void?
     {
         self.routers[host]?.update(connection: connection, metadata: metadata)
+    }
+}
+extension Mongo.Topology.Sharded
+{
+    /// Returns a connection to any available router.
+    var any:Mongo.Connection?
+    {
+        for router:Mongo.ConnectionState<Mongo.Router> in self.routers.values
+        {
+            if let connection:Mongo.Connection = router.connection
+            {
+                return connection
+            }
+        }
+        return nil
     }
 }
