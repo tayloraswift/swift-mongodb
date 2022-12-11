@@ -29,6 +29,16 @@ extension Mongo.Topology
 }
 extension Mongo.Topology.Replicated
 {
+    func terminate()
+    {
+        for router:Mongo.ConnectionState<Mongo.Replica?> in self.replicas.values
+        {
+            router.connection?.heart.stop()
+        }
+    }
+}
+extension Mongo.Topology.Replicated
+{
     init?(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Replica,
         seedlist:inout Mongo.Seedlist,
         peerlist:Mongo.Peerlist,
@@ -54,29 +64,6 @@ extension Mongo.Topology.Replicated
         {
             seedlist.pick(host: host)
             return nil
-        }
-    }
-    func end(sessions command:inout Mongo.EndSessions?)
-    {
-        var replicas:[Mongo.Host: Mongo.ConnectionState<Mongo.Replica?>] = self.replicas
-        //  ``EndSessions`` should be sent to the primary.
-        if  let primary:Mongo.Host = self.primary,
-            let primary:Mongo.ConnectionState<Mongo.Replica?> = replicas.removeValue(
-                forKey: primary)
-        {
-            primary.end(sessions: &command)
-        }
-        //  ``EndSessions`` should be sent to any available secondary otherwise.
-        for slave:Mongo.ConnectionState<Mongo.Replica?> in replicas.values
-        {
-            if case .secondary(_)? = slave.metadata
-            {
-                slave.end(sessions: &command)
-            }
-            else
-            {
-                slave.end()
-            }
         }
     }
     mutating

@@ -5,11 +5,6 @@ import NIOCore
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "Deployment")
-    public
-    typealias Cluster = Deployment
-
-    public 
     actor Deployment
     {
         let credentials:Credentials?
@@ -21,29 +16,31 @@ extension Mongo
             group:any EventLoopGroup
 
         private
-        var awaiting:[ServerSelector: [CheckedContinuation<SessionContext, Never>]]
-        private 
-        var sessions:SessionPool
-        private
         var sessionTimeout:Mongo.Minutes?
         private
         var topology:Topology
+        private
+        var awaiting:[ServerSelector: [CheckedContinuation<SessionMedium, Never>]]
 
-        private 
-        init(credentials:Credentials?, seedlist:Seedlist,
+        init(credentials:Credentials?,
             settings:ConnectionSettings,
             resolver:DNS.Connection?,
-            group:any EventLoopGroup) 
+            group:any EventLoopGroup,
+            seeds:Set<Mongo.Host>) 
         {
             self.credentials = credentials
             self.settings = settings
             self.resolver = resolver
             self.group = group
 
-            self.awaiting = [:]
-            self.sessions = .init()
             self.sessionTimeout = nil
-            self.topology = .unknown(seedlist)
+            self.topology = .unknown(.init(hosts: seeds))
+            self.awaiting = [:]
+
+            for host:Mongo.Host in seeds
+            {
+                self.monitor(host)
+            }
         }
 
         deinit
@@ -53,85 +50,8 @@ extension Mongo
             {
                 fatalError("unreachable: deinitialized while continuations are awaiting!")
             }
-            guard self.sessions.claimed.isEmpty
-            else
-            {
-                fatalError("unreachable: draining session pool while sessions are still in use!")
-            }
-            
-            var command:EndSessions? = .init(.init(self.sessions.available.keys))
 
-            self.topology.removeAll(throwing: &command)
-
-            if let command:EndSessions
-            {
-                print("warning: could not throw 'EndSessions' \(command.sessions)")
-            }
-        }
-    }
-}
-
-extension Mongo.Deployment
-{
-    /// Opens a connection to the requested host with the settings
-    /// stored in this instance. This method only creates the connection,
-    /// it does not register the connection, perform any handshakes or
-    /// authentication, or start any monitoring.
-    func connect(to host:Mongo.Host, heart:Heart) async throws -> Mongo.Connection
-    {
-        try await .connect(to: host, 
-            settings: self.settings,
-            resolver: self.resolver,
-            heart: heart,
-            group: self.group)
-    }
-    func update(host:Mongo.Host, connection:Mongo.Connection,
-        metadata:Mongo.ServerMetadata) -> Void?
-    {
-        self.topology.update(host: host, connection: connection, metadata: metadata.type,
-            monitor: self.monitor(host:))
-            .map
-        {
-            // update session timeout
-            let timeout:Mongo.Minutes = min(metadata.sessionTimeout,
-                self.sessionTimeout ?? metadata.sessionTimeout)
-
-            self.sessionTimeout = timeout
-
-            // succeed any tasks awaiting connections
-            if      let connection:Mongo.Connection = self.topology.master
-            {
-                for continuation:CheckedContinuation<Mongo.SessionContext, Never>
-                    in self.awaiting.values.joined()
-                {
-                    continuation.resume(returning: .init(connection: connection, 
-                        timeout: timeout))
-                }
-                self.awaiting = [:]
-            }
-            else if let connection:Mongo.Connection = self.topology.any
-            {
-                for continuation:CheckedContinuation<Mongo.SessionContext, Never>
-                    in self.awaiting.removeValue(forKey: .any) ?? []
-                {
-                    continuation.resume(returning: .init(connection: connection, 
-                        timeout: timeout))
-                }
-            }
-        }
-    }
-    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
-    {
-        self.topology.clear(host: host, status: status)
-    }
-
-    private nonisolated
-    func monitor(host:Mongo.Host)
-    {
-        let monitor:Mongo.ConnectionMonitor = .init(self)
-        let _:Task<Void, Never> = .init
-        {
-            await monitor.monitor(host)
+            print("deinitialized deployment")
         }
     }
 }
@@ -154,19 +74,135 @@ extension Mongo.Deployment
     //         fatalError("unimplemented")
     //     }
     // }
-    public 
-    init(credentials:Mongo.Credentials?, seedlist:Set<Mongo.Host>,
-        settings:Mongo.ConnectionSettings,
-        group:any EventLoopGroup) async throws 
+}
+
+extension Mongo.Deployment
+{
+    func terminate()
     {
-        self.init(credentials: credentials, seedlist: .init(hosts: seedlist),
-            settings: settings,
-            resolver: nil,
-            group: group)
-        
-        for host:Mongo.Host in seedlist
+        self.topology.terminate()
+    }
+
+    private
+    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
+    {
+        self.topology.clear(host: host, status: status)
+    }
+    private
+    func update(host:Mongo.Host, connection:Mongo.Connection,
+        metadata:Mongo.ServerMetadata) -> Void?
+    {
+        self.topology.update(host: host, connection: connection, metadata: metadata.type,
+            monitor: self.monitor(_:))
+            .map
         {
-            self.monitor(host: host)
+            // update session timeout
+            let timeout:Mongo.Minutes = min(metadata.sessionTimeout,
+                self.sessionTimeout ?? metadata.sessionTimeout)
+
+            self.sessionTimeout = timeout
+
+            // succeed any tasks awaiting connections
+            if      let connection:Mongo.Connection = self.topology.master
+            {
+                for continuation:CheckedContinuation<Mongo.SessionMedium, Never>
+                    in self.awaiting.values.joined()
+                {
+                    continuation.resume(returning: .init(connection: connection, 
+                        timeout: timeout))
+                }
+                self.awaiting = [:]
+            }
+            else if let connection:Mongo.Connection = self.topology.any
+            {
+                for continuation:CheckedContinuation<Mongo.SessionMedium, Never>
+                    in self.awaiting.removeValue(forKey: .any) ?? []
+                {
+                    continuation.resume(returning: .init(connection: connection, 
+                        timeout: timeout))
+                }
+            }
+        }
+    }
+}
+extension Mongo.Deployment
+{
+    private nonisolated
+    func monitor(_ host:Mongo.Host)
+    {
+        let _:Task<Void, Never> = .init
+        {
+            await self.monitor(host)
+        }
+    }
+    private
+    func monitor(_ host:Mongo.Host) async
+    {
+        while true
+        {
+            // do not spam connections more than once per second
+            async
+            let cooldown:Void = try await Task.sleep(for: .seconds(1))
+            let status:(any Error)?
+            
+            do
+            {
+                try await self.connect(to: host)
+                status = nil
+            }
+            catch let error
+            {
+                status = error
+                print("error:", error)
+            }
+
+            if case ()? = self.clear(host: host, status: status)
+            {
+                try? await cooldown
+            }
+            else
+            {
+                //  host was removed.
+                break
+            }
+        }
+    }
+    private
+    func connect(to host:Mongo.Host) async throws
+    {
+        let heartbeat:Heartbeat = .init(interval: .milliseconds(1000))
+        let connection:Mongo.Connection = try await .connect(to: host, 
+            settings: self.settings,
+            resolver: self.resolver,
+            heart: heartbeat.heart,
+            group: self.group)
+        
+        defer
+        {
+            // will be a no-op if the connection closed spontaneously,
+            // terminating the stream of heartbeats
+            connection.close()
+        }
+
+        //  initial login, performs auth (if using auth).
+        let initial:Mongo.Hello.Response = try await connection.establish(
+            credentials: self.credentials)
+        
+        self.update(host: host, connection: connection, metadata: initial.metadata)
+
+        for try await _:Void in heartbeat
+        {
+            let updated:Mongo.Hello.Response = try await connection.run(
+                command: .init(user: nil))
+            if  updated.token == initial.token
+            {
+                self.update(host: host, connection: connection, metadata: updated.metadata)
+            }
+            else
+            {
+                throw Mongo.ConnectionTokenError.init(recorded: initial.token,
+                    invalid: updated.token)
+            }
         }
     }
 }
@@ -206,55 +242,48 @@ extension Mongo.Deployment
     //         cluster: self))
     // }
 
-
-}
-extension Mongo.Deployment
-{
-    func session(on selector:Mongo.ServerSelector) async ->
-    (
-        context:Mongo.SessionContext,
-        metadata:Mongo.SessionMetadata
-    )
+    func medium(selector:Mongo.ServerSelector) async -> Mongo.SessionMedium
     {
-        let context:Mongo.SessionContext
         if  let connection:Mongo.Connection = self.topology[selector],
             let timeout:Mongo.Minutes = self.sessionTimeout
         {
-            context = .init(connection: connection, timeout: timeout)
+            return .init(connection: connection, timeout: timeout)
         }
         else
         {
-            context = await withCheckedContinuation
+            return await withCheckedContinuation
             {
                 self.awaiting[selector, default: []].append($0)
             }
         }
-        return (context, self.sessions.checkout(context: context))
     }
 
-    func checkin(session:Mongo.SessionMetadata)
+    /// Sends an ``EndSessions`` command ending the given sessions to an
+    /// appropriate server for this deployment’s topology, and awaits its
+    /// response. Returns [`nil`]() if there were no suitable servers to
+    /// send the command to.
+    func end(sessions:__owned [Mongo.SessionIdentifier]) async throws -> Void?
     {
-        self.sessions.checkin(session)
-    }
-}
-
-extension Mongo.Deployment
-{
-    /// Runs a session command against the ``Mongo/Database/.admin`` database,
-    /// sending the command to an appropriate cluster member for its type.
-    public nonisolated
-    func run<Command>(command:Command) async throws -> Command.Response
-        where Command:MongoImplicitSessionCommand
-    {    
-        try await Mongo.MutableSession.init(on: self).run(command: command)
-    }
-    /// Runs a session command against the specified database,
-    /// sending the command to an appropriate cluster member for its type.
-    public nonisolated
-    func run<Command>(command:Command, 
-        against database:Mongo.Database) async throws -> Command.Response
-        where Command:MongoImplicitSessionCommand & MongoDatabaseCommand
-    {    
-        try await Mongo.MutableSession.init(on: self).run(command: command, against: database)
+        let command:Mongo.EndSessions = .init(sessions)
+        switch self.topology
+        {
+        case .terminated, .unknown(_):
+            return nil
+        
+        case .single(let topology):
+            return try await topology.master?.run(command: command)
+        
+        case .sharded(let topology):
+            //  ``EndSessions`` can be sent to any `mongos`.
+            return try await topology.any?.run(command: command)
+        
+        case .replicated(let topology):
+            //  ``EndSessions`` should be sent to the primary if available,
+            //  or any available secondary otherwise.
+            //  the spec says we should send the command *once*, and ignore
+            //  all errors, so we will not retry the command on a secondary
+            //  if it failed on the primary.
+            return try await (topology.master ?? topology.any)?.run(command: command)
+        }
     }
 }

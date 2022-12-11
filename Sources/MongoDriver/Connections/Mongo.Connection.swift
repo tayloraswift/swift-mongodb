@@ -152,11 +152,11 @@ extension Mongo.Connection
         if  let credentials:Mongo.Credentials,
             case nil = credentials.authentication
         {
-            hello = .init(user: credentials.user)
+            hello = .init(client: Mongo.Hello.client, user: credentials.user)
         } 
         else
         {
-            hello = .init(user: nil)
+            hello = .init(client: Mongo.Hello.client, user: nil)
         }
 
         let response:Mongo.Hello.Response = try await self.run(command: hello)
@@ -359,7 +359,7 @@ extension Mongo.Connection
             session: nil))
     }
     /// Runs a ``Mongo/EndSessions`` command, and decodes its response.
-    func run(command:Mongo.EndSessions) async throws -> Mongo.EndSessions.Response
+    func run(command:Mongo.EndSessions) async throws
     {
         return try Mongo.EndSessions.decode(message: try await self.run(
             command: command,

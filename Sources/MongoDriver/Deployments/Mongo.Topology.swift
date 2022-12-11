@@ -3,10 +3,30 @@ extension Mongo
 {
     enum Topology
     {
+        case terminated
+
         case unknown(Seedlist)
         case single(Single)
         case sharded(Sharded)
         case replicated(Replicated)
+    }
+}
+extension Mongo.Topology
+{
+    mutating
+    func terminate()
+    {
+        defer
+        {
+            self = .terminated
+        }
+        switch self
+        {
+        case .terminated, .unknown(_):  break
+        case .single(let topology):     topology.terminate()
+        case .sharded(let topology):    topology.terminate()
+        case .replicated(let topology): topology.terminate()
+        }
     }
 }
 extension Mongo.Topology
@@ -65,33 +85,13 @@ extension Mongo.Topology
         }
     }
     mutating
-    func removeAll(throwing command:inout Mongo.EndSessions?)
-    {
-        defer
-        {
-            self = .unknown(.init())
-        }
-        switch self
-        {
-        case .unknown(_):
-            //  no connections available. (and no connections to close.)
-            break
-        
-        case .single(let topology):
-            topology.end(sessions: &command)
-        
-        case .sharded(let topology):
-            topology.end(sessions: &command)
-        
-        case .replicated(let topology):
-            topology.end(sessions: &command)
-        }
-    }
-    mutating
     func clear(host:Mongo.Host, status:(any Error)?) -> Void?
     {
         switch self
         {
+        case .terminated:
+            return nil
+        
         case .unknown(var seedlist):
             self = .unknown(.init())
             defer
@@ -131,6 +131,9 @@ extension Mongo.Topology
     {
         switch self
         {
+        case .terminated:
+            return nil
+        
         case .unknown(var seeds):
             if  let topology:Self = .init(host: host, connection: connection,
                     metadata: metadata,
@@ -222,7 +225,7 @@ extension Mongo.Topology
     {
         switch self
         {
-        case .unknown(_):               return nil
+        case .terminated, .unknown(_):  return nil
         case .single(let topology):     return topology.master
         case .sharded(let topology):    return topology.any
         case .replicated(let topology): return topology.master
@@ -245,7 +248,7 @@ extension Mongo.Topology
     {
         switch self
         {
-        case .unknown(_):               return nil
+        case .terminated, .unknown(_):  return nil
         case .single(let topology):     return topology.master
         case .sharded(let topology):    return topology.any
         case .replicated(let topology): return topology.any

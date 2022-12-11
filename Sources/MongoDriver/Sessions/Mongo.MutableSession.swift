@@ -3,41 +3,65 @@ import NIOCore
 
 extension Mongo
 {
-    public
-    struct MutableSession
+    public final
+    class MutableSession:Identifiable
     {
+        public
+        let id:SessionIdentifier
         private
-        let connection:Connection
+        var metadata:SessionMetadata
         private
-        let manager:SessionManager
+        let medium:SessionMedium
+        // TODO: implement time gossip
+        private
+        let pool:Mongo.SessionPool
 
         private
-        init(connection:Connection, manager:SessionManager)
+        init(on pool:Mongo.SessionPool,
+            metadata:SessionMetadata,
+            medium:SessionMedium,
+            id:SessionIdentifier)
         {
-            self.connection = connection
-            self.manager = manager
+            self.id = id
+            self.metadata = metadata
+            self.medium = medium
+            self.pool = pool
+        }
+
+        deinit
+        {
+            Task.init
+            {
+                [id, metadata, medium, pool] in
+                await pool.checkin(session: .init(id: id, medium: medium, metadata: metadata))
+            }
         }
     }
 }
 extension Mongo.MutableSession
 {
-    public
-    init(on deployment:Mongo.Deployment) async
+    private convenience
+    init(on pool:Mongo.SessionPool, context:Mongo.SessionContext)
     {
-        let (context, metadata):(Mongo.SessionContext, Mongo.SessionMetadata) =
-            await deployment.session(on: .master)
-        self.init(connection: context.connection, manager: .init(metadata: metadata,
-            deployment: deployment))
+        self.init(on: pool, metadata: context.metadata,
+            medium: context.medium,
+            id: context.id)
+    }
+    public convenience
+    init(on pool:Mongo.SessionPool) async throws
+    {
+        self.init(on: pool, context: await pool.checkout(selector: .master))
     }
 }
-extension Mongo.MutableSession:Identifiable
+extension Mongo.MutableSession
 {
-    public
-    var id:Mongo.SessionIdentifier
+    private
+    var connection:Mongo.Connection
     {
-        self.manager.metadata.id
+        self.medium.connection
     }
 }
+
 extension Mongo.MutableSession
 {
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
@@ -50,7 +74,7 @@ extension Mongo.MutableSession
             command: command, against: .admin,
             transaction: nil,
             session: self.id)
-        self.manager.metadata.state.touched = touched
+        self.metadata.touched = touched
         return try Command.decode(message: message)
     }
     
@@ -65,7 +89,7 @@ extension Mongo.MutableSession
             command: command, against: database,
             transaction: nil,
             session: self.id)
-        self.manager.metadata.state.touched = touched
+        self.metadata.touched = touched
         return try Command.decode(message: message)
     }
 }

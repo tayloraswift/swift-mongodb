@@ -14,6 +14,16 @@ extension Mongo.Topology
 }
 extension Mongo.Topology.Sharded
 {
+    func terminate()
+    {
+        for router:Mongo.ConnectionState<Mongo.Router> in self.routers.values
+        {
+            router.connection?.heart.stop()
+        }
+    }
+}
+extension Mongo.Topology.Sharded
+{
     init?(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Router,
         seedlist:inout Mongo.Seedlist)
     {
@@ -23,14 +33,6 @@ extension Mongo.Topology.Sharded
         {
             seedlist.pick(host: host)
             return nil
-        }
-    }
-    func end(sessions command:inout Mongo.EndSessions?)
-    {
-        //  ``EndSessions`` can be sent to any `mongos`.
-        for router:Mongo.ConnectionState<Mongo.Router> in self.routers.values
-        {
-            router.end(sessions: &command)
         }
     }
     mutating

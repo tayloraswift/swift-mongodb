@@ -17,6 +17,13 @@ extension Mongo.Topology
 }
 extension Mongo.Topology.Single
 {
+    func terminate()
+    {
+        self.state.connection?.heart.stop()
+    }
+}
+extension Mongo.Topology.Single
+{
     init?(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Single,
         seedlist:inout Mongo.Seedlist)
     {
@@ -29,10 +36,6 @@ extension Mongo.Topology.Single
         {
             return nil
         }
-    }
-    func end(sessions command:inout Mongo.EndSessions?)
-    {
-        self.state.end(sessions: &command)
     }
     mutating
     func clear(host:Mongo.Host, status:(any Error)?) -> Void?

@@ -98,44 +98,18 @@ extension Mongo.ConnectionState
             self = .errored(error)
         }
     }
-    /// Sends a termination signal to the monitoring thread for this
-    /// connection. After calling this method, the connection descriptor
-    /// is no longer in a valid state, and you must not call any other
-    /// methods on it. Prefer calling the mutating ``Optional.remove()``
-    /// method where type context permits.
-    func end()
-    {
-        self.connection?.heart.stop()
-    }
-    /// Sends a termination signal to the monitoring thread for this
-    /// connection, along with the ``EndSessions`` command if available.
-    /// If the ``EndSessions`` command is thrown to the monitoring thread,
-    /// the `command` binding will be set to [`nil`](). After calling this
-    /// method, the connection descriptor is no longer in a valid state,
-    /// and you must not call any other methods on it.
-    ///
-    /// Note that throwing the ``EndSessions`` command does not guarantee
-    /// that the monitoring thread will see it. For example, it may have
-    /// already received a termination signal for a different reason.
-    func end(sessions command:inout Mongo.EndSessions?)
-    {
-        if case ()? = self.connection?.heart.stop(throwing: command)
-        {
-            command = nil
-        }
-    }
 }
 
 extension Optional
 {
-    /// Calls the ``Mongo/ConnectionState.end()`` method if non-[`nil`](),
-    /// and sets this optional to [`nil`]() afterwards, preventing
-    /// further use of the connection state descriptor.
+    /// Sends a termination signal to the monitoring thread for this
+    /// connection if non-[`nil`](), and sets this optional to [`nil`]()
+    /// afterwards, preventing further use of the connection state descriptor.
     /// The optional will always be [`nil`]() after calling this method.
     mutating
     func remove<Member>() where Wrapped == Mongo.ConnectionState<Member>
     {
-        self?.end()
+        self?.connection?.heart.stop()
         self = nil
     }
 }

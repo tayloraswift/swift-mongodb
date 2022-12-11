@@ -1,3 +1,5 @@
+import NIOCore
+
 extension Mongo
 {
     enum TransactionState
@@ -21,58 +23,83 @@ extension Mongo
         }
     }
 }
+
 extension Mongo
 {
-    struct SessionState
+    @available(*, deprecated, renamed: "SessionPool")
+    public
+    typealias Cluster = SessionPool
+
+    public 
+    actor SessionPool
     {
-        var transaction:Transaction
-        var touched:ContinuousClock.Instant
-    }
-}
-extension Mongo
-{
-    struct SessionMetadata
-    {
-        let id:SessionIdentifier
-        var state:SessionState
-    }
-}
-extension Mongo
-{
-    struct SessionContext
-    {
-        let connection:Mongo.Connection
-        let timeout:Mongo.Minutes
-    }
-}
-extension Mongo
-{
-    struct SessionPool
-    {
-        private(set)
-        var available:[SessionIdentifier: SessionState]
-        private(set)
+        nonisolated
+        let deployment:Deployment
+
+        private
+        var available:[SessionIdentifier: SessionMetadata]
+        private
         var claimed:Set<SessionIdentifier>
 
-        init()
+        public
+        init(credentials:Credentials? = nil,
+            settings:ConnectionSettings,
+            resolver:DNS.Connection? = nil,
+            group:any EventLoopGroup,
+            seeds:Set<Mongo.Host>) 
         {
+            self.deployment = .init(credentials: credentials,
+                settings: settings,
+                resolver: resolver,
+                group: group,
+                seeds: seeds)
             self.available = [:]
             self.claimed = []
+        }
+
+        deinit
+        {
+            guard self.claimed.isEmpty
+            else
+            {
+                fatalError("unreachable: draining session pool while sessions are still in use!")
+            }
+            
+            let sessions:[SessionIdentifier] = .init(self.available.keys)
+            let _:Task<Void, Never> = .init
+            {
+                [deployment] in
+
+                do
+                {
+                    if !sessions.isEmpty,
+                        case nil = try await deployment.end(sessions: sessions)
+                    {
+                        print("endSessions: no suitable server")
+                    }
+                }
+                catch let error
+                {
+                    print("endSessions:", error)
+                }
+                await deployment.terminate()
+                print("deinitialized session pool")
+            }
         }
     }
 }
 extension Mongo.SessionPool
 {
-    mutating
-    func checkout(context:Mongo.SessionContext) -> Mongo.SessionMetadata
+    private
+    func checkout(medium:Mongo.SessionMedium) -> Mongo.SessionContext
     {
         let now:ContinuousClock.Instant = .now
-        while case let (id, session)? = self.available.popFirst()
+        while case let (id, metadata)? = self.available.popFirst()
         {
-            if now < session.touched.advanced(by: .minutes(context.timeout - 1))
+            if now < metadata.touched.advanced(by: .minutes(medium.timeout - 1))
             {
                 self.claimed.update(with: id)
-                return .init(id: id, state: session)
+                return .init(id: id, medium: medium, metadata: metadata)
             }
         }
         // very unlikely, but do not generate a session id that we have
@@ -84,22 +111,46 @@ extension Mongo.SessionPool
             let id:Mongo.SessionIdentifier = .random()
             if case nil = self.claimed.update(with: id)
             {
-                return .init(id: id, state: .init(transaction: .init(), touched: now))
+                return .init(id: id, medium: medium, metadata: .init(touched: now))
             }
         }
     }
-    mutating
-    func checkin(_ session:Mongo.SessionMetadata)
+    nonisolated
+    func checkout(selector:Mongo.ServerSelector) async -> Mongo.SessionContext
+    {
+        await self.checkout(medium: await self.deployment.medium(selector: selector))
+    }
+    func checkin(session:Mongo.SessionContext)
     {
         guard case _? = self.claimed.remove(session.id)
         else
         {
             fatalError("unreachable: released an unknown session! (\(session.id))")
         }
-        guard case nil = self.available.updateValue(session.state, forKey: session.id)
+        guard case nil = self.available.updateValue(session.metadata, forKey: session.id)
         else
         {
             fatalError("unreachable: released an duplicate session! (\(session.id))")
         }
+    }
+}
+extension Mongo.SessionPool
+{
+    /// Runs a session command against the ``Mongo/Database/.admin`` database,
+    /// sending the command to an appropriate cluster member for its type.
+    public nonisolated
+    func run<Command>(command:Command) async throws -> Command.Response
+        where Command:MongoImplicitSessionCommand
+    {    
+        try await Mongo.MutableSession.init(on: self).run(command: command)
+    }
+    /// Runs a session command against the specified database,
+    /// sending the command to an appropriate cluster member for its type.
+    public nonisolated
+    func run<Command>(command:Command, 
+        against database:Mongo.Database) async throws -> Command.Response
+        where Command:MongoImplicitSessionCommand & MongoDatabaseCommand
+    {    
+        try await Mongo.MutableSession.init(on: self).run(command: command, against: database)
     }
 }

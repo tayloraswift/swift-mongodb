@@ -4,16 +4,31 @@ extension Mongo
 {
     struct Hello:Sendable
     {
+        let client:BSON.Fields?
         let user:User?
 
-        init(user:User?) 
+        init(client:BSON.Fields? = nil, user:User?)
         {
+            self.client = client
             self.user = user
         }
     }
 }
 extension Mongo.Hello
 {
+    static
+    let client:BSON.Fields = .init
+    {
+        $0["driver"] = .init
+        {
+            $0["name"] = "swift-mongodb"
+            $0["version"] = "0"
+        }
+        $0["os"] = .init
+        {
+            $0["type"] = Self.os
+        }
+    }
     private static
     var os:String
     {
@@ -33,18 +48,7 @@ extension Mongo.Hello:MongoCommand
     func encode(to bson:inout BSON.Fields)
     {
         bson["hello"] = true
-        bson["client"] = 
-        [
-            "driver":
-            [
-                "name": "swift-mongodb",
-                "version": "0",
-            ],
-            "os":
-            [
-                "type": .string(.init(from: Self.os)),
-            ],
-        ]
+        bson["client"] = self.client
         bson["saslSupportedMechs"] = self.user
     }
 }
