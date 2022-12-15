@@ -51,13 +51,13 @@ This package vends the following library products:
 
     A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the `UUID` type.
 
-1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoDriver`*](Sources/MongoDriver), [`MongoSchema`](Sources/MongoSchema))
+1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoSessions`*](Sources/MongoSessions), [`MongoSchema`](Sources/MongoSchema))
 
     Vends Swift bindings for MongoDB’s command API, and also implements cursors and managed cursor streams. Most package consumers will depend this module, unless it is possible to depend on one of its constituent dependencies.
 
-    Depends on SwiftNIO (indirectly), and re-exports `MongoDriver`.
+    Depends on SwiftNIO (indirectly), and re-exports `MongoSessions`.
 
-1.  [**`MongoDriver`**](Sources/MongoDriver)
+1.  [**`MongoSessions`**](Sources/MongoSessions)
 ([`Mongo`*](Sources/Mongo),
 [`MongoWire`](Sources/MongoWire),
 [`BSONSchema`](Sources/BSONSchema),
@@ -72,7 +72,7 @@ This package vends the following library products:
 
     Implements a MongoDB driver, for communicating with a `mongod`/`mongos` server. Handles authentication, sessions, transactions, and command execution, but does not define specific MongoDB commands other than the ones needed to bootstrap a connection.
 
-    `MongoDriver` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
+    `MongoSessions` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
 
     Depends on SwiftNIO, and re-exports `Mongo`.
 
@@ -106,7 +106,7 @@ Please avoid depending on `SCRAM`, `TraceableErrors`, `UUID`, and the BSON libra
 
 ## license
 
-The `MongoDriver` module was originally a re-write of [*MongoKitten*](https://github.com/orlandos-nl/MongoKitten)’s `MongoClient` module. Although its fork-ancestor is not really recognizable in the module’s current form, *MongoKitten* was [MIT-licensed](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md), so `MongoDriver` is MIT-licensed as well.
+The `MongoSessions` module was originally a re-write of [*MongoKitten*](https://github.com/orlandos-nl/MongoKitten)’s `MongoClient` module. Although its fork-ancestor is not really recognizable in the module’s current form, *MongoKitten* was [MIT-licensed](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md), so `MongoSessions` is MIT-licensed as well.
 
 The rest of the project is available under the MPL 2.0 license.
 

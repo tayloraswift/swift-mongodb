@@ -14,7 +14,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "Heartbeats", targets: ["Heartbeats"]),
 
         .library(name: "MongoDB", targets: ["MongoDB"]),
-        .library(name: "MongoDriver", targets: ["MongoDriver"]),
+        .library(name: "MongoSessions", targets: ["MongoSessions"]),
         .library(name: "MongoSchema", targets: ["MongoSchema"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
@@ -99,7 +99,7 @@ let package:Package = .init(name: "swift-mongodb",
             ]),
         
         // basic type definitions and conformances. driver peripherals can
-        // import this instead of ``/MongoDriver`` to avoid depending on `swift-nio`.
+        // import this instead of ``/MongoSessions`` to avoid depending on `swift-nio`.
         .target(name: "Mongo",
             dependencies: 
             [
@@ -110,7 +110,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONSchema"),
             ]),
 
-        .target(name: "MongoDriver",
+        .target(name: "MongoSessions",
             dependencies: 
             [
                 .target(name: "BSONSchema"),
@@ -136,7 +136,7 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoDB",
             dependencies: 
             [
-                .target(name: "MongoDriver"),
+                .target(name: "MongoSessions"),
                 .target(name: "MongoSchema"),
             ]),
 
@@ -186,22 +186,22 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDB"),
-                // already included by `MongoDriver`’s transitive `NIOSSL` dependency,
+                // already included by `MongoSessions`’s transitive `NIOSSL` dependency,
                 // but restated here for clarity.
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/MongoDB"),
         
-        .executableTarget(name: "MongoDriverTests",
+        .executableTarget(name: "MongoSessionsTests",
             dependencies:
             [
-                .target(name: "MongoDriver"),
-                // already included by `MongoDriver`’s transitive `NIOSSL` dependency,
+                .target(name: "MongoSessions"),
+                // already included by `MongoSessions`’s transitive `NIOSSL` dependency,
                 // but restated here for clarity.
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
-            path: "Tests/MongoDriver"),
+            path: "Tests/MongoSessions"),
     ]
 )
