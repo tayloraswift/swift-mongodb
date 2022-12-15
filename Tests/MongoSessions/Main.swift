@@ -22,7 +22,7 @@ enum Main:AsynchronousTests
             {
                 try await $1.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self) { _ in }
+                    try await $0.withMutableSession { _ in }
                 }
             }
             await $0.test(name: "seeded-twice",
@@ -31,11 +31,11 @@ enum Main:AsynchronousTests
             {
                 try await $1.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self) { _ in }
+                    try await $0.withMutableSession { _ in }
                 }
                 try await $1.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self) { _ in }
+                    try await $0.withMutableSession { _ in }
                 }
             }
             await $0.test(name: "seeded-concurrently",
@@ -45,7 +45,7 @@ enum Main:AsynchronousTests
                 async
                 let first:Void = $1.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self)
+                    try await $0.withMutableSession
                     {
                         _ in try await Task.sleep(for: .milliseconds(100))
                     }
@@ -53,7 +53,7 @@ enum Main:AsynchronousTests
                 async
                 let second:Void = $1.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self)
+                    try await $0.withMutableSession
                     {
                         _ in try await Task.sleep(for: .milliseconds(100))
                     }
@@ -72,7 +72,7 @@ enum Main:AsynchronousTests
                     try await $1.seeded(with: [host])
                     {
                         async
-                        let _:Void = $0.with(Mongo.MutableSession.self) { _ in }
+                        let _:Void = $0.withMutableSession { _ in }
                         throw CancellationError.init()
                     }
                 }
@@ -88,9 +88,9 @@ enum Main:AsynchronousTests
                 await $1.seeded(with: [host])
                 {
                     async
-                    let _:Void = $0.with(Mongo.MutableSession.self) { _ in }
+                    let _:Void = $0.withMutableSession { _ in }
                     async
-                    let _:Void = $0.with(Mongo.MutableSession.self)
+                    let _:Void = $0.withMutableSession
                     {
                         _ in throw CancellationError.init()
                     }
@@ -120,7 +120,7 @@ enum Main:AsynchronousTests
             {
                 try await $1.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self)
+                    try await $0.withMutableSession
                     {
                         _ in
                     }
@@ -135,7 +135,7 @@ enum Main:AsynchronousTests
             {
                 try await $1.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self)
+                    try await $0.withMutableSession
                     {
                         _ in
                     }
@@ -164,7 +164,7 @@ enum Main:AsynchronousTests
                 _ in
                 try await driver.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self, timeout: .milliseconds(500))
+                    try await $0.withMutableSession(timeout: .milliseconds(500))
                     {
                         _ in
                     }
@@ -192,7 +192,7 @@ enum Main:AsynchronousTests
                 _ in
                 try await driver.seeded(with: [host])
                 {
-                    try await $0.with(Mongo.MutableSession.self, timeout: .milliseconds(500))
+                    try await $0.withMutableSession(timeout: .milliseconds(500))
                     {
                         _ in
                     }

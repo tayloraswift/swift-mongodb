@@ -1,5 +1,4 @@
-public
-protocol MongoServerSession
+protocol MongoSessionType
 {
     static
     var medium:Mongo.SessionMediumSelector { get }

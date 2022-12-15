@@ -34,7 +34,6 @@ extension Mongo
         let id:SessionIdentifier
 
 
-        public
         init(monitor:Mongo.TopologyMonitor, context:SessionContext, medium:SessionMedium)
         {
             self.monitor = monitor
@@ -44,12 +43,11 @@ extension Mongo
         }
     }
 }
-extension Mongo.MutableSession:MongoServerSession
+extension Mongo.MutableSession:MongoSessionType
 {
-    public static
+    static
     let medium:Mongo.SessionMediumSelector = .master
 
-    public
     var context:Mongo.SessionContext
     {
         (self.id, self.metadata)

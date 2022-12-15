@@ -1,6 +1,5 @@
 extension Mongo
 {
-    public
     typealias SessionContext = (id:SessionIdentifier, metadata:SessionMetadata)
 }
 extension Mongo
@@ -49,9 +48,15 @@ extension Mongo
 extension Mongo.SessionPool
 {
     public nonisolated
-    func with<Session, Success>(_:Session.Type, timeout:Duration = .seconds(10),
+    func withMutableSession<Success>(timeout:Duration = .seconds(10),
+        _ body:(inout Mongo.MutableSession) async throws -> Success) async throws -> Success
+    {
+        try await self.with(Mongo.MutableSession.self, timeout: timeout, body)
+    }
+    nonisolated
+    func with<Session, Success>(_:Session.Type, timeout:Duration,
         _ body:(inout Session) async throws -> Success) async throws -> Success
-        where Session:MongoServerSession
+        where Session:MongoSessionType
     {
         //  yes, we do need to `await` on the medium before checking out a session,
         //  to avoid generating excessive sessions if a medium is temporarily unavailable
@@ -156,7 +161,7 @@ extension Mongo.SessionPool
     func run<Command>(command:Command) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand
     {    
-        try await self.with(Mongo.MutableSession.self)
+        try await self.withMutableSession
         {
             try await $0.run(command: command)
         }
@@ -168,7 +173,7 @@ extension Mongo.SessionPool
         against database:Mongo.Database) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand & MongoDatabaseCommand
     {    
-        try await self.with(Mongo.MutableSession.self)
+        try await self.withMutableSession
         {
             try await $0.run(command: command, against: database)
         }
