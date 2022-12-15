@@ -157,7 +157,7 @@ extension Mongo.SessionPool
 {
     /// Runs a session command against the ``Mongo/Database/.admin`` database,
     /// sending the command to an appropriate cluster member for its type.
-    public nonisolated
+    @inlinable public nonisolated
     func run<Command>(command:Command) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand
     {    
@@ -168,7 +168,7 @@ extension Mongo.SessionPool
     }
     /// Runs a session command against the specified database,
     /// sending the command to an appropriate cluster member for its type.
-    public nonisolated
+    @inlinable public nonisolated
     func run<Command>(command:Command, 
         against database:Mongo.Database) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand & MongoDatabaseCommand

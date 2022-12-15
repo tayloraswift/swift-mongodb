@@ -26,7 +26,7 @@ extension Mongo
         private
         let monitor:Mongo.TopologyMonitor
 
-        private
+        @usableFromInline
         var metadata:SessionMetadata
         private
         let medium:SessionMedium
@@ -52,23 +52,26 @@ extension Mongo.MutableSession:MongoSessionType
     {
         (self.id, self.metadata)
     }
+}
+extension Mongo.MutableSession
+{
+    @usableFromInline
+    var connection:Mongo.Connection
+    {
+        self.medium.connection
+    }
     private
     var _time:UInt64?
     {
         let time:UInt64 = self.monitor.time.load(ordering: .relaxed)
         return time == 0 ? nil : time
     }
-    private
-    var connection:Mongo.Connection
-    {
-        self.medium.connection
-    }
 }
 
 extension Mongo.MutableSession
 {
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
-    public mutating
+    @inlinable public mutating
     func run<Command>(command:Command) async throws -> Command.Response
         where Command:MongoSessionCommand
     {
@@ -82,10 +85,10 @@ extension Mongo.MutableSession
     }
     
     /// Runs a session command against the specified database.
-    public mutating
+    @inlinable public mutating
     func run<Command>(command:Command, 
         against database:Mongo.Database) async throws -> Command.Response
-        where Command:MongoDatabaseCommand
+        where Command:MongoSessionCommand & MongoDatabaseCommand
     {
         let touched:ContinuousClock.Instant = .now
         let message:MongoWire.Message<ByteBufferView> = try await self.connection.run(

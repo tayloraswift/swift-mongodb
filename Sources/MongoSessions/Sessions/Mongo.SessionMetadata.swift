@@ -1,9 +1,11 @@
 extension Mongo
 {
-    public
+    @usableFromInline
     struct SessionMetadata:Sendable
     {
+        @usableFromInline
         var transaction:Transaction
+        @usableFromInline
         var touched:ContinuousClock.Instant
 
         init(touched:ContinuousClock.Instant)

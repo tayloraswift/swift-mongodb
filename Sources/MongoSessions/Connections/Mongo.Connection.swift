@@ -206,37 +206,6 @@ extension Mongo.Connection
 
 extension Mongo.Connection
 {
-    func run(command:__owned some MongoCommand,
-        against database:Mongo.Database,
-        transaction:Never? = nil,
-        session:Mongo.SessionIdentifier?) async throws -> MongoWire.Message<ByteBufferView>
-    {
-        var command:BSON.Fields = .init(with: command.encode(to:))
-            command.add(database: database)
-        
-        if let session:Mongo.SessionIdentifier
-        {
-            command.add(session: session)
-        }
-        
-        // if let transaction:Mongo.Transaction 
-        // {
-        //     command.appendValue(transaction.number, forKey: "txnNumber")
-        //     command.appendValue(transaction.autocommit, forKey: "autocommit")
-
-        //     if await transaction.startTransaction() 
-        //     {
-        //         command.appendValue(true, forKey: "startTransaction")
-        //     }
-        // }
-        
-        return try await withCheckedThrowingContinuation
-        {
-            (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
-
-            self.channel.writeAndFlush((command, continuation), promise: nil)
-        }
-    }
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.
     func run<Command>(command:__owned Command,
@@ -262,5 +231,52 @@ extension Mongo.Connection
             command: command,
             against: .admin, 
             session: nil))
+    }
+}
+extension Mongo.Connection
+{
+    /// Runs the given command on this connection and awaits the response.
+    ///
+    /// The database, transaction, and session id parameters will be added
+    /// to the encoded command document, if provided.
+    @inlinable public
+    func run(command:__owned some MongoCommand,
+        against database:Mongo.Database,
+        transaction:Never? = nil,
+        session:Mongo.SessionIdentifier?) async throws -> MongoWire.Message<ByteBufferView>
+    {
+        //  this is `@inlinable` because we want ``MongoCommand.encode(to:)`` to be inlined
+        var command:BSON.Fields = .init(with: command.encode(to:))
+            command.add(database: database)
+        
+        if let session:Mongo.SessionIdentifier
+        {
+            command.add(session: session)
+        }
+        
+        // if let transaction:Mongo.Transaction 
+        // {
+        //     command.appendValue(transaction.number, forKey: "txnNumber")
+        //     command.appendValue(transaction.autocommit, forKey: "autocommit")
+
+        //     if await transaction.startTransaction() 
+        //     {
+        //         command.appendValue(true, forKey: "startTransaction")
+        //     }
+        // }
+        
+        return try await self.send(command: command)
+    }
+
+    /// Sends a command document over this connection and awaits its response.
+    public
+    func send(command:__owned BSON.Fields) async throws -> MongoWire.Message<ByteBufferView>
+    {
+        return try await withCheckedThrowingContinuation
+        {
+            (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
+
+            self.channel.writeAndFlush((command, continuation), promise: nil)
+        }
     }
 }
