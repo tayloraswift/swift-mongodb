@@ -1,5 +1,6 @@
 import BSONDecoding
 import BSONEncoding
+import BSONUnions
 import MongoWire
 import NIOCore
 
@@ -44,7 +45,7 @@ extension MongoCommand where Response:BSONDictionaryDecodable
 }
 extension MongoCommand
 {
-    public static
+    @inlinable public static
     func decode(message:MongoWire.Message<ByteBufferView>) throws -> Response
     {
         guard let document:BSON.Document<ByteBufferView> = message.documents.first
