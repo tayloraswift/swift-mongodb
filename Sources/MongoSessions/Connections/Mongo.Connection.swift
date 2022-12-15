@@ -43,41 +43,8 @@ extension Mongo.Connection
     {
         lhs.channel !== rhs.channel
     }
-    
-    // var closeFuture:EventLoopFuture<Void>
-    // {
-    //     self.channel.closeFuture
-    // }
 }
-extension Mongo.Connection
-{
-    // static
-    // func connect(to host:Mongo.Host, settings:Mongo.ConnectionSettings,
-    //     resolver:(some Resolver)?,
-    //     group:any EventLoopGroup) async throws -> Self
-    // {
-    //     let channel:any Channel = try await Self.channel(to: host, settings: settings,
-    //         resolver: resolver,
-    //         group: group)
-    //     do
-    //     {
-    //         return try await .init(channel: channel, credentials: settings.credentials)
-    //     }
-    //     catch let error
-    //     {
-    //         try await channel.close()
-    //         throw error
-    //     }
-    // }
 
-    /// Reinitializes a connection, performing authentication with the given credentials,
-    /// if possible.
-    // mutating
-    // func reinit(credentials:Mongo.Credentials?) async throws
-    // {
-    //     self = try await .init(channel: self.channel, credentials: credentials)
-    // }
-}
 extension Mongo.Connection
 {
     /// Establishes a connection, performing authentication with the given credentials,
@@ -236,15 +203,6 @@ extension Mongo.Connection
         }
     }
 }
-
-// extension Mongo.Connection:Identifiable
-// {
-//     public
-//     var id:Mongo.ConnectionIdentifier
-//     {
-//         self.server.connection
-//     }
-// }
 
 extension Mongo.Connection
 {
