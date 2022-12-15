@@ -1,9 +1,10 @@
 extension Mongo
 {
+    @frozen public
     enum TransactionPhase
     {
-        case started
-        case aborted
-        case committed
+        case starting
+        case aborting
+        case committing
     }
 }

@@ -60,6 +60,11 @@ extension Mongo.MutableSession
     {
         self.medium.connection
     }
+    @usableFromInline
+    var labels:Mongo.TransactionLabels
+    {
+        .init(transaction: self.metadata.transaction, session: self.id)
+    }
     private
     var _time:UInt64?
     {
@@ -78,8 +83,7 @@ extension Mongo.MutableSession
         let touched:ContinuousClock.Instant = .now
         let message:MongoWire.Message<ByteBufferView> = try await self.connection.run(
             command: command, against: .admin,
-            transaction: nil,
-            session: self.id)
+            labels: self.labels)
         self.metadata.touched = touched
         return try Command.decode(message: message)
     }
@@ -93,8 +97,7 @@ extension Mongo.MutableSession
         let touched:ContinuousClock.Instant = .now
         let message:MongoWire.Message<ByteBufferView> = try await self.connection.run(
             command: command, against: database,
-            transaction: nil,
-            session: self.id)
+            labels: self.labels)
         self.metadata.touched = touched
         return try Command.decode(message: message)
     }

@@ -1,9 +1,11 @@
 extension Mongo
 {
-    @usableFromInline
+    @frozen public
     struct Transaction:Sendable
     {
+        public
         var number:Int64
+        public
         var phase:TransactionPhase?
 
         init()

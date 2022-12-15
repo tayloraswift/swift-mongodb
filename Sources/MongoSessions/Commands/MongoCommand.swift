@@ -82,3 +82,44 @@ extension MongoCommand
         }
     }
 }
+extension MongoCommand
+{
+    /// Encodes this command to a BSON document, adding the database, transaction,
+    /// and session labels if provided.
+    @inlinable public
+    func encode(database:Mongo.Database, labels:Mongo.TransactionLabels?) -> BSON.Fields
+    {
+        //  this is `@inlinable` because we want ``MongoCommand.encode(to:)`` to be inlined
+        .init
+        {
+            self.encode(to: &$0)
+
+            $0["$db"] = database
+
+            guard let labels:Mongo.TransactionLabels
+            else
+            {
+                return
+            }
+
+            $0["lsid"] = labels.session
+
+            guard let phase:Mongo.TransactionPhase = labels.transaction.phase
+            else
+            {
+                return
+            }
+
+            $0["txnNumber"] = labels.transaction.number
+            $0["autocommit"] = false
+
+            guard case .starting = phase
+            else
+            {
+                return
+            }
+
+            $0["startTransaction"] = true
+        }
+    }
+}

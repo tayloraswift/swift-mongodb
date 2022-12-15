@@ -213,59 +213,34 @@ extension Mongo.Connection
         where Command:MongoAuthenticationCommand
     {
         try Command.decode(message: try await self.run(command: command,
-            against: database,
-            session: nil))
+            against: database))
     }
     /// Runs a ``Mongo/Hello`` command, and decodes its response.
     func run(command:Mongo.Hello) async throws -> Mongo.Hello.Response
     {
         return try Mongo.Hello.decode(message: try await self.run(
             command: command,
-            against: .admin, 
-            session: nil))
+            against: .admin))
     }
     /// Runs a ``Mongo/EndSessions`` command, and decodes its response.
     func run(command:Mongo.EndSessions) async throws
     {
         return try Mongo.EndSessions.decode(message: try await self.run(
             command: command,
-            against: .admin, 
-            session: nil))
+            against: .admin))
     }
 }
 extension Mongo.Connection
 {
-    /// Runs the given command on this connection and awaits the response.
-    ///
-    /// The database, transaction, and session id parameters will be added
-    /// to the encoded command document, if provided.
+    /// Encodes the given command to a document, sends it over this connection and
+    /// awaits its response.
     @inlinable public
-    func run(command:__owned some MongoCommand,
-        against database:Mongo.Database,
-        transaction:Never? = nil,
-        session:Mongo.SessionIdentifier?) async throws -> MongoWire.Message<ByteBufferView>
+    func run(command:__owned some MongoCommand, against database:Mongo.Database,
+        labels:Mongo.TransactionLabels? = nil) async throws -> MongoWire.Message<ByteBufferView>
     {
-        //  this is `@inlinable` because we want ``MongoCommand.encode(to:)`` to be inlined
-        var command:BSON.Fields = .init(with: command.encode(to:))
-            command.add(database: database)
-        
-        if let session:Mongo.SessionIdentifier
-        {
-            command.add(session: session)
-        }
-        
-        // if let transaction:Mongo.Transaction 
-        // {
-        //     command.appendValue(transaction.number, forKey: "txnNumber")
-        //     command.appendValue(transaction.autocommit, forKey: "autocommit")
-
-        //     if await transaction.startTransaction() 
-        //     {
-        //         command.appendValue(true, forKey: "startTransaction")
-        //     }
-        // }
-        
-        return try await self.send(command: command)
+        //  this is `@inlinable` because we want ``MongoCommand.encode(database:labels:)``
+        //  to be inlined
+        try await self.send(command: command.encode(database: database, labels: labels))
     }
 
     /// Sends a command document over this connection and awaits its response.
