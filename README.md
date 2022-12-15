@@ -57,6 +57,14 @@ This package vends the following library products:
 
     Depends on SwiftNIO (indirectly), and re-exports `MongoSessions`.
 
+1.  [**`MongoSchema`**](Sources/MongoSchema) ([`BSONSchema`](Sources/BSONSchema))
+
+    Interface module that defines the `MongoDecodable` and `MongoEncodable` protocols, and the `MongoScheme` typealias.
+
+    Consumers that only implement MongoDB schema and do not need to use the MongoDB driver can depend on this product alone.
+
+    Does not re-export `BSONSchema`.
+
 1.  [**`MongoSessions`**](Sources/MongoSessions)
 ([`Mongo`*](Sources/Mongo),
 [`MongoWire`](Sources/MongoWire),
@@ -75,14 +83,6 @@ This package vends the following library products:
     `MongoSessions` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
 
     Depends on SwiftNIO, and re-exports `Mongo`.
-
-1.  [**`MongoSchema`**](Sources/MongoSchema) ([`BSONSchema`](Sources/BSONSchema))
-
-    Interface module that defines the `MongoDecodable` and `MongoEncodable` protocols, and the `MongoScheme` typealias.
-
-    Consumers that only implement MongoDB schema and do not need to use the MongoDB driver can depend on this product alone.
-
-    Does not re-export `BSONSchema`.
 
 1.  [**`MongoWire`**](Sources/MongoWire) ([`BSON`](Sources/BSON), [`CRC`](https://github.com/kelvin13/swift-hash/tree/master/Sources/CRC))
 
