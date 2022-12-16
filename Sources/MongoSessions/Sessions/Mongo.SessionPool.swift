@@ -49,13 +49,13 @@ extension Mongo.SessionPool
 {
     public nonisolated
     func withMutableSession<Success>(timeout:Duration = .seconds(10),
-        _ body:(inout Mongo.MutableSession) async throws -> Success) async throws -> Success
+        _ body:(Mongo.MutableSession) async throws -> Success) async throws -> Success
     {
         try await self.with(Mongo.MutableSession.self, timeout: timeout, body)
     }
     nonisolated
     func with<Session, Success>(_:Session.Type, timeout:Duration,
-        _ body:(inout Session) async throws -> Success) async throws -> Success
+        _ body:(Session) async throws -> Success) async throws -> Success
         where Session:MongoSessionType
     {
         //  yes, we do need to `await` on the medium before checking out a session,
@@ -66,10 +66,10 @@ extension Mongo.SessionPool
             timeout: timeout)
         let initial:Mongo.SessionContext = await self.checkout(ttl: medium.ttl)
 
-        var session:Session = .init(monitor: self.monitor, context: initial, medium: medium)
+        let session:Session = .init(monitor: self.monitor, context: initial, medium: medium)
         do
         {
-            let result:Success = try await body(&session)
+            let result:Success = try await body(session)
             await self.checkin(context: session.context)
             return result
         }

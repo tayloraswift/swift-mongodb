@@ -27,21 +27,27 @@ extension Mongo
         let monitor:Mongo.TopologyMonitor
 
         @usableFromInline
+        @Boxed<SessionMetadata>
         var metadata:SessionMetadata
+
         private
         let medium:SessionMedium
         public
         let id:SessionIdentifier
 
-
         init(monitor:Mongo.TopologyMonitor, context:SessionContext, medium:SessionMedium)
         {
+            self._metadata = .init(wrappedValue: context.metadata)
+
             self.monitor = monitor
-            self.metadata = context.metadata
             self.medium = medium
             self.id = context.id
         }
     }
+}
+@available(*, unavailable, message: "sessions have reference semantics")
+extension Mongo.MutableSession:Sendable
+{
 }
 extension Mongo.MutableSession:MongoSessionType
 {
@@ -76,7 +82,7 @@ extension Mongo.MutableSession
 extension Mongo.MutableSession
 {
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
-    @inlinable public mutating
+    @inlinable public
     func run<Command>(command:Command) async throws -> Command.Response
         where Command:MongoSessionCommand
     {
@@ -89,7 +95,7 @@ extension Mongo.MutableSession
     }
     
     /// Runs a session command against the specified database.
-    @inlinable public mutating
+    @inlinable public
     func run<Command>(command:Command, 
         against database:Mongo.Database) async throws -> Command.Response
         where Command:MongoSessionCommand & MongoDatabaseCommand
