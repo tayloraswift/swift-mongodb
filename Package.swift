@@ -24,8 +24,7 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     dependencies: 
     [
-        //.package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.3")),
-        .package(url: "https://github.com/kelvin13/swift-hash", branch: "testing-improvements-2"),
+        .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.4")),
         
         // this is used to generate `Sources/BSONDecoding/Decoder/Decoder.spf.swift`
         .package(url: "https://github.com/kelvin13/swift-package-factory.git",

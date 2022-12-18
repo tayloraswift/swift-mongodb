@@ -2,23 +2,39 @@ import BSONSchema
 
 extension Mongo
 {
+    /// A cursor handle that is guaranteed to be non-null.
     @frozen public
-    struct CursorIdentifier:Hashable, RawRepresentable, Sendable
+    struct CursorIdentifier:Hashable, Sendable
     {
         public
-        let rawValue:Int64
+        let handle:CursorHandle
 
         @inlinable public
-        init(rawValue:Int64)
+        init?(_ handle:CursorHandle)
         {
-            self.rawValue = rawValue
+            if  handle.rawValue != 0
+            {
+                self.handle = handle
+            }
+            else
+            {
+                return nil
+            }
         }
     }
 }
-extension Mongo.CursorIdentifier
+extension Mongo.CursorIdentifier:RawRepresentable
 {
-    public static
-    let none:Self = .init(rawValue: 0)
+    @inlinable public
+    var rawValue:Int64
+    {
+        self.handle.rawValue
+    }
+    @inlinable public
+    init?(rawValue:Int64)
+    {
+        self.init(.init(rawValue: rawValue))
+    }
 }
 extension Mongo.CursorIdentifier:BSONScheme
 {

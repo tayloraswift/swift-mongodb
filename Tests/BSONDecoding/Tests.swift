@@ -9,7 +9,7 @@ extension Tests
         decoder decode:(BSON.Dictionary<ArraySlice<UInt8>>) throws -> Unexpected)
         where Failure:Equatable & Error
     {
-        self.do(name: name, expecting: failure)
+        self.test(name: name, expecting: failure)
         {
             _ in _ = try decode(try .init(fields: try bson.parse()))
         }
@@ -20,7 +20,7 @@ extension Tests
         decoder decode:(BSON.Dictionary<ArraySlice<UInt8>>) throws -> Decoded)
         where Decoded:Equatable
     {
-        self.do(name: name)
+        self.test(name: name)
         {
             let decoded:Decoded = try decode(try .init(fields: try bson.parse()))
             $0.assert(expected ==? decoded, name: "value")

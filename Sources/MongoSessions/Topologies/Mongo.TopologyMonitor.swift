@@ -177,8 +177,9 @@ extension Mongo.TopologyMonitor
     func connect(to host:Mongo.Host) async throws
     {
         let heartbeat:Heartbeat = .init(interval: .milliseconds(1000))
-        let connection:Mongo.Connection = try await self.driver.connect(to: host,
-            heart: heartbeat.heart)
+        let connection:Mongo.Connection = try await .init(driver: self.driver,
+            heart: heartbeat.heart,
+            host: host)
         
         defer
         {
@@ -189,7 +190,8 @@ extension Mongo.TopologyMonitor
 
         //  initial login, performs auth (if using auth).
         let initial:Mongo.Hello.Response = try await connection.establish(
-            credentials: self.driver.credentials)
+            credentials: self.driver.credentials,
+            appname: self.driver.appname)
         
         self.update(host: host, connection: connection, metadata: initial.metadata)
 

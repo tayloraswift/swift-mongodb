@@ -40,12 +40,8 @@ extension Mongo
         }
     }
 }
-
-extension Mongo.Create:MongoDatabaseCommand, MongoImplicitSessionCommand
+extension Mongo.Create:MongoCommand
 {
-    public static
-    let node:Mongo.ServerSelector = .master
-    
     public
     func encode(to bson:inout BSON.Fields)
     {
@@ -81,5 +77,19 @@ extension Mongo.Create:MongoDatabaseCommand, MongoImplicitSessionCommand
             bson["viewOn"] = collection
             bson["pipeline", elide: false] = pipeline
         }
+    }
+}
+extension Mongo.Create:MongoDatabaseCommand
+{
+}
+extension Mongo.Create:MongoImplicitSessionCommand
+{
+}
+extension Mongo.Create:MongoTransactableCommand
+{
+    @inlinable public
+    var readConcern:Mongo.ReadConcern?
+    {
+        nil
     }
 }

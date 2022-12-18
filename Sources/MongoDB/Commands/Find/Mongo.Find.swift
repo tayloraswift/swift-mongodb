@@ -9,11 +9,11 @@ extension Mongo
         public
         let collection:Collection
         public
-        let batching:Int
-        public
         let timeout:Milliseconds?
         public
         let tailing:Tailing?
+        public
+        let stride:Int
 
         public
         let `let`:BSON.Fields
@@ -46,9 +46,10 @@ extension Mongo
         let showRecordIdentifier:Bool?
 
         public
-        init(collection:Collection, returning batching:Int,
+        init(collection:Collection,
             timeout:Milliseconds? = nil,
             tailing:Tailing? = nil,
+            stride:Int,
             `let`:BSON.Fields = .init(),
             filter:BSON.Fields = .init(),
             sort:BSON.Fields = .init(),
@@ -64,9 +65,9 @@ extension Mongo
             showRecordIdentifier:Bool? = nil)
         {
             self.collection = collection
-            self.batching = batching
             self.timeout = timeout
             self.tailing = tailing
+            self.stride = stride
             self.let = `let`
             self.filter = filter
             self.sort = sort
@@ -118,19 +119,13 @@ extension Mongo.Find
         }
     }
 }
-extension Mongo.Find:MongoStreamableCommand
+extension Mongo.Find:MongoCommand
 {
-    public static
-    var node:Mongo.ServerSelector
-    {
-        .any
-    }
-    
     public
     func encode(to bson:inout BSON.Fields)
     {
         bson["find"] = self.collection
-        bson["batchSize"] = self.batching
+        bson["batchSize"] = self.stride
         // bson["singleBatch"] = self.singleBatch ? true : nil
         bson["maxTimeMS"] = self.timeout
         bson["tailable"] = self.tailable ? true : nil
@@ -157,4 +152,19 @@ extension Mongo.Find:MongoStreamableCommand
 
     public
     typealias Response = Mongo.Cursor<Element>
+}
+extension Mongo.Find:MongoDatabaseCommand
+{
+}
+extension Mongo.Find:MongoImplicitSessionCommand
+{
+}
+extension Mongo.Find:MongoReadOnlyCommand
+{
+}
+extension Mongo.Find:MongoStreamableCommand
+{
+}
+extension Mongo.Find:MongoTransactableCommand
+{
 }

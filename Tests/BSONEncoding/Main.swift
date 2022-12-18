@@ -2,7 +2,7 @@ import BSONEncoding
 import Testing
 
 @main 
-enum Main:SynchronousTests
+enum Main:SyncTests
 {
     static
     func run(tests:inout Tests)

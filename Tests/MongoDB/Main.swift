@@ -3,87 +3,84 @@ import MongoDB
 import Testing
 
 @main
-enum Main:AsynchronousTests
+enum Main:AsyncTests
 {
     static
     func run(tests:inout Tests) async
     {
         let host:Mongo.Host = .init(name: "mongodb", port: 27017)
-        let group:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
+        let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
+
+        let driver:Mongo.Driver = .init(
+            credentials: .init(authentication: .sasl(.sha256),
+                username: "root",
+                password: "password"),
+            executor: executor,
+            timeout: .seconds(10))
         
-        let cluster:Mongo.Cluster? = await tests.do(name: "bootstrap")
+        await tests.test(with: DatabaseEnvironment.init(database: "databases",
+            driver: driver,
+            host: host))
         {
-            _ in try await Mongo.Cluster.init(
-                settings: .init(
-                    credentials: .init(authentication: .sasl(.sha256),
-                        username: "root",
-                        password: "password"),
-                    timeout: .seconds(10)),
-                servers: [host],
-                group: group)
-        }
-        guard let cluster:Mongo.Cluster
-        else
-        {
-            return
-        }
+            (tests:inout Tests, context:DatabaseEnvironment.Context) in
 
-        await tests.with(database: "databases", cluster: cluster)
-        {
-            (tests:inout Tests, database:Mongo.Database, builtin:[Mongo.Database]) in
-
-            await tests.do(name: "create-database-by-collection")
+            await tests.test(name: "create-database-by-collection")
             {
-                _ in try await cluster.run(
+                _ in try await context.pool.run(
                     command: Mongo.Create.init(collection: "placeholder"), 
-                    against: database)
+                    against: context.database)
             }
 
-            await tests.do(name: "list-database-names")
+            await tests.test(name: "list-database-names")
             {
-                let names:[Mongo.Database] = try await cluster.run(
+                let names:[Mongo.Database] = try await context.pool.run(
                     command: Mongo.ListDatabases.NameOnly.init())
-                $0.assert(names **? builtin + [database], name: "names")
+                $0.assert(names.contains(context.database),
+                    name: "contains")
             }
 
-            await tests.do(name: "list-databases")
+            await tests.test(name: "list-databases")
             {
-                let (size, databases):(Int, [Mongo.DatabaseMetadata]) = try await cluster.run(
+                let (size, databases):(Int, [Mongo.DatabaseMetadata]) = try await context.pool.run(
                     command: Mongo.ListDatabases.init())
-                $0.assert(size > 0, name: "nonzero-size")
-                $0.assert(databases.map(\.database) **? builtin + [database], name: "names")
+                $0.assert(size > 0,
+                    name: "nonzero-size")
+                $0.assert(databases.contains { $0.database == context.database },
+                    name: "contains")
             }
         }
-
-        await tests.with(database: "collection-insertion", cluster: cluster)
+        
+        await tests.test(with: DatabaseEnvironment.init(database: "collection-insert",
+            driver: driver,
+            host: host))
         {
-            (tests:inout Tests, database:Mongo.Database, builtin:[Mongo.Database]) in
+            (tests:inout Tests, context:DatabaseEnvironment.Context) in
 
             let collection:Mongo.Collection = "ordinals"
 
-            await tests.do(name: "insert-one")
+            await tests.test(name: "insert-one")
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 1)
-                let response:Mongo.InsertResponse = try await cluster.run(
+                let response:Mongo.InsertResponse = try await context.pool.run(
                     command: Mongo.Insert<Ordinals>.init(collection: collection,
                         elements: .init(identifiers: 0 ..< 1)),
-                    against: database)
+                    against: context.database)
                 
                 $0.assert(response ==? expected, name: "response")
             }
 
-            await tests.do(name: "insert-multiple")
+            await tests.test(name: "insert-multiple")
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 15)
-                let response:Mongo.InsertResponse = try await cluster.run(
+                let response:Mongo.InsertResponse = try await context.pool.run(
                     command: Mongo.Insert<Ordinals>.init(collection: collection,
                         elements: .init(identifiers: 1 ..< 16)),
-                    against: database)
+                    against: context.database)
                 
                 $0.assert(response ==? expected, name: "response")
             }
 
-            await tests.do(name: "insert-duplicate-id")
+            await tests.test(name: "insert-duplicate-id")
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 0,
                     writeErrors:
@@ -92,19 +89,19 @@ enum Main:AsynchronousTests
                             message:
                             """
                             E11000 duplicate key error collection: \
-                            \(database).\(collection) index: _id_ dup key: { _id: 0 }
+                            \(context.database).\(collection) index: _id_ dup key: { _id: 0 }
                             """,
                             code: 11000),
                     ])
-                let response:Mongo.InsertResponse = try await cluster.run(
+                let response:Mongo.InsertResponse = try await context.pool.run(
                     command: Mongo.Insert<Ordinals>.init(collection: collection,
                         elements: .init(identifiers: 0 ..< 1)),
-                    against: database)
+                    against: context.database)
                 
                 $0.assert(response ==? expected, name: "response")
             }
 
-            await tests.do(name: "insert-ordered")
+            await tests.test(name: "insert-ordered")
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 8,
                     writeErrors:
@@ -113,19 +110,19 @@ enum Main:AsynchronousTests
                             message:
                             """
                             E11000 duplicate key error collection: \
-                            \(database).\(collection) index: _id_ dup key: { _id: 0 }
+                            \(context.database).\(collection) index: _id_ dup key: { _id: 0 }
                             """,
                             code: 11000),
                     ])
-                let response:Mongo.InsertResponse = try await cluster.run(
+                let response:Mongo.InsertResponse = try await context.pool.run(
                     command: Mongo.Insert<Ordinals>.init(collection: collection,
                         elements: .init(identifiers: -8 ..< 32)),
-                    against: database)
+                    against: context.database)
                 
                 $0.assert(response ==? expected, name: "response")
             }
 
-            await tests.do(name: "insert-unordered")
+            await tests.test(name: "insert-unordered")
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 24,
                     writeErrors: (8 ..< 32).map
@@ -134,23 +131,198 @@ enum Main:AsynchronousTests
                             message:
                             """
                             E11000 duplicate key error collection: \
-                            \(database).\(collection) index: _id_ dup key: { _id: \($0 - 16) }
+                            \(context.database).\(collection) index: _id_ dup key: { _id: \($0 - 16) }
                             """,
                             code: 11000)
                     })
-                let response:Mongo.InsertResponse = try await cluster.run(
+                let response:Mongo.InsertResponse = try await context.pool.run(
                     command: Mongo.Insert<Ordinals>.init(collection: collection,
                         elements: .init(identifiers: -16 ..< 32),
                         ordered: false),
-                    against: database)
+                    against: context.database)
                 
                 $0.assert(response ==? expected, name: "response")
             }
         }
-
-        await tests.with(database: "collection-find", cluster: cluster)
+        
+        await tests.test(with: DatabaseEnvironment.init(database: "collection-find",
+            driver: driver,
+            host: host))
         {
-            await $0.find(cluster: cluster, database: $1, builtin: $2)
+            (tests:inout Tests, context:DatabaseEnvironment.Context) in
+
+            let collection:Mongo.Collection = "ordinals"
+            let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
+
+            await tests.test(name: "initialize")
+            {
+                let expected:Mongo.InsertResponse = .init(inserted: 100)
+                let response:Mongo.InsertResponse = try await context.pool.run(
+                    command: Mongo.Insert<Ordinals>.init(collection: collection,
+                        elements: ordinals),
+                    against: context.database)
+                
+                $0.assert(response ==? expected, name: "response")
+            }
+            // await tests.test(name: "single-batch")
+            // {
+            //     let expected:Mongo.Cursor<Ordinal> = .init(id: 0,
+            //         namespace: .init(database, collection),
+            //         elements: [Ordinal].init(ordinals.prefix(10)))
+            //     let cursor:Mongo.Cursor<Ordinal> = try await cluster.run(
+            //         command: Mongo.Find<Ordinal>.init(collection: collection,
+            //             returning: .batch(of: 10)),
+            //         against: database)
+
+            //     $0.assert(cursor ==? expected, name: "cursor")
+            // }
+            await tests.test(name: "multiple-batches")
+            {
+                (tests:inout Tests) in
+
+                try await context.pool.withMutableSession
+                {
+                    try await $0.run(query: Mongo.Find<Ordinal>.init(
+                            collection: collection,
+                            stride: 10),
+                        against: context.database)
+                    {
+                        var expected:Ordinals.Iterator = ordinals.makeIterator()
+                        for try await batch:[Ordinal] in $0
+                        {
+                            for returned:Ordinal in batch
+                            {
+                                if  let expected:Ordinal = tests.unwrap(expected.next(),
+                                        name: "next-expected")
+                                {
+                                    tests.assert(returned == expected,
+                                        name: expected.id.description)
+                                }
+                            }
+                        }
+                        tests.assert(expected.next() == nil, name: "next-returned")
+                    }
+                }
+            }
+            await tests.test(with: SessionEnvironment.init(name: "filtering",
+                pool: context.pool))
+            {
+                (tests:inout Tests, session:Mongo.MutableSession) in
+            
+                try await session.run(query: Mongo.Find<Ordinal>.init(
+                        collection: collection,
+                        stride: 10,
+                        filter: .init
+                        {
+                            $0["ordinal"] = ["$mod": [3, 0]]
+                        }),
+                    against: context.database)
+                {
+                    var expected:Array<Ordinal>.Iterator = 
+                        ordinals.filter { $0.value % 3 == 0 }.makeIterator()
+                    for try await batch:[Ordinal] in $0
+                    {
+                        for returned:Ordinal in batch
+                        {
+                            if  let expected:Ordinal = tests.unwrap(expected.next(),
+                                    name: "next-expected")
+                            {
+                                tests.assert(returned == expected, name: expected.id.description)
+                            }
+                        }
+                    }
+                    tests.assert(expected.next() == nil, name: "next-returned")
+                }
+            }
+            await tests.test(with: SessionEnvironment.init(name: "cursor-cleanup-normal",
+                pool: context.pool))
+            {
+                (tests:inout Tests, session:Mongo.MutableSession) in
+
+                try await session.run(query: Mongo.Find<Ordinal>.init(
+                        collection: collection,
+                        stride: 10),
+                    against: context.database)
+                {
+                    guard   let cursor:Mongo.CursorIdentifier =
+                                tests.unwrap(.init($0.cursor.next), name: "cursor-id")
+                    else
+                    {
+                        return
+                    }
+                    for try await _:[Ordinal] in $0
+                    {
+                    }
+                    let cursors:Mongo.KillCursors.Response = try await session.run(
+                        command: Mongo.KillCursors.init([cursor], 
+                            collection: $0.collection),
+                        against: $0.database)
+                    // if the cursor is already dead, killing it manually will return 'notFound'.
+                    tests.assert(cursors.alive **? [], name: "cursors-alive")
+                    tests.assert(cursors.killed **? [], name: "cursors-killed")
+                    tests.assert(cursors.unknown **? [], name: "cursors-unknown")
+                    tests.assert(cursors.notFound **? [cursor], name: "cursors-not-found")
+                }
+            }
+            await tests.test(with: SessionEnvironment.init(name: "cursor-cleanup-interruption",
+                pool: context.pool))
+            {
+                (tests:inout Tests, session:Mongo.MutableSession) in
+                // the ``Mongo.Stream`` will live until the end of its lexical block.
+                // so we need to scope it in a `do` block to force stream deinitialization
+                // on iterator interruption.
+                let cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)? =
+                    try await session.run(
+                        query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
+                        against: context.database)
+                {
+                    if  let cursor:Mongo.CursorIdentifier = tests.unwrap(.init($0.cursor.next),
+                            name: "cursor-id")
+                    {
+                        return (cursor, $0.namespace)
+                    }
+                    else
+                    {
+                        return nil
+                    }
+                }
+                guard let cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)
+                else
+                {
+                    return
+                }
+
+                let cursors:Mongo.KillCursors.Response = try await session.run(
+                    command: Mongo.KillCursors.init([cursor.id], 
+                        collection: cursor.namespace.collection),
+                    against: cursor.namespace.database)
+                // if the cursor is already dead, killing it manually will return 'notFound'.
+                tests.assert(cursors.alive **? [], name: "cursors-alive")
+                tests.assert(cursors.killed **? [], name: "cursors-killed")
+                tests.assert(cursors.unknown **? [], name: "cursors-unknown")
+                tests.assert(cursors.notFound **? [cursor.id], name: "cursors-not-found")
+            }
+            await tests.test(with: SessionEnvironment.init(name: "connection-multiplexing",
+                pool: context.pool))
+            {
+                (tests:inout Tests, session:Mongo.MutableSession) in
+
+                try await session.run(
+                    query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
+                    against: context.database)
+                {
+                    var counter:Int = 0
+                    for try await batch:[Ordinal] in $0
+                    {
+                        let names:[Mongo.Database] = try await context.pool.run(
+                            command: Mongo.ListDatabases.NameOnly.init())
+                        tests.assert(!batch.isEmpty, name: "stream.\(counter)")
+                        tests.assert(!names.isEmpty, name: "list-databases.\(counter)")
+
+                        counter += 1
+                    }
+                }
+            }
         }
     }
 }

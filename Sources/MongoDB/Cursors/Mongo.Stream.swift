@@ -1,34 +1,50 @@
 import MongoSchema
+import BSONDecoding
 
 extension Mongo
 {
     @frozen public
     struct Stream<BatchElement> where BatchElement:MongoDecodable
     {
-        @usableFromInline private(set)
-        var manager:StreamManager?
-        @usableFromInline private(set)
-        var first:[BatchElement]?
+        public
+        let namespace:Namespace
+        public
+        let session:MutableSession
+        public
+        let timeout:Mongo.Milliseconds?
+        public
+        let stride:Int
 
-        @inlinable public
-        init(manager:StreamManager?, first:[BatchElement])
+        @Boxed<Cursor<BatchElement>.State>
+        public
+        var cursor:Cursor<BatchElement>.State
+
+        @usableFromInline
+        init(session:MutableSession,
+            initial:Cursor<BatchElement>,
+            timeout:Mongo.Milliseconds?,
+            stride:Int)
         {
-            self.manager = manager
-            self.first = first
+            self._cursor = .init(wrappedValue: initial.state)
+
+            self.namespace = initial.namespace
+            self.session = session
+            self.timeout = timeout
+            self.stride = stride
         }
     }
 }
 extension Mongo.Stream
 {
-    /// Returns the cursor associated with this stream, or [`nil`]()
-    /// if the cursor has been exhausted. Cursor exhaustion is not the
-    /// same thing as stream exhaustion; if a query returns a single
-    /// batch, the cursor will be exhausted but the stream will contain
-    /// buffered elements.
-    public
-    var cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)?
+    @inlinable public
+    var database:Mongo.Database
     {
-        self.manager.map { ($0.cursor, $0.namespace) }
+        self.namespace.database
+    }
+    @inlinable public
+    var collection:Mongo.Collection
+    {
+        self.namespace.collection
     }
 }
 extension Mongo.Stream:AsyncSequence, AsyncIteratorProtocol
@@ -41,52 +57,68 @@ extension Mongo.Stream:AsyncSequence, AsyncIteratorProtocol
     {
         self
     }
-    @inlinable public mutating
+    @inlinable public
     func next() async throws -> [BatchElement]?
     {
-        if  let first:[BatchElement] = self.first
+        if      let first:[BatchElement] = self.cursor.pop()
         {
-            self.first = nil
             return first
         }
-        guard let manager:Mongo.StreamManager = self.manager
+        else if let next:Mongo.CursorIdentifier = .init(self.cursor.next)
+        {
+            let cursor:Mongo.Cursor<BatchElement> = try await self.session.run(
+                command: Mongo.GetMore<BatchElement>.init(cursor: next,
+                    collection: self.collection,
+                    timeout: self.timeout,
+                    count: self.stride),
+                against: self.database)
+            
+            self.cursor.next = cursor.next
+            return cursor.batch
+        }
         else
         {
             return nil
         }
-        guard let batch:[BatchElement] = try await manager.get(more: BatchElement.self)
-        else
+    }
+}
+extension Mongo.Stream
+{
+    public
+    func `deinit`() async throws
+    {
+        if let cursor:Mongo.CursorIdentifier = .init(self.cursor.next)
         {
-            self.manager = nil
-            return nil
-        }
-        if manager.cursor == .none
-        {
-            self.manager = nil
-            return batch.isEmpty ? nil : batch
-        }
-        else
-        {
-            return batch
+            let _:Mongo.KillCursors.Response = try await session.run(
+                command: Mongo.KillCursors.init([cursor], collection: self.collection),
+                against: database)
         }
     }
 }
 
-extension Mongo.Session
+extension Mongo.MutableSession
 {
     @inlinable public
-    func run<Query>(query:Query, 
-        against database:Mongo.Database) async throws -> Mongo.Stream<Query.Element>
+    func run<Query, Success>(query:Query, against database:Mongo.Database,
+        with consumer:(Mongo.Stream<Query.Element>) async throws -> Success)
+        async throws -> Success
         where Query:MongoStreamableCommand
     {
-        let batching:Int = query.batching
-        let timeout:Mongo.Milliseconds? = query.timeout
-        let cursor:Mongo.Cursor<Query.Element> = try await self.run(command: query,
-            against: database)
-        return .init(manager: .init(session: self, cursor: cursor.id,
-                namespace: cursor.namespace,
-                batching: batching,
-                timeout: timeout),
-            first: cursor.elements)
+        let stream:Mongo.Stream<Query.Element> = .init(session: self,
+            initial: try await self.run(command: query,
+                against: database),
+            timeout: query.timeout,
+            stride: query.stride)
+        let result:Result<Success, any Error>
+        do
+        {
+            result = .success(try await consumer(stream))
+        }
+        catch let error
+        {
+            result = .failure(error)
+        }
+        try await stream.deinit()
+        return try result.get()
     }
 }

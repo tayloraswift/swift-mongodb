@@ -2,6 +2,8 @@ import BSONEncoding
 import Heartbeats
 import MongoWire
 import NIOCore
+import NIOPosix
+import NIOSSL
 import SCRAM
 import SHA2
 
@@ -20,6 +22,7 @@ extension Mongo
         let channel:any Channel
         let heart:Heart
 
+        private
         init(channel:any Channel, heart:Heart)
         {
             self.channel = channel
@@ -47,25 +50,91 @@ extension Mongo.Connection
 
 extension Mongo.Connection
 {
+    /// Sets up a TCP channel to the given host that will stop the given
+    /// heartbeat if the channel is closed (for any reason). The heart
+    /// will not be stopped if the channel cannot be created in the first
+    /// place; the caller is responsible for disposing of the heartbeat
+    /// if this constructor throws an error.
+    init(driver:Mongo.Driver, heart:Heart, host:Mongo.Host) async throws
+    {
+        let bootstrap:ClientBootstrap = .init(group: driver.executor)
+            .resolver(driver.resolver)
+            .channelOption(
+                ChannelOptions.socket(SocketOptionLevel.init(SOL_SOCKET), SO_REUSEADDR), 
+                value: 1)
+            .channelInitializer
+        { 
+            (channel:any Channel) in
+
+            let wire:ByteToMessageHandler<Mongo.MessageDecoder> = .init(.init())
+            let router:Mongo.MessageRouter = .init(timeout: driver.timeout)
+
+            guard let certificatePath:String = driver._certificatePath
+            else
+            {
+                return channel.pipeline.addHandlers(wire, router)
+            }
+            do 
+            {
+                var configuration:TLSConfiguration = .clientDefault
+                configuration.trustRoots = NIOSSLTrustRoots.file(certificatePath)
+                
+                let tls:NIOSSLClientHandler = try .init(
+                    context: .init(configuration: configuration), 
+                    serverHostname: host.name)
+                return channel.pipeline.addHandlers(tls, wire, router)
+            } 
+            catch let error
+            {
+                return channel.eventLoop.makeFailedFuture(error)
+            }
+        }
+
+        let channel:any Channel = try await bootstrap.connect(
+            host: host.name,
+            port: host.port).get()
+        
+        channel.closeFuture.whenComplete
+        {
+            //  when the checker task is cancelled, it will also close the
+            //  connection again, which will be a no-op.
+            switch $0
+            {
+            case .success(()):
+                heart.stop()
+            case .failure(let error):
+                heart.stop(throwing: error)
+            }
+        }
+        
+        self.init(channel: channel, heart: heart)
+    }
+}
+
+extension Mongo.Connection
+{
     /// Establishes a connection, performing authentication with the given credentials,
     /// if possible. If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
-    func establish(credentials:Mongo.Credentials?) async throws -> Mongo.Hello.Response
+    func establish(credentials:Mongo.Credentials?,
+        appname:String?) async throws -> Mongo.Hello.Response
     {
-        let hello:Mongo.Hello
+        let user:Mongo.User?
         // if we don’t have an explicit authentication mode, ask the server
         // what it supports (for the current user).
         if  let credentials:Mongo.Credentials,
             case nil = credentials.authentication
         {
-            hello = .init(client: Mongo.Hello.client, user: credentials.user)
+            user = credentials.user
         } 
         else
         {
-            hello = .init(client: Mongo.Hello.client, user: nil)
+            user = nil
         }
 
-        let response:Mongo.Hello.Response = try await self.run(command: hello)
+        let response:Mongo.Hello.Response = try await self.run(command: .init(
+            client: .init(appname: appname),
+            user: user))
 
         if let credentials:Mongo.Credentials
         {

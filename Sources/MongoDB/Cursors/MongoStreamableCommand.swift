@@ -6,6 +6,6 @@ protocol MongoStreamableCommand<Element>:MongoDatabaseCommand, MongoImplicitSess
 {
     associatedtype Element:MongoDecodable
 
-    var batching:Int { get }
     var timeout:Mongo.Milliseconds? { get }
+    var stride:Int { get }
 }

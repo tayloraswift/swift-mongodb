@@ -18,18 +18,26 @@ extension Mongo
         }
     }
 }
-extension Mongo.KillCursors:MongoDatabaseCommand, MongoSessionCommand
+extension Mongo.KillCursors:MongoCommand
 {
-    public static
-    var node:Mongo.ServerSelector
-    {
-        .any
-    }
-
     public
     func encode(to bson:inout BSON.Fields)
     {
         bson["killCursors"] = self.collection
         bson["cursors"] = self.cursors
+    }
+}
+extension Mongo.KillCursors:MongoDatabaseCommand
+{
+}
+extension Mongo.KillCursors:MongoReadOnlyCommand
+{
+}
+extension Mongo.KillCursors:MongoTransactableCommand
+{
+    @inlinable public
+    var readConcern:Mongo.ReadConcern?
+    {
+        nil
     }
 }

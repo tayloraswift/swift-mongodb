@@ -38,14 +38,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.Insert:MongoDatabaseCommand, MongoImplicitSessionCommand
+extension Mongo.Insert:MongoCommand
 {
-    @inlinable public static
-    var node:Mongo.ServerSelector
-    {
-        .master
-    }
-    
     public
     func encode(to bson:inout BSON.Fields)
     {
@@ -58,4 +52,19 @@ extension Mongo.Insert:MongoDatabaseCommand, MongoImplicitSessionCommand
 
     public
     typealias Response = Mongo.InsertResponse
+}
+
+extension Mongo.Insert:MongoDatabaseCommand
+{
+}
+extension Mongo.Insert:MongoImplicitSessionCommand
+{
+}
+extension Mongo.Insert:MongoTransactableCommand
+{
+    @inlinable public
+    var readConcern:Mongo.ReadConcern?
+    {
+        nil
+    }
 }

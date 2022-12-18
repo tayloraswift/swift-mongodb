@@ -30,13 +30,10 @@ extension Mongo.ListDatabases.NameOnly
         self.init(.init(authorizedDatabases: authorizedDatabases, filter: filter))
     }
 }
-extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand
+extension Mongo.ListDatabases.NameOnly:MongoCommand
 {
     public
     typealias Response = [Mongo.Database]
-
-    public static
-    let node:Mongo.ServerSelector = .any
 
     public
     func encode(to bson:inout BSON.Fields)
@@ -59,4 +56,12 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand
             }
         }
     }
+}
+// FIXME: ListDatabases.NameOnly *can* run on a secondary,
+// but *should* run on a primary.
+extension Mongo.ListDatabases.NameOnly:MongoReadOnlyCommand
+{
+}
+extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand
+{
 }

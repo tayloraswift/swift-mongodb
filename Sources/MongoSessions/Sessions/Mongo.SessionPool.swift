@@ -1,9 +1,5 @@
 extension Mongo
 {
-    typealias SessionContext = (id:SessionIdentifier, metadata:SessionMetadata)
-}
-extension Mongo
-{
     @available(*, deprecated, renamed: "SessionPool")
     public
     typealias Cluster = SessionPool
@@ -56,7 +52,7 @@ extension Mongo.SessionPool
     nonisolated
     func with<Session, Success>(_:Session.Type, timeout:Duration,
         _ body:(Session) async throws -> Success) async throws -> Success
-        where Session:MongoSessionType
+        where Session:MongoConcurrencyDomain
     {
         //  yes, we do need to `await` on the medium before checking out a session,
         //  to avoid generating excessive sessions if a medium is temporarily unavailable
@@ -64,18 +60,23 @@ extension Mongo.SessionPool
         //  https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-must-drivers-wait-to-consume-a-server-session-until-after-a-connection-is-checked-out
         let medium:Mongo.SessionMedium = try await self.monitor.medium(Session.medium,
             timeout: timeout)
-        let initial:Mongo.SessionContext = await self.checkout(ttl: medium.ttl)
+        
+        let (id, initial):(Mongo.SessionIdentifier, Mongo.SessionMetadata) =
+            await self.checkout(ttl: medium.ttl)
 
-        let session:Session = .init(monitor: self.monitor, context: initial, medium: medium)
+        let session:Session = .init(monitor: self.monitor,
+            metadata: initial,
+            medium: medium,
+            id: id)
         do
         {
             let result:Success = try await body(session)
-            await self.checkin(context: session.context)
+            await self.checkin(id: session.id, metadata: session.metadata)
             return result
         }
         catch let error
         {
-            await self.checkin(context: session.context)
+            await self.checkin(id: session.id, metadata: session.metadata)
             throw error
         }
     }
@@ -103,17 +104,17 @@ extension Mongo.SessionPool
         return .init(self.released.keys)
     }
     private
-    func checkin(context:Mongo.SessionContext)
+    func checkin(id:Mongo.SessionIdentifier, metadata:Mongo.SessionMetadata)
     {
-        guard case _? = self.retained.remove(context.id)
+        guard case _? = self.retained.remove(id)
         else
         {
-            fatalError("unreachable: released an unknown session! (\(context.id))")
+            fatalError("unreachable: released an unknown session! (\(id))")
         }
-        guard case nil = self.released.updateValue(context.metadata, forKey: context.id)
+        guard case nil = self.released.updateValue(metadata, forKey: id)
         else
         {
-            fatalError("unreachable: released an duplicate session! (\(context.id))")
+            fatalError("unreachable: released an duplicate session! (\(id))")
         }
         if  self.retained.isEmpty,
             let draining:CheckedContinuation<Void, Never> = self.draining
@@ -123,7 +124,8 @@ extension Mongo.SessionPool
         }
     }
     private
-    func checkout(ttl:Mongo.Minutes) -> Mongo.SessionContext
+    func checkout(
+        ttl:Mongo.Minutes) -> (id:Mongo.SessionIdentifier, metadata:Mongo.SessionMetadata)
     {
         guard case nil = self.draining
         else

@@ -2,13 +2,13 @@ import Heartbeats
 import Testing
 
 @main 
-enum Main:AsynchronousTests
+enum Main:AsyncTests
 {
     static
     func run(tests:inout Tests) async
     {
         let clock:ContinuousClock = .init()
-        await tests.do(name: "drift")
+        await tests.test(name: "drift")
         {
             let t0:ContinuousClock.Instant = clock.now
 
@@ -46,7 +46,7 @@ enum Main:AsynchronousTests
                 name: "elapsed-time")
         }
 
-        await tests.do(name: "buffered")
+        await tests.test(name: "buffered")
         {
             let t0:ContinuousClock.Instant = clock.now
             let heartbeat:Heartbeat = .init(interval: .milliseconds(250))
@@ -88,7 +88,7 @@ enum Main:AsynchronousTests
                 name: "elapsed-time")
         }
 
-        await tests.do(name: "skipped")
+        await tests.test(name: "skipped")
         {
             let t0:ContinuousClock.Instant = clock.now
             let heartbeat:Heartbeat = .init(interval: .milliseconds(100))
@@ -131,7 +131,7 @@ enum Main:AsynchronousTests
                 name: "elapsed-time")
         }
 
-        await tests.do(name: "manual")
+        await tests.test(name: "manual")
         {
             let t0:ContinuousClock.Instant = clock.now
             let heartbeat:Heartbeat = .init(interval: .milliseconds(100))

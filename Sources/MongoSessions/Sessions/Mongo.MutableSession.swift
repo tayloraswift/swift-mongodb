@@ -23,7 +23,6 @@ extension Mongo
     struct MutableSession:Identifiable
     {
         // TODO: implement time gossip
-        private
         let monitor:Mongo.TopologyMonitor
 
         @usableFromInline
@@ -35,13 +34,16 @@ extension Mongo
         public
         let id:SessionIdentifier
 
-        init(monitor:Mongo.TopologyMonitor, context:SessionContext, medium:SessionMedium)
+        init(monitor:Mongo.TopologyMonitor,
+            metadata:SessionMetadata,
+            medium:SessionMedium,
+            id:SessionIdentifier)
         {
-            self._metadata = .init(wrappedValue: context.metadata)
+            self._metadata = .init(wrappedValue: metadata)
 
             self.monitor = monitor
             self.medium = medium
-            self.id = context.id
+            self.id = id
         }
     }
 }
@@ -49,15 +51,10 @@ extension Mongo
 extension Mongo.MutableSession:Sendable
 {
 }
-extension Mongo.MutableSession:MongoSessionType
+extension Mongo.MutableSession:MongoConcurrencyDomain
 {
     static
     let medium:Mongo.SessionMediumSelector = .master
-
-    var context:Mongo.SessionContext
-    {
-        (self.id, self.metadata)
-    }
 }
 extension Mongo.MutableSession
 {
@@ -70,12 +67,6 @@ extension Mongo.MutableSession
     var labels:Mongo.TransactionLabels
     {
         .init(transaction: self.metadata.transaction, session: self.id)
-    }
-    private
-    var _time:UInt64?
-    {
-        let time:UInt64 = self.monitor.time.load(ordering: .relaxed)
-        return time == 0 ? nil : time
     }
 }
 

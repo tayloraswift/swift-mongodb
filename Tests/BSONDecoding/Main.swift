@@ -2,7 +2,7 @@ import Testing
 import BSONDecoding
 
 @main 
-enum Main:SynchronousTests
+enum Main:SyncTests
 {
     static
     func run(tests:inout Tests)
@@ -16,7 +16,7 @@ enum Main:SynchronousTests
                 "min": .min,
             ]
 
-            $0.do(name: "null")
+            $0.test(name: "null")
             {
                 _ in
                 let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try .init(
@@ -272,7 +272,7 @@ enum Main:SynchronousTests
                 "md5": .binary(md5),
             ]
 
-            $0.do(name: "md5")
+            $0.test(name: "md5")
             {
                 let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try .init(
                     fields: try bson.parse())

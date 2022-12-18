@@ -18,15 +18,18 @@ extension Mongo
         }
     }
 }
-extension Mongo.DropDatabase:MongoDatabaseCommand, MongoImplicitSessionCommand
+extension Mongo.DropDatabase:MongoCommand
 {
-    public static
-    let node:Mongo.ServerSelector = .master
-
     public
     func encode(to bson:inout BSON.Fields)
     {
         bson["dropDatabase"] = 1 as Int32
         bson["writeConcern"] = self.writeConcern
     }
+}
+extension Mongo.DropDatabase:MongoDatabaseCommand
+{
+}
+extension Mongo.DropDatabase:MongoImplicitSessionCommand
+{
 }

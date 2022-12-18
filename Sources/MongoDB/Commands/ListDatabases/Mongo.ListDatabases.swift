@@ -25,7 +25,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ListDatabases:MongoImplicitSessionCommand
+extension Mongo.ListDatabases:MongoCommand
 {
     public
     typealias Response =
@@ -33,9 +33,6 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand
         totalSize:Int,
         databases:[Mongo.DatabaseMetadata]
     )
-
-    public static
-    let node:Mongo.ServerSelector = .any
 
     public
     func encode(to bson:inout BSON.Fields)
@@ -53,4 +50,12 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand
             databases: try bson["databases"].decode(to: [Mongo.DatabaseMetadata].self)
         )
     }
+}
+// FIXME: ListDatabases *can* run on a secondary,
+// but *should* run on a primary.
+extension Mongo.ListDatabases:MongoReadOnlyCommand
+{
+}
+extension Mongo.ListDatabases:MongoImplicitSessionCommand
+{
 }

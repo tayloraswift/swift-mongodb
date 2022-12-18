@@ -1,5 +1,8 @@
 import BSONEncoding
 
+//  spec:
+//  https://github.com/mongodb/specifications/blob/master/source/enumerate-collections.rst
+
 extension Mongo
 {
     /// Retrieve information about collections and
@@ -22,11 +25,9 @@ extension Mongo
         }
     }
 }
-extension Mongo.ListCollections:MongoDatabaseCommand
+// TODO: ListCollections *should* support timeoutMS...
+extension Mongo.ListCollections:MongoCommand
 {
-    public static
-    let node:Mongo.ServerSelector = .any
-
     public
     func encode(to bson:inout BSON.Fields)
     {
@@ -37,4 +38,24 @@ extension Mongo.ListCollections:MongoDatabaseCommand
 
     public
     typealias Response = Mongo.Cursor<Mongo.CollectionMetadata>
+}
+// TODO: `listCollections` should by a streamable command...
+extension Mongo.ListCollections:MongoDatabaseCommand
+{
+}
+// FIXME: ListCollections *can* run on a secondary,
+// but *should* run on a primary.
+extension Mongo.ListCollections:MongoReadOnlyCommand
+{
+}
+extension Mongo.ListCollections:MongoImplicitSessionCommand
+{
+}
+extension Mongo.ListCollections:MongoTransactableCommand
+{
+    @inlinable public
+    var readConcern:Mongo.ReadConcern?
+    {
+        nil
+    }
 }

@@ -12,13 +12,12 @@ extension Tests
         let encoded:BSON.Document<[UInt8]> = .init(encoded)
         self.group(name)
         {
-
             $0.assert(encoded ==? literal, name: "binary-equivalence")
 
             let encoded:[(key:String, value:AnyBSON<ArraySlice<UInt8>>)]? = 
-                $0.do(name: "parse-encoded") { _ in try encoded.parse() }
+                $0.test(name: "parse-encoded") { _ in try encoded.parse() }
             let literal:[(key:String, value:AnyBSON<ArraySlice<UInt8>>)]? = 
-                $0.do(name: "parse-literal") { _ in try literal.parse() }
+                $0.test(name: "parse-literal") { _ in try literal.parse() }
             
             guard   let encoded:[(key:String, value:AnyBSON<ArraySlice<UInt8>>)],
                     let literal:[(key:String, value:AnyBSON<ArraySlice<UInt8>>)]
