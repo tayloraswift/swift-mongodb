@@ -8,15 +8,72 @@ enum Main:AsyncTests
     static
     func run(tests:inout Tests) async
     {
-        let hosts:(Mongo.Host, Mongo.Host, Mongo.Host, Mongo.Host) =
-        (
-            .init(name: "mongo-single", port: 27017),
-            .init(name: "mongo-1", port: 27017),
-            .init(name: "mongo-2", port: 27017),
-            .init(name: "mongo-3", port: 27017)
-        )
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
+
+        switch CommandLine.arguments.count
+        {
+        case 1:
+            //  default configuration, for local testing
+            await self.run(tests: &tests, single: .init(name: "mongo-single", port: 27017),
+                on: executor)
+            await self.run(tests: &tests,
+                replicas:
+                [
+                    .init(name: "mongo-1", port: 27017),
+                    .init(name: "mongo-2", port: 27017),
+                    .init(name: "mongo-3", port: 27017),
+                ],
+                on: executor)
         
+        case 2:
+            //  ci configuration, runs single-topology tests
+            await self.run(tests: &tests, single: .init(CommandLine.arguments[1]),
+                on: executor)
+        
+        case 3...:
+            //  ci configuration, runs replicated-topology tests
+            await self.run(tests: &tests, 
+                replicas: CommandLine.arguments.dropFirst().map(Mongo.Host.init(_:)),
+                on: executor)
+        
+        default:
+            fatalError("unreachable")
+        }
+    }
+}
+extension Main
+{
+    static
+    func run(tests:inout Tests, replicas:[Mongo.Host],
+        on executor:MultiThreadedEventLoopGroup) async
+    {
+        print("running tests for replicated topology (hosts: \(replicas))")
+        //  we should be able to connect to the primary using any seed
+        await tests.group("replication")
+        {
+            for seed:Mongo.Host in replicas
+            {
+                await $0.test(with: DriverEnvironment.init(
+                    name: "discover-primary-from-\(seed.name)",
+                    credentials: nil,
+                    executor: executor))
+                {
+                    try await $1.seeded(with: [seed])
+                    {
+                        try await $0.withMutableSession(timeout: .seconds(1))
+                        {
+                            _ in
+                        }
+                    }
+                }
+            }
+        }
+    }
+    static
+    func run(tests:inout Tests, single:Mongo.Host,
+        on executor:MultiThreadedEventLoopGroup) async
+    {
+        print("running tests for single topology (host: \(single))")
         //  these tests ensure we do proper cleanup on all exit paths.
         //  they use no assertions, but should trip sanity checks within
         //  the driver’s `deinit`s if cleanup is not performed correctly.
@@ -26,7 +83,7 @@ enum Main:AsyncTests
                 credentials: nil,
                 executor: executor))
             {
-                try await $1.seeded(with: [hosts.0])
+                try await $1.seeded(with: [single])
                 {
                     try await $0.withMutableSession { _ in }
                 }
@@ -34,11 +91,11 @@ enum Main:AsyncTests
             await $0.test(with: DriverEnvironment.init(name: "seeded-twice",
                 credentials: nil, executor: executor))
             {
-                try await $1.seeded(with: [hosts.0])
+                try await $1.seeded(with: [single])
                 {
                     try await $0.withMutableSession { _ in }
                 }
-                try await $1.seeded(with: [hosts.0])
+                try await $1.seeded(with: [single])
                 {
                     try await $0.withMutableSession { _ in }
                 }
@@ -47,7 +104,7 @@ enum Main:AsyncTests
                 credentials: nil, executor: executor))
             {
                 async
-                let first:Void = $1.seeded(with: [hosts.0])
+                let first:Void = $1.seeded(with: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -55,7 +112,7 @@ enum Main:AsyncTests
                     }
                 }
                 async
-                let second:Void = $1.seeded(with: [hosts.0])
+                let second:Void = $1.seeded(with: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -72,7 +129,7 @@ enum Main:AsyncTests
             {
                 do
                 {
-                    try await $1.seeded(with: [hosts.0])
+                    try await $1.seeded(with: [single])
                     {
                         async
                         let _:Void = $0.withMutableSession { _ in }
@@ -87,7 +144,7 @@ enum Main:AsyncTests
             await $0.test(with: DriverEnvironment.init(name: "error-session",
                 credentials: nil, executor: executor))
             {
-                await $1.seeded(with: [hosts.0])
+                await $1.seeded(with: [single])
                 {
                     async
                     let _:Void = $0.withMutableSession { _ in }
@@ -107,7 +164,7 @@ enum Main:AsyncTests
                     password: "password"),
                 executor: executor))
             {
-                try await $1.seeded(with: [hosts.0])
+                try await $1.seeded(with: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -122,7 +179,7 @@ enum Main:AsyncTests
                     password: "password"),
                 executor: executor))
             {
-                try await $1.seeded(with: [hosts.0])
+                try await $1.seeded(with: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -145,13 +202,13 @@ enum Main:AsyncTests
                     selector: .master, 
                     errored:
                     [
-                        hosts.0: Mongo.AuthenticationError.init(
+                        single: Mongo.AuthenticationError.init(
                                 Mongo.AuthenticationUnsupportedError.init(.x509),
                             credentials: driver.credentials!)
                     ]))
             {
                 _ in
-                try await driver.seeded(with: [hosts.0])
+                try await driver.seeded(with: [single])
                 {
                     try await $0.withMutableSession(timeout: .milliseconds(500))
                     {
@@ -174,42 +231,17 @@ enum Main:AsyncTests
                     selector: .master, 
                     errored:
                     [
-                        hosts.0: Mongo.AuthenticationError.init(
+                        single: Mongo.AuthenticationError.init(
                                 Mongo.ServerError.init(message: "Authentication failed."),
                             credentials: driver.credentials!)
                     ]))
             {
                 _ in
-                try await driver.seeded(with: [hosts.0])
+                try await driver.seeded(with: [single])
                 {
                     try await $0.withMutableSession(timeout: .milliseconds(500))
                     {
                         _ in
-                    }
-                }
-            }
-        }
-
-        //  we should be able to connect to the primary using any seed
-        await tests.group("replication")
-        {
-            for (seed, i):(Mongo.Host, Character) in
-            [
-                (hosts.1, "1"),
-                (hosts.2, "2"),
-                (hosts.3, "3"),
-            ]
-            {
-                await $0.test(with: DriverEnvironment.init(name: "discover-primary-from-\(i)",
-                    credentials: nil,
-                    executor: executor))
-                {
-                    try await $1.seeded(with: [seed])
-                    {
-                        try await $0.withMutableSession(timeout: .seconds(1))
-                        {
-                            _ in
-                        }
                     }
                 }
             }
