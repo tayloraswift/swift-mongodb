@@ -100,12 +100,12 @@ extension Mongo.Topology
         }
     }
     mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
+    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
     {
         switch self
         {
         case .terminated:
-            return nil
+            return false
         
         case .unknown(var seedlist):
             self = .unknown(.init())
@@ -142,12 +142,12 @@ extension Mongo.Topology
     }
     mutating
     func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Server,
-        monitor:(Mongo.Host) -> ()) -> Void?
+        monitor:(Mongo.Host) -> ()) -> Bool
     {
         switch self
         {
         case .terminated:
-            return nil
+            return false
         
         case .unknown(var seeds):
             if  let topology:Self = .init(host: host, connection: connection,
@@ -156,12 +156,12 @@ extension Mongo.Topology
                     monitor: monitor)
             {
                 self = topology
-                return ()
+                return true
             }
             else
             {
                 self = .unknown(seeds)
-                return nil
+                return false
             }
         
         case .single(var topology):

@@ -8,7 +8,7 @@ enum Main:AsyncTests
     static
     func run(tests:inout Tests) async
     {
-        let host:Mongo.Host = .init(name: "mongodb", port: 27017)
+        let host:Mongo.Host = .init(name: "mongo-single", port: 27017)
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
         let driver:Mongo.Driver = .init(

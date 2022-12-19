@@ -28,7 +28,7 @@ let package:Package = .init(name: "swift-mongodb",
         
         // this is used to generate `Sources/BSONDecoding/Decoder/Decoder.spf.swift`
         .package(url: "https://github.com/kelvin13/swift-package-factory.git",
-            revision: "swift-DEVELOPMENT-SNAPSHOT-2022-11-11-a"),
+            revision: "swift-DEVELOPMENT-SNAPSHOT-2022-12-17-a"),
         
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.45.0")),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(from: "2.23.0")),

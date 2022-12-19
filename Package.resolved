@@ -50,7 +50,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kelvin13/swift-package-factory.git",
       "state" : {
-        "branch" : "swift-DEVELOPMENT-SNAPSHOT-2022-11-11-a",
+        "branch" : "swift-DEVELOPMENT-SNAPSHOT-2022-12-17-a",
         "revision" : "2edf1844b15d6a8de1c610b0f0f7066f5c013a09"
       }
     },

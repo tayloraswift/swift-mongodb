@@ -72,20 +72,23 @@ extension Mongo.ConnectionState
     ///     -   connection: A wrapped NIO channel. If this descriptor already has one,
     ///         the parameter must be identical to it.
     ///     -   metadata: The metadata to update.
+    ///
+    /// -   Returns: [`true`](), always.
     mutating
-    func update(connection:Mongo.Connection, metadata:Metadata)
+    func update(connection:Mongo.Connection, metadata:Metadata) -> Bool
     {
         guard let original:Mongo.Connection = self.connection
         else
         {
             self = .connected(connection, metadata: metadata)
-            return
+            return true
         }
         if connection === original
         {
             // original === connection, so it should not matter which
             // gets assigned here
             self = .connected(original, metadata: metadata)
+            return true
         }
         else
         {
@@ -96,8 +99,11 @@ extension Mongo.ConnectionState
     /// state. If `status` is [`nil`]() and the descriptor is already in
     /// an errored state, the descriptor will remain in that state, and the
     /// stored error will not be overwritten.
+    ///
+    /// -   Returns: [`true`](), always.
+    @discardableResult
     mutating
-    func clear(status:(any Error)?)
+    func clear(status:(any Error)?) -> Bool
     {
         // only overwrite an existing error if we have a new one
         switch (self, status)
@@ -109,6 +115,7 @@ extension Mongo.ConnectionState
         case (_, let error?):
             self = .errored(error)
         }
+        return true
     }
 }
 
@@ -118,10 +125,14 @@ extension Optional
     /// connection if non-[`nil`](), and sets this optional to [`nil`]()
     /// afterwards, preventing further use of the connection state descriptor.
     /// The optional will always be [`nil`]() after calling this method.
+    ///
+    /// -   Returns: [`false`](), always.
+    @discardableResult
     mutating
-    func remove<Member>() where Wrapped == Mongo.ConnectionState<Member>
+    func remove<Member>() -> Bool where Wrapped == Mongo.ConnectionState<Member>
     {
         self?.connection?.heart.stop()
         self = nil
+        return false
     }
 }

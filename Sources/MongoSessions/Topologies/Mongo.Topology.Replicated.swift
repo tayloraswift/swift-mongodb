@@ -60,10 +60,10 @@ extension Mongo.Topology.Replicated
             self.init(replicas: seedlist.topology(of: Mongo.Replica?.self),
                 name: slave.set)
         }
-        guard case ()? = self.update(host: host, connection: connection,
-            metadata: metadata,
-            peerlist: peerlist,
-            monitor: monitor)
+        guard   self.update(host: host, connection: connection,
+                    metadata: metadata,
+                    peerlist: peerlist,
+                    monitor: monitor)
         else
         {
             seedlist.pick(host: host)
@@ -71,47 +71,49 @@ extension Mongo.Topology.Replicated
         }
     }
     mutating
-    func remove(host:Mongo.Host) -> Void?
+    func remove(host:Mongo.Host) -> Bool
     {
         self.replicas[host].remove()
         self.crown(primary: nil)
-        return nil
+        return false
     }
     mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
+    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
     {
-        if case ()? = self.replicas[host]?.clear(status: status)
+        if case true? = self.replicas[host]?.clear(status: status)
         {
             self.crown(primary: nil)
-            return ()
+            return true
         }
         else
         {
-            return nil
+            return false
         }
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Void) -> Void?
+    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Void) -> Bool
     {
-        if case ()? = self.replicas[host]?.update(connection: connection, metadata: nil)
+        if case true? = self.replicas[host]?.update(connection: connection, metadata: nil)
         {
             self.crown(primary: nil)
-            return ()
+            return true
         }
         else
         {
-            return nil
+            return false
         }
     }
     mutating
     func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Replica,
         peerlist:Mongo.Peerlist,
-        monitor:(Mongo.Host) -> ()) -> Void?
+        monitor:(Mongo.Host) -> ()) -> Bool
     {
-        guard case ()? = self.replicas[host]?.update(connection: connection, metadata: metadata)
+        guard case true? = self.replicas[host]?.update(
+            connection: connection,
+            metadata: metadata)
         else
         {
-            return nil
+            return false
         }
 
         switch (self.primary, metadata)
@@ -134,7 +136,7 @@ extension Mongo.Topology.Replicated
             }
             if self.name == metadata.set, host == peerlist.me
             {
-                return ()
+                return true
             }
             else
             {
@@ -157,7 +159,7 @@ extension Mongo.Topology.Replicated
             }
             if host == peerlist.me
             {
-                return ()
+                return true
             }
             else
             {
@@ -168,7 +170,7 @@ extension Mongo.Topology.Replicated
     private mutating
     func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Replica.Master,
         peerlist:Mongo.Peerlist,
-        monitor:(Mongo.Host) -> ()) -> Void?
+        monitor:(Mongo.Host) -> ()) -> Bool
     {
         guard self.name == metadata.set
         else
@@ -178,7 +180,7 @@ extension Mongo.Topology.Replicated
         if let regime:Mongo.Regime = self.regime, metadata.regime < regime
         {
             // stale primary
-            return self.replicas[host]?.clear(status: nil)
+            return self.replicas[host]?.clear(status: nil) ?? false
         }
         else
         {
@@ -198,7 +200,7 @@ extension Mongo.Topology.Replicated
             self.replicas[new] = .queued
             monitor(new)
         }
-        return ()
+        return true
     }
     private mutating
     func crown(primary:Mongo.Host?)

@@ -32,7 +32,7 @@ extension Mongo.Topology.Sharded
         seedlist:inout Mongo.Seedlist)
     {
         self.init(routers: seedlist.topology(of: Mongo.Router.self))
-        guard case ()? = self.update(host: host, connection: connection, metadata: metadata)
+        guard self.update(host: host, connection: connection, metadata: metadata)
         else
         {
             seedlist.pick(host: host)
@@ -40,20 +40,19 @@ extension Mongo.Topology.Sharded
         }
     }
     mutating
-    func remove(host:Mongo.Host) -> Void?
+    func remove(host:Mongo.Host) -> Bool
     {
         self.routers[host].remove()
-        return nil
     }
     mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
+    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
     {
-        self.routers[host]?.clear(status: status)
+        self.routers[host]?.clear(status: status) ?? false
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Router) -> Void?
+    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Router) -> Bool
     {
-        self.routers[host]?.update(connection: connection, metadata: metadata)
+        self.routers[host]?.update(connection: connection, metadata: metadata) ?? false
     }
 }
 extension Mongo.Topology.Sharded

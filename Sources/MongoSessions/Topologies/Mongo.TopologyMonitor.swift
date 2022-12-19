@@ -45,8 +45,6 @@ extension Mongo
             {
                 fatalError("unreachable (deinitialized while continuations are awaiting)")
             }
-
-            print("deinitialized topology monitor")
         }
     }
 }
@@ -92,19 +90,20 @@ extension Mongo.TopologyMonitor
     }
 
     private
-    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
+    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
     {
         self.topology.clear(host: host, status: status)
     }
     private
     func update(host:Mongo.Host, connection:Mongo.Connection,
-        metadata:Mongo.ServerMetadata) -> Void?
+        metadata:Mongo.ServerMetadata) -> Bool
     {
-        self.topology.update(host: host, connection: connection, metadata: metadata.type)
-        {
-            let _:Task<Void, Never>? = self.monitor($0)
+        let admitted:Bool = self.topology.update(host: host, connection: connection,
+            metadata: metadata.type)
+        { 
+            let _:Task<Void, Never>? = self.monitor($0) 
         }
-            .map
+        if  admitted
         {
             // update session timeout
             let ttl:Mongo.Minutes = min(self.ttl ?? metadata.ttl, metadata.ttl)
@@ -129,6 +128,7 @@ extension Mongo.TopologyMonitor
                 }
             }
         }
+        return admitted
     }
 }
 extension Mongo.TopologyMonitor
@@ -162,7 +162,7 @@ extension Mongo.TopologyMonitor
                 status = error
             }
 
-            if case ()? = self.clear(host: host, status: status)
+            if self.clear(host: host, status: status)
             {
                 try? await cooldown
             }
@@ -193,20 +193,25 @@ extension Mongo.TopologyMonitor
             credentials: self.driver.credentials,
             appname: self.driver.appname)
         
-        self.update(host: host, connection: connection, metadata: initial.metadata)
+        guard self.update(host: host, connection: connection, metadata: initial.metadata)
+        else
+        {
+            return
+        }
 
         for try await _:Void in heartbeat
         {
             let updated:Mongo.Hello.Response = try await connection.run(
                 command: .init(user: nil))
-            if  updated.token == initial.token
-            {
-                self.update(host: host, connection: connection, metadata: updated.metadata)
-            }
-            else
+            if  updated.token != initial.token
             {
                 throw Mongo.ConnectionTokenError.init(recorded: initial.token,
                     invalid: updated.token)
+            }
+            guard self.update(host: host, connection: connection, metadata: updated.metadata)
+            else
+            {
+                break
             }
         }
     }

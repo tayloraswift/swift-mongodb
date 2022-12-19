@@ -30,9 +30,9 @@ extension Mongo.Seedlist
 extension Mongo.Seedlist
 {
     mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
+    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
     {
-        self.seeds[host]?.clear(status: status)
+        self.seeds[host]?.clear(status: status) ?? false
     }
     func topology<Metadata>(of _:Metadata.Type) -> [Mongo.Host: Mongo.ConnectionState<Metadata>]
     {

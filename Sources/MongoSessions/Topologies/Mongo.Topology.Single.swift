@@ -42,15 +42,15 @@ extension Mongo.Topology.Single
         }
     }
     mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Void?
+    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
     {
-        self.host != host ? nil :
+        self.host != host ? false :
         self.state.clear(status: status)
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Single) -> Void?
+    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Single) -> Bool
     {
-        self.host != host ? nil :
+        self.host != host ? false :
         self.state.update(connection: connection, metadata: metadata)
     }
 }
