@@ -60,7 +60,7 @@ extension Main
                 {
                     try await $1.seeded(with: [seed])
                     {
-                        try await $0.withMutableSession(timeout: .seconds(1))
+                        try await $0.withMutableSession(timeout: .seconds(5))
                         {
                             _ in
                         }
