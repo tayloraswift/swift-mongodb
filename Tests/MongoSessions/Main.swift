@@ -2,9 +2,18 @@ import NIOPosix
 import MongoSessions
 import Testing
 
-@main 
-enum Main:AsyncTests
+@main
+enum Main
 {
+    public static
+    func main() async
+    {
+        var tests:Tests = .init()
+        await Self.run(tests: &tests)
+        print(tests.results.passed)
+        print(tests.results.failed)
+    }
+
     static
     func run(tests:inout Tests) async
     {
