@@ -98,6 +98,7 @@ extension Mongo.TopologyMonitor
     func update(host:Mongo.Host, connection:Mongo.Connection,
         metadata:Mongo.ServerMetadata) -> Bool
     {
+        print(metadata.type)
         let admitted:Bool = self.topology.update(host: host, connection: connection,
             metadata: metadata.type)
         { 
@@ -248,8 +249,13 @@ extension Mongo.TopologyMonitor
             let started:ContinuousClock.Instant = self.driver.clock.now
             let id:UInt = self.awaiting.open()
 
+            #if compiler(>=5.8)
             async
             let _:Void = self.fail(request: id, once: started.advanced(by: timeout))
+            #else
+            async
+            let __:Void = self.fail(request: id, once: started.advanced(by: timeout))
+            #endif
 
             return try await withCheckedThrowingContinuation
             {
