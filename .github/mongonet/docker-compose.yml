@@ -1,0 +1,68 @@
+version: "3.9"
+services:
+    # a mock standalone deployment
+    mongo-single:
+        image: mongo:latest
+        hostname: mongo-single
+        networks:
+            - mongonet
+        ports:
+            - 30000:27017
+        restart: always
+        volumes:
+            - ./create-users.js:/docker-entrypoint-initdb.d/create-users.js
+            - ./mongod.conf:/etc/mongod.conf
+            - ./data/db:/data/db
+        command: mongod --config /etc/mongod.conf
+
+    # a mock replica set deployment
+    # mongo-1:
+    #     image: mongo:latest
+    #     hostname: mongo-1
+    #     networks:
+    #         - mongonet
+    #     ports:
+    #         - 30001:27017
+    #     restart: always
+    #     volumes:
+    #         - ./test-set.conf:/etc/mongod.conf
+    #         - ./data-1/db:/data/db
+    #     command: mongod --config /etc/mongod.conf
+    # mongo-2:
+    #     image: mongo:latest
+    #     hostname: mongo-2
+    #     networks:
+    #         - mongonet
+    #     ports:
+    #         - 30002:27017
+    #     restart: always
+    #     volumes:
+    #         - ./test-set.conf:/etc/mongod.conf
+    #         - ./data-2/db:/data/db
+    #     command: mongod --config /etc/mongod.conf
+    # mongo-3:
+    #     image: mongo:latest
+    #     hostname: mongo-3
+    #     networks:
+    #         - mongonet
+    #     ports:
+    #         - 30003:27017
+    #     restart: always
+    #     volumes:
+    #         - ./test-set.conf:/etc/mongod.conf
+    #         - ./data-3/db:/data/db
+    #     command: mongod --config /etc/mongod.conf
+
+    # mongo-init:
+    #     image: mongo:latest
+    #     depends_on:
+    #         - mongo-single
+    #     networks:
+    #         - mongonet
+    #     volumes:
+    #         - ./create-users.js:/create-users.js
+    #     command: mongosh --file /create-users.js
+
+networks: 
+    mongonet:
+        name: mongonet

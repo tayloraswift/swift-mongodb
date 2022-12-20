@@ -161,7 +161,7 @@ extension Main
             await $0.test(with: DriverEnvironment.init(name: "defaulted",
                 credentials: .init(authentication: nil,
                     username: "root",
-                    password: "password"),
+                    password: "80085"),
                 executor: executor))
             {
                 try await $1.seeded(with: [single])
@@ -176,7 +176,7 @@ extension Main
             await $0.test(with: DriverEnvironment.init(name: "scram-sha256",
                 credentials: .init(authentication: .sasl(.sha256),
                     username: "root",
-                    password: "password"),
+                    password: "80085"),
                 executor: executor))
             {
                 try await $1.seeded(with: [single])
@@ -192,7 +192,7 @@ extension Main
         await tests.test(with: DriverEnvironment.init(name: "authentication-unsupported",
             credentials: .init(authentication: .x509,
                 username: "root",
-                password: "password"),
+                password: "80085"),
             executor: executor))
         {
             (tests:inout Tests, driver:Mongo.Driver) in

@@ -23,11 +23,11 @@ jobs:
                 swift: 
                     -   toolchain:  DEVELOPMENT-SNAPSHOT-2022-12-17-a
                         branch:     development
-                    -   toolchain:  5.7.2-RELEASE
-                        branch:     swift-5.7.2-release
+                    # -   toolchain:  5.7.2-RELEASE
+                    #     branch:     swift-5.7.2-release
 
         steps:
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
             
             -   name: cache swift toolchains
                 uses: actions/cache@v2
@@ -61,12 +61,9 @@ jobs:
                     swift build -c release --target MongoSessions
             
             -   name: set up mongo (single)
-                uses: supercharge/mongodb-github-action@1.8.0
-                with:
-                    mongodb-version: 6.0
-                    mongodb-username: root
-                    mongodb-password: password
+                run: |
+                    docker compose -f .github/mongonet/docker-compose.yml up -d
                     
             -   name: test
                 run: |
-                    swift run -c release MongoSessionsTests localhost
+                    swift run -c release MongoSessionsTests localhost:30000
