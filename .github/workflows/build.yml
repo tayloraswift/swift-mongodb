@@ -59,6 +59,10 @@ jobs:
             -   name: set up mock deployments
                 run: |
                     docker compose -f .github/mongonet/docker-compose.yml up -d
+                    nc -zv localhost 30000
+                    nc -zv localhost 30001
+                    nc -zv localhost 30002
+                    nc -zv localhost 30003
             
             -   name: build
                 run: |
@@ -67,5 +71,5 @@ jobs:
                     
             -   name: test
                 run: |
-                    swift run -c release MongoSessionsTests localhost:30000
                     swift run -c release MongoSessionsTests localhost:30001 localhost:30002 localhost:30003
+                    swift run -c release MongoSessionsTests localhost:30000
