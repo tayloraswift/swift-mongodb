@@ -1,4 +1,4 @@
-db = connect('mongodb://localhost/admin');
+db = connect('mongodb://mongo-1:27017/admin');
 db.runCommand({'replSetInitiate': {
     "_id": "test-set",
     "version": 1,
