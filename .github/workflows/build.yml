@@ -36,6 +36,4 @@ jobs:
                         -v $PWD:/swift-mongodb \
                         -w /swift-mongodb \
                         swiftlang/swift:${{ matrix.image }} \
-                    swift --version &&
-                    swift build -c release --target MongoSessions &&
-                    swift run   -c release          MongoSessionsTests
+                    .github/run-pipeline

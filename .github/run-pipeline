@@ -1,0 +1,5 @@
+#!/bin/bash
+
+swift --version
+swift build -c release --target MongoSessions
+swift run   -c release          MongoSessionsTests
