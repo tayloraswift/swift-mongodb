@@ -1,6 +1,7 @@
 db = connect('mongodb://localhost/admin');
 db.runCommand({'replSetInitiate': {
     "_id": "test-set",
+    "version": 1,
     "members": [
         {
             "_id": 1,

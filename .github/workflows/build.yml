@@ -8,68 +8,33 @@ on:
 
 jobs:
     linux:
-        runs-on: ${{ matrix.os.runner }}
-        name: ${{ matrix.os.runner }} (${{ matrix.swift.toolchain }})
+        runs-on: ubuntu-22.04
+        name: ${{ matrix.image }}
 
         strategy:
             matrix:
-                os: 
-                    -   runner: ubuntu-22.04
-                        prefix: ubuntu2204
-                        suffix: ubuntu22.04
-                    -   runner: ubuntu-20.04
-                        prefix: ubuntu2004
-                        suffix: ubuntu20.04
-                swift: 
-                    -   toolchain:  DEVELOPMENT-SNAPSHOT-2022-12-17-a
-                        branch:     development
-                    # -   toolchain:  5.7.2-RELEASE
-                    #     branch:     swift-5.7.2-release
+                image: 
+                -   nightly-main-amazonlinux2
 
         steps:
+            -   name: checkout repository
             -   uses: actions/checkout@v3
-            
-            -   name: cache swift toolchains
-                uses: actions/cache@v2
-                with:
-                    path: swift-${{ matrix.swift.toolchain }}.tar.gz
-                    key: ${{ matrix.os.runner }}:swift:${{ matrix.swift.toolchain }}
-                    
-            -   name: cache status
-                id:   cache_status
-                uses: andstor/file-existence-action@v1
-                with:
-                    files: swift-${{ matrix.swift.toolchain }}.tar.gz
-            
-            -   name: download swift toolchain 
-                if: steps.cache_status.outputs.files_exists == 'false'
-                run:   "curl https://download.swift.org/\
-                        ${{ matrix.swift.branch }}/\
-                        ${{ matrix.os.prefix }}/\
-                        swift-${{ matrix.swift.toolchain }}/\
-                        swift-${{ matrix.swift.toolchain }}-${{ matrix.os.suffix }}.tar.gz \
-                        --output swift-${{ matrix.swift.toolchain }}.tar.gz"
-            
-            -   name: set up swift
-                run: |
-                    mkdir -p $GITHUB_WORKSPACE/swift-${{ matrix.swift.toolchain }}
-                    tar -xzf swift-${{ matrix.swift.toolchain }}.tar.gz -C $GITHUB_WORKSPACE/swift-${{ matrix.swift.toolchain }} --strip 1
-                    echo "$GITHUB_WORKSPACE/swift-${{ matrix.swift.toolchain }}/usr/bin" >> $GITHUB_PATH
             
             -   name: set up mock deployments
                 run: |
                     docker compose -f .github/mongonet/docker-compose.yml up -d
-                    nc -zv localhost 30000
-                    nc -zv localhost 30001
-                    nc -zv localhost 30002
-                    nc -zv localhost 30003
             
-            -   name: build
+            -   name: initialize replica set
                 run: |
-                    swift --version
-                    swift build -c release --target MongoSessions
-                    
-            -   name: test
+                    docker exec -t mongonet-mongo-1-1 /bin/mongosh --file /create-replica-set.js
+            
+            -   name: build and test
                 run: |
-                    swift run -c release MongoSessionsTests localhost:30001 localhost:30002 localhost:30003
-                    swift run -c release MongoSessionsTests localhost:30000
+                    docker run -t --rm --network=mongonet \
+                        --name mongonet-environment \
+                        -v $PWD:/swift-mongodb \
+                        -w /swift-mongodb \
+                        swiftlang/swift:${{ matrix.image }} \
+                    swift --version &&
+                    swift build -c release --target MongoSessions &&
+                    swift run   -c release          MongoSessionsTests
