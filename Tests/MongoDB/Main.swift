@@ -14,7 +14,7 @@ enum Main:AsyncTests
         let driver:Mongo.Driver = .init(
             credentials: .init(authentication: .sasl(.sha256),
                 username: "root",
-                password: "password"),
+                password: "80085"),
             executor: executor,
             timeout: .seconds(10))
         

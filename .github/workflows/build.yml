@@ -1,0 +1,40 @@
+name: build
+
+on:
+    push:
+        branches: [ master ]
+    pull_request:
+        branches: [ master ]
+
+jobs:
+    linux:
+        runs-on: ubuntu-22.04
+        name: ${{ matrix.image }}
+
+        strategy:
+            matrix:
+                image: 
+                -   nightly-amazonlinux2
+                -   nightly
+
+        steps:
+            -   name: checkout repository
+                uses: actions/checkout@v3
+            
+            -   name: set up mock deployments
+                run: |
+                    docker compose -f .github/mongonet/docker-compose.yml up -d
+            
+            -   name: initialize replica set
+                run: |
+                    timeout 30s bash -c \
+                    'until docker exec -t mongonet-mongo-1-1 /bin/mongosh --file /create-replica-set.js; do sleep 1; done'
+            
+            -   name: build and test
+                run: |
+                    docker run -t --rm --network=mongonet \
+                        --name mongonet-environment \
+                        -v $PWD:/swift-mongodb \
+                        -w /swift-mongodb \
+                        swiftlang/swift:${{ matrix.image }} \
+                    .github/run-pipeline

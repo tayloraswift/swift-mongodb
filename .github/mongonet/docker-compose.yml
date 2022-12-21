@@ -1,0 +1,63 @@
+version: "3.9"
+services:
+    # a mock standalone deployment
+    mongo-single:
+        image: mongo:latest
+        hostname: mongo-single
+        networks:
+            - mongonet
+        ports:
+            - 30000:27017
+        restart: always
+        volumes:
+            - ./create-users.js:/docker-entrypoint-initdb.d/create-users.js
+            - ./mongod.conf:/etc/mongod.conf
+            - ./data/db:/data/db
+        command: mongod --config /etc/mongod.conf
+
+    # a mock replica set deployment. *every* member runs the init script,
+    # the last one to do so will know about all the other members.
+    mongo-1:
+        image: mongo:latest
+        hostname: mongo-1
+        networks:
+            - mongonet
+        ports:
+            - 30001:27017
+        restart: always
+        volumes:
+        # cannot put this in docker-entrypoint-initdb.d, it does not work
+            - ./create-replica-set.js:/create-replica-set.js
+            - ./test-set.conf:/etc/mongod.conf
+            - ./data-1/db:/data/db
+        command: mongod --config /etc/mongod.conf
+    mongo-2:
+        image: mongo:latest
+        hostname: mongo-2
+        networks:
+            - mongonet
+        ports:
+            - 30002:27017
+        restart: always
+        volumes:
+            - ./create-replica-set.js:/create-replica-set.js
+            - ./test-set.conf:/etc/mongod.conf
+            - ./data-2/db:/data/db
+        command: mongod --config /etc/mongod.conf
+    mongo-3:
+        image: mongo:latest
+        hostname: mongo-3
+        networks:
+            - mongonet
+        ports:
+            - 30003:27017
+        restart: always
+        volumes:
+            - ./create-replica-set.js:/create-replica-set.js
+            - ./test-set.conf:/etc/mongod.conf
+            - ./data-3/db:/data/db
+        command: mongod --config /etc/mongod.conf
+
+networks: 
+    mongonet:
+        name: mongonet

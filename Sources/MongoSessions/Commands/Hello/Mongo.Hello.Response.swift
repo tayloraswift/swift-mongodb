@@ -102,7 +102,7 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
         {
             let tags:BSON.Fields = try bson["tags"]?.decode(to: BSON.Fields.self) ?? .init()
             let peerlist:Mongo.Peerlist = .init(
-                primary: try bson["primary"].decode(to: Mongo.Host.self),
+                primary: try bson["primary"]?.decode(to: Mongo.Host.self),
                 arbiters: try bson["arbiters"]?.decode(to: [Mongo.Host].self) ?? [],
                 passives: try bson["passives"]?.decode(to: [Mongo.Host].self) ?? [],
                 hosts: try bson["hosts"].decode(to: [Mongo.Host].self),

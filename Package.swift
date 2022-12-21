@@ -30,11 +30,11 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/kelvin13/swift-package-factory.git",
             revision: "swift-DEVELOPMENT-SNAPSHOT-2022-12-17-a"),
         
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.45.0")),
+        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.46.0")),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(from: "2.23.0")),
-        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.2"),
+        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.3"),
     ],
-    targets: 
+    targets:
     [
         .target(name: "TraceableErrors"),
 
