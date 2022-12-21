@@ -3,51 +3,23 @@ import MongoSessions
 import Testing
 
 @main
-enum Main
+enum Main:AsyncTests
 {
-    public static
-    func main() async
-    {
-        var tests:Tests = .init()
-        await Self.run(tests: &tests)
-        print(tests.results.passed)
-        print(tests.results.failed)
-    }
-
     static
     func run(tests:inout Tests) async
     {
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        switch CommandLine.arguments.count
-        {
-        case 1:
-            //  default configuration, for local testing
-            await self.run(tests: &tests, single: .init(name: "mongo-single", port: 27017),
-                on: executor)
-            await self.run(tests: &tests,
-                replicas:
-                [
-                    .init(name: "mongo-1", port: 27017),
-                    .init(name: "mongo-2", port: 27017),
-                    .init(name: "mongo-3", port: 27017),
-                ],
-                on: executor)
-        
-        case 2:
-            //  ci configuration, runs single-topology tests
-            await self.run(tests: &tests, single: .init(CommandLine.arguments[1]),
-                on: executor)
-        
-        case 3...:
-            //  ci configuration, runs replicated-topology tests
-            await self.run(tests: &tests, 
-                replicas: CommandLine.arguments.dropFirst().map(Mongo.Host.init(_:)),
-                on: executor)
-        
-        default:
-            fatalError("unreachable")
-        }
+        await self.run(tests: &tests, single: .init(name: "mongo-single", port: 27017),
+            on: executor)
+        await self.run(tests: &tests,
+            replicas:
+            [
+                .init(name: "mongo-1", port: 27017),
+                .init(name: "mongo-2", port: 27017),
+                .init(name: "mongo-3", port: 27017),
+            ],
+            on: executor)
     }
 }
 extension Main
@@ -71,7 +43,9 @@ extension Main
                     {
                         try await $0.withMutableSession(timeout: .seconds(5))
                         {
-                            _ in
+                            //  TODO: actually check these values
+                            let _:Mongo.ReplicaSetConfiguration = try await $0.run(
+                                command: Mongo.ReplicaSetGetConfiguration.init())
                         }
                     }
                 }

@@ -15,6 +15,7 @@ jobs:
             matrix:
                 image: 
                 -   nightly-amazonlinux2
+                -   nightly
 
         steps:
             -   name: checkout repository
@@ -26,7 +27,7 @@ jobs:
             
             -   name: initialize replica set
                 run: |
-                    timeout 15s bash -c \
+                    timeout 30s bash -c \
                     'until docker exec -t mongonet-mongo-1-1 /bin/mongosh --file /create-replica-set.js; do sleep 1; done'
             
             -   name: build and test

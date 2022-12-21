@@ -98,7 +98,6 @@ extension Mongo.TopologyMonitor
     func update(host:Mongo.Host, connection:Mongo.Connection,
         metadata:Mongo.ServerMetadata) -> Bool
     {
-        print(metadata.type)
         let admitted:Bool = self.topology.update(host: host, connection: connection,
             metadata: metadata.type)
         { 

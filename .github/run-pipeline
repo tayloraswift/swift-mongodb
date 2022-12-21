@@ -2,4 +2,6 @@
 
 swift --version
 swift build -c release --target MongoSessions
+swift build -c release --target MongoDB
 swift run   -c release          MongoSessionsTests
+swift run   -c release          MongoDBTests

@@ -42,8 +42,9 @@ extension Mongo.ListDatabases:MongoCommand
         bson["filter", elide: true] = self.filter
     }
 
-    public static
-    func decode<Bytes>(reply bson:BSON.Dictionary<Bytes>) throws -> Response
+    @inlinable public static
+    func decode(
+        reply bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws -> Response
     {
         (
             totalSize: try bson["totalSize"].decode(to: Int.self),
