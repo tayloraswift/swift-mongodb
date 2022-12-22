@@ -80,7 +80,7 @@ extension Mongo.MessageRouter:ChannelOutboundHandler
         
         let id:MongoWire.MessageIdentifier = .init(self.counter.loadThenWrappingIncrement(
             ordering: .relaxed))
-        let message:MongoWire.Message<[UInt8]> = .init(sections: .init(.init(command)),
+        let message:MongoWire.Message<[UInt8]> = .init(sections: .init(body: .init(command)),
             checksum: false,
             id: id)
         

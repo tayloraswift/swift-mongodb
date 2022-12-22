@@ -202,7 +202,7 @@ extension Mongo.TopologyMonitor
         for try await _:Void in heartbeat
         {
             let updated:Mongo.Hello.Response = try await connection.run(
-                command: .init(user: nil))
+                hello: .init(user: nil))
             if  updated.token != initial.token
             {
                 throw Mongo.ConnectionTokenError.init(recorded: initial.token,
@@ -290,9 +290,9 @@ extension Mongo.TopologyMonitor
     nonisolated
     func end(sessions:__owned [Mongo.SessionIdentifier]) async -> Void?
     {
-        if let sessions:Mongo.EndSessions = .init(sessions)
+        if let command:Mongo.EndSessions = .init(sessions)
         {
-            return try? await self.end(sessions: sessions)
+            return try? await self.run(endSessions: command)
         }
         else
         {
@@ -300,7 +300,7 @@ extension Mongo.TopologyMonitor
         }
     }
     private
-    func end(sessions command:__owned Mongo.EndSessions) async throws -> Void?
+    func run(endSessions command:__owned Mongo.EndSessions) async throws -> Void?
     {
         switch self.topology
         {
@@ -308,11 +308,11 @@ extension Mongo.TopologyMonitor
             return nil
         
         case .single(let topology):
-            return try await topology.master?.run(command: command)
+            return try await topology.master?.run(endSessions: command)
         
         case .sharded(let topology):
             //  ``EndSessions`` can be sent to any `mongos`.
-            return try await topology.any?.run(command: command)
+            return try await topology.any?.run(endSessions: command)
         
         case .replicated(let topology):
             //  ``EndSessions`` should be sent to the primary if available,
@@ -320,7 +320,7 @@ extension Mongo.TopologyMonitor
             //  the spec says we should send the command *once*, and ignore
             //  all errors, so we will not retry the command on a secondary
             //  if it failed on the primary.
-            return try await (topology.master ?? topology.any)?.run(command: command)
+            return try await (topology.master ?? topology.any)?.run(endSessions: command)
         }
     }
 }

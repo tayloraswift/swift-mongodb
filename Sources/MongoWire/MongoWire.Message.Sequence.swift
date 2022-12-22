@@ -51,6 +51,22 @@ extension MongoWire.Message.Sequence
         4 + self.bytes.count
     }
 }
+extension MongoWire.Message.Sequence
+{
+    @inlinable public
+    func parse() throws -> MongoWire.Message<Bytes.SubSequence>.Outline
+    {
+        var input:BSON.Input<Bytes> = .init(self.bytes)
+        var outline:MongoWire.Message<Bytes.SubSequence>.Outline = .init(
+            id: try input.parse(as: String.self))
+        while input.index < input.source.endIndex
+        {
+            outline.documents.append(try input.parse(
+                as: BSON.Document<Bytes.SubSequence>.self))
+        }
+        return outline
+    }
+}
 extension MongoWire.Message.Sequence where Bytes:RangeReplaceableCollection<UInt8>
 {
     @inlinable public
