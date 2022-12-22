@@ -1,12 +1,14 @@
+import MongoChannel
+
 extension Mongo
 {
     public
     struct Seedlist
     {
         private
-        var seeds:[Mongo.Host: Mongo.ConnectionState<Never>]
+        var seeds:[Mongo.Host: MongoChannel.State<Never>]
 
-        init(seeds:[Mongo.Host: Mongo.ConnectionState<Never>] = [:])
+        init(seeds:[Mongo.Host: MongoChannel.State<Never>] = [:])
         {
             self.seeds = seeds
         }
@@ -34,7 +36,7 @@ extension Mongo.Seedlist
     {
         self.seeds[host]?.clear(status: status) ?? false
     }
-    func topology<Metadata>(of _:Metadata.Type) -> [Mongo.Host: Mongo.ConnectionState<Metadata>]
+    func topology<Metadata>(of _:Metadata.Type) -> [Mongo.Host: MongoChannel.State<Metadata>]
     {
         self.seeds.mapValues
         {

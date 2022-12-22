@@ -1,11 +1,12 @@
 import BSON
+import MongoChannel
 
 extension Mongo.Topology
 {
     struct Replicated
     {
         private
-        var replicas:[Mongo.Host: Mongo.ConnectionState<Mongo.Replica?>]
+        var replicas:[Mongo.Host: MongoChannel.State<Mongo.Replica?>]
         private
         var regime:Mongo.Regime?
         private
@@ -15,7 +16,7 @@ extension Mongo.Topology
         var primary:Mongo.Host?
 
         private
-        init(replicas:[Mongo.Host: Mongo.ConnectionState<Mongo.Replica?>],
+        init(replicas:[Mongo.Host: MongoChannel.State<Mongo.Replica?>],
             regime:Mongo.Regime? = nil,
             name:String)
         {
@@ -31,9 +32,9 @@ extension Mongo.Topology.Replicated
 {
     func terminate()
     {
-        for router:Mongo.ConnectionState<Mongo.Replica?> in self.replicas.values
+        for router:MongoChannel.State<Mongo.Replica?> in self.replicas.values
         {
-            router.connection?.heart.stop()
+            router.channel?.heart.stop()
         }
     }
     func errors() -> [Mongo.Host: any Error]
@@ -43,7 +44,7 @@ extension Mongo.Topology.Replicated
 }
 extension Mongo.Topology.Replicated
 {
-    init?(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Replica,
+    init?(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Replica,
         seedlist:inout Mongo.Seedlist,
         peerlist:Mongo.Peerlist,
         monitor:(Mongo.Host) -> ())
@@ -60,7 +61,7 @@ extension Mongo.Topology.Replicated
             self.init(replicas: seedlist.topology(of: Mongo.Replica?.self),
                 name: slave.set)
         }
-        guard   self.update(host: host, connection: connection,
+        guard   self.update(host: host, channel: channel,
                     metadata: metadata,
                     peerlist: peerlist,
                     monitor: monitor)
@@ -91,9 +92,9 @@ extension Mongo.Topology.Replicated
         }
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Void) -> Bool
+    func update(host:Mongo.Host, channel:MongoChannel, metadata:Void) -> Bool
     {
-        if case true? = self.replicas[host]?.update(connection: connection, metadata: nil)
+        if case true? = self.replicas[host]?.update(channel: channel, metadata: nil)
         {
             self.crown(primary: nil)
             return true
@@ -104,13 +105,11 @@ extension Mongo.Topology.Replicated
         }
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Replica,
+    func update(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Replica,
         peerlist:Mongo.Peerlist,
         monitor:(Mongo.Host) -> ()) -> Bool
     {
-        guard case true? = self.replicas[host]?.update(
-            connection: connection,
-            metadata: metadata)
+        guard case true? = self.replicas[host]?.update(channel: channel, metadata: metadata)
         else
         {
             return false
@@ -123,7 +122,7 @@ extension Mongo.Topology.Replicated
             {
                 self.crown(primary: host)
             }
-            return self.update(host: host, connection: connection, metadata: metadata,
+            return self.update(host: host, channel: channel, metadata: metadata,
                 peerlist: peerlist,
                 monitor: monitor)
             
@@ -168,7 +167,7 @@ extension Mongo.Topology.Replicated
         }
     }
     private mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Replica.Master,
+    func update(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Replica.Master,
         peerlist:Mongo.Peerlist,
         monitor:(Mongo.Host) -> ()) -> Bool
     {
@@ -230,12 +229,12 @@ extension Mongo.Topology.Replicated
             {
                 self.primary = nil
             }
-            if  let old:Dictionary<Mongo.Host, Mongo.ConnectionState<Mongo.Replica?>>.Index =
+            if  let old:Dictionary<Mongo.Host, MongoChannel.State<Mongo.Replica?>>.Index =
                     self.replicas.index(forKey: old),
-                let connection:Mongo.Connection = self.replicas.values[old].primary
+                let channel:MongoChannel = self.replicas.values[old].primary
             {
                 //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-monitoring.rst#requesting-an-immediate-check
-                connection.heart.beat()
+                channel.heart.beat()
                 self.replicas.values[old].clear(status: nil)
             }
         
@@ -251,8 +250,8 @@ extension Mongo.Topology.Replicated
 }
 extension Mongo.Topology.Replicated
 {
-    /// Returns a connection to the primary replica, if available.
-    var master:Mongo.Connection?
+    /// Returns a channel to the primary replica, if available.
+    var master:MongoChannel?
     {
         if let primary:Mongo.Host = self.primary
         {
@@ -263,16 +262,16 @@ extension Mongo.Topology.Replicated
             return nil
         }
     }
-    /// Returns a connection to any available primary or secondary replica.
-    var any:Mongo.Connection?
+    /// Returns a channel to any available primary or secondary replica.
+    var any:MongoChannel?
     {
-        for replica:Mongo.ConnectionState<Mongo.Replica?> in self.replicas.values
+        for replica:MongoChannel.State<Mongo.Replica?> in self.replicas.values
         {
             switch replica
             {
-            case    .connected(let connection, metadata: .primary(_)?),
-                    .connected(let connection, metadata: .secondary(_)?):
-                return connection
+            case    .connected(let channel, metadata: .primary(_)?),
+                    .connected(let channel, metadata: .secondary(_)?):
+                return channel
             
             default:
                 continue

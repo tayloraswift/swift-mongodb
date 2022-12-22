@@ -27,6 +27,7 @@ extension Mongo
 }
 extension Mongo.Reply
 {
+    public
     init(message:MongoWire.Message<ByteBufferView>) throws
     {
         let dictionary:BSON.Dictionary<ByteBufferView> = try .init(

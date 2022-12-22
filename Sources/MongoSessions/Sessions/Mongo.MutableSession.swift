@@ -1,3 +1,4 @@
+import MongoChannel
 import MongoWire
 import NIOCore
 
@@ -74,9 +75,9 @@ extension Mongo.MutableSession
 extension Mongo.MutableSession
 {
     @usableFromInline
-    var connection:Mongo.Connection
+    var channel:MongoChannel
     {
-        self.medium.connection
+        self.medium.channel
     }
 
     @inlinable public
@@ -99,7 +100,7 @@ extension Mongo.MutableSession
     {
         try await self.time(command: command)
         {
-            try await self.connection.run(labeled: $0, against: .admin)
+            try await self.channel.run(labeled: $0, against: .admin)
         }
     }
     
@@ -111,7 +112,7 @@ extension Mongo.MutableSession
     {
         try await self.time(command: command)
         {
-            try await self.connection.run(labeled: $0, against: database)
+            try await self.channel.run(labeled: $0, against: database)
         }
     }
 }

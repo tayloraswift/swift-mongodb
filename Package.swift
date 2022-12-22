@@ -14,6 +14,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "Heartbeats", targets: ["Heartbeats"]),
 
         .library(name: "MongoDB", targets: ["MongoDB"]),
+        .library(name: "MongoChannel", targets: ["MongoChannel"]),
         .library(name: "MongoSessions", targets: ["MongoSessions"]),
         .library(name: "MongoSchema", targets: ["MongoSchema"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
@@ -109,21 +110,33 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONSchema"),
             ]),
 
-        .target(name: "MongoSessions",
+        .target(name: "MongoChannel",
             dependencies: 
             [
                 .target(name: "BSONSchema"),
-                .target(name: "BSON_UUID"),
                 .target(name: "Heartbeats"),
-                .target(name: "Mongo"),
                 .target(name: "MongoWire"),
+                .product(name: "NIOCore",               package: "swift-nio"),
+                .product(name: "Atomics",               package: "swift-atomics"),
+            ]),
+
+        .target(name: "MongoSessions",
+            dependencies: 
+            [
+                .target(name: "BSON_UUID"),
+                .target(name: "Mongo"),
+                .target(name: "MongoChannel"),
                 .target(name: "SCRAM"),
                 .target(name: "TraceableErrors"),
                 .product(name: "SHA2",                  package: "swift-hash"),
+                // already included by `MongoChannel`’s transitive `Atomics` dependency,
+                // but restated here for clarity.
+                .product(name: "Atomics",               package: "swift-atomics"),
+                // already included by `MongoChannel`’s transitive `NIOCore` dependency,
+                // but restated here for clarity.
                 .product(name: "NIOCore",               package: "swift-nio"),
                 .product(name: "NIOPosix",              package: "swift-nio"),
                 .product(name: "NIOSSL",                package: "swift-nio-ssl"),
-                .product(name: "Atomics",               package: "swift-atomics"),
             ]),
         
         .target(name: "MongoSchema",

@@ -1,21 +1,22 @@
-extension Mongo
+extension MongoChannel
 {
     public
-    struct ConnectionTokenError:Equatable, Error
+    struct TokenError:Equatable, Error
     {
         public
-        let recorded:ConnectionToken
+        let recorded:Token
         public
-        let invalid:ConnectionToken
+        let invalid:Token
 
-        init(recorded:ConnectionToken, invalid:ConnectionToken)
+        public
+        init(recorded:Token, invalid:Token)
         {
             self.recorded = recorded
             self.invalid = invalid
         }
     }
 }
-extension Mongo.ConnectionTokenError:CustomStringConvertible
+extension MongoChannel.TokenError:CustomStringConvertible
 {
     public
     var description:String

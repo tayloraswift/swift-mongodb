@@ -1,8 +1,10 @@
+import MongoChannel
+
 extension Mongo
 {
     struct SessionMedium:Sendable
     {
-        let connection:Mongo.Connection
+        let channel:MongoChannel
         let ttl:Mongo.Minutes
     }
 }

@@ -1,6 +1,7 @@
 import Atomics
 import BSON
 import Heartbeats
+import MongoChannel
 import MongoWire
 import NIOCore
 
@@ -95,10 +96,10 @@ extension Mongo.TopologyMonitor
         self.topology.clear(host: host, status: status)
     }
     private
-    func update(host:Mongo.Host, connection:Mongo.Connection,
+    func update(host:Mongo.Host, channel:MongoChannel,
         metadata:Mongo.ServerMetadata) -> Bool
     {
-        let admitted:Bool = self.topology.update(host: host, connection: connection,
+        let admitted:Bool = self.topology.update(host: host, channel: channel,
             metadata: metadata.type)
         { 
             let _:Task<Void, Never>? = self.monitor($0) 
@@ -109,16 +110,16 @@ extension Mongo.TopologyMonitor
             let ttl:Mongo.Minutes = min(self.ttl ?? metadata.ttl, metadata.ttl)
             self.ttl = ttl
             // succeed any tasks awaiting connections
-            if      let connection:Mongo.Connection = self.topology.master
+            if      let channel:MongoChannel = self.topology.master
             {
-                self.awaiting.fulfill(with: .init(connection: connection, ttl: ttl))
+                self.awaiting.fulfill(with: .init(channel: channel, ttl: ttl))
                 {
                     _ in true
                 }
             }
-            else if let connection:Mongo.Connection = self.topology.any
+            else if let channel:MongoChannel = self.topology.any
             {
-                self.awaiting.fulfill(with: .init(connection: connection, ttl: ttl))
+                self.awaiting.fulfill(with: .init(channel: channel, ttl: ttl))
                 {
                     switch $0
                     {
@@ -177,23 +178,23 @@ extension Mongo.TopologyMonitor
     func connect(to host:Mongo.Host) async throws
     {
         let heartbeat:Heartbeat = .init(interval: .milliseconds(1000))
-        let connection:Mongo.Connection = try await .init(driver: self.driver,
+        let channel:MongoChannel = try await .init(driver: self.driver,
             heart: heartbeat.heart,
             host: host)
         
         defer
         {
-            // will be a no-op if the connection closed spontaneously,
+            // will be a no-op if the channel closed spontaneously,
             // terminating the stream of heartbeats
-            connection.close()
+            channel.close()
         }
 
         //  initial login, performs auth (if using auth).
-        let initial:Mongo.Hello.Response = try await connection.establish(
+        let initial:Mongo.Hello.Response = try await channel.establish(
             credentials: self.driver.credentials,
             appname: self.driver.appname)
         
-        guard self.update(host: host, connection: connection, metadata: initial.metadata)
+        guard self.update(host: host, channel: channel, metadata: initial.metadata)
         else
         {
             return
@@ -201,14 +202,14 @@ extension Mongo.TopologyMonitor
 
         for try await _:Void in heartbeat
         {
-            let updated:Mongo.Hello.Response = try await connection.run(
+            let updated:Mongo.Hello.Response = try await channel.run(
                 hello: .init(user: nil))
             if  updated.token != initial.token
             {
-                throw Mongo.ConnectionTokenError.init(recorded: initial.token,
+                throw MongoChannel.TokenError.init(recorded: initial.token,
                     invalid: updated.token)
             }
-            guard self.update(host: host, connection: connection, metadata: updated.metadata)
+            guard self.update(host: host, channel: channel, metadata: updated.metadata)
             else
             {
                 break
@@ -218,7 +219,7 @@ extension Mongo.TopologyMonitor
 }
 extension Mongo.TopologyMonitor
 {
-    /// Attempts to obtain a connection to a cluster member matching the given
+    /// Attempts to obtain a channel to a cluster member matching the given
     /// instance selector, and if successful, generates and attaches a ``Session/ID``
     /// to it that the driver believes is not currently in use.
     ///
@@ -238,10 +239,10 @@ extension Mongo.TopologyMonitor
     func medium(_ selector:Mongo.SessionMediumSelector,
         timeout:Duration) async throws -> Mongo.SessionMedium
     {
-        if  let connection:Mongo.Connection = self.topology[selector],
+        if  let channel:MongoChannel = self.topology[selector],
             let ttl:Mongo.Minutes = self.ttl
         {
-            return .init(connection: connection, ttl: ttl)
+            return .init(channel: channel, ttl: ttl)
         }
         else
         {

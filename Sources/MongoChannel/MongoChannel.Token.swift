@@ -1,6 +1,6 @@
 import BSONDecoding
 
-extension Mongo
+extension MongoChannel
 {
     /// An identifier assigned by a server to a driver connection.
     ///
@@ -11,7 +11,7 @@ extension Mongo
     /// ``Hello`` handshake, and (in a degenerate case) it can contradict
     /// identifiers sent by the server in later handshakes.
     @frozen public
-    struct ConnectionToken:Hashable, RawRepresentable, Sendable
+    struct Token:Hashable, RawRepresentable, Sendable
     {
         public
         let rawValue:Int32
@@ -23,7 +23,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ConnectionToken:CustomStringConvertible
+extension MongoChannel.Token:CustomStringConvertible
 {
     public
     var description:String
@@ -31,6 +31,6 @@ extension Mongo.ConnectionToken:CustomStringConvertible
         self.rawValue.description
     }
 }
-extension Mongo.ConnectionToken:BSONDecodable
+extension MongoChannel.Token:BSONDecodable
 {
 }

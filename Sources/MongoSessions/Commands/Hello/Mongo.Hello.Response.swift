@@ -1,4 +1,5 @@
 import BSONDecoding
+import MongoChannel
 import MongoWire
 
 extension Mongo.Hello
@@ -39,7 +40,7 @@ extension Mongo.Hello
         /// to the client.
         /// This is called `connectionId` in the server reply.
         public
-        let token:Mongo.ConnectionToken
+        let token:MongoChannel.Token
 
         /// The range of versions of the wire protocol that this `mongod` or `mongos`
         /// instance is capable of using to communicate with clients.
@@ -80,7 +81,7 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
         self.logicalSessionTimeoutMinutes = try bson["logicalSessionTimeoutMinutes"].decode(
             to: Mongo.Minutes.self)
         
-        self.token = try bson["connectionId"].decode(to: Mongo.ConnectionToken.self)
+        self.token = try bson["connectionId"].decode(to: MongoChannel.Token.self)
         
         let minWireVersion:MongoWire = try bson["minWireVersion"].decode(as: Int32.self,
             with: MongoWire.init(rawValue:))
