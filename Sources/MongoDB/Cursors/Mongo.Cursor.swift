@@ -53,7 +53,6 @@ extension Mongo.Cursor:BSONDictionaryDecodable
     @inlinable public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {
-        print(bson.items.keys)
         self = try bson["cursor"].decode(as: BSON.Dictionary<Bytes.SubSequence>.self)
         {
             .init(namespace: try $0["ns"].decode(to: Mongo.Namespace.self),

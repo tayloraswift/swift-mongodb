@@ -45,17 +45,12 @@ extension Mongo.ListCollections:MongoDatabaseCommand
 }
 // FIXME: ListCollections *can* run on a secondary,
 // but *should* run on a primary.
-extension Mongo.ListCollections:MongoReadOnlyCommand
-{
-}
+// extension Mongo.ListCollections:MongoReadOnlyCommand
+// {
+// }
 extension Mongo.ListCollections:MongoImplicitSessionCommand
 {
 }
 extension Mongo.ListCollections:MongoTransactableCommand
 {
-    @inlinable public
-    var readConcern:Mongo.ReadConcern?
-    {
-        nil
-    }
 }

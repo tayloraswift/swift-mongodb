@@ -132,7 +132,7 @@ extension Mongo.Connection
             user = nil
         }
 
-        let response:Mongo.Hello.Response = try await self.run(command: .init(
+        let response:Mongo.Hello.Response = try await self.run(hello: .init(
             client: .init(appname: appname),
             user: user))
 
@@ -219,7 +219,7 @@ extension Mongo.Connection
     {
         let start:SCRAM.Start = .init(username: username)
         let first:Mongo.SASLResponse = try await self.run(
-            command: Mongo.SASLStart.init(mechanism: mechanism, scram: start),
+            saslStart: .init(mechanism: mechanism, scram: start),
             against: database)
         
         if  first.done 
@@ -245,7 +245,7 @@ extension Mongo.Connection
             received: first.message,
             sent: start)
         let second:Mongo.SASLResponse = try await self.run(
-            command: first.command(message: client.message),
+            saslContinue: first.command(message: client.message),
             against: database)
         
         let server:SCRAM.ServerResponse = try .init(from: second.message)
@@ -262,7 +262,7 @@ extension Mongo.Connection
         }
         
         let third:Mongo.SASLResponse = try await self.run(
-            command: second.command(message: .init("")),
+            saslContinue: second.command(message: .init("")),
             against: database)
         
         guard third.done
@@ -277,50 +277,77 @@ extension Mongo.Connection
 {
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.
-    func run<Command>(command:__owned Command,
+    func run(saslStart command:__owned Mongo.SASLStart,
         against database:Mongo.Database) async throws -> Mongo.SASLResponse
-        where Command:MongoAuthenticationCommand
     {
-        try Command.decode(message: try await self.run(command: command,
-            against: database))
+        try await self.run(command: command, against: database)
+    }
+    /// Runs an authentication command against the specified `database`,
+    /// and decodes its response.
+    func run(saslContinue command:__owned Mongo.SASLContinue,
+        against database:Mongo.Database) async throws -> Mongo.SASLResponse
+    {
+        try await self.run(command: command, against: database)
     }
     /// Runs a ``Mongo/Hello`` command, and decodes its response.
-    func run(command:Mongo.Hello) async throws -> Mongo.Hello.Response
+    func run(hello command:__owned Mongo.Hello) async throws -> Mongo.Hello.Response
     {
-        return try Mongo.Hello.decode(message: try await self.run(
-            command: command,
-            against: .admin))
+        try await self.run(command: command, against: .admin)
     }
     /// Runs a ``Mongo/EndSessions`` command, and decodes its response.
-    func run(command:Mongo.EndSessions) async throws
+    func run(endSessions command:__owned Mongo.EndSessions) async throws
     {
-        return try Mongo.EndSessions.decode(message: try await self.run(
-            command: command,
-            against: .admin))
+        try await self.run(command: command, against: .admin) as ()
+    }
+
+    @available(*, deprecated, renamed: "run(hello:)")
+    func run(command:__owned Mongo.Hello) async throws -> Mongo.Hello.Response
+    {
+        try await self.run(command: command, against: .admin)
+    }
+    @available(*, deprecated, renamed: "run(endSessions:)")
+    func run(command:__owned Mongo.EndSessions) async throws
+    {
+        try await self.run(command: command, against: .admin) as ()
+    }
+
+    private
+    func run<Command>(command:__owned Command,
+        against database:Mongo.Database) async throws -> Command.Response
+        where Command:MongoCommand
+    {
+        let reply:Mongo.Reply = try await self.run(command: command, against: database)
+        return try Command.decode(reply: try reply.result.get())
     }
 }
 extension Mongo.Connection
 {
+    /// Encodes the given labeled command to a document, sends it over this connection and
+    /// awaits its response.
+    @inlinable public
+    func run(labeled:__owned Mongo.SessionLabeled<some MongoCommand>,
+        against database:Mongo.Database) async throws -> Mongo.Reply
+    {
+        try await self.send(command: .init { labeled.encode(to: &$0, database: database) })
+    }
     /// Encodes the given command to a document, sends it over this connection and
     /// awaits its response.
     @inlinable public
-    func run(command:__owned some MongoCommand, against database:Mongo.Database,
-        labels:Mongo.TransactionLabels? = nil) async throws -> MongoWire.Message<ByteBufferView>
+    func run(command:__owned some MongoCommand,
+        against database:Mongo.Database) async throws -> Mongo.Reply
     {
-        //  this is `@inlinable` because we want ``MongoCommand.encode(database:labels:)``
-        //  to be inlined
-        try await self.send(command: command.encode(database: database, labels: labels))
+        try await self.send(command: .init { command.encode(to: &$0, database: database) })
     }
 
     /// Sends a command document over this connection and awaits its response.
     public
-    func send(command:__owned BSON.Fields) async throws -> MongoWire.Message<ByteBufferView>
+    func send(command:__owned BSON.Fields) async throws -> Mongo.Reply
     {
-        return try await withCheckedThrowingContinuation
+        try .init(message: try await withCheckedThrowingContinuation
         {
             (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
 
             self.channel.writeAndFlush((command, continuation), promise: nil)
-        }
+        })
     }
 }

@@ -4,11 +4,7 @@ import NIOCore
 extension Mongo
 {
     /// Tracks a session on a MongoDB server that can mutate database state.
-    ///
-    /// Running any session operation, even read-only operations, mutates
-    /// local session metadata. Therefore the `run(command:)` methods are
-    /// still `mutating`, even when running a command that does not mutate
-    /// conceptual database state.
+    /// Sessions have reference semantics.
     ///
     /// Sessions are not ``Sendable``, because their purpose is to provide a
     /// guarantee of causual consistency between asynchronous operations.
@@ -22,13 +18,10 @@ extension Mongo
     public
     struct MutableSession:Identifiable
     {
+        @usableFromInline
+        let state:State
         // TODO: implement time gossip
         let monitor:Mongo.TopologyMonitor
-
-        @usableFromInline
-        @Boxed<SessionMetadata>
-        var metadata:SessionMetadata
-
         private
         let medium:SessionMedium
         public
@@ -39,7 +32,7 @@ extension Mongo
             medium:SessionMedium,
             id:SessionIdentifier)
         {
-            self._metadata = .init(wrappedValue: metadata)
+            self.state = .init(metadata)
 
             self.monitor = monitor
             self.medium = medium
@@ -55,6 +48,28 @@ extension Mongo.MutableSession:MongoConcurrencyDomain
 {
     static
     let medium:Mongo.SessionMediumSelector = .master
+
+    @usableFromInline
+    var metadata:Mongo.SessionMetadata
+    {
+        self.state.metadata
+    }
+}
+
+extension Mongo.MutableSession
+{
+    @inlinable public
+    func label<Command>(command:Command) -> Mongo.SessionLabeled<Command>
+        where Command:MongoSessionCommand
+    {
+        .init(readConcern: (command as? any MongoReadCommand).map
+            {
+                .init(level: $0.readLevel, after: self.state.lastOperationTime)
+            },
+            transaction: self.metadata.transaction,
+            session: self.id,
+            command: command)
+    }
 }
 extension Mongo.MutableSession
 {
@@ -63,26 +78,29 @@ extension Mongo.MutableSession
     {
         self.medium.connection
     }
-    @usableFromInline
-    var labels:Mongo.TransactionLabels
-    {
-        .init(transaction: self.metadata.transaction, session: self.id)
-    }
-}
 
-extension Mongo.MutableSession
-{
+    @inlinable public
+    func time<Command>(command:Command,
+        operation:(Mongo.SessionLabeled<Command>) async throws -> Mongo.Reply)
+        async throws -> Command.Response
+        where Command:MongoSessionCommand
+    {
+        let started:ContinuousClock.Instant = .now
+        let reply:Mongo.Reply = try await operation(self.label(command: command))
+        self.state.update(touched: started, operationTime: reply.operationTime)
+        // TODO: clusterTime gossip
+        return try Command.decode(reply: try reply.result.get())
+    }
+
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
     @inlinable public
     func run<Command>(command:Command) async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        let touched:ContinuousClock.Instant = .now
-        let message:MongoWire.Message<ByteBufferView> = try await self.connection.run(
-            command: command, against: .admin,
-            labels: self.labels)
-        self.metadata.touched = touched
-        return try Command.decode(message: message)
+        try await self.time(command: command)
+        {
+            try await self.connection.run(labeled: $0, against: .admin)
+        }
     }
     
     /// Runs a session command against the specified database.
@@ -91,11 +109,9 @@ extension Mongo.MutableSession
         against database:Mongo.Database) async throws -> Command.Response
         where Command:MongoSessionCommand & MongoDatabaseCommand
     {
-        let touched:ContinuousClock.Instant = .now
-        let message:MongoWire.Message<ByteBufferView> = try await self.connection.run(
-            command: command, against: database,
-            labels: self.labels)
-        self.metadata.touched = touched
-        return try Command.decode(message: message)
+        try await self.time(command: command)
+        {
+            try await self.connection.run(labeled: $0, against: database)
+        }
     }
 }

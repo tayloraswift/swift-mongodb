@@ -62,9 +62,4 @@ extension Mongo.Insert:MongoImplicitSessionCommand
 }
 extension Mongo.Insert:MongoTransactableCommand
 {
-    @inlinable public
-    var readConcern:Mongo.ReadConcern?
-    {
-        nil
-    }
 }

@@ -9,8 +9,10 @@ extension Mongo
         let message:SCRAM.Message
     }
 }
-extension Mongo.SASLContinue:MongoAuthenticationCommand
+extension Mongo.SASLContinue:MongoDatabaseCommand
 {
+    typealias Response = Mongo.SASLResponse
+    
     func encode(to bson:inout BSON.Fields)
     {
         bson["saslContinue"] = true

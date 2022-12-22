@@ -1,18 +1,27 @@
-import BSONSchema
+import BSONEncoding
 
 extension Mongo
 {
-    @frozen public
-    struct ReadConcern:Hashable, Sendable
+    @usableFromInline
+    struct ReadConcern
     {
-        public
-        let level:Level
+        let ordering:Ordering?
+        let level:Level?
 
-        @inlinable public
-        init(level:Level)
+        init(ordering:Ordering?, level:Level?)
         {
+            self.ordering = ordering
             self.level = level
         }
+    }
+}
+extension Mongo.ReadConcern
+{
+    @usableFromInline
+    init(level:Mongo.ReadLevel?, after clusterTime:Mongo.Instant?)
+    {
+        self.init(ordering: clusterTime.map(Ordering.after(_:)),
+            level: level.map(Level.init(_:)))
     }
 }
 extension Mongo.ReadConcern:BSONDocumentEncodable
@@ -21,13 +30,36 @@ extension Mongo.ReadConcern:BSONDocumentEncodable
     func encode(to bson:inout BSON.Fields)
     {
         bson["level"] = self.level
+
+        switch self.ordering
+        {
+        case nil:
+            break
+        case .at(let time)?:
+            bson["atClusterTime"] = time
+        case .after(let time)?:
+            bson["afterClusterTime"] = time
+        }
     }
 }
-extension Mongo.ReadConcern:BSONDictionaryDecodable
-{
-    @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
-    {
-        self.init(level: try bson["level"].decode(to: Level.self))
-    }
-}
+// extension Mongo.ReadConcern:BSONDictionaryDecodable
+// {
+//     @inlinable public
+//     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+//     {
+//         switch try bson["level"].decode(to: Level.self)
+//         {
+//         case .local:
+//             self = .local
+//         case .available:
+//             self = .available
+//         case .majority:
+//             self = .majority
+//         case .linearizable:
+//             self = .linearizable
+//         case .snapshot:
+//             self = .snapshot(at: bson[""])
+//         }
+//         self.init(level: )
+//     }
+// }

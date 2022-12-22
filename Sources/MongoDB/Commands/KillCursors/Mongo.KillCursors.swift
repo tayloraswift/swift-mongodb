@@ -30,14 +30,9 @@ extension Mongo.KillCursors:MongoCommand
 extension Mongo.KillCursors:MongoDatabaseCommand
 {
 }
-extension Mongo.KillCursors:MongoReadOnlyCommand
-{
-}
+// extension Mongo.KillCursors:MongoReadOnlyCommand
+// {
+// }
 extension Mongo.KillCursors:MongoTransactableCommand
 {
-    @inlinable public
-    var readConcern:Mongo.ReadConcern?
-    {
-        nil
-    }
 }

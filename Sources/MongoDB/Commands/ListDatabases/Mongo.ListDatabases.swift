@@ -54,9 +54,9 @@ extension Mongo.ListDatabases:MongoCommand
 }
 // FIXME: ListDatabases *can* run on a secondary,
 // but *should* run on a primary.
-extension Mongo.ListDatabases:MongoReadOnlyCommand
-{
-}
+// extension Mongo.ListDatabases:MongoReadOnlyCommand
+// {
+// }
 extension Mongo.ListDatabases:MongoImplicitSessionCommand
 {
 }

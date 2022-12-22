@@ -35,7 +35,6 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
     func _decode(reply bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>)
         throws -> Mongo.ReplicaSetConfiguration
     {
-        print([String].init(bson.items.keys))
         return try bson["config"].decode(to: Mongo.ReplicaSetConfiguration.self)
     }
     
@@ -45,9 +44,9 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
         bson["replSetGetConfig"] = 1 as Int32
     }
 }
-extension Mongo.ReplicaSetGetConfiguration:MongoReadOnlyCommand
-{
-}
+// extension Mongo.ReplicaSetGetConfiguration:MongoReadOnlyCommand
+// {
+// }
 extension Mongo.ReplicaSetGetConfiguration:MongoImplicitSessionCommand
 {
 }

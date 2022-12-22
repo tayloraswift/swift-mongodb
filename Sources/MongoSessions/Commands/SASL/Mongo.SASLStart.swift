@@ -15,8 +15,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.SASLStart:MongoAuthenticationCommand
+extension Mongo.SASLStart:MongoDatabaseCommand
 {
+    typealias Response = Mongo.SASLResponse
+    
     func encode(to bson:inout BSON.Fields)
     {
         bson["saslStart"] = true

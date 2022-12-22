@@ -32,7 +32,7 @@ extension Mongo
         public
         let collation:Collation?
         public
-        let readConcern:ReadConcern?
+        let readLevel:ReadLevel?
 
         public
         let hint:IndexHint?
@@ -57,7 +57,7 @@ extension Mongo
             skip:Int = 0,
             limit:Int = 0,
             collation:Collation? = nil,
-            readConcern:ReadConcern? = nil,
+            readLevel:ReadLevel? = nil,
             hint:IndexHint? = nil,
             min:BSON.Fields = .init(),
             max:BSON.Fields = .init(),
@@ -75,7 +75,7 @@ extension Mongo
             self.skip = skip
             self.limit = limit
             self.collation = collation
-            self.readConcern = readConcern
+            self.readLevel = readLevel
             self.hint = hint
             self.min = min
             self.max = max
@@ -140,7 +140,6 @@ extension Mongo.Find:MongoCommand
         bson["limit"] = self.limit
 
         bson["collation"] = self.collation
-        bson["readConcern"] = self.readConcern
             
         bson["hint"] = self.hint
         bson["min", elide: true] = self.min
@@ -156,10 +155,7 @@ extension Mongo.Find:MongoCommand
 extension Mongo.Find:MongoDatabaseCommand
 {
 }
-extension Mongo.Find:MongoImplicitSessionCommand
-{
-}
-extension Mongo.Find:MongoReadOnlyCommand
+extension Mongo.Find:MongoReadCommand, MongoImplicitSessionCommand
 {
 }
 extension Mongo.Find:MongoStreamableCommand

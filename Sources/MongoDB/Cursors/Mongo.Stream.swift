@@ -15,7 +15,7 @@ extension Mongo
         public
         let stride:Int
 
-        @Boxed<Cursor<BatchElement>.State>
+        @_Boxed<Cursor<BatchElement>.State>
         public
         var cursor:Cursor<BatchElement>.State
 

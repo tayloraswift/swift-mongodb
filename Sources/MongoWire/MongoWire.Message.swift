@@ -28,14 +28,6 @@ extension MongoWire
 extension MongoWire.Message:Sendable where Bytes:Sendable
 {
 }
-extension MongoWire.Message
-{
-    @inlinable public
-    var documents:[BSON.Document<Bytes>]
-    {
-        self.sections.documents
-    }
-}
 extension MongoWire.Message:Identifiable
 {
     @inlinable public
@@ -69,22 +61,17 @@ extension MongoWire.Message
     @inlinable public
     init(sections:Sections, checksum:Bool = false, id:MongoWire.MessageIdentifier)
     {
-        // 4 bytes of flags
-        var count:Int = 4
-        for section:Sections.Element in sections
+        // 4 bytes of flags + 1 for body section type
+        var count:Int = 4 + 1 + sections.body.size
+        
+        for section:Outline in sections.outlined
         {
             // section type
             count += 1
-            switch section
-            {
-            case .body(let document):
-                count += document.size
-            
-            case .sequence(let documents, id: let id):
-                // 4 for size, 1 for null byte after id string
-                count += documents.reduce(5 + id.utf8.count) { $0 + $1.size }
-            }
+            // 4 for size, 1 for null byte after id string
+            count += section.documents.reduce(5 + section.id.utf8.count) { $0 + $1.size }
         }
+
         let flags:MongoWire.Flags
         let crc32:CRC32?
         if checksum

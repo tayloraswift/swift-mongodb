@@ -2,7 +2,7 @@ extension Mongo
 {
     @propertyWrapper
     public final
-    class Boxed<Value>
+    class _Boxed<Value>
     {
         public
         var wrappedValue:Value
