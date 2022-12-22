@@ -53,6 +53,10 @@ This package vends the following library products:
 
     A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the `UUID` type.
 
+1.  [**`Heartbeats`**](Sources/Heartbeats)
+
+    Vends a `Heartbeat` type.
+
 1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoSessions`*](Sources/MongoSessions), [`MongoSchema`](Sources/MongoSchema))
 
     Vends Swift bindings for MongoDB’s command API, and also implements cursors and managed cursor streams. Most package consumers will depend this module, unless it is possible to depend on one of its constituent dependencies.
@@ -69,22 +73,29 @@ This package vends the following library products:
 
 1.  [**`MongoSessions`**](Sources/MongoSessions)
 ([`Mongo`*](Sources/Mongo),
+[`MongoChannel`](Sources/MongoChannel),
 [`MongoWire`](Sources/MongoWire),
-[`BSONSchema`](Sources/BSONSchema),
 [`BSON_UUID`](Sources/BSON_UUID),
 [`SCRAM`](Sources/SCRAM),
 [`TraceableErrors`](Sources/TraceableErrors),
 [`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),
-`NIOCore`,
 `NIOPosix`,
-`NIOSSL`,
-`Atomics`)
+`NIOSSL`)
 
     Implements a MongoDB driver, for communicating with a `mongod`/`mongos` server. Handles authentication, sessions, transactions, and command execution, but does not define specific MongoDB commands other than the ones needed to bootstrap a connection.
 
     `MongoSessions` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
 
     Depends on SwiftNIO, and re-exports `Mongo`.
+
+1.  [**`MongoChannel`**](Sources/MongoChannel)
+([`MongoWire`](Sources/MongoWire),
+[`BSONSchema`](Sources/BSONSchema),
+[`Heartbeats`](Sources/Heartbeats),
+`NIOCore`,
+`Atomics`)
+
+    A NIO-based layer over `MongoWire`, that vends channel handlers and supports basic command routing and connection lifecycle management.
 
 1.  [**`MongoWire`**](Sources/MongoWire) ([`BSON`](Sources/BSON), [`CRC`](https://github.com/kelvin13/swift-hash/tree/master/Sources/CRC))
 
