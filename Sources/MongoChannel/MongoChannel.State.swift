@@ -1,27 +1,19 @@
-extension Mongo
+import Heartbeats
+
+extension MongoChannel
 {
-    enum ConnectionState<Metadata>
+    @frozen public
+    enum State<Metadata>
     {
-        case connected(Connection, metadata:Metadata)
+        case connected(MongoChannel, metadata:Metadata)
         case errored(any Error)
         case queued
     }
 }
-extension Mongo.ConnectionState
+extension MongoChannel.State
 {
-    /// Returns the stored connection, if this descriptor currently has one.
-    var connection:Mongo.Connection?
-    {
-        if case .connected(let connection, metadata: _) = self
-        {
-            return connection
-        }
-        else
-        {
-            return nil
-        }
-    }
     /// Returns the stored metadata, if this descriptor currently has any.
+    @inlinable public
     var metadata:Metadata?
     {
         if case .connected(_, metadata: let metadata) = self
@@ -33,7 +25,21 @@ extension Mongo.ConnectionState
             return nil
         }
     }
+    /// Returns the stored channel, if this descriptor currently has one.
+    @inlinable public
+    var channel:MongoChannel?
+    {
+        if case .connected(let channel, metadata: _) = self
+        {
+            return channel
+        }
+        else
+        {
+            return nil
+        }
+    }
     /// Returns the stored error, if this descriptor currently has one.
+    @inlinable public
     var error:(any Error)?
     {
         if case .errored(let error) = self
@@ -46,53 +52,37 @@ extension Mongo.ConnectionState
         }
     }
 }
-extension Mongo.ConnectionState<Mongo.Replica?>
+extension MongoChannel.State
 {
-    /// Returns the stored connection, if this descriptor currently has one,
-    /// and its metadata indicates it is a primary replica.
-    var primary:Mongo.Connection?
-    {
-        if case .connected(let connection, metadata: .primary(_)?) = self
-        {
-            return connection
-        }
-        else
-        {
-            return nil
-        }
-    }
-}
-extension Mongo.ConnectionState
-{
-    /// Updates the metadata for the stored connection.
-    /// If this descriptor does not already have a connection, the
-    /// `connection` argument will be stored in it.
+    /// Updates the metadata for the stored channel.
+    /// If this descriptor does not already have a channel, the
+    /// `channel` argument will be stored in it.
     ///
     /// -   Parameters:
-    ///     -   connection: A wrapped NIO channel. If this descriptor already has one,
+    ///     -   channel: A wrapped NIO channel. If this descriptor already has one,
     ///         the parameter must be identical to it.
     ///     -   metadata: The metadata to update.
     ///
     /// -   Returns: [`true`](), always.
-    mutating
-    func update(connection:Mongo.Connection, metadata:Metadata) -> Bool
+    @inlinable public mutating
+    func update(channel:MongoChannel, metadata:Metadata) -> Bool
     {
-        guard let original:Mongo.Connection = self.connection
+        guard let original:MongoChannel = self.channel
         else
         {
-            self = .connected(connection, metadata: metadata)
+            self = .connected(channel, metadata: metadata)
             return true
         }
-        if connection === original
+        if channel === original
         {
-            // original === connection, so it should not matter which
+            // original === channel, so it should not matter which
             // gets assigned here
             self = .connected(original, metadata: metadata)
             return true
         }
         else
         {
-            fatalError("unreachable: connection !== original")
+            fatalError("unreachable: channel !== original")
         }
     }
     /// Places this descriptor in an ``case errored(_:)`` or ``case queued``
@@ -102,7 +92,7 @@ extension Mongo.ConnectionState
     ///
     /// -   Returns: [`true`](), always.
     @discardableResult
-    mutating
+    @inlinable public mutating
     func clear(status:(any Error)?) -> Bool
     {
         // only overwrite an existing error if we have a new one
@@ -122,16 +112,16 @@ extension Mongo.ConnectionState
 extension Optional
 {
     /// Sends a termination signal to the monitoring thread for this
-    /// connection if non-[`nil`](), and sets this optional to [`nil`]()
-    /// afterwards, preventing further use of the connection state descriptor.
+    /// channel if non-[`nil`](), and sets this optional to [`nil`]()
+    /// afterwards, preventing further use of the channel state descriptor.
     /// The optional will always be [`nil`]() after calling this method.
     ///
     /// -   Returns: [`false`](), always.
     @discardableResult
-    mutating
-    func remove<Member>() -> Bool where Wrapped == Mongo.ConnectionState<Member>
+    @inlinable public mutating
+    func remove<Member>() -> Bool where Wrapped == MongoChannel.State<Member>
     {
-        self?.connection?.heart.stop()
+        self?.channel?.heart.stop()
         self = nil
         return false
     }

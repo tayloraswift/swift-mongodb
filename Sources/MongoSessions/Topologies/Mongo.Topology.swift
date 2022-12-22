@@ -1,3 +1,4 @@
+import MongoChannel
 
 extension Mongo
 {
@@ -31,7 +32,7 @@ extension Mongo.Topology
         }
     }
     /// Returns the most recent error tracked by the topology for each
-    /// currently-errored connection.
+    /// currently-errored channel.
     func errors() -> [Mongo.Host: any Error]
     {
         switch self
@@ -47,7 +48,7 @@ extension Mongo.Topology
 extension Mongo.Topology
 {
     private
-    init?(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Server,
+    init?(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Server,
         seedlist:inout Mongo.Seedlist,
         monitor:(Mongo.Host) -> ())
     {
@@ -55,7 +56,7 @@ extension Mongo.Topology
         {
         case    .single(let metadata):
             if  let topology:Mongo.Topology.Single = .init(host: host,
-                    connection: connection,
+                    channel: channel,
                     metadata: metadata,
                     seedlist: &seedlist)
             {
@@ -68,7 +69,7 @@ extension Mongo.Topology
         
         case    .router(let metadata):
             if  let sharded:Mongo.Topology.Sharded = .init(host: host,
-                    connection: connection,
+                    channel: channel,
                     metadata: metadata,
                     seedlist: &seedlist)
             {
@@ -81,7 +82,7 @@ extension Mongo.Topology
         
         case    .replica(let metadata, let peerlist):
             if  let replicated:Mongo.Topology.Replicated = .init(host: host,
-                    connection: connection,
+                    channel: channel,
                     metadata: metadata,
                     seedlist: &seedlist,
                     peerlist: peerlist,
@@ -141,7 +142,7 @@ extension Mongo.Topology
         }
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Server,
+    func update(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Server,
         monitor:(Mongo.Host) -> ()) -> Bool
     {
         switch self
@@ -150,7 +151,7 @@ extension Mongo.Topology
             return false
         
         case .unknown(var seeds):
-            if  let topology:Self = .init(host: host, connection: connection,
+            if  let topology:Self = .init(host: host, channel: channel,
                     metadata: metadata,
                     seedlist: &seeds,
                     monitor: monitor)
@@ -172,7 +173,7 @@ extension Mongo.Topology
             }
             if case .single(let metadata) = metadata
             {
-                return topology.update(host: host, connection: connection, metadata: metadata)
+                return topology.update(host: host, channel: channel, metadata: metadata)
             }
             else
             {
@@ -188,7 +189,7 @@ extension Mongo.Topology
             }
             if case .router(let metadata) = metadata
             {
-                return topology.update(host: host, connection: connection, metadata: metadata)
+                return topology.update(host: host, channel: channel, metadata: metadata)
             }
             else
             {
@@ -205,13 +206,13 @@ extension Mongo.Topology
             switch metadata
             {
             case    .replica(let metadata, let peerlist):
-                return topology.update(host: host, connection: connection, metadata: metadata,
+                return topology.update(host: host, channel: channel, metadata: metadata,
                     peerlist: peerlist,
                     monitor: monitor)
             
             case    .replicaGhost:
                 //  this is not the same as clearing the descriptor
-                return topology.update(host: host, connection: connection, metadata: ())
+                return topology.update(host: host, channel: channel, metadata: ())
             
             default:
                 // remove and stop monitoring
@@ -223,20 +224,20 @@ extension Mongo.Topology
 
 extension Mongo.Topology
 {
-    /// Returns a connection to a master server, if one is available, and
+    /// Returns a channel to a master server, if one is available, and
     /// according to the current topology type.
     ///
-    /// For ``case single(_:)`` topologies, this will return a connection
+    /// For ``case single(_:)`` topologies, this will return a channel
     /// to the lone server, if available.
     ///
     /// For ``case sharded(_:)`` topologies, this will return any available
     /// router.
     ///
-    /// For ``case replicated(_:)`` topologies, this will return a connection
+    /// For ``case replicated(_:)`` topologies, this will return a channel
     /// to the primary replica, if available.
     ///
     /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
-    var master:Mongo.Connection?
+    var master:MongoChannel?
     {
         switch self
         {
@@ -246,20 +247,20 @@ extension Mongo.Topology
         case .replicated(let topology): return topology.master
         }
     }
-    /// Returns a connection to any data-bearing server, if one is available,
+    /// Returns a channel to any data-bearing server, if one is available,
     /// and according to the current topology type.
     ///
-    /// For ``case single(_:)`` topologies, this will return a connection
+    /// For ``case single(_:)`` topologies, this will return a channel
     /// to the lone server, if available.
     ///
     /// For ``case sharded(_:)`` topologies, this will return any available
     /// router.
     ///
-    /// For ``case replicated(_:)`` topologies, this will return a connection
+    /// For ``case replicated(_:)`` topologies, this will return a channel
     /// to any available primary or secondary replica.
     ///
     /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
-    var any:Mongo.Connection?
+    var any:MongoChannel?
     {
         switch self
         {
@@ -270,7 +271,7 @@ extension Mongo.Topology
         }
     }
 
-    subscript(selector:Mongo.SessionMediumSelector) -> Mongo.Connection?
+    subscript(selector:Mongo.SessionMediumSelector) -> MongoChannel?
     {
         switch selector
         {

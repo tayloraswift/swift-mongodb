@@ -1,3 +1,5 @@
+import MongoChannel
+
 extension Mongo.Topology
 {
     struct Single
@@ -5,13 +7,13 @@ extension Mongo.Topology
         private
         let host:Mongo.Host
         private
-        var state:Mongo.ConnectionState<Mongo.Single>
+        var state:MongoChannel.State<Mongo.Single>
 
         private
-        init(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Single)
+        init(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Single)
         {
             self.host = host
-            self.state = .connected(connection, metadata: metadata)
+            self.state = .connected(channel, metadata: metadata)
         }
     }
 }
@@ -19,7 +21,7 @@ extension Mongo.Topology.Single
 {
     func terminate()
     {
-        self.state.connection?.heart.stop()
+        self.state.channel?.heart.stop()
     }
     func errors() -> [Mongo.Host: any Error]
     {
@@ -28,13 +30,13 @@ extension Mongo.Topology.Single
 }
 extension Mongo.Topology.Single
 {
-    init?(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Single,
+    init?(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Single,
         seedlist:inout Mongo.Seedlist)
     {
         // https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#updateunknownwithstandalone
         if seedlist.pick(host: host)
         {
-            self.init(host: host, connection: connection, metadata: metadata)
+            self.init(host: host, channel: channel, metadata: metadata)
         }
         else
         {
@@ -48,16 +50,16 @@ extension Mongo.Topology.Single
         self.state.clear(status: status)
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Single) -> Bool
+    func update(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Single) -> Bool
     {
         self.host != host ? false :
-        self.state.update(connection: connection, metadata: metadata)
+        self.state.update(channel: channel, metadata: metadata)
     }
 }
 extension Mongo.Topology.Single
 {
-    var master:Mongo.Connection?
+    var master:MongoChannel?
     {
-        self.state.connection
+        self.state.channel
     }
 }

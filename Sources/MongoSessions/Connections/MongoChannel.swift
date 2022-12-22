@@ -1,54 +1,13 @@
-import BSONEncoding
+import BSON
 import Heartbeats
-import MongoWire
+import MongoChannel
 import NIOCore
 import NIOPosix
 import NIOSSL
 import SCRAM
 import SHA2
 
-extension Mongo
-{
-    /// @import(NIOCore)
-    /// A connection to a `mongod`/`mongos` host. This type is an API wrapper around
-    /// an NIO ``Channel``.
-    ///
-    /// > Warning: This type is not managed! If you are storing instances of this type, 
-    /// there must be code elsewhere responsible for closing the wrapped NIO ``Channel``!
-    @frozen public
-    struct Connection:Sendable
-    {
-        private
-        let channel:any Channel
-        let heart:Heart
-
-        private
-        init(channel:any Channel, heart:Heart)
-        {
-            self.channel = channel
-            self.heart = heart
-        }
-        func close()
-        {
-            self.channel.close(mode: .all, promise: nil)
-        }
-    }
-}
-extension Mongo.Connection
-{
-    static
-    func === (lhs:Self, rhs:Self) -> Bool
-    {
-        lhs.channel === rhs.channel
-    }
-    static
-    func !== (lhs:Self, rhs:Self) -> Bool
-    {
-        lhs.channel !== rhs.channel
-    }
-}
-
-extension Mongo.Connection
+extension MongoChannel
 {
     /// Sets up a TCP channel to the given host that will stop the given
     /// heartbeat if the channel is closed (for any reason). The heart
@@ -66,13 +25,14 @@ extension Mongo.Connection
         { 
             (channel:any Channel) in
 
-            let wire:ByteToMessageHandler<Mongo.MessageDecoder> = .init(.init())
-            let router:Mongo.MessageRouter = .init(timeout: driver.timeout)
+            let decoder:ByteToMessageHandler<MongoChannel.MessageDecoder> = .init(.init())
+            let router:MongoChannel.MessageRouter = .init(
+                timeout: .milliseconds(driver.timeout))
 
             guard let certificatePath:String = driver._certificatePath
             else
             {
-                return channel.pipeline.addHandlers(wire, router)
+                return channel.pipeline.addHandlers(decoder, router)
             }
             do 
             {
@@ -82,7 +42,7 @@ extension Mongo.Connection
                 let tls:NIOSSLClientHandler = try .init(
                     context: .init(configuration: configuration), 
                     serverHostname: host.name)
-                return channel.pipeline.addHandlers(tls, wire, router)
+                return channel.pipeline.addHandlers(tls, decoder, router)
             } 
             catch let error
             {
@@ -90,28 +50,14 @@ extension Mongo.Connection
             }
         }
 
-        let channel:any Channel = try await bootstrap.connect(
-            host: host.name,
-            port: host.port).get()
-        
-        channel.closeFuture.whenComplete
-        {
-            //  when the checker task is cancelled, it will also close the
-            //  connection again, which will be a no-op.
-            switch $0
-            {
-            case .success(()):
-                heart.stop()
-            case .failure(let error):
-                heart.stop(throwing: error)
-            }
-        }
-        
-        self.init(channel: channel, heart: heart)
+        self.init(channel: try await bootstrap.connect(
+                host: host.name,
+                port: host.port).get(),
+            attaching: heart)
     }
 }
 
-extension Mongo.Connection
+extension MongoChannel
 {
     /// Establishes a connection, performing authentication with the given credentials,
     /// if possible. If establishment fails, the connection’s TCP channel will *not*
@@ -153,7 +99,7 @@ extension Mongo.Connection
     }
 }
 
-extension Mongo.Connection
+extension MongoChannel
 {
     private
     func authenticate(with credentials:Mongo.Credentials,
@@ -273,7 +219,7 @@ extension Mongo.Connection
     }
 }
 
-extension Mongo.Connection
+extension MongoChannel
 {
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.
@@ -300,17 +246,6 @@ extension Mongo.Connection
         try await self.run(command: command, against: .admin) as ()
     }
 
-    @available(*, deprecated, renamed: "run(hello:)")
-    func run(command:__owned Mongo.Hello) async throws -> Mongo.Hello.Response
-    {
-        try await self.run(command: command, against: .admin)
-    }
-    @available(*, deprecated, renamed: "run(endSessions:)")
-    func run(command:__owned Mongo.EndSessions) async throws
-    {
-        try await self.run(command: command, against: .admin) as ()
-    }
-
     private
     func run<Command>(command:__owned Command,
         against database:Mongo.Database) async throws -> Command.Response
@@ -320,7 +255,7 @@ extension Mongo.Connection
         return try Command.decode(reply: try reply.result.get())
     }
 }
-extension Mongo.Connection
+extension MongoChannel
 {
     /// Encodes the given labeled command to a document, sends it over this connection and
     /// awaits its response.
@@ -328,7 +263,8 @@ extension Mongo.Connection
     func run(labeled:__owned Mongo.SessionLabeled<some MongoCommand>,
         against database:Mongo.Database) async throws -> Mongo.Reply
     {
-        try await self.send(command: .init { labeled.encode(to: &$0, database: database) })
+        try .init(message: try await self.send(
+            command: .init { labeled.encode(to: &$0, database: database) }))
     }
     /// Encodes the given command to a document, sends it over this connection and
     /// awaits its response.
@@ -336,18 +272,7 @@ extension Mongo.Connection
     func run(command:__owned some MongoCommand,
         against database:Mongo.Database) async throws -> Mongo.Reply
     {
-        try await self.send(command: .init { command.encode(to: &$0, database: database) })
-    }
-
-    /// Sends a command document over this connection and awaits its response.
-    public
-    func send(command:__owned BSON.Fields) async throws -> Mongo.Reply
-    {
-        try .init(message: try await withCheckedThrowingContinuation
-        {
-            (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
-
-            self.channel.writeAndFlush((command, continuation), promise: nil)
-        })
+        try .init(message: try await self.send(
+            command: .init { command.encode(to: &$0, database: database) }))
     }
 }

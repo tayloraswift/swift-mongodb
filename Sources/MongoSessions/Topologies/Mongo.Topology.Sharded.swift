@@ -1,12 +1,14 @@
+import MongoChannel
+
 extension Mongo.Topology
 {
     struct Sharded
     {
         private
-        var routers:[Mongo.Host: Mongo.ConnectionState<Mongo.Router>]
+        var routers:[Mongo.Host: MongoChannel.State<Mongo.Router>]
 
         private
-        init(routers:[Mongo.Host: Mongo.ConnectionState<Mongo.Router>])
+        init(routers:[Mongo.Host: MongoChannel.State<Mongo.Router>])
         {
             self.routers = routers
         }
@@ -16,9 +18,9 @@ extension Mongo.Topology.Sharded
 {
     func terminate()
     {
-        for router:Mongo.ConnectionState<Mongo.Router> in self.routers.values
+        for router:MongoChannel.State<Mongo.Router> in self.routers.values
         {
-            router.connection?.heart.stop()
+            router.channel?.heart.stop()
         }
     }
     func errors() -> [Mongo.Host: any Error]
@@ -28,11 +30,11 @@ extension Mongo.Topology.Sharded
 }
 extension Mongo.Topology.Sharded
 {
-    init?(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Router,
+    init?(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Router,
         seedlist:inout Mongo.Seedlist)
     {
         self.init(routers: seedlist.topology(of: Mongo.Router.self))
-        guard self.update(host: host, connection: connection, metadata: metadata)
+        guard self.update(host: host, channel: channel, metadata: metadata)
         else
         {
             seedlist.pick(host: host)
@@ -50,21 +52,21 @@ extension Mongo.Topology.Sharded
         self.routers[host]?.clear(status: status) ?? false
     }
     mutating
-    func update(host:Mongo.Host, connection:Mongo.Connection, metadata:Mongo.Router) -> Bool
+    func update(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Router) -> Bool
     {
-        self.routers[host]?.update(connection: connection, metadata: metadata) ?? false
+        self.routers[host]?.update(channel: channel, metadata: metadata) ?? false
     }
 }
 extension Mongo.Topology.Sharded
 {
-    /// Returns a connection to any available router.
-    var any:Mongo.Connection?
+    /// Returns a channel to any available router.
+    var any:MongoChannel?
     {
-        for router:Mongo.ConnectionState<Mongo.Router> in self.routers.values
+        for router:MongoChannel.State<Mongo.Router> in self.routers.values
         {
-            if let connection:Mongo.Connection = router.connection
+            if let channel:MongoChannel = router.channel
             {
-                return connection
+                return channel
             }
         }
         return nil

@@ -3,22 +3,15 @@ import BSONEncoding
 import MongoWire
 import NIOCore
 
-extension Mongo
+extension MongoChannel
 {
-    final
+    public final
     class MessageRouter
     {
-        public
-        enum CommunicationError:Error
-        {
-            case unsolicitedResponse(to:MongoWire.MessageIdentifier)
-            case timeout
-        }
-
         private
-        let counter:ManagedAtomic<Int32>
+        let counter:UnsafeAtomic<Int32>
         private
-        let timeout:Milliseconds
+        let timeout:Duration
         private
         var requests:
         [
@@ -26,29 +19,37 @@ extension Mongo
                 CheckedContinuation<MongoWire.Message<ByteBufferView>, Error>
         ]
 
-        init(timeout:Milliseconds)
+        public
+        init(timeout:Duration)
         {
             // MongoDB uses 0 as the ‘nil’ id.
-            self.counter = .init(1)
+            self.counter = .create(1)
             self.timeout = timeout
             self.requests = [:]
         }
 
         deinit
         {
-            for continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, Error>
-                in self.requests.values
+            self.counter.destroy()
+            for (id, continuation):
+            (
+                MongoWire.MessageIdentifier,
+                CheckedContinuation<MongoWire.Message<ByteBufferView>, Error>
+            )   in self.requests
             {
-                continuation.resume(throwing: CommunicationError.timeout)
+                continuation.resume(throwing: TimeoutError.init(awaiting: id))
             }
         }
     }
 }
-extension Mongo.MessageRouter:ChannelInboundHandler
+extension MongoChannel.MessageRouter:ChannelInboundHandler
 {
+    public
     typealias InboundIn = MongoWire.Message<ByteBufferView>
+    public
     typealias InboundOut = Never
 
+    public
     func channelRead(context:ChannelHandlerContext, data:NIOAny)
     {
         let message:MongoWire.Message<ByteBufferView> = self.unwrapInboundIn(data)
@@ -60,20 +61,23 @@ extension Mongo.MessageRouter:ChannelInboundHandler
         }
         else
         {
-            context.fireErrorCaught(CommunicationError.unsolicitedResponse(to: request))
+            context.fireErrorCaught(MongoChannel.MessageRoutingError.init(unknown: request))
             return
         }
     }
 }
-extension Mongo.MessageRouter:ChannelOutboundHandler
+extension MongoChannel.MessageRouter:ChannelOutboundHandler
 {
+    public
     typealias OutboundIn =
     (
         BSON.Fields,
         CheckedContinuation<MongoWire.Message<ByteBufferView>, Error>
     )
+    public
     typealias OutboundOut = ByteBuffer
 
+    public
     func write(context:ChannelHandlerContext, data:NIOAny, promise:EventLoopPromise<Void>?)
     {
         let (command, continuation):OutboundIn = self.unwrapOutboundIn(data)
@@ -102,12 +106,13 @@ extension Mongo.MessageRouter:ChannelOutboundHandler
         {
             [weak self, id, timeout] in
 
-            try? await Task.sleep(for: .milliseconds(timeout))
-            if  let self:Mongo.MessageRouter,
+            try? await Task.sleep(for: timeout)
+            if  let self:MongoChannel.MessageRouter,
                 let continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, Error> = 
                     self.requests.removeValue(forKey: id)
             {
-                continuation.resume(throwing: CommunicationError.timeout)
+                continuation.resume(throwing: MongoChannel.TimeoutError.init(awaiting: id,
+                    for: timeout))
             }
         }
     }

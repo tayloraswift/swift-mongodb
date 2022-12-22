@@ -31,24 +31,27 @@ extension ByteBuffer
     }
 }
 
-extension Mongo
+extension MongoChannel
 {
+    public
     struct MessageDecoder 
     {
+        public
         typealias InboundOut = MongoWire.Message<ByteBufferView>
 
         private 
         var header:MongoWire.Header?
 
+        public
         init()
         {
             self.header = nil
         }
     }
 }
-extension Mongo.MessageDecoder:ByteToMessageDecoder
+extension MongoChannel.MessageDecoder:ByteToMessageDecoder
 {
-    mutating 
+    public mutating 
     func decode(context:ChannelHandlerContext, 
         buffer:inout ByteBuffer) throws -> DecodingState 
     {
@@ -85,7 +88,7 @@ extension Mongo.MessageDecoder:ByteToMessageDecoder
         return .continue
     }
 
-    mutating 
+    public mutating 
     func decodeLast(context:ChannelHandlerContext, 
         buffer:inout ByteBuffer, 
         seenEOF _:Bool) throws -> DecodingState 
