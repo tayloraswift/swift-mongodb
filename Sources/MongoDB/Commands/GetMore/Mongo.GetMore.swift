@@ -44,14 +44,10 @@ extension Mongo.GetMore:MongoCommand
 extension Mongo.GetMore:MongoDatabaseCommand
 {
 }
-extension Mongo.GetMore:MongoReadOnlyCommand
-{
-}
+// TODO: does getMore support read level?
+// extension Mongo.GetMore:MongoReadOnlyCommand
+// {
+// }
 extension Mongo.GetMore:MongoTransactableCommand
 {
-    @inlinable public
-    var readConcern:Mongo.ReadConcern?
-    {
-        nil
-    }
 }

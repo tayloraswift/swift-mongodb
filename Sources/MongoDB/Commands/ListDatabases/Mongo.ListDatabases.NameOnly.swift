@@ -59,9 +59,9 @@ extension Mongo.ListDatabases.NameOnly:MongoCommand
 }
 // FIXME: ListDatabases.NameOnly *can* run on a secondary,
 // but *should* run on a primary.
-extension Mongo.ListDatabases.NameOnly:MongoReadOnlyCommand
-{
-}
+// extension Mongo.ListDatabases.NameOnly:MongoReadOnlyCommand
+// {
+// }
 extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand
 {
 }

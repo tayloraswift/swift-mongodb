@@ -47,7 +47,10 @@ extension Mongo.Reply
         let operationTime:Mongo.Instant? = try dictionary["operationTime"]?.decode(
             to: Mongo.Instant.self)
         let clusterTime:Mongo.Instant? = try dictionary["$clusterTime"]?.decode(
-            to: Mongo.Instant.self)
+            as: BSON.Dictionary<ByteBufferView>.self)
+        {
+            try $0["clusterTime"].decode(to: Mongo.Instant.self)
+        }
         
         if ok
         {
