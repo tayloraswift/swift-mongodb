@@ -38,7 +38,7 @@ extension Error
     fileprivate
     func description(notes:[String]) -> String
     {
-        let type:String = .init(describing: Self.self)
+        let type:String = (self as? NamedError).map(\.name) ?? .init(describing: Self.self)
 
         var description:String
         if  let  error:any CustomStringConvertible = self as? any CustomStringConvertible,

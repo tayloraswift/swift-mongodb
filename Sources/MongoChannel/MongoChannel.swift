@@ -1,4 +1,4 @@
-import BSON
+import BSONDecoding
 import Heartbeats
 import MongoWire
 import NIOCore
@@ -71,6 +71,8 @@ extension MongoChannel
 }
 extension MongoChannel
 {
+    /// Sends the given command document over this connection, unchanged, and
+    /// awaits its message-response.
     @inlinable public
     func send(command:__owned BSON.Fields) async throws -> MongoWire.Message<ByteBufferView>
     {
