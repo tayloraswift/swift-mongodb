@@ -77,7 +77,6 @@ This package vends the following library products:
 [`MongoWire`](Sources/MongoWire),
 [`BSON_UUID`](Sources/BSON_UUID),
 [`SCRAM`](Sources/SCRAM),
-[`TraceableErrors`](Sources/TraceableErrors),
 [`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),
 `NIOPosix`,
 `NIOSSL`)
@@ -92,6 +91,7 @@ This package vends the following library products:
 ([`MongoWire`](Sources/MongoWire),
 [`BSONSchema`](Sources/BSONSchema),
 [`Heartbeats`](Sources/Heartbeats),
+[`TraceableErrors`](Sources/TraceableErrors),
 `NIOCore`,
 `Atomics`)
 

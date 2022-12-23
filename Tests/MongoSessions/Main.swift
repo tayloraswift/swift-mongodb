@@ -1,4 +1,5 @@
 import NIOPosix
+import MongoChannel
 import MongoSessions
 import Testing
 
@@ -215,7 +216,9 @@ extension Main
                     errored:
                     [
                         single: Mongo.AuthenticationError.init(
-                                Mongo.ServerError.init(message: "Authentication failed."),
+                                MongoChannel.ServerError.init(
+                                    message: "Authentication failed.",
+                                    code: 18),
                             credentials: driver.credentials!)
                     ]))
             {

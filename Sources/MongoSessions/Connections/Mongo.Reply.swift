@@ -1,4 +1,5 @@
 import BSONDecoding
+import MongoChannel
 import MongoWire
 import NIOCore
 
@@ -8,14 +9,14 @@ extension Mongo
     struct Reply
     {
         @usableFromInline
-        let result:Result<BSON.Dictionary<ByteBufferView>, ServerError>
+        let result:Result<BSON.Dictionary<ByteBufferView>, MongoChannel.ServerError>
 
         @usableFromInline
         let operationTime:Mongo.Instant?
         @usableFromInline
         let clusterTime:Mongo.Instant?
 
-        init(result:Result<BSON.Dictionary<ByteBufferView>, ServerError>,
+        init(result:Result<BSON.Dictionary<ByteBufferView>, MongoChannel.ServerError>,
             operationTime:Mongo.Instant?,
             clusterTime:Mongo.Instant?)
         {
@@ -32,18 +33,8 @@ extension Mongo.Reply
     {
         let dictionary:BSON.Dictionary<ByteBufferView> = try .init(
             fields: try message.sections.body.parse())
-        let ok:Bool = try dictionary["ok"].decode
-        {
-            switch $0
-            {
-            case .bool(true), .int32(1), .int64(1), .double(1.0):
-                return true
-            case .bool(false), .int32(0), .int64(0), .double(0.0):
-                return false
-            case let unsupported:
-                throw Mongo.ReplyError.invalidStatusType(unsupported.type)
-            }
-        }
+        let status:MongoChannel.Status = try dictionary["ok"].decode(
+            to: MongoChannel.Status.self)
 
         let operationTime:Mongo.Instant? = try dictionary["operationTime"]?.decode(
             to: Mongo.Instant.self)
@@ -53,7 +44,7 @@ extension Mongo.Reply
             try $0["clusterTime"].decode(to: Mongo.Instant.self)
         }
         
-        if ok
+        if  status.ok
         {
             self.init(result: .success(dictionary),
                 operationTime: operationTime,
@@ -62,7 +53,8 @@ extension Mongo.Reply
         else
         {
             self.init(result: .failure(.init(
-                    message: try dictionary["errmsg"]?.decode(to: String.self) ?? "")),
+                    message: try dictionary["errmsg"]?.decode(to: String.self) ?? "",
+                    code: try dictionary["code"]?.decode(to: Int32.self))),
                 operationTime: operationTime,
                 clusterTime: clusterTime)
         }
