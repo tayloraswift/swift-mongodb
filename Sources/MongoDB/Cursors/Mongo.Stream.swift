@@ -1,5 +1,6 @@
-import MongoSchema
 import BSONDecoding
+import Durations
+import MongoSchema
 
 extension Mongo
 {
@@ -11,7 +12,7 @@ extension Mongo
         public
         let session:MutableSession
         public
-        let timeout:Mongo.Milliseconds?
+        let timeout:Milliseconds?
         public
         let stride:Int
 
@@ -22,7 +23,7 @@ extension Mongo
         @usableFromInline
         init(session:MutableSession,
             initial:Cursor<BatchElement>,
-            timeout:Mongo.Milliseconds?,
+            timeout:Milliseconds?,
             stride:Int)
         {
             self._cursor = .init(wrappedValue: initial.state)

@@ -1,3 +1,4 @@
+import Durations
 import NIOCore
 
 extension Mongo

@@ -79,6 +79,14 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONSchema"),
                 .target(name: "UUID"),
             ]),
+        .target(name: "BSON_Durations",
+            dependencies:
+            [
+                .target(name: "BSONSchema"),
+                .target(name: "Durations"),
+            ]),
+        
+        .target(name: "Durations"),
         
         .target(name: "Heartbeats"),
         
@@ -125,6 +133,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies: 
             [
                 .target(name: "BSON_UUID"),
+                .target(name: "BSON_Durations"),
                 .target(name: "Mongo"),
                 .target(name: "MongoChannel"),
                 .target(name: "SCRAM"),

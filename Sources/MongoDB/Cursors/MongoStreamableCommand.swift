@@ -1,3 +1,4 @@
+import Durations
 import MongoSchema
 
 public
@@ -6,6 +7,6 @@ protocol MongoStreamableCommand<Element>:MongoDatabaseCommand, MongoImplicitSess
 {
     associatedtype Element:MongoDecodable
 
-    var timeout:Mongo.Milliseconds? { get }
+    var timeout:Milliseconds? { get }
     var stride:Int { get }
 }
