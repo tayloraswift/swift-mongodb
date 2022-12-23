@@ -53,6 +53,14 @@ This package vends the following library products:
 
     A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the `UUID` type.
 
+1.  [**`BSON_Durations`**](Sources/BSON_Durations) ([`BSON_Schema`](Sources/BSONSchema), [`Durations`](Sources/UUID))
+
+    A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the various quantized duration types.
+
+1.  [**`Durations`**](Sources/Durations)
+
+    Vends quantized duration types (`Minutes`, `Seconds`, `Milliseconds`), and the `QuantizedDuration` protocol.
+
 1.  [**`Heartbeats`**](Sources/Heartbeats)
 
     Vends a `Heartbeat` type.
@@ -75,6 +83,7 @@ This package vends the following library products:
 ([`Mongo`*](Sources/Mongo),
 [`MongoChannel`](Sources/MongoChannel),
 [`MongoWire`](Sources/MongoWire),
+[`BSON_Durations`](Sources/BSON_Durations),
 [`BSON_UUID`](Sources/BSON_UUID),
 [`SCRAM`](Sources/SCRAM),
 [`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),

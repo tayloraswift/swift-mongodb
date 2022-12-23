@@ -1,5 +1,6 @@
 import Atomics
 import BSON
+import Durations
 import Heartbeats
 import MongoChannel
 import MongoWire
@@ -20,7 +21,7 @@ extension Mongo
         private
         var tasks:Tasks
         private
-        var ttl:Mongo.Minutes?
+        var ttl:Minutes?
 
         nonisolated
         let time:UnsafeAtomic<UInt64>
@@ -107,7 +108,7 @@ extension Mongo.TopologyMonitor
         if  admitted
         {
             // update session timeout
-            let ttl:Mongo.Minutes = min(self.ttl ?? metadata.ttl, metadata.ttl)
+            let ttl:Minutes = min(self.ttl ?? metadata.ttl, metadata.ttl)
             self.ttl = ttl
             // succeed any tasks awaiting connections
             if      let channel:MongoChannel = self.topology.master
@@ -240,7 +241,7 @@ extension Mongo.TopologyMonitor
         timeout:Duration) async throws -> Mongo.SessionMedium
     {
         if  let channel:MongoChannel = self.topology[selector],
-            let ttl:Mongo.Minutes = self.ttl
+            let ttl:Minutes = self.ttl
         {
             return .init(channel: channel, ttl: ttl)
         }

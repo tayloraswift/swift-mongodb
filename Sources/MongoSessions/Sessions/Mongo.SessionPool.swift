@@ -1,9 +1,7 @@
+import Durations
+
 extension Mongo
 {
-    @available(*, deprecated, renamed: "SessionPool")
-    public
-    typealias Cluster = SessionPool
-
     public final
     actor SessionPool
     {
@@ -124,8 +122,7 @@ extension Mongo.SessionPool
         }
     }
     private
-    func checkout(
-        ttl:Mongo.Minutes) -> (id:Mongo.SessionIdentifier, metadata:Mongo.SessionMetadata)
+    func checkout(ttl:Minutes) -> (id:Mongo.SessionIdentifier, metadata:Mongo.SessionMetadata)
     {
         guard case nil = self.draining
         else

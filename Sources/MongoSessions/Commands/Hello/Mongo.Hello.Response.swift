@@ -1,4 +1,6 @@
 import BSONDecoding
+import BSON_Durations
+import Durations
 import MongoChannel
 import MongoWire
 
@@ -34,7 +36,7 @@ extension Mongo.Hello
         /// within this threshold are cleared from the cache. State associated with
         /// an expired session may be cleaned up by the server at any time.
         public
-        let logicalSessionTimeoutMinutes:Mongo.Minutes
+        let logicalSessionTimeoutMinutes:Minutes
 
         /// An identifier for the `mongod`/`mongos` instance's outgoing connection
         /// to the client.
@@ -79,7 +81,7 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
         
         self.localTime = try bson["localTime"].decode(to: BSON.Millisecond.self)
         self.logicalSessionTimeoutMinutes = try bson["logicalSessionTimeoutMinutes"].decode(
-            to: Mongo.Minutes.self)
+            to: Minutes.self)
         
         self.token = try bson["connectionId"].decode(to: MongoChannel.Token.self)
         
