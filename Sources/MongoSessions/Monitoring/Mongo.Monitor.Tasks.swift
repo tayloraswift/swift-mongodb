@@ -1,4 +1,4 @@
-extension Mongo.TopologyMonitor
+extension Mongo.Monitor
 {
     /// Keeps a count of running monitoring tasks, regulates when
     /// new monitoring tasks can be started, and allows the consumer
@@ -16,7 +16,7 @@ extension Mongo.TopologyMonitor
         }
     }
 }
-extension Mongo.TopologyMonitor.Tasks
+extension Mongo.Monitor.Tasks
 {
     mutating
     func retain(_ operation:@Sendable @escaping () async -> ()) -> Task<Void, Never>?

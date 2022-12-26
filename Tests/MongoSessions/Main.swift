@@ -1,5 +1,6 @@
 import NIOPosix
 import MongoChannel
+import MongoTopology
 import MongoSessions
 import Testing
 
@@ -26,14 +27,14 @@ enum Main:AsyncTests
 extension Main
 {
     static
-    func run(tests:inout Tests, replicas:[Mongo.Host],
+    func run(tests:inout Tests, replicas:[MongoTopology.Host],
         on executor:MultiThreadedEventLoopGroup) async
     {
         print("running tests for replicated topology (hosts: \(replicas))")
         //  we should be able to connect to the primary using any seed
         await tests.group("replication")
         {
-            for seed:Mongo.Host in replicas
+            for seed:MongoTopology.Host in replicas
             {
                 await $0.test(with: DriverEnvironment.init(
                     name: "discover-primary-from-\(seed.name)",
@@ -54,7 +55,7 @@ extension Main
         }
     }
     static
-    func run(tests:inout Tests, single:Mongo.Host,
+    func run(tests:inout Tests, single:MongoTopology.Host,
         on executor:MultiThreadedEventLoopGroup) async
     {
         print("running tests for single topology (host: \(single))")

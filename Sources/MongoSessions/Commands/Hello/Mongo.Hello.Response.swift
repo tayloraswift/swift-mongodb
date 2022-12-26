@@ -2,6 +2,7 @@ import BSONDecoding
 import BSON_Durations
 import Durations
 import MongoChannel
+import MongoTopology
 import MongoWire
 
 extension Mongo.Hello
@@ -55,7 +56,7 @@ extension Mongo.Hello
         let saslSupportedMechs:Set<Mongo.Authentication.SASL>?
 
         /// Type-specific metadata about the server.
-        let server:Mongo.Server
+        let server:MongoTopology.Server
     }
 }
 extension Mongo.Hello.Response
@@ -104,12 +105,12 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
         if let set:String = try bson["setName"]?.decode(to: String.self)
         {
             let tags:BSON.Fields = try bson["tags"]?.decode(to: BSON.Fields.self) ?? .init()
-            let peerlist:Mongo.Peerlist = .init(
-                primary: try bson["primary"]?.decode(to: Mongo.Host.self),
-                arbiters: try bson["arbiters"]?.decode(to: [Mongo.Host].self) ?? [],
-                passives: try bson["passives"]?.decode(to: [Mongo.Host].self) ?? [],
-                hosts: try bson["hosts"].decode(to: [Mongo.Host].self),
-                me: try bson["me"].decode(to: Mongo.Host.self))
+            let peerlist:MongoTopology.Peerlist = .init(
+                primary: try bson["primary"]?.decode(to: MongoTopology.Host.self),
+                arbiters: try bson["arbiters"]?.decode(to: [MongoTopology.Host].self) ?? [],
+                passives: try bson["passives"]?.decode(to: [MongoTopology.Host].self) ?? [],
+                hosts: try bson["hosts"].decode(to: [MongoTopology.Host].self),
+                me: try bson["me"].decode(to: MongoTopology.Host.self))
 
             if      case true? =
                     try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
@@ -146,7 +147,7 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
             }
             else
             {
-                self.server = .single(.init())
+                self.server = .standalone(.init())
             }
         }
     }

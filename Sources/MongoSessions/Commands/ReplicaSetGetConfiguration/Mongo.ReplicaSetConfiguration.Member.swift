@@ -1,4 +1,5 @@
 import BSONSchema
+import MongoTopology
 
 extension Mongo.ReplicaSetConfiguration
 {
@@ -12,13 +13,13 @@ extension Mongo.ReplicaSetConfiguration
         public
         let tags:BSON.Fields
         public
-        let host:Mongo.Host
+        let host:MongoTopology.Host
 
         public
         init(id:Int64,
             rights:MemberRights = .citizen(.init()),
             tags:BSON.Fields = .init(),
-            host:Mongo.Host)
+            host:MongoTopology.Host)
         {
             self.id = id
             self.rights = rights
@@ -60,7 +61,7 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDictionaryDecodable
         self.init(id: try bson["_id"].decode(to: Int64.self),
             rights: rights,
             tags: try bson["tags"]?.decode(to: BSON.Fields.self) ?? .init(),
-            host: try bson["host"].decode(to: Mongo.Host.self))
+            host: try bson["host"].decode(to: MongoTopology.Host.self))
     }
 }
 extension Mongo.ReplicaSetConfiguration.Member:BSONDocumentEncodable

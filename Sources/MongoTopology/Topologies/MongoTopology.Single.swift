@@ -1,37 +1,39 @@
 import MongoChannel
 
-extension Mongo.Topology
+extension MongoTopology
 {
+    public
     struct Single
     {
         private
-        let host:Mongo.Host
+        let host:Host
         private
-        var state:MongoChannel.State<Mongo.Single>
+        var state:MongoChannel.State<Standalone>
 
         private
-        init(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Single)
+        init(host:Host, channel:MongoChannel, metadata:Standalone)
         {
             self.host = host
             self.state = .connected(channel, metadata: metadata)
         }
     }
 }
-extension Mongo.Topology.Single
+extension MongoTopology.Single
 {
     func terminate()
     {
         self.state.channel?.heart.stop()
     }
-    func errors() -> [Mongo.Host: any Error]
+    func errors() -> [MongoTopology.Host: any Error]
     {
         self.state.error.map { [self.host: $0] } ?? [:]
     }
 }
-extension Mongo.Topology.Single
+extension MongoTopology.Single
 {
-    init?(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Single,
-        seedlist:inout Mongo.Seedlist)
+    init?(host:MongoTopology.Host, channel:MongoChannel,
+        metadata:MongoTopology.Standalone,
+        seedlist:inout MongoTopology.Unknown)
     {
         // https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#updateunknownwithstandalone
         if seedlist.pick(host: host)
@@ -44,20 +46,22 @@ extension Mongo.Topology.Single
         }
     }
     mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
+    func clear(host:MongoTopology.Host, status:(any Error)?) -> Bool
     {
         self.host != host ? false :
         self.state.clear(status: status)
     }
     mutating
-    func update(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Single) -> Bool
+    func update(host:MongoTopology.Host, channel:MongoChannel,
+        metadata:MongoTopology.Standalone) -> Bool
     {
         self.host != host ? false :
         self.state.update(channel: channel, metadata: metadata)
     }
 }
-extension Mongo.Topology.Single
+extension MongoTopology.Single
 {
+    public
     var master:MongoChannel?
     {
         self.state.channel

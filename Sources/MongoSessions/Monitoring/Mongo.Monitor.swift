@@ -3,6 +3,7 @@ import BSON
 import Durations
 import Heartbeats
 import MongoChannel
+import MongoTopology
 import MongoWire
 import NIOCore
 
@@ -10,12 +11,12 @@ extension Mongo
 {
     /// A deployment topology monitor.
     public final
-    actor TopologyMonitor
+    actor Monitor
     {
         let driver:Driver
 
         private
-        var topology:Topology
+        var topology:MongoTopology
         private
         var awaiting:SessionMediumRequests
         private
@@ -50,9 +51,9 @@ extension Mongo
         }
     }
 }
-extension Mongo.TopologyMonitor
+extension Mongo.Monitor
 {
-    func seed(with seeds:Set<Mongo.Host>)
+    func seed(with seeds:Set<MongoTopology.Host>)
     {
         guard case .terminated = self.topology
         else
@@ -61,7 +62,7 @@ extension Mongo.TopologyMonitor
         }
 
         self.topology = .unknown(.init(hosts: seeds))
-        for host:Mongo.Host in seeds
+        for host:MongoTopology.Host in seeds
         {
             guard case _? = self.monitor(host)
             else
@@ -92,12 +93,12 @@ extension Mongo.TopologyMonitor
     }
 
     private
-    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
+    func clear(host:MongoTopology.Host, status:(any Error)?) -> Bool
     {
         self.topology.clear(host: host, status: status)
     }
     private
-    func update(host:Mongo.Host, channel:MongoChannel,
+    func update(host:MongoTopology.Host, channel:MongoChannel,
         metadata:Mongo.ServerMetadata) -> Bool
     {
         let admitted:Bool = self.topology.update(host: host, channel: channel,
@@ -133,15 +134,15 @@ extension Mongo.TopologyMonitor
         return admitted
     }
 }
-extension Mongo.TopologyMonitor
+extension Mongo.Monitor
 {
     private
-    func monitor(_ host:Mongo.Host) -> Task<Void, Never>?
+    func monitor(_ host:MongoTopology.Host) -> Task<Void, Never>?
     {
         self.tasks.retain { await self.monitor(host) }
     }
     private
-    func monitor(_ host:Mongo.Host) async
+    func monitor(_ host:MongoTopology.Host) async
     {
         defer
         {
@@ -176,7 +177,7 @@ extension Mongo.TopologyMonitor
         }
     }
     private
-    func connect(to host:Mongo.Host) async throws
+    func connect(to host:MongoTopology.Host) async throws
     {
         let heartbeat:Heartbeat = .init(interval: .milliseconds(1000))
         let channel:MongoChannel = try await .init(driver: self.driver,
@@ -218,7 +219,7 @@ extension Mongo.TopologyMonitor
         }
     }
 }
-extension Mongo.TopologyMonitor
+extension Mongo.Monitor
 {
     /// Attempts to obtain a channel to a cluster member matching the given
     /// instance selector, and if successful, generates and attaches a ``Session/ID``

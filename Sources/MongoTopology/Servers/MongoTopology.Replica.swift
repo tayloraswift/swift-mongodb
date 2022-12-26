@@ -1,6 +1,7 @@
-extension Mongo
+extension MongoTopology
 {
-    enum Replica
+    @frozen public
+    enum Replica:Sendable
     {
         case primary(Master)
         case secondary(Slave)

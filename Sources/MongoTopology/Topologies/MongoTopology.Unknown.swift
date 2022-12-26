@@ -1,42 +1,43 @@
 import MongoChannel
 
-extension Mongo
+extension MongoTopology
 {
     public
-    struct Seedlist
+    struct Unknown
     {
         private
-        var seeds:[Mongo.Host: MongoChannel.State<Never>]
+        var seeds:[Host: MongoChannel.State<Never>]
 
-        init(seeds:[Mongo.Host: MongoChannel.State<Never>] = [:])
+        init(seeds:[Host: MongoChannel.State<Never>] = [:])
         {
             self.seeds = seeds
         }
     }
 }
-extension Mongo.Seedlist
+extension MongoTopology.Unknown
 {
     public
-    init(hosts:Set<Mongo.Host>)
+    init(hosts:Set<MongoTopology.Host>)
     {
         self.init(seeds: .init(uniqueKeysWithValues: hosts.map { ($0, .queued) }))
     }
 }
-extension Mongo.Seedlist
+extension MongoTopology.Unknown
 {
-    func errors() -> [Mongo.Host: any Error]
+    func errors() -> [MongoTopology.Host: any Error]
     {
         self.seeds.compactMapValues(\.error)
     }
 }
-extension Mongo.Seedlist
+extension MongoTopology.Unknown
 {
     mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
+    func clear(host:MongoTopology.Host, status:(any Error)?) -> Bool
     {
         self.seeds[host]?.clear(status: status) ?? false
     }
-    func topology<Metadata>(of _:Metadata.Type) -> [Mongo.Host: MongoChannel.State<Metadata>]
+    func topology<Metadata>(
+        of _:Metadata.Type) -> [MongoTopology.Host: MongoChannel.State<Metadata>]
     {
         self.seeds.mapValues
         {
@@ -53,7 +54,7 @@ extension Mongo.Seedlist
     /// if it was the only seed in the seedlist. Returns [`false`]() otherwise.
     @discardableResult
     mutating
-    func pick(host:Mongo.Host) -> Bool
+    func pick(host:MongoTopology.Host) -> Bool
     {
         if case _? = self.seeds.removeValue(forKey: host), self.seeds.isEmpty
         {

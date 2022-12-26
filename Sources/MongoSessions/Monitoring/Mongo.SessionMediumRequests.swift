@@ -1,3 +1,5 @@
+import MongoTopology
+
 extension Mongo
 {
     struct SessionMediumRequests
@@ -33,7 +35,7 @@ extension Mongo.SessionMediumRequests
         self.requests.updateValue(request, forKey: id)
     }
     mutating
-    func fail(_ id:UInt, errored hosts:[Mongo.Host: any Error])
+    func fail(_ id:UInt, errored hosts:[MongoTopology.Host: any Error])
     {
         self.requests[id].fail(errored: hosts)
     }

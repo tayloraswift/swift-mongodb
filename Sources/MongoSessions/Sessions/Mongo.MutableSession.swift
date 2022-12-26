@@ -22,13 +22,13 @@ extension Mongo
         @usableFromInline
         let state:State
         // TODO: implement time gossip
-        let monitor:Mongo.TopologyMonitor
+        let monitor:Mongo.Monitor
         private
         let medium:SessionMedium
         public
         let id:SessionIdentifier
 
-        init(monitor:Mongo.TopologyMonitor,
+        init(monitor:Mongo.Monitor,
             metadata:SessionMetadata,
             medium:SessionMedium,
             id:SessionIdentifier)

@@ -1,3 +1,4 @@
+import MongoTopology
 import TraceableErrors
 
 extension Mongo
@@ -8,10 +9,10 @@ extension Mongo
         public
         let selector:SessionMediumSelector
         public
-        let hosts:[Mongo.Host: any Error]
+        let hosts:[MongoTopology.Host: any Error]
 
         public
-        init(selector:SessionMediumSelector, errored hosts:[Mongo.Host: any Error])
+        init(selector:SessionMediumSelector, errored hosts:[MongoTopology.Host: any Error])
         {
             self.selector = selector
             self.hosts = hosts
@@ -28,8 +29,8 @@ extension Mongo.SessionMediumError:Equatable
         {
             return false
         }
-        var lhs:[Mongo.Host: any Error] = lhs.hosts
-        for (key, rhs):(Mongo.Host, any Error) in rhs.hosts
+        var lhs:[MongoTopology.Host: any Error] = lhs.hosts
+        for (key, rhs):(MongoTopology.Host, any Error) in rhs.hosts
         {
             guard   let lhs:any Error = lhs.removeValue(forKey: key),
                         lhs == rhs
