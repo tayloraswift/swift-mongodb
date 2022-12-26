@@ -1,3 +1,6 @@
+import Durations
+import MongoTopology
+
 extension Mongo
 {
     @frozen public
@@ -6,7 +9,7 @@ extension Mongo
         public
         var user:(name:String, password:String)?
         public 
-        var discovery:Discovery
+        var discovery:MongoTopology.Discovery
         public
         var defaultauthdb:Database?
 
@@ -27,7 +30,7 @@ extension Mongo
 
         @inlinable public
         init(user:(name:String, password:String)? = nil,
-            discovery:Discovery,
+            discovery:MongoTopology.Discovery,
             defaultauthdb:Database? = nil,
             tls:Bool? = nil,
             tlsCAFile:String? = nil,

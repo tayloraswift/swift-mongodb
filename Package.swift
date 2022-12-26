@@ -15,8 +15,9 @@ let package:Package = .init(name: "swift-mongodb",
 
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoChannel", targets: ["MongoChannel"]),
-        .library(name: "MongoSessions", targets: ["MongoSessions"]),
         .library(name: "MongoSchema", targets: ["MongoSchema"]),
+        .library(name: "MongoSessions", targets: ["MongoSessions"]),
+        .library(name: "MongoTopology", targets: ["MongoTopology"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
         .library(name: "SCRAM", targets: ["SCRAM"]),
@@ -129,6 +130,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Atomics",               package: "swift-atomics"),
             ]),
 
+        .target(name: "MongoTopology",
+            dependencies: 
+            [
+                .target(name: "MongoChannel"),
+            ]),
+
         .target(name: "MongoSessions",
             dependencies: 
             [
@@ -136,12 +143,13 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSON_Durations"),
                 .target(name: "Mongo"),
                 .target(name: "MongoChannel"),
+                .target(name: "MongoTopology"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2",                  package: "swift-hash"),
-                // already included by `MongoChannel`’s transitive `Atomics` dependency,
+                // already included by `MongoTopology`’s transitive `Atomics` dependency,
                 // but restated here for clarity.
                 .product(name: "Atomics",               package: "swift-atomics"),
-                // already included by `MongoChannel`’s transitive `NIOCore` dependency,
+                // already included by `MongoTopology`’s transitive `NIOCore` dependency,
                 // but restated here for clarity.
                 .product(name: "NIOCore",               package: "swift-nio"),
                 .product(name: "NIOPosix",              package: "swift-nio"),
@@ -165,7 +173,9 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoURI",
             dependencies: 
             [
+                .target(name: "Durations"),
                 .target(name: "Mongo"),
+                .target(name: "MongoTopology"),
             ]),
         
 

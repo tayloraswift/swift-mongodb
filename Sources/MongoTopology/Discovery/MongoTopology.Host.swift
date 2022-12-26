@@ -1,6 +1,6 @@
 import BSONSchema
 
-extension Mongo
+extension MongoTopology
 {
     @frozen public 
     struct Host:Hashable, Sendable
@@ -22,7 +22,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Host:Comparable
+extension MongoTopology.Host:Comparable
 {
     @inlinable public static
     func < (lhs:Self, rhs:Self) -> Bool
@@ -30,21 +30,15 @@ extension Mongo.Host:Comparable
         (lhs.name, lhs.port) < (rhs.name, rhs.port)
     }
 }
-extension Mongo.Host
+extension MongoTopology.Host
 {        
     // @inlinable public static
     // func srv(_ name:String) -> Self
     // {
     //     .init(name, 27017)
     // }
-    @available(*, deprecated, renamed: "init(parsing:)")
-    @inlinable public static
-    func mongodb(parsing string:some StringProtocol) -> Self
-    {
-        .init(string)
-    }
 }
-extension Mongo.Host:LosslessStringConvertible
+extension MongoTopology.Host:LosslessStringConvertible
 {
     @inlinable public
     init(_ string:some StringProtocol)
@@ -69,6 +63,6 @@ extension Mongo.Host:LosslessStringConvertible
         "\(self.name):\(self.port)"
     }
 }
-extension Mongo.Host:BSONStringScheme
+extension MongoTopology.Host:BSONStringScheme
 {
 }

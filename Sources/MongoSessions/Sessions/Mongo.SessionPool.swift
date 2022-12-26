@@ -6,7 +6,7 @@ extension Mongo
     actor SessionPool
     {
         private nonisolated
-        let monitor:TopologyMonitor
+        let monitor:Monitor
 
         private
         var released:[SessionIdentifier: SessionMetadata]
@@ -15,7 +15,7 @@ extension Mongo
         private
         var draining:CheckedContinuation<Void, Never>?
 
-        init(_ monitor:TopologyMonitor) 
+        init(_ monitor:Monitor) 
         {
             self.monitor = monitor
             self.released = [:]

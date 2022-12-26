@@ -1,10 +1,12 @@
 import BSON
 
-extension Mongo
+extension MongoTopology
 {
+    public
     struct Regime:Hashable, Sendable
     {
         /// This is called ``electionId` in the server reply.
+        public
         let election:BSON.Identifier
         /// The current replica set version.
         /// This is called `setVersion` in the server reply.
@@ -13,8 +15,10 @@ extension Mongo
         /// in their ``Hello`` response, but it is only meaningful for
         /// the primary member
         /// ([rationale](https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#ignore-setversion-unless-the-server-is-primary)).
+        public
         let version:Int64
 
+        @inlinable public
         init(election:BSON.Identifier, version:Int64)
         {
             self.election = election
@@ -22,7 +26,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Regime:Comparable
+extension MongoTopology.Regime:Comparable
 {
     @inlinable public static
     func < (lhs:Self, rhs:Self) -> Bool

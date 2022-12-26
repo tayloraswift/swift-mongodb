@@ -79,9 +79,23 @@ This package vends the following library products:
 
     Does not re-export `BSONSchema`.
 
+1.  [**`MongoChannel`**](Sources/MongoChannel)
+([`MongoWire`](Sources/MongoWire),
+[`BSONSchema`](Sources/BSONSchema),
+[`Heartbeats`](Sources/Heartbeats),
+[`TraceableErrors`](Sources/TraceableErrors),
+`NIOCore`,
+`Atomics`)
+
+    A NIO-based layer over `MongoWire`, that vends channel handlers and supports basic command routing and connection lifecycle management.
+
+1.  [**`MongoTopology`**](Sources/MongoTopology) ([`MongoChannel`](Sources/MongoChannel))
+
+    A single-type module that implements the topology model and state-transition operations used by the driver’s service discovery and monitoring components.
+
 1.  [**`MongoSessions`**](Sources/MongoSessions)
 ([`Mongo`*](Sources/Mongo),
-[`MongoChannel`](Sources/MongoChannel),
+[`MongoTopology`](Sources/MongoTopology),
 [`MongoWire`](Sources/MongoWire),
 [`BSON_Durations`](Sources/BSON_Durations),
 [`BSON_UUID`](Sources/BSON_UUID),
@@ -95,16 +109,6 @@ This package vends the following library products:
     `MongoSessions` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
 
     Depends on SwiftNIO, and re-exports `Mongo`.
-
-1.  [**`MongoChannel`**](Sources/MongoChannel)
-([`MongoWire`](Sources/MongoWire),
-[`BSONSchema`](Sources/BSONSchema),
-[`Heartbeats`](Sources/Heartbeats),
-[`TraceableErrors`](Sources/TraceableErrors),
-`NIOCore`,
-`Atomics`)
-
-    A NIO-based layer over `MongoWire`, that vends channel handlers and supports basic command routing and connection lifecycle management.
 
 1.  [**`MongoWire`**](Sources/MongoWire) ([`BSON`](Sources/BSON), [`CRC`](https://github.com/kelvin13/swift-hash/tree/master/Sources/CRC))
 

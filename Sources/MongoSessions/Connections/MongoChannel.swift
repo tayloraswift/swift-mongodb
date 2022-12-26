@@ -1,6 +1,7 @@
 import BSON
 import Heartbeats
 import MongoChannel
+import MongoTopology
 import NIOCore
 import NIOPosix
 import NIOSSL
@@ -14,7 +15,7 @@ extension MongoChannel
     /// will not be stopped if the channel cannot be created in the first
     /// place; the caller is responsible for disposing of the heartbeat
     /// if this constructor throws an error.
-    init(driver:Mongo.Driver, heart:Heart, host:Mongo.Host) async throws
+    init(driver:Mongo.Driver, heart:Heart, host:MongoTopology.Host) async throws
     {
         let bootstrap:ClientBootstrap = .init(group: driver.executor)
             .resolver(driver.resolver)

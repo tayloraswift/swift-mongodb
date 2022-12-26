@@ -1,4 +1,5 @@
 import Durations
+import MongoTopology
 import NIOCore
 
 extension Mongo
@@ -51,10 +52,10 @@ extension Mongo
 extension Mongo.Driver
 {
     public
-    func seeded<Success>(with seeds:Set<Mongo.Host>,
+    func seeded<Success>(with seeds:Set<MongoTopology.Host>,
         _ body:(Mongo.SessionPool) async throws -> Success) async rethrows -> Success
     {
-        let monitor:Mongo.TopologyMonitor = .init(driver: self)
+        let monitor:Mongo.Monitor = .init(driver: self)
         await monitor.seed(with: seeds)
         let pool:Mongo.SessionPool = .init(monitor)
         do

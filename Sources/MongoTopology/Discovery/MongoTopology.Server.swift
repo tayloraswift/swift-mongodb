@@ -1,8 +1,9 @@
-extension Mongo
+extension MongoTopology
 {
+    @frozen public
     enum Server:Sendable
     {
-        case single(Single)
+        case standalone(Standalone)
         case router(Router)
 
         case replica(Replica, Peerlist)

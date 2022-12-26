@@ -1,22 +1,20 @@
 import MongoChannel
 
-extension Mongo
+@frozen public
+enum MongoTopology
 {
-    enum Topology
-    {
-        case terminated
+    case terminated
 
-        case unknown(Seedlist)
-        case single(Single)
-        case sharded(Sharded)
-        case replicated(Replicated)
-    }
+    case unknown(Unknown)
+    case single(Single)
+    case sharded(Sharded)
+    case replicated(Replicated)
 }
-extension Mongo.Topology
+extension MongoTopology
 {
     /// Places this topology in a ``case terminated`` state and sends shutdown
     /// signals to all currently-active heartbeats registered with it.
-    mutating
+    public mutating
     func terminate()
     {
         defer
@@ -33,7 +31,8 @@ extension Mongo.Topology
     }
     /// Returns the most recent error tracked by the topology for each
     /// currently-errored channel.
-    func errors() -> [Mongo.Host: any Error]
+    public
+    func errors() -> [MongoTopology.Host: any Error]
     {
         switch self
         {
@@ -45,17 +44,17 @@ extension Mongo.Topology
         }
     }
 }
-extension Mongo.Topology
+extension MongoTopology
 {
     private
-    init?(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Server,
-        seedlist:inout Mongo.Seedlist,
-        monitor:(Mongo.Host) -> ())
+    init?(host:MongoTopology.Host, channel:MongoChannel, metadata:MongoTopology.Server,
+        seedlist:inout MongoTopology.Unknown,
+        monitor:(MongoTopology.Host) -> ())
     {
         switch metadata
         {
-        case    .single(let metadata):
-            if  let topology:Mongo.Topology.Single = .init(host: host,
+        case    .standalone(let metadata):
+            if  let topology:MongoTopology.Single = .init(host: host,
                     channel: channel,
                     metadata: metadata,
                     seedlist: &seedlist)
@@ -68,7 +67,7 @@ extension Mongo.Topology
             }
         
         case    .router(let metadata):
-            if  let sharded:Mongo.Topology.Sharded = .init(host: host,
+            if  let sharded:MongoTopology.Sharded = .init(host: host,
                     channel: channel,
                     metadata: metadata,
                     seedlist: &seedlist)
@@ -81,7 +80,7 @@ extension Mongo.Topology
             }
         
         case    .replica(let metadata, let peerlist):
-            if  let replicated:Mongo.Topology.Replicated = .init(host: host,
+            if  let replicated:MongoTopology.Replicated = .init(host: host,
                     channel: channel,
                     metadata: metadata,
                     seedlist: &seedlist,
@@ -100,8 +99,8 @@ extension Mongo.Topology
             self = .unknown(seedlist)
         }
     }
-    mutating
-    func clear(host:Mongo.Host, status:(any Error)?) -> Bool
+    public mutating
+    func clear(host:MongoTopology.Host, status:(any Error)?) -> Bool
     {
         switch self
         {
@@ -141,9 +140,9 @@ extension Mongo.Topology
             return topology.clear(host: host, status: status)
         }
     }
-    mutating
-    func update(host:Mongo.Host, channel:MongoChannel, metadata:Mongo.Server,
-        monitor:(Mongo.Host) -> ()) -> Bool
+    public mutating
+    func update(host:MongoTopology.Host, channel:MongoChannel, metadata:MongoTopology.Server,
+        monitor:(MongoTopology.Host) -> ()) -> Bool
     {
         switch self
         {
@@ -171,7 +170,7 @@ extension Mongo.Topology
             {
                 self = .single(topology)
             }
-            if case .single(let metadata) = metadata
+            if case .standalone(let metadata) = metadata
             {
                 return topology.update(host: host, channel: channel, metadata: metadata)
             }
@@ -222,7 +221,7 @@ extension Mongo.Topology
     }
 }
 
-extension Mongo.Topology
+extension MongoTopology
 {
     /// Returns a channel to a master server, if one is available, and
     /// according to the current topology type.
@@ -237,6 +236,7 @@ extension Mongo.Topology
     /// to the primary replica, if available.
     ///
     /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
+    public
     var master:MongoChannel?
     {
         switch self
@@ -260,6 +260,7 @@ extension Mongo.Topology
     /// to any available primary or secondary replica.
     ///
     /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
+    public
     var any:MongoChannel?
     {
         switch self
@@ -268,15 +269,6 @@ extension Mongo.Topology
         case .single(let topology):     return topology.master
         case .sharded(let topology):    return topology.any
         case .replicated(let topology): return topology.any
-        }
-    }
-
-    subscript(selector:Mongo.SessionMediumSelector) -> MongoChannel?
-    {
-        switch selector
-        {
-        case .master:   return self.master
-        case .any:      return self.any
         }
     }
 }

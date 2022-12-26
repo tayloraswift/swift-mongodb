@@ -1,3 +1,5 @@
+import MongoTopology
+
 extension Mongo
 {
     struct SessionMediumRequest
@@ -16,7 +18,7 @@ extension Mongo
 extension Mongo.SessionMediumRequest?
 {
     mutating
-    func fail(errored hosts:[Mongo.Host: any Error])
+    func fail(errored hosts:[MongoTopology.Host: any Error])
     {
         if let request:Mongo.SessionMediumRequest = self
         {

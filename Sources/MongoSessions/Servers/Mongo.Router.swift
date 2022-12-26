@@ -1,6 +1,0 @@
-extension Mongo
-{
-    struct Router
-    {
-    }
-}
