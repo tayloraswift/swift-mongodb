@@ -4,14 +4,14 @@ import Testing
 
 struct DatabaseEnvironment
 {
-    let database:Mongo.Database,
-        driver:Mongo.Driver,
+    let bootstrap:Mongo.DriverBootstrap,
+        database:Mongo.Database,
         host:MongoTopology.Host
     
-    init(database:Mongo.Database, driver:Mongo.Driver, host:MongoTopology.Host)
+    init(bootstrap:Mongo.DriverBootstrap, database:Mongo.Database, host:MongoTopology.Host)
     {
+        self.bootstrap = bootstrap
         self.database = database
-        self.driver = driver
         self.host = host
     }
 }
@@ -37,7 +37,7 @@ extension DatabaseEnvironment:AsyncTestEnvironment
     func runWithContext<Success>(tests:inout Tests,
         body:(inout Tests, Context) async throws -> Success) async throws -> Success
     {
-        try await self.driver.seeded(with: [self.host])
+        try await self.bootstrap.withSessionPool(seedlist: [self.host])
         {
             //  if we already have a database with this name, drop it.
             try await $0.run(command: Mongo.DropDatabase.init(), against: self.database)
