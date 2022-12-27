@@ -13,7 +13,7 @@ extension Mongo
     public final
     actor Monitor
     {
-        let driver:Driver
+        let bootstrap:DriverBootstrap
 
         private
         var topology:MongoTopology
@@ -24,18 +24,21 @@ extension Mongo
         private
         var ttl:Minutes?
 
+        private nonisolated
+        let clock:ContinuousClock
         nonisolated
         let time:UnsafeAtomic<UInt64>
 
-        init(driver:Driver) 
+        init(bootstrap:DriverBootstrap) 
         {
-            self.driver = driver
+            self.bootstrap = bootstrap
 
             self.topology = .terminated
             self.awaiting = .init()
             self.tasks = .init()
             self.ttl = nil
 
+            self.clock = .init()
             self.time = .create(0)
         }
 
@@ -180,9 +183,8 @@ extension Mongo.Monitor
     func connect(to host:MongoTopology.Host) async throws
     {
         let heartbeat:Heartbeat = .init(interval: .milliseconds(1000))
-        let channel:MongoChannel = try await .init(driver: self.driver,
-            heart: heartbeat.heart,
-            host: host)
+        let channel:MongoChannel = try await self.bootstrap.channel(to: host,
+            attaching: heartbeat.heart)
         
         defer
         {
@@ -193,8 +195,8 @@ extension Mongo.Monitor
 
         //  initial login, performs auth (if using auth).
         let initial:Mongo.Hello.Response = try await channel.establish(
-            credentials: self.driver.credentials,
-            appname: self.driver.appname)
+            credentials: self.bootstrap.credentials,
+            appname: self.bootstrap.appname)
         
         guard self.update(host: host, channel: channel, metadata: initial.metadata)
         else
@@ -248,7 +250,7 @@ extension Mongo.Monitor
         }
         else
         {
-            let started:ContinuousClock.Instant = self.driver.clock.now
+            let started:ContinuousClock.Instant = self.clock.now
             let id:UInt = self.awaiting.open()
 
             #if compiler(>=5.8)
@@ -269,7 +271,7 @@ extension Mongo.Monitor
     func fail(request:UInt, once instant:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: instant, clock: self.driver.clock)
+        try await Task.sleep(until: instant, clock: self.clock)
         self.awaiting.fail(request, errored: self.topology.errors())
     }
 

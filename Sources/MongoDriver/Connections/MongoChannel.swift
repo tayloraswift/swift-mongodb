@@ -1,62 +1,9 @@
 import BSON
-import Heartbeats
 import MongoChannel
 import MongoTopology
-import NIOCore
 import NIOPosix
-import NIOSSL
 import SCRAM
 import SHA2
-
-extension MongoChannel
-{
-    /// Sets up a TCP channel to the given host that will stop the given
-    /// heartbeat if the channel is closed (for any reason). The heart
-    /// will not be stopped if the channel cannot be created in the first
-    /// place; the caller is responsible for disposing of the heartbeat
-    /// if this constructor throws an error.
-    init(driver:Mongo.Driver, heart:Heart, host:MongoTopology.Host) async throws
-    {
-        let bootstrap:ClientBootstrap = .init(group: driver.executor)
-            .resolver(driver.resolver)
-            .channelOption(
-                ChannelOptions.socket(SocketOptionLevel.init(SOL_SOCKET), SO_REUSEADDR), 
-                value: 1)
-            .channelInitializer
-        { 
-            (channel:any Channel) in
-
-            let decoder:ByteToMessageHandler<MongoChannel.MessageDecoder> = .init(.init())
-            let router:MongoChannel.MessageRouter = .init(
-                timeout: .milliseconds(driver.timeout))
-
-            guard let certificatePath:String = driver._certificatePath
-            else
-            {
-                return channel.pipeline.addHandlers(decoder, router)
-            }
-            do 
-            {
-                var configuration:TLSConfiguration = .clientDefault
-                configuration.trustRoots = NIOSSLTrustRoots.file(certificatePath)
-                
-                let tls:NIOSSLClientHandler = try .init(
-                    context: .init(configuration: configuration), 
-                    serverHostname: host.name)
-                return channel.pipeline.addHandlers(tls, decoder, router)
-            } 
-            catch let error
-            {
-                return channel.eventLoop.makeFailedFuture(error)
-            }
-        }
-
-        self.init(channel: try await bootstrap.connect(
-                host: host.name,
-                port: host.port).get(),
-            attaching: heart)
-    }
-}
 
 extension MongoChannel
 {

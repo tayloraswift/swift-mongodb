@@ -1,7 +1,7 @@
 import NIOPosix
 import MongoChannel
+import MongoDriver
 import MongoTopology
-import MongoSessions
 import Testing
 
 @main
@@ -41,7 +41,7 @@ extension Main
                     credentials: nil,
                     executor: executor))
                 {
-                    try await $1.seeded(with: [seed])
+                    try await $1.withSessionPool(seedlist: [seed])
                     {
                         try await $0.withMutableSession(timeout: .seconds(5))
                         {
@@ -68,7 +68,7 @@ extension Main
                 credentials: nil,
                 executor: executor))
             {
-                try await $1.seeded(with: [single])
+                try await $1.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession { _ in }
                 }
@@ -76,11 +76,11 @@ extension Main
             await $0.test(with: DriverEnvironment.init(name: "seeded-twice",
                 credentials: nil, executor: executor))
             {
-                try await $1.seeded(with: [single])
+                try await $1.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession { _ in }
                 }
-                try await $1.seeded(with: [single])
+                try await $1.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession { _ in }
                 }
@@ -89,7 +89,7 @@ extension Main
                 credentials: nil, executor: executor))
             {
                 async
-                let first:Void = $1.seeded(with: [single])
+                let first:Void = $1.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -97,7 +97,7 @@ extension Main
                     }
                 }
                 async
-                let second:Void = $1.seeded(with: [single])
+                let second:Void = $1.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -114,7 +114,7 @@ extension Main
             {
                 do
                 {
-                    try await $1.seeded(with: [single])
+                    try await $1.withSessionPool(seedlist: [single])
                     {
                         async
                         let _:Void = $0.withMutableSession { _ in }
@@ -129,7 +129,7 @@ extension Main
             await $0.test(with: DriverEnvironment.init(name: "error-session",
                 credentials: nil, executor: executor))
             {
-                await $1.seeded(with: [single])
+                await $1.withSessionPool(seedlist: [single])
                 {
                     async
                     let _:Void = $0.withMutableSession { _ in }
@@ -149,7 +149,7 @@ extension Main
                     password: "80085"),
                 executor: executor))
             {
-                try await $1.seeded(with: [single])
+                try await $1.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -164,7 +164,7 @@ extension Main
                     password: "80085"),
                 executor: executor))
             {
-                try await $1.seeded(with: [single])
+                try await $1.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession
                     {
@@ -180,7 +180,7 @@ extension Main
                 password: "80085"),
             executor: executor))
         {
-            (tests:inout Tests, driver:Mongo.Driver) in
+            (tests:inout Tests, driver:Mongo.DriverBootstrap) in
 
             await tests.test(name: "errors-equal",
                 expecting: Mongo.SessionMediumError.init(
@@ -193,7 +193,7 @@ extension Main
                     ]))
             {
                 _ in
-                try await driver.seeded(with: [single])
+                try await driver.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession(timeout: .milliseconds(500))
                     {
@@ -209,7 +209,7 @@ extension Main
                 password: "1234"),
             executor: executor))
         {
-            (tests:inout Tests, driver:Mongo.Driver) in
+            (tests:inout Tests, driver:Mongo.DriverBootstrap) in
 
             await tests.test(name: "errors-equal",
                 expecting: Mongo.SessionMediumError.init(
@@ -224,7 +224,7 @@ extension Main
                     ]))
             {
                 _ in
-                try await driver.seeded(with: [single])
+                try await driver.withSessionPool(seedlist: [single])
                 {
                     try await $0.withMutableSession(timeout: .milliseconds(500))
                     {

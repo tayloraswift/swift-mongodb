@@ -12,15 +12,15 @@ enum Main:AsyncTests
         let host:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        let driver:Mongo.Driver = .init(
+        let bootstrap:Mongo.DriverBootstrap = .init(
             credentials: .init(authentication: .sasl(.sha256),
                 username: "root",
                 password: "80085"),
             executor: executor,
             timeout: .seconds(10))
         
-        await tests.test(with: DatabaseEnvironment.init(database: "databases",
-            driver: driver,
+        await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
+            database: "databases",
             host: host))
         {
             (tests:inout Tests, context:DatabaseEnvironment.Context) in
@@ -51,8 +51,8 @@ enum Main:AsyncTests
             }
         }
         
-        await tests.test(with: DatabaseEnvironment.init(database: "collection-insert",
-            driver: driver,
+        await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
+            database: "collection-insert",
             host: host))
         {
             (tests:inout Tests, context:DatabaseEnvironment.Context) in
@@ -146,8 +146,8 @@ enum Main:AsyncTests
             }
         }
         
-        await tests.test(with: DatabaseEnvironment.init(database: "collection-find",
-            driver: driver,
+        await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
+            database: "collection-find",
             host: host))
         {
             (tests:inout Tests, context:DatabaseEnvironment.Context) in

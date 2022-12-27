@@ -1,5 +1,5 @@
 import Testing
-import MongoSessions
+import MongoDriver
 
 struct SessionEnvironment
 {
