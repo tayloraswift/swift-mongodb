@@ -50,7 +50,7 @@ extension Mongo.SessionPool
     nonisolated
     func with<Session, Success>(_:Session.Type, timeout:Duration,
         _ body:(Session) async throws -> Success) async throws -> Success
-        where Session:MongoConcurrencyDomain
+        where Session:_MongoConcurrencyDomain
     {
         //  yes, we do need to `await` on the medium before checking out a session,
         //  to avoid generating excessive sessions if a medium is temporarily unavailable

@@ -208,7 +208,7 @@ extension MongoChannel
     /// Encodes the given labeled command to a document, sends it over this connection and
     /// awaits its response.
     @inlinable public
-    func run(labeled:__owned Mongo.SessionLabeled<some MongoCommand>,
+    func run(labeled:__owned Mongo.Labeled<some MongoCommand>,
         against database:Mongo.Database) async throws -> Mongo.Reply
     {
         try .init(message: try await self.send(

@@ -19,12 +19,14 @@ extension Mongo
     public
     struct MutableSession:Identifiable
     {
+        public
+        let monitor:Mongo.Monitor
         @usableFromInline
         let state:State
-        // TODO: implement time gossip
-        let monitor:Mongo.Monitor
+
         private
         let medium:SessionMedium
+
         public
         let id:SessionIdentifier
 
@@ -45,7 +47,7 @@ extension Mongo
 extension Mongo.MutableSession:Sendable
 {
 }
-extension Mongo.MutableSession:MongoConcurrencyDomain
+extension Mongo.MutableSession:_MongoConcurrencyDomain
 {
     static
     let medium:Mongo.SessionMediumSelector = .master
@@ -59,21 +61,6 @@ extension Mongo.MutableSession:MongoConcurrencyDomain
 
 extension Mongo.MutableSession
 {
-    @inlinable public
-    func label<Command>(command:Command) -> Mongo.SessionLabeled<Command>
-        where Command:MongoSessionCommand
-    {
-        .init(readConcern: (command as? any MongoReadCommand).map
-            {
-                .init(level: $0.readLevel, after: self.state.lastOperationTime)
-            },
-            transaction: self.metadata.transaction,
-            session: self.id,
-            command: command)
-    }
-}
-extension Mongo.MutableSession
-{
     @usableFromInline
     var channel:MongoChannel
     {
@@ -82,14 +69,25 @@ extension Mongo.MutableSession
 
     @inlinable public
     func time<Command>(command:Command,
-        operation:(Mongo.SessionLabeled<Command>) async throws -> Mongo.Reply)
+        operation:(Mongo.Labeled<Command>) async throws -> Mongo.Reply)
         async throws -> Command.Response
         where Command:MongoSessionCommand
     {
         let started:ContinuousClock.Instant = .now
-        let reply:Mongo.Reply = try await operation(self.label(command: command))
+        let labeled:Mongo.Labeled<Command> = .init(clusterTime: self.monitor.clusterTime,
+            readConcern: (command as? any MongoReadCommand).map
+            {
+                .init(level: $0.readLevel, after: self.state.lastOperationTime)
+            },
+            transaction: self.metadata.transaction,
+            session: self.id,
+            command: command)
+        
+        let reply:Mongo.Reply = try await operation(labeled)
+
         self.state.update(touched: started, operationTime: reply.operationTime)
-        // TODO: clusterTime gossip
+        self.monitor.clusterTime = reply.clusterTime
+
         return try Command.decode(reply: try reply.result.get())
     }
 

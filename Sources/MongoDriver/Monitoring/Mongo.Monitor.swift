@@ -13,6 +13,7 @@ extension Mongo
     public final
     actor Monitor
     {
+        nonisolated
         let bootstrap:DriverBootstrap
 
         private
@@ -24,10 +25,12 @@ extension Mongo
         private
         var ttl:Minutes?
 
+        /// The current largest-seen cluster time.
+        private nonisolated
+        let _clusterTime:UnsafeAtomic<Unmanaged<ClusterTime>?>
+        /// A clock used to mediate request timeouts. Has nothing to do with cluster times.
         private nonisolated
         let clock:ContinuousClock
-        nonisolated
-        let time:UnsafeAtomic<UInt64>
 
         init(bootstrap:DriverBootstrap) 
         {
@@ -38,18 +41,67 @@ extension Mongo
             self.tasks = .init()
             self.ttl = nil
 
+            self._clusterTime = .create(nil)
             self.clock = .init()
-            self.time = .create(0)
         }
 
         deinit
         {
-            self.time.destroy()
+            let _:ClusterTime? = self._clusterTime.destroy()?.takeRetainedValue()
 
             guard self.awaiting.isEmpty
             else
             {
                 fatalError("unreachable (deinitialized while continuations are awaiting)")
+            }
+        }
+    }
+}
+extension Mongo.Monitor
+{
+    // TODO: we don’t need to traffic the allocated object outside of this setter
+    nonisolated public
+    var clusterTime:Mongo.ClusterTime?
+    {
+        get
+        {
+            self._clusterTime.load(ordering: .relaxed)?.takeUnretainedValue()
+        }
+        set(value)
+        {
+            guard let value:Mongo.ClusterTime
+            else
+            {
+                return
+            }
+
+            let owned:Unmanaged<Mongo.ClusterTime> = .passRetained(value)
+            var shared:Unmanaged<Mongo.ClusterTime>? = self._clusterTime.load(
+                ordering: .relaxed)
+            
+            while true
+            {
+                if  let old:Mongo.ClusterTime = shared?.takeUnretainedValue(),
+                        old.max.timestamp >= value.max.timestamp
+                {
+                    owned.release()
+                    return
+                }
+
+                switch self._clusterTime.weakCompareExchange(expected: shared, desired: owned,
+                    successOrdering: .acquiringAndReleasing,
+                    failureOrdering: .acquiring)
+                {
+                case (exchanged: false, let current):
+                    shared = current
+                
+                case (exchanged: true, let owned?):
+                    owned.release()
+                    return
+                
+                case (exchanged: true, nil):
+                    return
+                }
             }
         }
     }
