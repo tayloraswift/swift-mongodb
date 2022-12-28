@@ -1,4 +1,5 @@
-protocol MongoConcurrencyDomain:Identifiable<Mongo.SessionIdentifier>
+/// TODO: do we really need this?
+protocol _MongoConcurrencyDomain:Identifiable<Mongo.SessionIdentifier>
 {
     static
     var medium:Mongo.SessionMediumSelector { get }
@@ -11,12 +12,4 @@ protocol MongoConcurrencyDomain:Identifiable<Mongo.SessionIdentifier>
     var monitor:Mongo.Monitor { get }
     var metadata:Mongo.SessionMetadata { get }
     var id:Mongo.SessionIdentifier { get }
-}
-extension MongoConcurrencyDomain
-{
-    var _time:UInt64?
-    {
-        let time:UInt64 = self.monitor.time.load(ordering: .relaxed)
-        return time == 0 ? nil : time
-    }
 }

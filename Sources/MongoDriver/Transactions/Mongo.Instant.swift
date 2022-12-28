@@ -65,3 +65,11 @@ extension Mongo.Instant:BSONEncodable
         field.encode(uint64: self.timestamp)
     }
 }
+extension Mongo.Instant:CustomStringConvertible
+{
+    public
+    var description:String
+    {
+        "\(self.timestamp >> 32)+\(self.timestamp & 0x0000_0000_ffff_ffff)"
+    }
+}

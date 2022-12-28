@@ -3,8 +3,10 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct SessionLabeled<Command> where Command:MongoSessionCommand
+    struct Labeled<Command> where Command:MongoSessionCommand
     {
+        @usableFromInline
+        let clusterTime:ClusterTime?
         @usableFromInline
         let readConcern:ReadConcern?
         @usableFromInline
@@ -15,9 +17,11 @@ extension Mongo
         let command:Command
 
         @usableFromInline
-        init(readConcern:ReadConcern?, transaction:Transaction, session:SessionIdentifier,
+        init(clusterTime:ClusterTime?, readConcern:ReadConcern?, transaction:Transaction,
+            session:SessionIdentifier,
             command:Command)
         {
+            self.clusterTime = clusterTime
             self.readConcern = readConcern
             self.transaction = transaction
             self.session = session
@@ -25,7 +29,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.SessionLabeled
+extension Mongo.Labeled
 {
     @inlinable public
     func encode(to bson:inout BSON.Fields, database:Mongo.Database)
@@ -34,6 +38,7 @@ extension Mongo.SessionLabeled
 
         bson["lsid"] = self.session
         bson["readConcern"] = self.readConcern
+        bson["$clusterTime"] = self.clusterTime
 
         guard let phase:Mongo.TransactionPhase = self.transaction.phase
         else
