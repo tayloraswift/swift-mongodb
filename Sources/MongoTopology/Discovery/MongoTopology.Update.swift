@@ -1,12 +1,11 @@
 extension MongoTopology
 {
     @frozen public
-    enum Server:Sendable
+    enum Update:Sendable
     {
         case standalone(Standalone)
         case router(Router)
-
-        case replica(Replica, Peerlist)
-        case replicaGhost
+        case master(Master, Peerlist)
+        case slave(Slave, Peerlist)
     }
 }

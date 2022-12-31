@@ -24,21 +24,20 @@ extension Mongo
         @usableFromInline
         let state:State
 
-        private
-        let medium:SessionMedium
-
+        public
+        let connectionTimeout:Duration
         public
         let id:SessionIdentifier
 
         init(monitor:Mongo.Monitor,
+            connectionTimeout:Duration,
             metadata:SessionMetadata,
-            medium:SessionMedium,
             id:SessionIdentifier)
         {
             self.state = .init(metadata)
 
             self.monitor = monitor
-            self.medium = medium
+            self.connectionTimeout = connectionTimeout
             self.id = id
         }
     }
@@ -61,20 +60,19 @@ extension Mongo.MutableSession:_MongoConcurrencyDomain
 
 extension Mongo.MutableSession
 {
-    @usableFromInline
-    var channel:MongoChannel
-    {
-        self.medium.channel
-    }
-
     @inlinable public
     func time<Command>(command:Command,
-        operation:(Mongo.Labeled<Command>) async throws -> Mongo.Reply)
+        _readPreference:Mongo.SessionMediumSelector,
+        operation:(MongoChannel, Mongo.Labeled<Command>) async throws -> Mongo.Reply)
         async throws -> Command.Response
         where Command:MongoSessionCommand
     {
+        let _medium:Mongo.SessionMedium = try await self.monitor._medium(_readPreference,
+            timeout: self.connectionTimeout)
+        //let _clusterTime:Mongo.ClusterTime? = await self.monitor._clusterTime
+        
         let started:ContinuousClock.Instant = .now
-        let labeled:Mongo.Labeled<Command> = .init(clusterTime: self.monitor.clusterTime,
+        let labeled:Mongo.Labeled<Command> = .init(clusterTime: nil,
             readConcern: (command as? any MongoReadCommand).map
             {
                 .init(level: $0.readLevel, after: self.state.lastOperationTime)
@@ -83,34 +81,38 @@ extension Mongo.MutableSession
             session: self.id,
             command: command)
         
-        let reply:Mongo.Reply = try await operation(labeled)
+        let reply:Mongo.Reply = try await operation(_medium.channel, labeled)
 
         self.state.update(touched: started, operationTime: reply.operationTime)
-        self.monitor.clusterTime = reply.clusterTime
+        //self.monitor._clusterTime = reply.clusterTime
 
         return try Command.decode(reply: try reply.result.get())
     }
 
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
     @inlinable public
-    func run<Command>(command:Command) async throws -> Command.Response
+    func run<Command>(command:Command,
+        on _readPreference:Mongo.SessionMediumSelector = .master)
+        async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        try await self.time(command: command)
+        try await self.time(command: command, _readPreference: _readPreference)
         {
-            try await self.channel.run(labeled: $0, against: .admin)
+            try await $0.run(labeled: $1, against: .admin)
         }
     }
     
     /// Runs a session command against the specified database.
     @inlinable public
-    func run<Command>(command:Command, 
-        against database:Mongo.Database) async throws -> Command.Response
+    func run<Command>(command:Command,
+        against database:Mongo.Database,
+        on _readPreference:Mongo.SessionMediumSelector = .master)
+        async throws -> Command.Response
         where Command:MongoSessionCommand & MongoDatabaseCommand
     {
-        try await self.time(command: command)
+        try await self.time(command: command, _readPreference: _readPreference)
         {
-            try await self.channel.run(labeled: $0, against: database)
+            try await $0.run(labeled: $1, against: database)
         }
     }
 }

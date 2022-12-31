@@ -56,14 +56,7 @@ extension Mongo.Hello
         let saslSupportedMechs:Set<Mongo.Authentication.SASL>?
 
         /// Type-specific metadata about the server.
-        let server:MongoTopology.Server
-    }
-}
-extension Mongo.Hello.Response
-{
-    var metadata:Mongo.ServerMetadata
-    {
-        .init(ttl: self.logicalSessionTimeoutMinutes, type: self.server)
+        let metadata:MongoTopology.ServerMetadata
     }
 }
 extension Mongo.Hello.Response:BSONDictionaryDecodable
@@ -104,7 +97,9 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
 
         if let set:String = try bson["setName"]?.decode(to: String.self)
         {
-            let tags:BSON.Fields = try bson["tags"]?.decode(to: BSON.Fields.self) ?? .init()
+            let tags:[String: String] = try bson["tags"]?.decode(
+                to: [String: String].self) ?? [:]
+            
             let peerlist:MongoTopology.Peerlist = .init(
                 primary: try bson["primary"]?.decode(to: MongoTopology.Host.self),
                 arbiters: try bson["arbiters"]?.decode(to: [MongoTopology.Host].self) ?? [],
@@ -115,7 +110,9 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
             if      case true? =
                     try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
             {
-                self.server = .replica(.primary(.init(regime: .init(
+                self.metadata = .replica(.primary(.init(
+                        timings: try bson["lastWrite"].decode(to: MongoTopology.Timings.self),
+                        regime: .init(
                             election: try bson["electionId"].decode(to: BSON.Identifier.self),
                             version: try bson["setVersion"].decode(to: Int64.self)),
                         tags: tags,
@@ -124,30 +121,35 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
             }
             else if case true? = try bson["secondary"]?.decode(to: Bool.self)
             {
-                self.server = .replica(.secondary(.init(tags: tags, set: set)), peerlist)
+                //  optional if nothing has propogated to this secondary yet
+                self.metadata = .replica(.secondary(.init(
+                        timings: try bson["lastWrite"]?.decode(to: MongoTopology.Timings.self),
+                        tags: tags,
+                        set: set)),
+                    peerlist)
             }
             else if case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
             {
-                self.server = .replica(.arbiter(.init(tags: tags, set: set)), peerlist)
+                self.metadata = .replica(.arbiter(.init(tags: tags, set: set)), peerlist)
             }
             else
             {
-                self.server = .replica(.other(.init(tags: tags, set: set)), peerlist)
+                self.metadata = .replica(.other(.init(tags: tags, set: set)), peerlist)
             }
         }
         else
         {
             if      case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
             {
-                self.server = .replicaGhost
+                self.metadata = .replicaGhost
             }
             else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
             {
-                self.server = .router(.init())
+                self.metadata = .router(.init())
             }
             else
             {
-                self.server = .standalone(.init())
+                self.metadata = .standalone(.init())
             }
         }
     }

@@ -3,6 +3,11 @@ extension MongoTopology
     public
     struct Peerlist:Sendable
     {
+        /// The name of the current replica set.
+        /// This is called `setName` in the server reply.
+        public
+        let set:String
+
         /// The current
         /// [primary](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary)
         /// member of the replica set.
@@ -32,12 +37,14 @@ extension MongoTopology
         let me:Host?
 
         public
-        init(primary:Host?,
+        init(set:String,
+            primary:Host?,
             arbiters:[Host],
             passives:[Host],
             hosts:[Host],
             me:Host?)
         {
+            self.set = set
             self.primary = primary
             self.arbiters = arbiters
             self.passives = passives

@@ -31,72 +31,102 @@ extension MongoTopology
     }
     /// Returns the most recent error tracked by the topology for each
     /// currently-errored channel.
-    public
-    func errors() -> [MongoTopology.Host: any Error]
+    // public
+    // func errors() -> [MongoTopology.Host: any Error]
+    // {
+    //     switch self
+    //     {
+    //     case .terminated:               return [:]
+    //     case .unknown(let topology):    return topology.errors()
+    //     case .single(let topology):     return topology.errors()
+    //     case .sharded(let topology):    return topology.errors()
+    //     case .replicated(let topology): return topology.errors()
+    //     }
+    // }
+}
+extension MongoTopology
+{
+    var servers:Servers
     {
         switch self
         {
-        case .terminated:               return [:]
-        case .unknown(let topology):    return topology.errors()
-        case .single(let topology):     return topology.errors()
-        case .sharded(let topology):    return topology.errors()
-        case .replicated(let topology): return topology.errors()
+        case .terminated:
+            return .none([])
+        case .unknown(let unknown):
+            return .none(unknown.servers)
+        case .single(let single):
+            return single.servers
+        case .sharded(let sharded):
+            return .sharded(sharded.servers)
+        case .replicated(let replicated):
+            return .replicated(replicated.servers)
         }
     }
 }
 extension MongoTopology
 {
     private
-    init?(host:MongoTopology.Host, channel:MongoChannel, metadata:MongoTopology.Server,
-        seedlist:inout MongoTopology.Unknown,
+    init?(host:MongoTopology.Host, with update:MongoTopology.Update?,
+        channel:MongoChannel,
+        unknown:inout MongoTopology.Unknown,
         monitor:(MongoTopology.Host) -> ())
     {
-        switch metadata
+        switch update
         {
-        case    .standalone(let metadata):
-            if  let topology:MongoTopology.Single = .init(host: host,
-                    channel: channel,
-                    metadata: metadata,
-                    seedlist: &seedlist)
+        case .standalone(let metadata)?:
+            //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#updateunknownwithstandalone
+            if  unknown.pick(host: host)
             {
-                self = .single(topology)
+                self = .single(.init(host: host, channel: channel, metadata: metadata))
             }
             else
             {
                 return nil
             }
         
-        case    .router(let metadata):
-            if  let sharded:MongoTopology.Sharded = .init(host: host,
-                    channel: channel,
-                    metadata: metadata,
-                    seedlist: &seedlist)
+        case .router(let metadata)?:
+            var sharded:MongoTopology.Sharded = .init(from: unknown)
+            if  sharded.update(host: host, metadata: metadata, channel: channel)
             {
                 self = .sharded(sharded)
             }
             else
             {
+                unknown.pick(host: host)
                 return nil
             }
         
-        case    .replica(let metadata, let peerlist):
-            if  let replicated:MongoTopology.Replicated = .init(host: host,
+        case .master(let update, let peerlist)?:
+            var replicated:MongoTopology.Replicated = .init(from: unknown, name: peerlist.set)
+            if  replicated.update(host: host, with: update, peerlist: peerlist,
                     channel: channel,
-                    metadata: metadata,
-                    seedlist: &seedlist,
-                    peerlist: peerlist,
                     monitor: monitor)
             {
                 self = .replicated(replicated)
             }
             else
             {
+                unknown.pick(host: host)
                 return nil
             }
         
-        case    .replicaGhost:
+        case .slave(let update, let peerlist)?:
+            var replicated:MongoTopology.Replicated = .init(from: unknown, name: peerlist.set)
+            if  replicated.update(host: host, with: update, peerlist: peerlist,
+                    channel: channel,
+                    monitor: monitor)
+            {
+                self = .replicated(replicated)
+            }
+            else
+            {
+                unknown.pick(host: host)
+                return nil
+            }
+        
+        case nil:
             //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#topologytype-remains-unknown-when-an-rsghost-is-discovered
-            self = .unknown(seedlist)
+            self = .unknown(unknown)
         }
     }
     public mutating
@@ -141,7 +171,8 @@ extension MongoTopology
         }
     }
     public mutating
-    func update(host:MongoTopology.Host, channel:MongoChannel, metadata:MongoTopology.Server,
+    func update(host:MongoTopology.Host, with update:MongoTopology.Update?,
+        channel:MongoChannel,
         monitor:(MongoTopology.Host) -> ()) -> Bool
     {
         switch self
@@ -149,10 +180,10 @@ extension MongoTopology
         case .terminated:
             return false
         
-        case .unknown(var seeds):
-            if  let topology:Self = .init(host: host, channel: channel,
-                    metadata: metadata,
-                    seedlist: &seeds,
+        case .unknown(var unknown):
+            if  let topology:Self = .init(host: host, with: update,
+                    channel: channel,
+                    unknown: &unknown,
                     monitor: monitor)
             {
                 self = topology
@@ -160,7 +191,7 @@ extension MongoTopology
             }
             else
             {
-                self = .unknown(seeds)
+                self = .unknown(unknown)
                 return false
             }
         
@@ -170,9 +201,9 @@ extension MongoTopology
             {
                 self = .single(topology)
             }
-            if case .standalone(let metadata) = metadata
+            if case .standalone(let metadata)? = update
             {
-                return topology.update(host: host, channel: channel, metadata: metadata)
+                return topology.update(host: host, metadata: metadata, channel: channel)
             }
             else
             {
@@ -186,9 +217,9 @@ extension MongoTopology
             {
                 self = .sharded(topology)
             }
-            if case .router(let metadata) = metadata
+            if case .router(let metadata)? = update
             {
-                return topology.update(host: host, channel: channel, metadata: metadata)
+                return topology.update(host: host, metadata: metadata, channel: channel)
             }
             else
             {
@@ -202,16 +233,21 @@ extension MongoTopology
             {
                 self = .replicated(topology)
             }
-            switch metadata
+            switch update
             {
-            case    .replica(let metadata, let peerlist):
-                return topology.update(host: host, channel: channel, metadata: metadata,
-                    peerlist: peerlist,
+            case .master(let update, let peerlist)?:
+                return topology.update(host: host, with: update, peerlist: peerlist,
+                    channel: channel,
                     monitor: monitor)
             
-            case    .replicaGhost:
+            case .slave(let update, let peerlist)?:
+                return topology.update(host: host, with: update, peerlist: peerlist,
+                    channel: channel,
+                    monitor: monitor)
+            
+            case nil:
                 //  this is not the same as clearing the descriptor
-                return topology.update(host: host, channel: channel, metadata: ())
+                return topology.update(host: host, metadata: (), channel: channel)
             
             default:
                 // remove and stop monitoring
@@ -221,54 +257,54 @@ extension MongoTopology
     }
 }
 
-extension MongoTopology
-{
-    /// Returns a channel to a master server, if one is available, and
-    /// according to the current topology type.
-    ///
-    /// For ``case single(_:)`` topologies, this will return a channel
-    /// to the lone server, if available.
-    ///
-    /// For ``case sharded(_:)`` topologies, this will return any available
-    /// router.
-    ///
-    /// For ``case replicated(_:)`` topologies, this will return a channel
-    /// to the primary replica, if available.
-    ///
-    /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
-    public
-    var master:MongoChannel?
-    {
-        switch self
-        {
-        case .terminated, .unknown(_):  return nil
-        case .single(let topology):     return topology.master
-        case .sharded(let topology):    return topology.any
-        case .replicated(let topology): return topology.master
-        }
-    }
-    /// Returns a channel to any data-bearing server, if one is available,
-    /// and according to the current topology type.
-    ///
-    /// For ``case single(_:)`` topologies, this will return a channel
-    /// to the lone server, if available.
-    ///
-    /// For ``case sharded(_:)`` topologies, this will return any available
-    /// router.
-    ///
-    /// For ``case replicated(_:)`` topologies, this will return a channel
-    /// to any available primary or secondary replica.
-    ///
-    /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
-    public
-    var any:MongoChannel?
-    {
-        switch self
-        {
-        case .terminated, .unknown(_):  return nil
-        case .single(let topology):     return topology.master
-        case .sharded(let topology):    return topology.any
-        case .replicated(let topology): return topology.any
-        }
-    }
-}
+// extension MongoTopology
+// {
+//     /// Returns a channel to a master server, if one is available, and
+//     /// according to the current topology type.
+//     ///
+//     /// For ``case single(_:)`` topologies, this will return a channel
+//     /// to the lone server, if available.
+//     ///
+//     /// For ``case sharded(_:)`` topologies, this will return any available
+//     /// router.
+//     ///
+//     /// For ``case replicated(_:)`` topologies, this will return a channel
+//     /// to the primary replica, if available.
+//     ///
+//     /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
+//     public
+//     var master:MongoChannel?
+//     {
+//         switch self
+//         {
+//         case .terminated, .unknown(_):  return nil
+//         case .single(let topology):     return topology.master
+//         case .sharded(let topology):    return topology.any
+//         case .replicated(let topology): return topology.master
+//         }
+//     }
+//     /// Returns a channel to any data-bearing server, if one is available,
+//     /// and according to the current topology type.
+//     ///
+//     /// For ``case single(_:)`` topologies, this will return a channel
+//     /// to the lone server, if available.
+//     ///
+//     /// For ``case sharded(_:)`` topologies, this will return any available
+//     /// router.
+//     ///
+//     /// For ``case replicated(_:)`` topologies, this will return a channel
+//     /// to any available primary or secondary replica.
+//     ///
+//     /// For ``case unknown(_:)`` topologies, this will always return [`nil`]().
+//     public
+//     var any:MongoChannel?
+//     {
+//         switch self
+//         {
+//         case .terminated, .unknown(_):  return nil
+//         case .single(let topology):     return topology.master
+//         case .sharded(let topology):    return topology.any
+//         case .replicated(let topology): return topology.any
+//         }
+//     }
+// }

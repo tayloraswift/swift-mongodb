@@ -53,49 +53,49 @@ extension Main
                 }
             }
         }
-        await tests.test(with: DriverEnvironment.init(
-            name: "replica-set-cluster-times",
-            credentials: nil,
-            executor: executor))
-        {
-            (tests:inout Tests, driver:Mongo.DriverBootstrap) in
+        // await tests.test(with: DriverEnvironment.init(
+        //     name: "replica-set-cluster-times",
+        //     credentials: nil,
+        //     executor: executor))
+        // {
+        //     (tests:inout Tests, driver:Mongo.DriverBootstrap) in
 
-            try await driver.withSessionPool(seedlist: .init(replicas))
-            {
-                try await $0.withMutableSession(timeout: .seconds(5))
-                {
-                    // should be `nil` here, but eventually we want to get
-                    // `$clusterTime` from Hellos too
-                    // print($0.monitor.clusterTime)
+        //     try await driver.withSessionPool(seedlist: .init(replicas))
+        //     {
+        //         try await $0.withMutableSession(timeout: .seconds(5))
+        //         {
+        //             // should be `nil` here, but eventually we want to get
+        //             // `$clusterTime` from Hellos too
+        //             // print($0.monitor.clusterTime)
 
-                    let _:Mongo.ReplicaSetConfiguration = try await $0.run(
-                        command: Mongo.ReplicaSetGetConfiguration.init())
+        //             let _:Mongo.ReplicaSetConfiguration = try await $0.run(
+        //                 command: Mongo.ReplicaSetGetConfiguration.init())
                     
-                    let original:Mongo.ClusterTime? = tests.unwrap($0.monitor.clusterTime,
-                        name: "first")
+        //             let original:Mongo.ClusterTime? = tests.unwrap($0.monitor.clusterTime,
+        //                 name: "first")
 
-                    //  mongod only updates its timestamps on write, or every 10s.
-                    //  we don’t have any commands in this module that write, so we
-                    //  just have to wait 10s...
+        //             //  mongod only updates its timestamps on write, or every 10s.
+        //             //  we don’t have any commands in this module that write, so we
+        //             //  just have to wait 10s...
 
-                    //  TODO: figure out a way to perturb the cluster time without
-                    //  waiting 10s
-                    try await Task.sleep(for: .milliseconds(10000))
+        //             //  TODO: figure out a way to perturb the cluster time without
+        //             //  waiting 10s
+        //             try await Task.sleep(for: .milliseconds(10000))
 
-                    let _:Mongo.ReplicaSetConfiguration = try await $0.run(
-                        command: Mongo.ReplicaSetGetConfiguration.init())
+        //             let _:Mongo.ReplicaSetConfiguration = try await $0.run(
+        //                 command: Mongo.ReplicaSetGetConfiguration.init())
                     
-                    if  let updated:Mongo.ClusterTime = tests.unwrap($0.monitor.clusterTime,
-                            name: "second"),
-                        let original:Mongo.ClusterTime
-                    {
-                        tests.assert(original.max != updated.max,
-                            name: "updated")
-                    }
+        //             if  let updated:Mongo.ClusterTime = tests.unwrap($0.monitor.clusterTime,
+        //                     name: "second"),
+        //                 let original:Mongo.ClusterTime
+        //             {
+        //                 tests.assert(original.max != updated.max,
+        //                     name: "updated")
+        //             }
                         
-                }
-            }
-        }
+        //         }
+        //     }
+        // }
     }
     static
     func run(tests:inout Tests, single:MongoTopology.Host,
@@ -227,7 +227,7 @@ extension Main
 
             await tests.test(name: "errors-equal",
                 expecting: Mongo.SessionMediumError.init(
-                    selector: .master, 
+                    selector: .any, 
                     errored:
                     [
                         single: Mongo.AuthenticationError.init(
@@ -256,7 +256,7 @@ extension Main
 
             await tests.test(name: "errors-equal",
                 expecting: Mongo.SessionMediumError.init(
-                    selector: .master, 
+                    selector: .any, 
                     errored:
                     [
                         single: Mongo.AuthenticationError.init(

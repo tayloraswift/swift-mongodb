@@ -26,13 +26,15 @@ extension Mongo
         var ttl:Minutes?
 
         /// The current largest-seen cluster time.
-        private nonisolated
-        let _clusterTime:UnsafeAtomic<Unmanaged<ClusterTime>?>
+        // private nonisolated
+        // let _clusterTime:UnsafeAtomic<Unmanaged<ClusterTime>?>
+        public
+        var _clusterTime:Mongo.ClusterTime?
         /// A clock used to mediate request timeouts. Has nothing to do with cluster times.
         private nonisolated
         let clock:ContinuousClock
 
-        init(bootstrap:DriverBootstrap) 
+        init(bootstrap:DriverBootstrap)
         {
             self.bootstrap = bootstrap
 
@@ -41,13 +43,14 @@ extension Mongo
             self.tasks = .init()
             self.ttl = nil
 
-            self._clusterTime = .create(nil)
+            //self._clusterTime = .create(nil)
+            self._clusterTime = nil
             self.clock = .init()
         }
 
         deinit
         {
-            let _:ClusterTime? = self._clusterTime.destroy()?.takeRetainedValue()
+            // let _:ClusterTime? = self._clusterTime.destroy()?.takeRetainedValue()
 
             guard self.awaiting.isEmpty
             else
@@ -60,51 +63,51 @@ extension Mongo
 extension Mongo.Monitor
 {
     // TODO: we don’t need to traffic the allocated object outside of this setter
-    nonisolated public
-    var clusterTime:Mongo.ClusterTime?
-    {
-        get
-        {
-            self._clusterTime.load(ordering: .relaxed)?.takeUnretainedValue()
-        }
-        set(value)
-        {
-            guard let value:Mongo.ClusterTime
-            else
-            {
-                return
-            }
+    // nonisolated public
+    // var clusterTime:Mongo.ClusterTime?
+    // {
+    //     get
+    //     {
+    //         self._clusterTime.load(ordering: .relaxed)?.takeUnretainedValue()
+    //     }
+    //     set(value)
+    //     {
+    //         guard let value:Mongo.ClusterTime
+    //         else
+    //         {
+    //             return
+    //         }
 
-            let owned:Unmanaged<Mongo.ClusterTime> = .passRetained(value)
-            var shared:Unmanaged<Mongo.ClusterTime>? = self._clusterTime.load(
-                ordering: .relaxed)
+    //         let owned:Unmanaged<Mongo.ClusterTime> = .passRetained(value)
+    //         var shared:Unmanaged<Mongo.ClusterTime>? = self._clusterTime.load(
+    //             ordering: .relaxed)
             
-            while true
-            {
-                if  let old:Mongo.ClusterTime = shared?.takeUnretainedValue(),
-                        old.max.timestamp >= value.max.timestamp
-                {
-                    owned.release()
-                    return
-                }
+    //         while true
+    //         {
+    //             if  let old:Mongo.ClusterTime = shared?.takeUnretainedValue(),
+    //                     old.max.timestamp >= value.max.timestamp
+    //             {
+    //                 owned.release()
+    //                 return
+    //             }
 
-                switch self._clusterTime.weakCompareExchange(expected: shared, desired: owned,
-                    successOrdering: .acquiringAndReleasing,
-                    failureOrdering: .acquiring)
-                {
-                case (exchanged: false, let current):
-                    shared = current
+    //             switch self._clusterTime.weakCompareExchange(expected: shared, desired: owned,
+    //                 successOrdering: .acquiringAndReleasing,
+    //                 failureOrdering: .acquiring)
+    //             {
+    //             case (exchanged: false, let current):
+    //                 shared = current
                 
-                case (exchanged: true, let owned?):
-                    owned.release()
-                    return
+    //             case (exchanged: true, let owned?):
+    //                 owned.release()
+    //                 return
                 
-                case (exchanged: true, nil):
-                    return
-                }
-            }
-        }
-    }
+    //             case (exchanged: true, nil):
+    //                 return
+    //             }
+    //         }
+    //     }
+    // }
 }
 extension Mongo.Monitor
 {
@@ -154,34 +157,35 @@ extension Mongo.Monitor
     }
     private
     func update(host:MongoTopology.Host, channel:MongoChannel,
-        metadata:Mongo.ServerMetadata) -> Bool
+        metadata:MongoTopology.ServerMetadata,
+        ttl:Minutes) -> Bool
     {
         let admitted:Bool = self.topology.update(host: host, channel: channel,
-            metadata: metadata.type)
+            metadata: metadata)
         { 
             let _:Task<Void, Never>? = self.monitor($0) 
         }
         if  admitted
         {
             // update session timeout
-            let ttl:Minutes = min(self.ttl ?? metadata.ttl, metadata.ttl)
+            let ttl:Minutes = min(self.ttl ?? ttl, ttl)
             self.ttl = ttl
             // succeed any tasks awaiting connections
-            if      let channel:MongoChannel = self.topology.master
+            if      let channel:MongoChannel = self.topology[.primary]
             {
                 self.awaiting.fulfill(with: .init(channel: channel, ttl: ttl))
                 {
                     _ in true
                 }
             }
-            else if let channel:MongoChannel = self.topology.any
+            else if let channel:MongoChannel = self.topology[.nearest]
             {
                 self.awaiting.fulfill(with: .init(channel: channel, ttl: ttl))
                 {
                     switch $0
                     {
-                    case .any:      return true
-                    case .master:   return false
+                    case .nearest:      return true
+                    case .primary:   return false
                     }
                 }
             }
@@ -250,7 +254,8 @@ extension Mongo.Monitor
             credentials: self.bootstrap.credentials,
             appname: self.bootstrap.appname)
         
-        guard self.update(host: host, channel: channel, metadata: initial.metadata)
+        guard self.update(host: host, channel: channel, metadata: initial.metadata,
+            ttl: initial.logicalSessionTimeoutMinutes)
         else
         {
             return
@@ -265,7 +270,8 @@ extension Mongo.Monitor
                 throw MongoChannel.TokenError.init(recorded: initial.token,
                     invalid: updated.token)
             }
-            guard self.update(host: host, channel: channel, metadata: updated.metadata)
+            guard self.update(host: host, channel: channel, metadata: updated.metadata,
+                ttl: updated.logicalSessionTimeoutMinutes)
             else
             {
                 break
@@ -292,7 +298,8 @@ extension Mongo.Monitor
     /// longer in use if it believes the server has not yet released the
     /// session descriptor on its end, to minimize the number of active server
     /// sessions at a given time.
-    func medium(_ selector:Mongo.SessionMediumSelector,
+    @usableFromInline
+    func _medium(_ selector:Mongo.SessionMediumSelector,
         timeout:Duration) async throws -> Mongo.SessionMedium
     {
         if  let channel:MongoChannel = self.topology[selector],
@@ -365,11 +372,11 @@ extension Mongo.Monitor
             return nil
         
         case .single(let topology):
-            return try await topology.master?.run(endSessions: command)
+            return try await topology.channel?.run(endSessions: command)
         
         case .sharded(let topology):
             //  ``EndSessions`` can be sent to any `mongos`.
-            return try await topology.any?.run(endSessions: command)
+            return try await topology.nearest?.run(endSessions: command)
         
         case .replicated(let topology):
             //  ``EndSessions`` should be sent to the primary if available,
@@ -377,7 +384,7 @@ extension Mongo.Monitor
             //  the spec says we should send the command *once*, and ignore
             //  all errors, so we will not retry the command on a secondary
             //  if it failed on the primary.
-            return try await (topology.master ?? topology.any)?.run(endSessions: command)
+            return try await topology[.primaryPreferred]?.run(endSessions: command)
         }
     }
 }

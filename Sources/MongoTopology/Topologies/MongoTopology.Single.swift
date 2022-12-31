@@ -1,4 +1,5 @@
 import MongoChannel
+import MongoConnection
 
 extension MongoTopology
 {
@@ -8,13 +9,12 @@ extension MongoTopology
         private
         let host:Host
         private
-        var state:MongoChannel.State<Standalone>
+        var state:MongoConnection<Standalone>.State
 
-        private
         init(host:Host, channel:MongoChannel, metadata:Standalone)
         {
             self.host = host
-            self.state = .connected(channel, metadata: metadata)
+            self.state = .connected(.init(metadata: metadata, channel: channel))
         }
     }
 }
@@ -22,48 +22,65 @@ extension MongoTopology.Single
 {
     func terminate()
     {
-        self.state.channel?.heart.stop()
+        self.state.connection?.channel.heart.stop()
     }
-    func errors() -> [MongoTopology.Host: any Error]
+    // func errors() -> [MongoTopology.Host: any Error]
+    // {
+    //     self.state.error.map { [self.host: $0] } ?? [:]
+    // }
+}
+extension MongoTopology.Single
+{
+    var servers:MongoTopology.Servers
     {
-        self.state.error.map { [self.host: $0] } ?? [:]
+        switch self.state
+        {
+        case .connected(let connection):
+            return .single(.init(connection: connection, host: self.host))
+        
+        case .errored(let error):
+            return .none([.init(reason: .errored(error), host: self.host)])
+        
+        case .queued:
+            return .none([.init(reason: .queued, host: self.host)])
+        }
     }
 }
 extension MongoTopology.Single
 {
-    init?(host:MongoTopology.Host, channel:MongoChannel,
-        metadata:MongoTopology.Standalone,
-        seedlist:inout MongoTopology.Unknown)
-    {
-        // https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#updateunknownwithstandalone
-        if seedlist.pick(host: host)
-        {
-            self.init(host: host, channel: channel, metadata: metadata)
-        }
-        else
-        {
-            return nil
-        }
-    }
     mutating
     func clear(host:MongoTopology.Host, status:(any Error)?) -> Bool
     {
-        self.host != host ? false :
-        self.state.clear(status: status)
+        if self.host == host
+        {
+            self.state.clear(status: status)
+            return true
+        }
+        else
+        {
+            return false
+        }
     }
     mutating
-    func update(host:MongoTopology.Host, channel:MongoChannel,
-        metadata:MongoTopology.Standalone) -> Bool
+    func update(host:MongoTopology.Host, metadata:MongoTopology.Standalone,
+        channel:MongoChannel) -> Bool
     {
-        self.host != host ? false :
-        self.state.update(channel: channel, metadata: metadata)
+        if self.host == host
+        {
+            self.state.update(with: .init(metadata: metadata, channel: channel))
+            return true
+        }
+        else
+        {
+            return false
+        }
     }
 }
-extension MongoTopology.Single
-{
-    public
-    var master:MongoChannel?
-    {
-        self.state.channel
-    }
-}
+// extension MongoTopology.Single
+// {
+//     public
+//     var channel:MongoChannel?
+//     {
+//         self.state.channel
+//     }
+// }

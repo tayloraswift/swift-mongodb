@@ -1,4 +1,5 @@
 import MongoChannel
+import MongoConnection
 
 extension MongoTopology
 {
@@ -6,40 +7,45 @@ extension MongoTopology
     struct Unknown
     {
         private
-        var seeds:[Host: MongoChannel.State<Never>]
+        var ghosts:[Host: Unreachable]
 
-        init(seeds:[Host: MongoChannel.State<Never>] = [:])
+        init(ghosts:[Host: Unreachable] = [:])
         {
-            self.seeds = seeds
+            self.ghosts = ghosts
         }
     }
 }
 extension MongoTopology.Unknown
 {
+    /// Adds a *g* to every host in the given list of hosts.
     public
     init(hosts:Set<MongoTopology.Host>)
     {
-        self.init(seeds: .init(uniqueKeysWithValues: hosts.map { ($0, .queued) }))
+        self.init(ghosts: .init(uniqueKeysWithValues: hosts.map { ($0, .queued) }))
     }
 }
 extension MongoTopology.Unknown
 {
-    func errors() -> [MongoTopology.Host: any Error]
+    var servers:[MongoTopology.Rejection<MongoTopology.Unreachable>]
     {
-        self.seeds.compactMapValues(\.error)
+        self.ghosts.map { .init(reason: $0.value, host: $0.key) }
     }
+    // func errors() -> [MongoTopology.Host: any Error]
+    // {
+    //     self.seeds.compactMapValues(\.error)
+    // }
 }
 extension MongoTopology.Unknown
 {
     mutating
     func clear(host:MongoTopology.Host, status:(any Error)?) -> Bool
     {
-        self.seeds[host]?.clear(status: status) ?? false
+        self.ghosts[host]?.clear(status: status) ?? false
     }
     func topology<Metadata>(
-        of _:Metadata.Type) -> [MongoTopology.Host: MongoChannel.State<Metadata>]
+        of _:Metadata.Type) -> [MongoTopology.Host: MongoConnection<Metadata>.State]
     {
-        self.seeds.mapValues
+        self.ghosts.mapValues
         {
             switch $0
             {
@@ -50,13 +56,13 @@ extension MongoTopology.Unknown
             }
         }
     }
-    /// Removes the given host from the seedlist if present, returning [`true`]()
-    /// if it was the only seed in the seedlist. Returns [`false`]() otherwise.
+    /// Removes the given host from the topology if present, returning [`true`]()
+    /// if it was the only ghost in the topology. Returns [`false`]() otherwise.
     @discardableResult
     mutating
     func pick(host:MongoTopology.Host) -> Bool
     {
-        if case _? = self.seeds.removeValue(forKey: host), self.seeds.isEmpty
+        if case _? = self.ghosts.removeValue(forKey: host), self.ghosts.isEmpty
         {
             return true
         }

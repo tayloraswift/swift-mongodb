@@ -9,19 +9,43 @@ enum Main:AsyncTests
     static
     func run(tests:inout Tests) async
     {
-        let host:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
+        let single:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
+        let replicas:Set<MongoTopology.Host> =
+        [
+            .init(name: "mongo-1", port: 27017),
+            .init(name: "mongo-2", port: 27017),
+            .init(name: "mongo-3", port: 27017),
+        ]
+
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        let bootstrap:Mongo.DriverBootstrap = .init(
-            credentials: .init(authentication: .sasl(.sha256),
-                username: "root",
-                password: "80085"),
-            executor: executor,
-            timeout: .seconds(10))
+        print("running tests for single topology (host: \(single))")
+        await self.run(tests: &tests, bootstrap: .init(
+                credentials: .init(authentication: .sasl(.sha256),
+                    username: "root",
+                    password: "80085"),
+                executor: executor,
+                timeout: .seconds(10)),
+            hosts: [single],
+            on: executor)
         
+        print("running tests for replicated topology (hosts: \(replicas))")
+        await self.run(tests: &tests, bootstrap: .init(
+                credentials: nil,
+                executor: executor,
+                timeout: .seconds(10)),
+            hosts: replicas,
+            on: executor)
+    }
+    static
+    func run(tests:inout Tests,
+        bootstrap:Mongo.DriverBootstrap,
+        hosts:Set<MongoTopology.Host>,
+        on executor:MultiThreadedEventLoopGroup) async
+    {
         await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
             database: "databases",
-            host: host))
+            hosts: hosts))
         {
             (tests:inout Tests, context:DatabaseEnvironment.Context) in
 
@@ -53,7 +77,7 @@ enum Main:AsyncTests
         
         await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
             database: "collection-insert",
-            host: host))
+            hosts: hosts))
         {
             (tests:inout Tests, context:DatabaseEnvironment.Context) in
 
@@ -148,7 +172,7 @@ enum Main:AsyncTests
         
         await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
             database: "collection-find",
-            host: host))
+            hosts: hosts))
         {
             (tests:inout Tests, context:DatabaseEnvironment.Context) in
 
@@ -269,9 +293,7 @@ enum Main:AsyncTests
                 pool: context.pool))
             {
                 (tests:inout Tests, session:Mongo.MutableSession) in
-                // the ``Mongo.Stream`` will live until the end of its lexical block.
-                // so we need to scope it in a `do` block to force stream deinitialization
-                // on iterator interruption.
+
                 let cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)? =
                     try await session.run(
                         query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),

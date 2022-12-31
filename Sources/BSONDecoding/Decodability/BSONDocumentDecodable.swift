@@ -28,7 +28,7 @@ extension BSON.Fields:BSONDocumentDecodable
     ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
     ///     where *n* is the encoded size of the document.
     @inlinable public
-    init(bson:BSON.Document<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.Document<some RandomAccessCollection<UInt8>>)
     {
         switch bson
         {

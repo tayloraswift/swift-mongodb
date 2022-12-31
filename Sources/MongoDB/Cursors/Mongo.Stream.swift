@@ -101,13 +101,15 @@ extension Mongo.MutableSession
 {
     @inlinable public
     func run<Query, Success>(query:Query, against database:Mongo.Database,
+        on preference:Mongo.SessionMediumSelector = .master,
         with consumer:(Mongo.Stream<Query.Element>) async throws -> Success)
         async throws -> Success
         where Query:MongoStreamableCommand
     {
         let stream:Mongo.Stream<Query.Element> = .init(session: self,
             initial: try await self.run(command: query,
-                against: database),
+                against: database,
+                on: preference),
             timeout: query.timeout,
             stride: query.stride)
         let result:Result<Success, any Error>

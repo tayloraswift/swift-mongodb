@@ -45,10 +45,10 @@ extension Mongo.SessionPool
     func withMutableSession<Success>(timeout:Duration = .seconds(10),
         _ body:(Mongo.MutableSession) async throws -> Success) async throws -> Success
     {
-        try await self.with(Mongo.MutableSession.self, timeout: timeout, body)
+        try await self.with(Mongo.MutableSession.self, connectionTimeout: timeout, body)
     }
     nonisolated
-    func with<Session, Success>(_:Session.Type, timeout:Duration,
+    func with<Session, Success>(_:Session.Type, connectionTimeout:Duration,
         _ body:(Session) async throws -> Success) async throws -> Success
         where Session:_MongoConcurrencyDomain
     {
@@ -56,15 +56,16 @@ extension Mongo.SessionPool
         //  to avoid generating excessive sessions if a medium is temporarily unavailable
         //  rationale:
         //  https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-must-drivers-wait-to-consume-a-server-session-until-after-a-connection-is-checked-out
-        let medium:Mongo.SessionMedium = try await self.monitor.medium(Session.medium,
-            timeout: timeout)
+        //  TODO: above only applies for IMPLICIT sessions
+        let _medium:Mongo.SessionMedium = try await self.monitor._medium(.any,
+            timeout: connectionTimeout)
         
         let (id, initial):(Mongo.SessionIdentifier, Mongo.SessionMetadata) =
-            await self.checkout(ttl: medium.ttl)
+            await self.checkout(ttl: _medium.ttl)
 
         let session:Session = .init(monitor: self.monitor,
+            connectionTimeout: connectionTimeout,
             metadata: initial,
-            medium: medium,
             id: id)
         do
         {
