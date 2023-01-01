@@ -18,3 +18,11 @@ struct MongoConnection<Metadata>
 extension MongoConnection:Sendable where Metadata:Sendable
 {
 }
+extension MongoConnection
+{
+    @inlinable public
+    func map<T>(_ transform:(Metadata) throws -> T) rethrows -> MongoConnection<T>
+    {
+        .init(metadata: try transform(self.metadata), channel: self.channel)
+    }
+}

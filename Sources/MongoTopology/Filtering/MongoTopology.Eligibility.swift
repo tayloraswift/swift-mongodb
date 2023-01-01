@@ -3,72 +3,51 @@ import MongoChannel
 
 extension MongoTopology
 {
+    public
     struct Eligibility
     {
-        let staleness:Staleness?
+        public
+        let maxStaleness:Milliseconds?
+        public
         let tagSets:[TagSet]?
 
-        init(staleness:Staleness?, tagSets:[TagSet]?)
+        @inlinable public
+        init()
         {
-            self.staleness = staleness
-            // normalize empty list to `nil`, to simplify filtering algorithm
+            self.maxStaleness = nil
+            self.tagSets = nil
+        }
+
+        public
+        init(maxStaleness:Seconds?, tagSets:[TagSet]?)
+        {
+            // normalize, to simplify filtering algorithm
+            self.maxStaleness = maxStaleness.flatMap { $0 < 0 ? nil : $0.milliseconds }
             self.tagSets = tagSets.flatMap { $0.isEmpty ? nil : $0 }
         }
     }
 }
 extension MongoTopology.Eligibility
 {
-    init(replicas:__shared MongoTopology.Replicas,
-        heartbeatFrequency:Milliseconds,
-        maxStaleness:Seconds?,
-        tagSets:[MongoTopology.TagSet]?)
+    func diagnose(unsuitable candidates:[MongoTopology.Server<MongoTopology.Candidate>])
+        -> [MongoTopology.Rejection<MongoTopology.Unsuitable>]
     {
-        self.init(staleness: maxStaleness.flatMap
-            {
-                .init(replicas: replicas,
-                    heartbeatFrequency: heartbeatFrequency,
-                    maxStaleness: $0)
-            },
-            tagSets: tagSets)
-    }
-}
-extension MongoTopology.Eligibility
-{
-    func select(among candidates:[MongoTopology.Server<MongoTopology.Replica>],
-        else fallback:MongoChannel? = nil)
-        -> Result<MongoChannel, MongoTopology.EligibilityError>
-    {
-        var candidates:[MongoTopology.Server<MongoTopology.Replica>] = candidates
-        var unsuitable:[MongoTopology.Rejection<MongoTopology.Unsuitable>] =
-            self.staleness?.filter(candidates: &candidates) ?? []
-
-        if  let tagSets:[MongoTopology.TagSet] = self.tagSets
+        if let maxStaleness:Milliseconds = self.maxStaleness
         {
-            for tagSet:MongoTopology.TagSet in tagSets
+            return candidates.compactMap
             {
-                for candidate:MongoTopology.Server<MongoTopology.Replica> in candidates
-                    where tagSet ~= candidate.connection.metadata.tags
-                {
-                    return .success(candidate.connection.channel)
-                }
-            }
-
-            // no candidates matched!
-            if  let fallback:MongoChannel
-            {
-                return .success(fallback)
-            }
-            for candidate:MongoTopology.Server<MongoTopology.Replica> in candidates
-            {
-                unsuitable.append(.init(reason: .tags(candidate.connection.metadata.tags),
-                    host: candidate.host))
+                .init(reason: $0.connection.metadata.staleness > maxStaleness ?
+                        .stale($0.connection.metadata.staleness) :
+                        .tags($0.connection.metadata.tags),
+                    host: $0.host)
             }
         }
-        else if let channel:MongoChannel = candidates.first?.connection.channel ?? fallback
+        else
         {
-            return .success(channel)
+            return candidates.map
+            {
+                .init(reason: .tags($0.connection.metadata.tags), host: $0.host)
+            }
         }
-
-        return .failure(.init(unsuitable: unsuitable))
     }
 }

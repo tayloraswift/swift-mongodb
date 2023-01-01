@@ -32,15 +32,9 @@ extension MongoTopology
 }
 extension MongoTopology.Replicated
 {
-    var servers:MongoTopology.Replicas
+    var servers:MongoTopology.Members
     {
-        var servers:MongoTopology.Replicas = .init()
-        for (host, member):(MongoTopology.Host, MongoConnection<MongoTopology.Member?>.State)
-            in self.members
-        {
-            servers.append(member: member, host: host)
-        }
-        return servers
+        .init(members: self.members)
     }
 }
 extension MongoTopology.Replicated
@@ -98,7 +92,7 @@ extension MongoTopology.Replicated
         }
     }
     mutating
-    func update(host:MongoTopology.Host, with update:MongoTopology.Slave,
+    func update(host:MongoTopology.Host, as slave:MongoTopology.Slave,
         peerlist:MongoTopology.Peerlist,
         channel:MongoChannel,
         monitor:(MongoTopology.Host) -> ()) -> Bool
@@ -127,7 +121,7 @@ extension MongoTopology.Replicated
         }
 
         guard case ()? = self.members[host]?.update(with: .init(
-                metadata: update.metadata,
+                metadata: slave.metadata,
                 channel: channel))
         else
         {
@@ -142,7 +136,7 @@ extension MongoTopology.Replicated
         return true
     }
     mutating
-    func update(host:MongoTopology.Host, with update:MongoTopology.Master,
+    func update(host:MongoTopology.Host, as master:MongoTopology.Master,
         peerlist:MongoTopology.Peerlist,
         channel:MongoChannel,
         monitor:(MongoTopology.Host) -> ()) -> Bool
@@ -153,14 +147,14 @@ extension MongoTopology.Replicated
             // not part of this replica set
             return self.remove(host: host)
         }
-        if let regime:MongoTopology.Regime = self.regime, update.regime < regime
+        if let regime:MongoTopology.Regime = self.regime, master.regime < regime
         {
             // stale primary
             return self.clear(host: host, status: nil)
         }
 
         guard case ()? = self.members[host]?.update(with: .init(
-                metadata: update.metadata,
+                metadata: master.metadata,
                 channel: channel))
         else
         {
@@ -173,7 +167,7 @@ extension MongoTopology.Replicated
             self.crown(primary: host)
         }
 
-        self.regime = update.regime
+        self.regime = master.regime
 
         var discovered:Set<MongoTopology.Host> = peerlist.peers()
         for old:MongoTopology.Host in self.members.keys

@@ -24,7 +24,7 @@ extension MongoTopology
 }
 extension MongoTopology.Timings
 {
-    func lag(behind freshest:MongoTopology.Replicas.Freshest) -> Milliseconds
+    func lag(behind freshest:MongoTopology.Members.Freshest) -> Milliseconds
     {
         //  https://github.com/mongodb/specifications/blob/master/source/max-staleness/max-staleness.rst#client
         switch freshest

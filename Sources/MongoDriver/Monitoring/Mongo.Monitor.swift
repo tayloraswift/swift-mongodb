@@ -156,9 +156,7 @@ extension Mongo.Monitor
         self.topology.clear(host: host, status: status)
     }
     private
-    func update(host:MongoTopology.Host, channel:MongoChannel,
-        metadata:MongoTopology.ServerMetadata,
-        ttl:Minutes) -> Bool
+    func update(host:MongoTopology.Host, with update:MongoTopology.Update) -> Bool
     {
         let admitted:Bool = self.topology.update(host: host, channel: channel,
             metadata: metadata)

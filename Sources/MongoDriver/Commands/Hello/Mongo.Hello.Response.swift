@@ -7,6 +7,19 @@ import MongoWire
 
 extension Mongo.Hello
 {
+    enum ServerDescription
+    {
+        case standalone
+        case router
+        case primary    (MongoTopology.Peerlist, timings:MongoTopology.Timings, tags:[String: String], regime:MongoTopology.Regime)
+        case secondary  (MongoTopology.Peerlist, timings:MongoTopology.Timings, tags:[String: String])
+        case arbiter    (MongoTopology.Peerlist)
+        case other      (MongoTopology.Peerlist)
+        case ghost
+    }
+}
+extension Mongo.Hello
+{
     //@frozen public
     struct Response
     {
@@ -56,12 +69,11 @@ extension Mongo.Hello
         let saslSupportedMechs:Set<Mongo.Authentication.SASL>?
 
         /// Type-specific metadata about the server.
-        let metadata:MongoTopology.ServerMetadata
+        let type:ServerDescription?
     }
 }
-extension Mongo.Hello.Response:BSONDictionaryDecodable
+extension Mongo.Hello.Response
 {
-    public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {
         //self.isWritablePrimary = try bson["isWritablePrimary"].decode(to: Bool.self)
@@ -95,12 +107,12 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
         self.saslSupportedMechs = try bson["saslSupportedMechs"]?.decode(
             to: Set<Mongo.Authentication.SASL>.self)
 
-        if let set:String = try bson["setName"]?.decode(to: String.self)
+        if  let set:String = try bson["setName"]?.decode(to: String.self)
         {
-            let tags:[String: String] = try bson["tags"]?.decode(
-                to: [String: String].self) ?? [:]
+            let tags:[String: String]? = try bson["tags"]?.decode(
+                to: [String: String].self)
             
-            let peerlist:MongoTopology.Peerlist = .init(
+            let peerlist:MongoTopology.Peerlist = .init(set: set,
                 primary: try bson["primary"]?.decode(to: MongoTopology.Host.self),
                 arbiters: try bson["arbiters"]?.decode(to: [MongoTopology.Host].self) ?? [],
                 passives: try bson["passives"]?.decode(to: [MongoTopology.Host].self) ?? [],
@@ -110,46 +122,42 @@ extension Mongo.Hello.Response:BSONDictionaryDecodable
             if      case true? =
                     try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
             {
-                self.metadata = .replica(.primary(.init(
-                        timings: try bson["lastWrite"].decode(to: MongoTopology.Timings.self),
-                        regime: .init(
-                            election: try bson["electionId"].decode(to: BSON.Identifier.self),
-                            version: try bson["setVersion"].decode(to: Int64.self)),
-                        tags: tags,
-                        set: set)),
-                    peerlist)
+                self.type = .primary(peerlist,
+                    timings: try bson["lastWrite"].decode(to: MongoTopology.Timings.self),
+                    tags: tags ?? [:],
+                    regime: .init(
+                        election: try bson["electionId"].decode(to: BSON.Identifier.self),
+                        version: try bson["setVersion"].decode(to: Int64.self)))
             }
             else if case true? = try bson["secondary"]?.decode(to: Bool.self)
             {
                 //  optional if nothing has propogated to this secondary yet
-                self.metadata = .replica(.secondary(.init(
+                self.type = .secondary(peerlist,
                         timings: try bson["lastWrite"]?.decode(to: MongoTopology.Timings.self),
-                        tags: tags,
-                        set: set)),
-                    peerlist)
+                        tags: tags ?? [:])
             }
             else if case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
             {
-                self.metadata = .replica(.arbiter(.init(tags: tags, set: set)), peerlist)
+                self.type = .arbiter(peerlist)
             }
             else
             {
-                self.metadata = .replica(.other(.init(tags: tags, set: set)), peerlist)
+                self.type = .other(peerlist)
             }
         }
         else
         {
             if      case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
             {
-                self.metadata = .replicaGhost
+                self.type = .ghost
             }
             else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
             {
-                self.metadata = .router(.init())
+                self.type = .router
             }
             else
             {
-                self.metadata = .standalone(.init())
+                self.type = .standalone
             }
         }
     }

@@ -1,38 +1,40 @@
+import Durations
+
 extension MongoTopology
 {
     public
     struct Peerlist:Sendable
     {
-        /// The name of the current replica set.
+        /// The name of the relevant replica set.
         /// This is called `setName` in the server reply.
         public
         let set:String
 
         /// The current
         /// [primary](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary)
-        /// member of the replica set.
+        /// member of the relevant replica set.
         public
         let primary:Host?
 
-        /// The list of all members of the replica set that are
+        /// The list of all members of the relevant replica set that are
         /// [arbiters](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-arbiter).
         public
         let arbiters:[Host]
 
-        /// The list of all members of the replica set which have a
+        /// The list of all members of the relevant replica set which have a
         /// [priority](https://www.mongodb.com/docs/manual/reference/replica-configuration/#mongodb-rsconf-rsconf.members-n-.priority)
         /// of 0.
         public
         let passives:[Host]
 
-        /// The list of all members of the replica set that are neither
+        /// The list of all members of the relevant replica set that are neither
         /// [hidden](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-hidden-member),
         /// [passive](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-passive-member),
         /// nor [arbiters](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-arbiter).
         public
         let hosts:[Host]
 
-        /// The member of the replica set that returned this response.
+        /// The member of the relevant replica set that returned this response.
         public
         let me:Host?
 

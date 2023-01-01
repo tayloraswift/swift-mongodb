@@ -1,11 +1,23 @@
+import MongoChannel
+
 extension MongoTopology
 {
-    @frozen public
-    enum Update:Sendable
+    public
+    struct Update:Sendable
     {
-        case standalone(Standalone)
-        case router(Router)
-        case master(Master, Peerlist)
-        case slave(Slave, Peerlist)
+        public
+        let parameters:DeploymentParameters
+        public
+        let channel:MongoChannel
+        public
+        let variant:Variant?
+
+        @inlinable public
+        init(parameters:DeploymentParameters, channel:MongoChannel, variant:Variant)
+        {
+            self.parameters = parameters
+            self.channel = channel
+            self.variant = variant
+        }
     }
 }

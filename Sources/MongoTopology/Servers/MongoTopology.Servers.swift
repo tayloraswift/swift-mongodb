@@ -10,6 +10,6 @@ extension MongoTopology
         case none([Rejection<Unreachable>])
         case single(Server<Standalone>)
         case sharded(Routers)
-        case replicated(Replicas)
+        case replicated(Members)
     }
 }

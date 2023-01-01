@@ -66,18 +66,17 @@ extension MongoTopology
 extension MongoTopology
 {
     private
-    init?(host:MongoTopology.Host, with update:MongoTopology.Update?,
-        channel:MongoChannel,
+    init?(host:MongoTopology.Host, with update:MongoTopology.Update,
         unknown:inout MongoTopology.Unknown,
         monitor:(MongoTopology.Host) -> ())
     {
-        switch update
+        switch update.variant
         {
         case .standalone(let metadata)?:
             //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#updateunknownwithstandalone
             if  unknown.pick(host: host)
             {
-                self = .single(.init(host: host, channel: channel, metadata: metadata))
+                self = .single(.init(host: host, channel: update.channel, metadata: metadata))
             }
             else
             {
@@ -86,7 +85,7 @@ extension MongoTopology
         
         case .router(let metadata)?:
             var sharded:MongoTopology.Sharded = .init(from: unknown)
-            if  sharded.update(host: host, metadata: metadata, channel: channel)
+            if  sharded.update(host: host, metadata: metadata, channel: update.channel)
             {
                 self = .sharded(sharded)
             }
@@ -96,10 +95,10 @@ extension MongoTopology
                 return nil
             }
         
-        case .master(let update, let peerlist)?:
+        case .master(let master, let peerlist)?:
             var replicated:MongoTopology.Replicated = .init(from: unknown, name: peerlist.set)
-            if  replicated.update(host: host, with: update, peerlist: peerlist,
-                    channel: channel,
+            if  replicated.update(host: host, as: master, peerlist: peerlist,
+                    channel: update.channel,
                     monitor: monitor)
             {
                 self = .replicated(replicated)
@@ -110,10 +109,10 @@ extension MongoTopology
                 return nil
             }
         
-        case .slave(let update, let peerlist)?:
+        case .slave(let slave, let peerlist)?:
             var replicated:MongoTopology.Replicated = .init(from: unknown, name: peerlist.set)
-            if  replicated.update(host: host, with: update, peerlist: peerlist,
-                    channel: channel,
+            if  replicated.update(host: host, as: slave, peerlist: peerlist,
+                    channel: update.channel,
                     monitor: monitor)
             {
                 self = .replicated(replicated)
@@ -171,8 +170,7 @@ extension MongoTopology
         }
     }
     public mutating
-    func update(host:MongoTopology.Host, with update:MongoTopology.Update?,
-        channel:MongoChannel,
+    func update(host:MongoTopology.Host, with update:MongoTopology.Update,
         monitor:(MongoTopology.Host) -> ()) -> Bool
     {
         switch self
@@ -182,7 +180,6 @@ extension MongoTopology
         
         case .unknown(var unknown):
             if  let topology:Self = .init(host: host, with: update,
-                    channel: channel,
                     unknown: &unknown,
                     monitor: monitor)
             {
@@ -201,9 +198,10 @@ extension MongoTopology
             {
                 self = .single(topology)
             }
-            if case .standalone(let metadata)? = update
+            if case .standalone(let metadata)? = update.variant
             {
-                return topology.update(host: host, metadata: metadata, channel: channel)
+                return topology.update(host: host, metadata: metadata,
+                    channel: update.channel)
             }
             else
             {
@@ -217,9 +215,10 @@ extension MongoTopology
             {
                 self = .sharded(topology)
             }
-            if case .router(let metadata)? = update
+            if case .router(let metadata)? = update.variant
             {
-                return topology.update(host: host, metadata: metadata, channel: channel)
+                return topology.update(host: host, metadata: metadata,
+                    channel: update.channel)
             }
             else
             {
@@ -233,21 +232,22 @@ extension MongoTopology
             {
                 self = .replicated(topology)
             }
-            switch update
+            switch update.variant
             {
-            case .master(let update, let peerlist)?:
-                return topology.update(host: host, with: update, peerlist: peerlist,
-                    channel: channel,
+            case .master(let master, let peerlist)?:
+                return topology.update(host: host, as: master, peerlist: peerlist,
+                    channel: update.channel,
                     monitor: monitor)
             
-            case .slave(let update, let peerlist)?:
-                return topology.update(host: host, with: update, peerlist: peerlist,
-                    channel: channel,
+            case .slave(let slave, let peerlist)?:
+                return topology.update(host: host, as: slave, peerlist: peerlist,
+                    channel: update.channel,
                     monitor: monitor)
             
             case nil:
                 //  this is not the same as clearing the descriptor
-                return topology.update(host: host, metadata: (), channel: channel)
+                return topology.update(host: host, metadata: (),
+                    channel: update.channel)
             
             default:
                 // remove and stop monitoring

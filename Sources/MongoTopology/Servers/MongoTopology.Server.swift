@@ -21,3 +21,11 @@ extension MongoTopology
 extension MongoTopology.Server:Sendable where Metadata:Sendable
 {
 }
+extension MongoTopology.Server
+{
+    @inlinable public
+    func map<T>(transform:(Metadata) throws -> T) rethrows -> MongoTopology.Server<T>
+    {
+        .init(connection: try connection.map(transform), host: self.host)
+    }
+}

@@ -2,6 +2,7 @@ import MongoConnection
 
 extension MongoTopology
 {
+    /// A reason why a server was deemed *unreachable*.
     @frozen public
     enum Unreachable:Sendable
     {
