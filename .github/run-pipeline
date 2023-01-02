@@ -9,8 +9,8 @@ swift run   -c release          BSONEncodingTests
 swift build -c release --target Heartbeats
 swift run   -c release          HeartbeatsTests
 
-swift build -c release --target MongoSessions
-swift run   -c release          MongoSessionsTests
+swift build -c release --target MongoDriver
+swift run   -c release          MongoDriverTests
 
 swift build -c release --target MongoDB
 swift run   -c release          MongoDBTests
