@@ -57,6 +57,10 @@ This package vends the following library products:
 
     A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the various quantized duration types.
 
+1.  [**`BSON_OrderedCollections`**](Sources/BSON_OrderedCollections) ([`BSON_Schema`](Sources/BSONSchema), `OrderedCollections`)
+
+    A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for [`OrderedDictionary`](https://swiftinit.org/reference/swift-collections/orderedcollections/ordereddictionary).
+
 1.  [**`Durations`**](Sources/Durations)
 
     Vends quantized duration types (`Minutes`, `Seconds`, `Milliseconds`), and the `QuantizedDuration` protocol.
@@ -87,17 +91,22 @@ This package vends the following library products:
 `NIOCore`,
 `Atomics`)
 
-    A NIO-based layer over `MongoWire`, that vends channel handlers and supports basic command routing and connection lifecycle management.
+    A single-namespace, NIO-based layer over `MongoWire`, that vends channel handlers and supports basic command routing and connection lifecycle management.
 
-1.  [**`MongoTopology`**](Sources/MongoTopology) ([`MongoChannel`](Sources/MongoChannel))
+1.  [**`MongoConnection`**](Sources/MongoConnection) ([`MongoChannel`](Sources/MongoChannel))
 
-    A single-type module that implements the topology model and state-transition operations used by the driver’s service discovery and monitoring components.
+    A single-namespace module that models connection state.
+
+1.  [**`MongoTopology`**](Sources/MongoTopology) ([`MongoConnection`](Sources/MongoConnection))
+
+    A single-namespace module that implements the topology model and state-transition operations used by the driver’s service discovery and monitoring components.
+
+    Also implements much of the server selection specification, including tag sets, secondary staleness, and read modes.
 
 1.  [**`MongoDriver`**](Sources/MongoDriver)
-([`Mongo`*](Sources/Mongo),
 [`MongoTopology`](Sources/MongoTopology),
-[`MongoWire`](Sources/MongoWire),
 [`BSON_Durations`](Sources/BSON_Durations),
+[`BSON_OrderedCollections`](Sources/BSON_OrderedCollections),
 [`BSON_UUID`](Sources/BSON_UUID),
 [`SCRAM`](Sources/SCRAM),
 [`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),
@@ -106,15 +115,13 @@ This package vends the following library products:
 
     Implements a MongoDB driver, for communicating with a `mongod`/`mongos` server. Handles authentication, sessions, transactions, and command execution, but does not define specific MongoDB commands other than the ones needed to bootstrap a connection.
 
-    `MongoDriver` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
+    All non-protocol types in this module are namespaced under `Mongo`.
 
-    Depends on SwiftNIO, and re-exports `Mongo`.
+    `MongoDriver` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
 
 1.  [**`MongoWire`**](Sources/MongoWire) ([`BSON`](Sources/BSON), [`CRC`](https://github.com/kelvin13/swift-hash/tree/master/Sources/CRC))
 
-    Implements the [MongoDB wire protocol](https://www.mongodb.com/docs/manual/reference/mongodb-wire-protocol/), in a generic manner without dependency on SwiftNIO.
-
-    This module contains a type (`MongoWire`) of the same name as the module itself, so every declaration in this module is namespaced to that type.
+    A single-namespace module that implements the [MongoDB wire protocol](https://www.mongodb.com/docs/manual/reference/mongodb-wire-protocol/), in a generic manner without dependency on SwiftNIO.
 
 1.  [**`SCRAM`**](Sources/SCRAM) ([`Base64`](https://github.com/kelvin13/swift-hash/tree/master/Sources/Base64), [`MessageAuthentication`](https://github.com/kelvin13/swift-hash/tree/master/Sources/MessageAuthentication))
 
@@ -130,12 +137,18 @@ This package vends the following library products:
 
 Please avoid depending on `SCRAM`, `TraceableErrors`, `UUID`, and the BSON libraries; they are likely to migrate to a separate repository in the medium-term.
 
-## license
+## toolchain requirement
 
-The `MongoDriver` module was originally a re-write of [*MongoKitten*](https://github.com/orlandos-nl/MongoKitten)’s `MongoClient` module. Although its fork-ancestor is not really recognizable in the module’s current form, *MongoKitten* was [MIT-licensed](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md), so `MongoDriver` is MIT-licensed as well.
+The MongoDB driver components of this package require a swift 5.8 toolchain.
 
-The rest of the project is available under the MPL 2.0 license.
+The bottlenecks are an anonymous `async let` in `MongoDriver` and various parts of the package’s testing infrastructure.
 
 ## acknowledgements
 
-`swift-mongodb` started out as a re-write of [Orlandos](https://orlandos.nl/)’s *MongoKitten*; without *MongoKitten*, `swift-mongodb` would not exist.
+`swift-mongodb` started out as a re-write of [Orlandos](https://orlandos.nl/)’s *MongoKitten*. To be honest, the code base has evolved beyond recognition, and the package is a sort of ship-of-Theseus now, but in recognition of its history, we have retained MongoKitten’s [MIT-license](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md) for `MongoDriver`.
+
+## license
+
+The `MongoDriver` module is MIT-licensed.
+
+The other modules are available under the MPL 2.0 license. This license was chosen as an organizational default, and is not ideological. Please [reach out](https://github.com/kelvin13/swift-mongodb/discussions) if you have a use-case that requires a more-permissive license!

@@ -1,30 +1,34 @@
 import BSONSchema
+import BSON_Durations
+import BSON_OrderedCollections
+import Durations
 import MongoTopology
+import OrderedCollections
+
+extension OrderedDictionary:@unchecked Sendable where Key:Sendable, Value:Sendable
+{
+}
 
 extension Mongo.ReplicaSetConfiguration
 {
     public
-    struct Member:Sendable
+    struct Member:Equatable, Identifiable, Sendable
     {
         public
         let id:Int64
         public
-        let rights:MemberRights
-        public
-        let tags:BSON.Fields
-        public
         let host:MongoTopology.Host
+        /// Information about this member if it is a replica, [`nil`]()
+        /// if (and only if) it is an arbiter.
+        public
+        let replica:Replica?
 
         public
-        init(id:Int64,
-            rights:MemberRights = .citizen(.init()),
-            tags:BSON.Fields = .init(),
-            host:MongoTopology.Host)
+        init(id:Int64, host:MongoTopology.Host, replica:Replica?)
         {
             self.id = id
-            self.rights = rights
-            self.tags = tags
             self.host = host
+            self.replica = replica
         }
     }
 }
@@ -33,35 +37,33 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDictionaryDecodable
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
     {
-        let rights:Mongo.ReplicaSetConfiguration.MemberRights
+        let id:Int64 = try bson["_id"].decode(to: Int64.self)
+        let host:MongoTopology.Host = try bson["host"].decode(to: MongoTopology.Host.self)
 
-        if case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
+        if  try bson["arbiterOnly"].decode(to: Bool.self)
         {
-            rights = .arbiter
+            self.init(id: id, host: host, replica: nil)
+            return
+        }
+
+        let rights:Mongo.ReplicaSetConfiguration.Rights
+
+        if  let citizen:Mongo.ReplicaSetConfiguration.Citizen = .init(
+                priority: try bson["priority"].decode(to: Double.self))
+        {
+            rights = .citizen(citizen)
         }
         else
         {
-            let priority:Double = try bson["priority"]?.decode(to: Double.self) ?? 1
-            let votes:Int = try bson["votes"]?.decode(to: Int.self) ?? 1
-
-            if  let citizen:Mongo.ReplicaSetConfiguration.CitizenRights = .init(
-                    priority: priority,
-                    votes: votes)
-            {
-                rights = .citizen(citizen)
-            }
-            else
-            {
-                rights = .resident(.init(
-                    buildsIndexes: try bson["buildIndexes"]?.decode(to: Bool.self) ?? true,
-                    isHidden: try bson["hidden"]?.decode(to: Bool.self) ?? false,
-                    votes: votes))
-            }
+            rights = .resident(.init(
+                buildsIndexes: try bson["buildIndexes"].decode(to: Bool.self),
+                delay: try bson["hidden"].decode(to: Bool.self) ?
+                    try bson["secondaryDelaySecs"].decode(to: Seconds.self) : nil))
         }
-        self.init(id: try bson["_id"].decode(to: Int64.self),
-            rights: rights,
-            tags: try bson["tags"]?.decode(to: BSON.Fields.self) ?? .init(),
-            host: try bson["host"].decode(to: MongoTopology.Host.self))
+
+        self.init(id: id, host: host, replica: .init(rights: rights,
+            votes: try bson["votes"].decode(to: Int.self),
+            tags: try bson["tags"].decode(to: OrderedDictionary<String, String>.self)))
     }
 }
 extension Mongo.ReplicaSetConfiguration.Member:BSONDocumentEncodable
@@ -70,23 +72,31 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDocumentEncodable
     func encode(to bson:inout BSON.Fields)
     {
         bson["_id"] = self.id
+        bson["host"] = self.host
 
-        switch self.rights
+        guard let replica:Mongo.ReplicaSetConfiguration.Replica = self.replica
+        else
+        {
+            bson["arbiterOnly"] = true
+            return
+        }
+
+        switch replica.rights
         {
         case .resident(let resident):
+            if  let delay:Seconds = resident.delay
+            {
+                bson["secondaryDelaySecs"] = delay
+                bson["hidden"] = true
+            }
             bson["buildIndexes"] = resident.buildsIndexes
-            bson["hidden"] = resident.isHidden
-            bson["votes"] = resident.votes
-        
-        case .arbiter:
-            bson["arbiterOnly"] = true
+            bson["priority"] = 0.0
         
         case .citizen(let citizen):
             bson["priority"] = citizen.priority
-            bson["votes"] = citizen.votes
         }
 
-        bson["tags", elide: true] = self.tags
-        bson["host"] = self.host
+        bson["votes"] = replica.votes
+        bson["tags", elide: true] = replica.tags
     }
 }

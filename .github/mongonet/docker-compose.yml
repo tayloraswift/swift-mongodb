@@ -40,7 +40,6 @@ services:
             - 30002:27017
         restart: always
         volumes:
-            - ./create-replica-set.js:/create-replica-set.js
             - ./test-set.conf:/etc/mongod.conf
             - ./data-2/db:/data/db
         command: mongod --config /etc/mongod.conf
@@ -53,7 +52,6 @@ services:
             - 30003:27017
         restart: always
         volumes:
-            - ./create-replica-set.js:/create-replica-set.js
             - ./test-set.conf:/etc/mongod.conf
             - ./data-3/db:/data/db
         command: mongod --config /etc/mongod.conf

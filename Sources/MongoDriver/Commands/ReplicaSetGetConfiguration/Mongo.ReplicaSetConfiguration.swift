@@ -3,7 +3,7 @@ import BSONSchema
 extension Mongo
 {
     public
-    struct ReplicaSetConfiguration:Sendable
+    struct ReplicaSetConfiguration:Equatable, Sendable
     {
         public
         let name:String

@@ -1,65 +1,63 @@
 import Durations
+import MongoDriver
 import MongoTopology
 
-extension Mongo
+@frozen public
+struct MongoConnectionString:Sendable
 {
-    @frozen public
-    struct ConnectionString:Sendable
+    public
+    var user:(name:String, password:String)?
+    public 
+    var discovery:MongoTopology.Discovery
+    public
+    var defaultauthdb:Mongo.Database?
+
+    public
+    var tls:Bool
+    public
+    var tlsCAFile:String?
+    public
+    var connectTimeout:Milliseconds?
+    public
+    var socketTimeout:Milliseconds?
+    public
+    var authSource:Mongo.Database?
+    public
+    var authMechanism:Mongo.Authentication?
+    public
+    var appName:String?
+
+    @inlinable public
+    init(user:(name:String, password:String)? = nil,
+        discovery:MongoTopology.Discovery,
+        defaultauthdb:Mongo.Database? = nil,
+        tls:Bool? = nil,
+        tlsCAFile:String? = nil,
+        connectTimeout:Milliseconds? = nil,
+        socketTimeout:Milliseconds? = nil,
+        authSource:Mongo.Database? = nil,
+        authMechanism:Mongo.Authentication? = nil,
+        appName:String? = nil)
     {
-        public
-        var user:(name:String, password:String)?
-        public 
-        var discovery:MongoTopology.Discovery
-        public
-        var defaultauthdb:Database?
-
-        public
-        var tls:Bool
-        public
-        var tlsCAFile:String?
-        public
-        var connectTimeout:Milliseconds?
-        public
-        var socketTimeout:Milliseconds?
-        public
-        var authSource:Database?
-        public
-        var authMechanism:Authentication?
-        public
-        var appName:String?
-
-        @inlinable public
-        init(user:(name:String, password:String)? = nil,
-            discovery:MongoTopology.Discovery,
-            defaultauthdb:Database? = nil,
-            tls:Bool? = nil,
-            tlsCAFile:String? = nil,
-            connectTimeout:Milliseconds? = nil,
-            socketTimeout:Milliseconds? = nil,
-            authSource:Database? = nil,
-            authMechanism:Authentication? = nil,
-            appName:String? = nil)
+        self.user = user
+        self.discovery = discovery
+        self.defaultauthdb = defaultauthdb
+        switch self.discovery
         {
-            self.user = user
-            self.discovery = discovery
-            self.defaultauthdb = defaultauthdb
-            switch self.discovery
-            {
-            case .seeded:
-                self.tls = tls ?? true
-            case .standard:
-                self.tls = tls ?? false
-            }
-            self.tlsCAFile = tlsCAFile
-            self.connectTimeout = connectTimeout
-            self.socketTimeout = socketTimeout
-            self.authSource = authSource
-            self.authMechanism = authMechanism
-            self.appName = appName
+        case .seeded:
+            self.tls = tls ?? true
+        case .standard:
+            self.tls = tls ?? false
         }
+        self.tlsCAFile = tlsCAFile
+        self.connectTimeout = connectTimeout
+        self.socketTimeout = socketTimeout
+        self.authSource = authSource
+        self.authMechanism = authMechanism
+        self.appName = appName
     }
 }
-// extension Mongo.ConnectionString
+// extension MongoConnectionString
 // {
 //     public
 //     init(parsing string:some StringProtocol) throws
