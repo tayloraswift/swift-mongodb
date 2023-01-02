@@ -1,4 +1,5 @@
 import BSON
+import Durations
 import MongoChannel
 import MongoConnection
 
@@ -32,9 +33,9 @@ extension MongoTopology
 }
 extension MongoTopology.Replicated
 {
-    var servers:MongoTopology.Members
+    func snapshot(heartbeatInterval:Milliseconds) -> MongoTopology.Members
     {
-        .init(members: self.members)
+        .init(heartbeatInterval: heartbeatInterval, members: self.members)
     }
 }
 extension MongoTopology.Replicated
@@ -46,10 +47,6 @@ extension MongoTopology.Replicated
             member.connection?.channel.heart.stop()
         }
     }
-    // func errors() -> [MongoTopology.Host: any Error]
-    // {
-    //     self.members.compactMapValues(\.error)
-    // }
 }
 extension MongoTopology.Replicated
 {

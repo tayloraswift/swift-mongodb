@@ -10,7 +10,7 @@ extension Mongo
         public
         let namespace:Namespace
         public
-        let session:MutableSession
+        let session:Session
         public
         let timeout:Milliseconds?
         public
@@ -21,7 +21,7 @@ extension Mongo
         var cursor:Cursor<BatchElement>.State
 
         @usableFromInline
-        init(session:MutableSession,
+        init(session:Session,
             initial:Cursor<BatchElement>,
             timeout:Milliseconds?,
             stride:Int)
@@ -97,11 +97,11 @@ extension Mongo.Stream
     }
 }
 
-extension Mongo.MutableSession
+extension Mongo.Session
 {
     @inlinable public
     func run<Query, Success>(query:Query, against database:Mongo.Database,
-        on preference:Mongo.SessionMediumSelector = .master,
+        on preference:Mongo.ReadPreference = .primary,
         with consumer:(Mongo.Stream<Query.Element>) async throws -> Success)
         async throws -> Success
         where Query:MongoStreamableCommand

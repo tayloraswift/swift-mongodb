@@ -1,6 +1,6 @@
 import BSONDecoding
 
-extension MongoConnection
+extension MongoChannel
 {
     /// An identifier assigned by a server to a driver connection.
     ///
@@ -23,7 +23,7 @@ extension MongoConnection
         }
     }
 }
-extension MongoConnection.Token:CustomStringConvertible
+extension MongoChannel.Token:CustomStringConvertible
 {
     public
     var description:String
@@ -31,6 +31,6 @@ extension MongoConnection.Token:CustomStringConvertible
         self.rawValue.description
     }
 }
-extension MongoConnection.Token:BSONDecodable
+extension MongoChannel.Token:BSONDecodable
 {
 }

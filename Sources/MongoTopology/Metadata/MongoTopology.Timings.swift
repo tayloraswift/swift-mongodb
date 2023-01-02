@@ -1,5 +1,4 @@
 import BSONDecoding
-import Durations
 
 extension MongoTopology
 {
@@ -19,35 +18,6 @@ extension MongoTopology
         {
             self.update = .now
             self.write = write
-        }
-    }
-}
-extension MongoTopology.Timings
-{
-    func lag(behind freshest:MongoTopology.Members.Freshest) -> Milliseconds
-    {
-        //  https://github.com/mongodb/specifications/blob/master/source/max-staleness/max-staleness.rst#client
-        switch freshest
-        {
-        case .primary(let rhs):
-            //  the formula is:
-            //
-            //  (self.update - self.write) - (rhs.update - rhs.write)
-            //
-            //  but we cannot measure the duration between a
-            //  ``ContinuousClock.Instant`` and a ``BSON.Millisecond``.
-            //  so we rearrange terms to get:
-            //
-            //  ==  self.update - self.write - rhs.update + rhs.write
-            //  ==  self.update - rhs.update - self.write + rhs.write
-            //  == (self.update - rhs.update) - (self.write - rhs.write)
-            let a:Milliseconds = .init(truncating: self.update - rhs.update)
-            let b:Milliseconds = .init(rawValue: self.write.value - rhs.write.value)
-            return a - b
-        
-        case .secondary(let lhs):
-            //  note: `self` is the right-hand term
-            return .init(rawValue: lhs.value - self.write.value)
         }
     }
 }

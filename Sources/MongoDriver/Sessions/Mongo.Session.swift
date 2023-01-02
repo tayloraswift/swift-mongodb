@@ -4,8 +4,7 @@ import NIOCore
 
 extension Mongo
 {
-    /// Tracks a session on a MongoDB server that can mutate database state.
-    /// Sessions have reference semantics.
+    /// Tracks a session on a MongoDB server. Sessions have reference semantics.
     ///
     /// Sessions are not ``Sendable``, because their purpose is to provide a
     /// guarantee of causual consistency between asynchronous operations.
@@ -17,74 +16,62 @@ extension Mongo
     /// on a database, you want each task to checkout its own session from a
     /// ``SessionPool``, which is ``Sendable``.
     public
-    struct MutableSession:Identifiable
+    struct Session:Identifiable
     {
         public
-        let monitor:Mongo.Monitor
+        let connectionTimeout:Duration
+        public
+        let cluster:Mongo.Cluster
         @usableFromInline
         let state:State
 
         public
-        let connectionTimeout:Duration
-        public
         let id:SessionIdentifier
 
-        init(monitor:Mongo.Monitor,
+        init(on cluster:Mongo.Cluster,
             connectionTimeout:Duration,
             metadata:SessionMetadata,
             id:SessionIdentifier)
         {
             self.state = .init(metadata)
 
-            self.monitor = monitor
             self.connectionTimeout = connectionTimeout
+            self.cluster = cluster
             self.id = id
         }
     }
 }
 @available(*, unavailable, message: "sessions have reference semantics")
-extension Mongo.MutableSession:Sendable
+extension Mongo.Session:Sendable
 {
 }
-extension Mongo.MutableSession:_MongoConcurrencyDomain
-{
-    static
-    let medium:Mongo.SessionMediumSelector = .master
-
-    @usableFromInline
-    var metadata:Mongo.SessionMetadata
-    {
-        self.state.metadata
-    }
-}
-
-extension Mongo.MutableSession
+extension Mongo.Session
 {
     @inlinable public
-    func time<Command>(command:Command,
-        _readPreference:Mongo.SessionMediumSelector,
+    func time<Command>(command:Command, on preference:Mongo.ReadPreference,
         operation:(MongoChannel, Mongo.Labeled<Command>) async throws -> Mongo.Reply)
         async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        let _medium:Mongo.SessionMedium = try await self.monitor._medium(_readPreference,
-            timeout: self.connectionTimeout)
-        //let _clusterTime:Mongo.ClusterTime? = await self.monitor._clusterTime
-        
         let started:ContinuousClock.Instant = .now
-        let labeled:Mongo.Labeled<Command> = .init(clusterTime: nil,
+
+        let medium:Mongo.ReadMedium = try await self.cluster.medium(to: preference,
+            by: .now.advanced(by: self.connectionTimeout))
+        
+        let labeled:Mongo.Labeled<Command> = .init(clusterTime: medium.clusterTime,
+            readPreference: preference,
             readConcern: (command as? any MongoReadCommand).map
             {
                 .init(level: $0.readLevel, after: self.state.lastOperationTime)
             },
-            transaction: self.metadata.transaction,
+            transaction: self.state.metadata.transaction,
             session: self.id,
             command: command)
         
-        let reply:Mongo.Reply = try await operation(_medium.channel, labeled)
+        let reply:Mongo.Reply = try await operation(medium.channel, labeled)
 
         self.state.update(touched: started, operationTime: reply.operationTime)
-        //self.monitor._clusterTime = reply.clusterTime
+        self.cluster.push(time: reply.clusterTime)
 
         return try Command.decode(reply: try reply.result.get())
     }
@@ -92,11 +79,10 @@ extension Mongo.MutableSession
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
     @inlinable public
     func run<Command>(command:Command,
-        on _readPreference:Mongo.SessionMediumSelector = .master)
-        async throws -> Command.Response
+        on preference:Mongo.ReadPreference = .primary) async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        try await self.time(command: command, _readPreference: _readPreference)
+        try await self.time(command: command, on: preference)
         {
             try await $0.run(labeled: $1, against: .admin)
         }
@@ -106,11 +92,11 @@ extension Mongo.MutableSession
     @inlinable public
     func run<Command>(command:Command,
         against database:Mongo.Database,
-        on _readPreference:Mongo.SessionMediumSelector = .master)
+        on preference:Mongo.ReadPreference = .primary)
         async throws -> Command.Response
         where Command:MongoSessionCommand & MongoDatabaseCommand
     {
-        try await self.time(command: command, _readPreference: _readPreference)
+        try await self.time(command: command, on: preference)
         {
             try await $0.run(labeled: $1, against: database)
         }

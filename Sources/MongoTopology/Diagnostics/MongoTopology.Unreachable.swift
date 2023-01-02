@@ -1,4 +1,4 @@
-import MongoConnection
+import TraceableErrors
 
 extension MongoTopology
 {
@@ -8,6 +8,22 @@ extension MongoTopology
     {
         case errored(any Error)
         case queued
+    }
+}
+extension MongoTopology.Unreachable:Equatable
+{
+    public static
+    func == (lhs:Self, rhs:Self) -> Bool
+    {
+        switch (lhs, rhs)
+        {
+        case (.queued, .queued):
+            return true
+        case (.errored(let lhs), .errored(let rhs)):
+            return lhs == rhs
+        case (_, _):
+            return false
+        }
     }
 }
 extension MongoTopology.Unreachable

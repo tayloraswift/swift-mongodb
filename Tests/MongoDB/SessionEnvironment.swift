@@ -15,8 +15,8 @@ struct SessionEnvironment
 extension SessionEnvironment:AsyncTestEnvironment
 {
     func runWithContext<Success>(tests:inout Tests,
-        body:(inout Tests, Mongo.MutableSession) async throws -> Success) async throws -> Success
+        body:(inout Tests, Mongo.Session) async throws -> Success) async throws -> Success
     {
-        try await self.pool.withMutableSession { try await body(&tests, $0) }
+        try await self.pool.withSession { try await body(&tests, $0) }
     }
 }

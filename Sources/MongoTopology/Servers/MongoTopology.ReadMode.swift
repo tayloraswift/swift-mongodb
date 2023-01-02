@@ -17,26 +17,30 @@ extension MongoTopology.ReadMode:BSONScheme
 }
 extension MongoTopology.ReadMode
 {
+    public
     func diagnose(undesirable members:MongoTopology.Members)
-        -> [MongoTopology.Rejection<MongoTopology.Undesirable>]
+        -> [MongoTopology.Host: MongoTopology.Undesirable]
     {
         switch self
         {
         case .primary:
-            return members.undesirables + members.candidates.secondaries.lazy.map
+            return members.candidates.secondaries.reduce(into: members.undesirables)
             {
-                .init(reason: .secondary, host: $0.host)
+                $0[$1.host] = .secondary
             }
         
         case .primaryPreferred, .nearest, .secondaryPreferred:
             return members.undesirables
         
         case .secondary:
-            return members.candidates.primary.map
+            var undesirables:[MongoTopology.Host: MongoTopology.Undesirable] =
+                members.undesirables
+            if  let primary:MongoTopology.Host =
+                    members.candidates.primary?.host
             {
-                members.undesirables + [.init(reason: .primary, host: $0.host)]
+                undesirables[primary] = .primary
             }
-            ??  members.undesirables
+            return undesirables
         }
     }
 }

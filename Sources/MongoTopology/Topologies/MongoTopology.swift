@@ -1,3 +1,4 @@
+import Durations
 import MongoChannel
 
 @frozen public
@@ -46,20 +47,21 @@ extension MongoTopology
 }
 extension MongoTopology
 {
-    var servers:Servers
+    public
+    func snapshot(heartbeatInterval:Milliseconds) -> Servers
     {
         switch self
         {
         case .terminated:
-            return .none([])
+            return .none([:])
         case .unknown(let unknown):
-            return .none(unknown.servers)
+            return .none(unknown.snapshot)
         case .single(let single):
-            return single.servers
+            return single.snapshot
         case .sharded(let sharded):
-            return .sharded(sharded.servers)
+            return .sharded(sharded.snapshot())
         case .replicated(let replicated):
-            return .replicated(replicated.servers)
+            return .replicated(replicated.snapshot(heartbeatInterval: heartbeatInterval))
         }
     }
 }
@@ -67,7 +69,7 @@ extension MongoTopology
 {
     private
     init?(host:MongoTopology.Host, with update:MongoTopology.Update,
-        unknown:inout MongoTopology.Unknown,
+        from unknown:inout MongoTopology.Unknown,
         monitor:(MongoTopology.Host) -> ())
     {
         switch update.variant
@@ -179,8 +181,7 @@ extension MongoTopology
             return false
         
         case .unknown(var unknown):
-            if  let topology:Self = .init(host: host, with: update,
-                    unknown: &unknown,
+            if  let topology:Self = .init(host: host, with: update, from: &unknown,
                     monitor: monitor)
             {
                 self = topology

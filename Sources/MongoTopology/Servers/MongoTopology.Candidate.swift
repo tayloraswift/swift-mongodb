@@ -15,7 +15,7 @@ extension [MongoTopology.Server<MongoTopology.Candidate>]
     func select(by eligibility:MongoTopology.Eligibility) -> MongoChannel?
     {
         let fresh:[MongoTopology.Server<MongoTopology.Candidate>]
-        if let maxStaleness:Milliseconds = eligibility.maxStaleness
+        if let maxStaleness:Milliseconds = eligibility.maxStaleness?.milliseconds
         {
             fresh = self.filter
             {

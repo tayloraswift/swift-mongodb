@@ -26,14 +26,10 @@ extension MongoTopology.Unknown
 }
 extension MongoTopology.Unknown
 {
-    var servers:[MongoTopology.Rejection<MongoTopology.Unreachable>]
+    var snapshot:[MongoTopology.Host: MongoTopology.Unreachable]
     {
-        self.ghosts.map { .init(reason: $0.value, host: $0.key) }
+        self.ghosts
     }
-    // func errors() -> [MongoTopology.Host: any Error]
-    // {
-    //     self.seeds.compactMapValues(\.error)
-    // }
 }
 extension MongoTopology.Unknown
 {

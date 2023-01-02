@@ -4,10 +4,10 @@ import MongoChannel
 extension MongoTopology
 {
     public
-    struct Eligibility
+    struct Eligibility:Equatable, Sendable
     {
         public
-        let maxStaleness:Milliseconds?
+        let maxStaleness:Seconds?
         public
         let tagSets:[TagSet]?
 
@@ -22,31 +22,31 @@ extension MongoTopology
         init(maxStaleness:Seconds?, tagSets:[TagSet]?)
         {
             // normalize, to simplify filtering algorithm
-            self.maxStaleness = maxStaleness.flatMap { $0 < 0 ? nil : $0.milliseconds }
+            self.maxStaleness = maxStaleness.flatMap { $0 < 0 ? nil : $0 }
             self.tagSets = tagSets.flatMap { $0.isEmpty ? nil : $0 }
         }
     }
 }
 extension MongoTopology.Eligibility
 {
+    public
     func diagnose(unsuitable candidates:[MongoTopology.Server<MongoTopology.Candidate>])
-        -> [MongoTopology.Rejection<MongoTopology.Unsuitable>]
+        -> [MongoTopology.Host: MongoTopology.Unsuitable]
     {
-        if let maxStaleness:Milliseconds = self.maxStaleness
+        if let maxStaleness:Milliseconds = self.maxStaleness?.milliseconds
         {
-            return candidates.compactMap
+            return candidates.reduce(into: [:])
             {
-                .init(reason: $0.connection.metadata.staleness > maxStaleness ?
-                        .stale($0.connection.metadata.staleness) :
-                        .tags($0.connection.metadata.tags),
-                    host: $0.host)
+                $0[$1.host] = $1.connection.metadata.staleness > maxStaleness ?
+                    .stale($1.connection.metadata.staleness) :
+                    .tags($1.connection.metadata.tags)
             }
         }
         else
         {
-            return candidates.map
+            return candidates.reduce(into: [:])
             {
-                .init(reason: .tags($0.connection.metadata.tags), host: $0.host)
+                $0[$1.host] = .tags($1.connection.metadata.tags)
             }
         }
     }

@@ -6,16 +6,13 @@ extension MongoTopology
     struct Update:Sendable
     {
         public
-        let parameters:DeploymentParameters
-        public
         let channel:MongoChannel
         public
         let variant:Variant?
 
         @inlinable public
-        init(parameters:DeploymentParameters, channel:MongoChannel, variant:Variant)
+        init(variant:Variant?, channel:MongoChannel)
         {
-            self.parameters = parameters
             self.channel = channel
             self.variant = variant
         }

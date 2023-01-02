@@ -16,6 +16,9 @@ extension Mongo
     public
     struct DriverBootstrap:Sendable
     {
+        /// The amount of time the driver will wait for a reply from a server.
+        public
+        var commandTimeout:Milliseconds
         // TODO: need a better way to handle TLS certificates,
         // should probably cache certificate loading...
         var _certificatePath:String?
@@ -25,26 +28,23 @@ extension Mongo
         public
         var appname:String?
 
-        /// The amount of time the driver will wait for a reply from a server.
-        public
-        var timeout:Milliseconds
 
         let resolver:DNS.Connection?,
             executor:any EventLoopGroup
 
         public
-        init(certificatePath:String? = nil,
+        init(commandTimeout:Milliseconds = .seconds(10),
+            certificatePath:String? = nil,
             credentials:Credentials?,
             resolver:DNS.Connection? = nil,
             executor:any EventLoopGroup,
-            timeout:Milliseconds = .seconds(10),
             appname:String? = nil)
         {
+            self.commandTimeout = commandTimeout
             self._certificatePath = certificatePath
             self.credentials = credentials
             self.resolver = resolver
             self.executor = executor
-            self.timeout = timeout
             self.appname = appname
         }
     }
@@ -70,7 +70,7 @@ extension Mongo.DriverBootstrap
 
             let decoder:ByteToMessageHandler<MongoChannel.MessageDecoder> = .init(.init())
             let router:MongoChannel.MessageRouter = .init(
-                timeout: .milliseconds(self.timeout))
+                timeout: .milliseconds(self.commandTimeout))
 
             guard let certificatePath:String = self._certificatePath
             else
@@ -120,17 +120,17 @@ extension Mongo.DriverBootstrap
     {
         let monitor:Mongo.Monitor = .init(bootstrap: self)
         await monitor.seed(with: seedlist)
-        let pool:Mongo.SessionPool = .init(monitor)
+        let pool:Mongo.SessionPool = .init(cluster: monitor.cluster)
         do
         {
             let success:Success = try await body(pool)
-            await monitor.end(sessions: await pool.drain())
+            await monitor.cluster.end(sessions: await pool.drain())
             await monitor.unseed()
             return success
         }
         catch let error
         {
-            await monitor.end(sessions: await pool.drain())
+            await monitor.cluster.end(sessions: await pool.drain())
             await monitor.unseed()
             throw error
         }

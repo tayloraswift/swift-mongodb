@@ -1,4 +1,4 @@
-extension MongoConnection
+extension MongoChannel
 {
     public
     struct TokenError:Equatable, Error
@@ -16,7 +16,7 @@ extension MongoConnection
         }
     }
 }
-extension MongoConnection.TokenError:CustomStringConvertible
+extension MongoChannel.TokenError:CustomStringConvertible
 {
     public
     var description:String

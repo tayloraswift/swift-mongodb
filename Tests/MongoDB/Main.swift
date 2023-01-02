@@ -21,19 +21,19 @@ enum Main:AsyncTests
 
         print("running tests for single topology (host: \(single))")
         await self.run(tests: &tests, bootstrap: .init(
+                commandTimeout: .seconds(10),
                 credentials: .init(authentication: .sasl(.sha256),
                     username: "root",
                     password: "80085"),
-                executor: executor,
-                timeout: .seconds(10)),
+                executor: executor),
             hosts: [single],
             on: executor)
         
         print("running tests for replicated topology (hosts: \(replicas))")
         await self.run(tests: &tests, bootstrap: .init(
+                commandTimeout: .seconds(10),
                 credentials: nil,
-                executor: executor,
-                timeout: .seconds(10)),
+                executor: executor),
             hosts: replicas,
             on: executor)
     }
@@ -205,7 +205,7 @@ enum Main:AsyncTests
             {
                 (tests:inout Tests) in
 
-                try await context.pool.withMutableSession
+                try await context.pool.withSession
                 {
                     try await $0.run(query: Mongo.Find<Ordinal>.init(
                             collection: collection,
@@ -232,7 +232,7 @@ enum Main:AsyncTests
             await tests.test(with: SessionEnvironment.init(name: "filtering",
                 pool: context.pool))
             {
-                (tests:inout Tests, session:Mongo.MutableSession) in
+                (tests:inout Tests, session:Mongo.Session) in
             
                 try await session.run(query: Mongo.Find<Ordinal>.init(
                         collection: collection,
@@ -262,7 +262,7 @@ enum Main:AsyncTests
             await tests.test(with: SessionEnvironment.init(name: "cursor-cleanup-normal",
                 pool: context.pool))
             {
-                (tests:inout Tests, session:Mongo.MutableSession) in
+                (tests:inout Tests, session:Mongo.Session) in
 
                 try await session.run(query: Mongo.Find<Ordinal>.init(
                         collection: collection,
@@ -292,7 +292,7 @@ enum Main:AsyncTests
             await tests.test(with: SessionEnvironment.init(name: "cursor-cleanup-interruption",
                 pool: context.pool))
             {
-                (tests:inout Tests, session:Mongo.MutableSession) in
+                (tests:inout Tests, session:Mongo.Session) in
 
                 let cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)? =
                     try await session.run(
@@ -328,7 +328,7 @@ enum Main:AsyncTests
             await tests.test(with: SessionEnvironment.init(name: "connection-multiplexing",
                 pool: context.pool))
             {
-                (tests:inout Tests, session:Mongo.MutableSession) in
+                (tests:inout Tests, session:Mongo.Session) in
 
                 try await session.run(
                     query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),

@@ -2,7 +2,7 @@ extension Mongo
 {
     /// Session metadata encompasses session state that persists across
     /// re-used server sessions.
-    @usableFromInline
+    public
     struct SessionMetadata:Sendable
     {
         @usableFromInline

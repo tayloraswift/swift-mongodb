@@ -3,25 +3,26 @@ extension Mongo
     public
     struct SnapshotSession:Identifiable
     {
+        public
+        let connectionTimeout:Duration
+        public
+        let cluster:Mongo.Cluster
         @usableFromInline
         let state:State
-        // TODO: implement time gossip
-        let monitor:Monitor
-        private
-        let medium:SessionMedium
         public
         let id:SessionIdentifier
 
-        init(monitor:Monitor,
+        init(on cluster:Mongo.Cluster,
+            connectionTimeout:Duration,
+            snapshotTime:Mongo.Instant,
             metadata:SessionMetadata,
-            medium:SessionMedium,
             id:SessionIdentifier)
         {
-            self.monitor = monitor
-            self.medium = medium
+            self.state = .init(metadata, snapshotTime: snapshotTime)
+
+            self.connectionTimeout = connectionTimeout
+            self.cluster = cluster
             self.id = id
-            
-            fatalError("unimplemented")
         }
     }
 }

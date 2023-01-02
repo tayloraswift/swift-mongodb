@@ -6,11 +6,11 @@ extension MongoTopology
     struct Routers:Sendable
     {
         public private(set)
-        var unreachables:[Rejection<Unreachable>]
+        var unreachables:[Host: Unreachable]
         public private(set)
         var candidates:[Server<Router>]
 
-        init(unreachables:[Rejection<Unreachable>] = [], candidates:[Server<Router>] = [])
+        init(unreachables:[Host: Unreachable] = [:], candidates:[Server<Router>] = [])
         {
             self.unreachables = unreachables
             self.candidates = candidates
@@ -28,10 +28,10 @@ extension MongoTopology.Routers
             self.candidates.append(.init(connection: connection, host: host))
         
         case .errored(let error):
-            self.unreachables.append(.init(reason: .errored(error), host: host))
+            self.unreachables[host] = .errored(error)
         
         case .queued:
-            self.unreachables.append(.init(reason: .queued, host: host))
+            self.unreachables[host] = .queued
         }
     }
 }

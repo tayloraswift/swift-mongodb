@@ -8,8 +8,10 @@ extension MongoTopology
     struct Members:Sendable
     {
         public
-        let unreachables:[Rejection<Unreachable>]
-        let undesirables:[Rejection<Undesirable>]
+        let unreachables:[Host: Unreachable]
+        let undesirables:[Host: Undesirable]
+
+        @usableFromInline
         let candidates:
         (
             secondaries:[Server<Candidate>],
@@ -17,51 +19,53 @@ extension MongoTopology
             primary:Server<Candidate>?
         )
 
-        init(unreachables:[Rejection<Unreachable>],
-            undesirables:[Rejection<Undesirable>],
-            candidates:
-            (
-                primary:Server<Candidate>?,
-                secondaries:[Server<Candidate>]
-            ))
+        init(unreachables:[Host: Unreachable],
+            undesirables:[Host: Undesirable],
+            secondaries:[Server<Candidate>] = [],
+            primary:Server<Candidate>? = nil)
         {
             self.unreachables = unreachables
             self.undesirables = undesirables
             // TODO: sort this by latency
-            self.candidates.secondaries = candidates.secondaries
+            self.candidates.secondaries = secondaries
             // TODO: sort this by latency
-            self.candidates.replicas = candidates.secondaries +
-                (candidates.primary.map { [$0] } ?? [])
-            self.candidates.primary = candidates.primary
+            self.candidates.replicas = secondaries + (primary.map { [$0] } ?? [])
+            self.candidates.primary = primary
         }
     }
 }
 extension MongoTopology.Members
 {
-    init(unreachables:[MongoTopology.Rejection<MongoTopology.Unreachable>],
-        undesirables:[MongoTopology.Rejection<MongoTopology.Undesirable>],
+    init(heartbeatInterval:Milliseconds,
+        unreachables:[MongoTopology.Host: MongoTopology.Unreachable],
+        undesirables:[MongoTopology.Host: MongoTopology.Undesirable],
         secondaries:[MongoTopology.Server<MongoTopology.Replica>],
         primary:MongoTopology.Server<MongoTopology.Replica>?)
     {
-        let candidates:
-        (
-            primary:MongoTopology.Server<MongoTopology.Candidate>?,
-            secondaries:[MongoTopology.Server<MongoTopology.Candidate>]
-        )
-
-        let freshest:Freshest
         if  let primary:MongoTopology.Server<MongoTopology.Replica>
         {
-            freshest = .primary(primary.connection.metadata.timings)
-            //  the primary always has a staleness of zero, even though the formula
-            //  would suggest it have a staleness of `heartbeatFrequency`:
-            //  '''
-            //  Non-secondary servers (including Mongos servers) have zero staleness.
-            //  '''
-            candidates.primary = primary.map
-            {
-                .init(staleness: .zero, tags: $0.tags)
-            }
+            let freshest:MongoTopology.Timings.Primary = .init(
+                primary.connection.metadata.timings)
+            
+            self.init(unreachables: unreachables, undesirables: undesirables,
+                secondaries: secondaries.map
+                {
+                    $0.map
+                    {
+                        .init(staleness: freshest - $0.timings + heartbeatInterval,
+                            tags: $0.tags)
+                    }
+                },
+                primary: primary.map
+                {
+                    //  the primary always has a staleness of zero, even though the
+                    //  formula would suggest it have a staleness of `heartbeatFrequency`:
+                    //  '''
+                    //  Non-secondary servers (including Mongos servers) have zero
+                    /// staleness.
+                    //  '''
+                    .init(staleness: .zero, tags: $0.tags)
+                })
         }
         else if let secondary:MongoTopology.Server<MongoTopology.Replica> =
                     secondaries.max(by:
@@ -70,36 +74,31 @@ extension MongoTopology.Members
                         $1.connection.metadata.timings.write.value
                     })
         {
-            candidates.primary = nil
-            freshest = .secondary(secondary.connection.metadata.timings.write)
+            let freshest:MongoTopology.Timings.Secondary = .init(
+                secondary.connection.metadata.timings)
 
+            self.init(unreachables: unreachables, undesirables: undesirables,
+                secondaries: secondaries.map
+                {
+                    $0.map
+                    {
+                        .init(staleness: freshest - $0.timings + heartbeatInterval,
+                            tags: $0.tags)
+                    }
+                })
         }
         else
         {
             assert(secondaries.isEmpty)
             
-            self.init(unreachables: unreachables,
-                undesirables: undesirables,
-                candidates: (nil, []))
-            return
+            self.init(unreachables: unreachables, undesirables: undesirables)
         }
-        
-        candidates.secondaries = secondaries.map
-        {
-            $0.map
-            {
-                .init(staleness: $0.staleness(freshest: freshest), tags: $0.tags)
-            }
-        }
-
-        self.init(unreachables: unreachables,
-            undesirables: undesirables,
-            candidates: candidates)
     }
-    init(members:[MongoTopology.Host: MongoConnection<MongoTopology.Member?>.State])
+    init(heartbeatInterval:Milliseconds,
+        members:[MongoTopology.Host: MongoConnection<MongoTopology.Member?>.State])
     {
-        var unreachables:[MongoTopology.Rejection<MongoTopology.Unreachable>] = [],
-            undesirables:[MongoTopology.Rejection<MongoTopology.Undesirable>] = [],
+        var unreachables:[MongoTopology.Host: MongoTopology.Unreachable] = [:],
+            undesirables:[MongoTopology.Host: MongoTopology.Undesirable] = [:],
             secondaries:[MongoTopology.Server<MongoTopology.Replica>] = [],
             primary:MongoTopology.Server<MongoTopology.Replica>? = nil
 
@@ -113,11 +112,11 @@ extension MongoTopology.Members
                 member = connection
             
             case .errored(let error):
-                unreachables.append(.init(reason: .errored(error), host: host))
+                unreachables[host] = .errored(error)
                 continue
             
             case .queued:
-                unreachables.append(.init(reason: .queued, host: host))
+                unreachables[host] = .queued
                 continue
             }
 
@@ -134,17 +133,18 @@ extension MongoTopology.Members
                     host: host))
             
             case .arbiter?:
-                undesirables.append(.init(reason: .arbiter, host: host))
+                undesirables[host] = .arbiter
             
             case .other?:
-                undesirables.append(.init(reason: .other, host: host))
+                undesirables[host] = .other
             
             case nil:
-                undesirables.append(.init(reason: .ghost, host: host))
+                undesirables[host] = .ghost
             }
         }
 
-        self.init(unreachables: unreachables,
+        self.init(heartbeatInterval: heartbeatInterval,
+            unreachables: unreachables,
             undesirables: undesirables,
             secondaries: secondaries,
             primary: primary)

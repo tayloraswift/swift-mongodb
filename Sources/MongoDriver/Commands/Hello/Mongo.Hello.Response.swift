@@ -7,50 +7,31 @@ import MongoWire
 
 extension Mongo.Hello
 {
-    enum ServerDescription
-    {
-        case standalone
-        case router
-        case primary    (MongoTopology.Peerlist, timings:MongoTopology.Timings, tags:[String: String], regime:MongoTopology.Regime)
-        case secondary  (MongoTopology.Peerlist, timings:MongoTopology.Timings, tags:[String: String])
-        case arbiter    (MongoTopology.Peerlist)
-        case other      (MongoTopology.Peerlist)
-        case ghost
-    }
-}
-extension Mongo.Hello
-{
     //@frozen public
     struct Response
     {
+        /// An array of SASL mechanisms used to create the user's credential or credentials.
+        public
+        let saslSupportedMechs:Set<Mongo.Authentication.SASL>?
+
+        /// The maximum number of write operations permitted in a write batch.
+        public
+        let maxWriteBatchCount:Int
+
         /// The maximum permitted size of a BSON object in bytes for this
         /// [mongod](https://www.mongodb.com/docs/manual/reference/program/mongod/#mongodb-binary-bin.mongod)
         /// process.
         public
-        let maxBsonObjectSize:Int
+        let maxDocumentSize:Int
 
         /// The maximum permitted size of a BSON wire protocol message. 
         public
-        let maxMessageSizeBytes:Int
-
-        /// The maximum number of write operations permitted in a write batch.
-        public
-        let maxWriteBatchSize:Int
+        let maxMessageSize:Int
 
         /// Returns the local server time in UTC. This value is an
         /// [ISO date](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-ISODate).
         public
         let localTime:BSON.Millisecond
-
-        /// The time in minutes that a
-        /// [session](https://www.mongodb.com/docs/manual/core/read-isolation-consistency-recency/#std-label-sessions)
-        /// remains active after its most recent use. Sessions that have not received
-        /// a new read/write operation from the client or been refreshed with
-        /// [`refreshSessions`](https://www.mongodb.com/docs/manual/reference/command/refreshSessions/#mongodb-dbcommand-dbcmd.refreshSessions)
-        /// within this threshold are cleared from the cache. State associated with
-        /// an expired session may be cleaned up by the server at any time.
-        public
-        let logicalSessionTimeoutMinutes:Minutes
 
         /// An identifier for the `mongod`/`mongos` instance's outgoing connection
         /// to the client.
@@ -64,33 +45,18 @@ extension Mongo.Hello
         //public
         //let wireVersions:ClosedRange<MongoWire>
 
-        /// An array of SASL mechanisms used to create the user's credential or credentials.
-        public
-        let saslSupportedMechs:Set<Mongo.Authentication.SASL>?
+        let sessions:Mongo.LogicalSessions
 
-        /// Type-specific metadata about the server.
-        let type:ServerDescription?
+        /// Type-specific information about the server which can be used to
+        /// update a topology model. This is [`nil`]() if the server type is
+        /// unknown, which is expected of replica set ghosts.
+        let variant:MongoTopology.Update.Variant?
     }
 }
-extension Mongo.Hello.Response
+extension Mongo.Hello.Response:BSONDictionaryDecodable
 {
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {
-        //self.isWritablePrimary = try bson["isWritablePrimary"].decode(to: Bool.self)
-
-        self.maxBsonObjectSize = try bson["maxBsonObjectSize"]?.decode(
-            to: Int.self) ?? 16 * 1024 * 1024
-        self.maxMessageSizeBytes = try bson["maxMessageSizeBytes"]?.decode(
-            to: Int.self) ?? 48_000_000
-        self.maxWriteBatchSize = try bson["maxWriteBatchSize"]?.decode(
-            to: Int.self) ?? 100_000
-        
-        self.localTime = try bson["localTime"].decode(to: BSON.Millisecond.self)
-        self.logicalSessionTimeoutMinutes = try bson["logicalSessionTimeoutMinutes"].decode(
-            to: Minutes.self)
-        
-        self.token = try bson["connectionId"].decode(to: MongoChannel.Token.self)
-        
         let minWireVersion:MongoWire = try bson["minWireVersion"].decode(as: Int32.self,
             with: MongoWire.init(rawValue:))
         let maxWireVersion:MongoWire = try bson["maxWireVersion"].decode(as: Int32.self,
@@ -107,6 +73,19 @@ extension Mongo.Hello.Response
         self.saslSupportedMechs = try bson["saslSupportedMechs"]?.decode(
             to: Set<Mongo.Authentication.SASL>.self)
 
+        self.sessions = .init(ttl: try bson["logicalSessionTimeoutMinutes"].decode(
+            to: Minutes.self))
+        self.maxWriteBatchCount = try bson["maxWriteBatchSize"]?.decode(
+            to: Int.self) ?? 100_000
+        self.maxDocumentSize = try bson["maxBsonObjectSize"]?.decode(
+            to: Int.self) ?? 16 * 1024 * 1024
+        self.maxMessageSize = try bson["maxMessageSizeBytes"]?.decode(
+            to: Int.self) ?? 48_000_000
+        
+        self.localTime = try bson["localTime"].decode(to: BSON.Millisecond.self)
+        
+        self.token = try bson["connectionId"].decode(to: MongoChannel.Token.self)
+        
         if  let set:String = try bson["setName"]?.decode(to: String.self)
         {
             let tags:[String: String]? = try bson["tags"]?.decode(
@@ -122,42 +101,44 @@ extension Mongo.Hello.Response
             if      case true? =
                     try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
             {
-                self.type = .primary(peerlist,
-                    timings: try bson["lastWrite"].decode(to: MongoTopology.Timings.self),
-                    tags: tags ?? [:],
+                self.variant = .master(.init(replica: .init(
+                        timings: try bson["lastWrite"].decode(to: MongoTopology.Timings.self),
+                        tags: tags ?? [:]),
                     regime: .init(
                         election: try bson["electionId"].decode(to: BSON.Identifier.self),
-                        version: try bson["setVersion"].decode(to: Int64.self)))
+                        version: try bson["setVersion"].decode(to: Int64.self))),
+                    peerlist)
             }
             else if case true? = try bson["secondary"]?.decode(to: Bool.self)
             {
                 //  optional if nothing has propogated to this secondary yet
-                self.type = .secondary(peerlist,
-                        timings: try bson["lastWrite"]?.decode(to: MongoTopology.Timings.self),
-                        tags: tags ?? [:])
+                self.variant = .slave(.secondary(.init(
+                        timings: try bson["lastWrite"].decode(to: MongoTopology.Timings.self),
+                        tags: tags ?? [:])),
+                    peerlist)
             }
             else if case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
             {
-                self.type = .arbiter(peerlist)
+                self.variant = .slave(.arbiter, peerlist)
             }
             else
             {
-                self.type = .other(peerlist)
+                self.variant = .slave(.other, peerlist)
             }
         }
         else
         {
             if      case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
             {
-                self.type = .ghost
+                self.variant = nil
             }
             else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
             {
-                self.type = .router
+                self.variant = .router(.init())
             }
             else
             {
-                self.type = .standalone
+                self.variant = .standalone(.init())
             }
         }
     }

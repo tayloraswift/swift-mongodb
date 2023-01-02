@@ -25,14 +25,10 @@ extension MongoTopology.Sharded
             router.connection?.channel.heart.stop()
         }
     }
-    // func errors() -> [MongoTopology.Host: any Error]
-    // {
-    //     self.routers.compactMapValues(\.error)
-    // }
 }
 extension MongoTopology.Sharded
 {
-    var servers:MongoTopology.Routers
+    func snapshot() -> MongoTopology.Routers
     {
         var servers:MongoTopology.Routers = .init()
         for (host, router):(MongoTopology.Host, MongoConnection<MongoTopology.Router>.State)

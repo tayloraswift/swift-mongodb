@@ -6,7 +6,7 @@ extension Mongo
     actor SessionPool
     {
         private nonisolated
-        let monitor:Monitor
+        let cluster:Cluster
 
         private
         var released:[SessionIdentifier: SessionMetadata]
@@ -15,9 +15,10 @@ extension Mongo
         private
         var draining:CheckedContinuation<Void, Never>?
 
-        init(_ monitor:Monitor) 
+        init(cluster:Cluster) 
         {
-            self.monitor = monitor
+            self.cluster = cluster
+
             self.released = [:]
             self.retained = []
             self.draining = nil
@@ -42,40 +43,51 @@ extension Mongo
 extension Mongo.SessionPool
 {
     public nonisolated
-    func withMutableSession<Success>(timeout:Duration = .seconds(10),
-        _ body:(Mongo.MutableSession) async throws -> Success) async throws -> Success
+    func withSession<Success>(connectionTimeout:Duration = .seconds(10),
+        _ body:(Mongo.Session) async throws -> Success) async throws -> Success
     {
-        try await self.with(Mongo.MutableSession.self, connectionTimeout: timeout, body)
+        try await self.withSessionMetadata(connectionTimeout: connectionTimeout)
+        {
+            (id:Mongo.SessionIdentifier, metadata:inout Mongo.SessionMetadata) in
+
+            let session:Mongo.Session = .init(on: self.cluster,
+                connectionTimeout: connectionTimeout,
+                metadata: metadata,
+                id: id)
+            defer
+            {
+                metadata = session.state.metadata
+            }
+            return try await body(session)
+        }
     }
-    nonisolated
-    func with<Session, Success>(_:Session.Type, connectionTimeout:Duration,
-        _ body:(Session) async throws -> Success) async throws -> Success
-        where Session:_MongoConcurrencyDomain
+    public nonisolated
+    func withSessionMetadata<Success>(connectionTimeout:Duration,
+        _ body:(Mongo.SessionIdentifier, inout Mongo.SessionMetadata) async throws -> Success)
+        async throws -> Success
     {
-        //  yes, we do need to `await` on the medium before checking out a session,
-        //  to avoid generating excessive sessions if a medium is temporarily unavailable
+        //  TODO: avoid generating excessive sessions if a medium is temporarily unavailable
         //  rationale:
         //  https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-must-drivers-wait-to-consume-a-server-session-until-after-a-connection-is-checked-out
         //  TODO: above only applies for IMPLICIT sessions
-        let _medium:Mongo.SessionMedium = try await self.monitor._medium(.any,
-            timeout: connectionTimeout)
-        
-        let (id, initial):(Mongo.SessionIdentifier, Mongo.SessionMetadata) =
-            await self.checkout(ttl: _medium.ttl)
 
-        let session:Session = .init(monitor: self.monitor,
-            connectionTimeout: connectionTimeout,
-            metadata: initial,
-            id: id)
+        let sessions:Mongo.LogicalSessions = try await self.cluster.sessions(
+            by: .now.advanced(by: connectionTimeout))
+        
+        var metadata:Mongo.SessionMetadata
+        let id:Mongo.SessionIdentifier
+
+        (id, metadata) = await self.checkout(ttl: sessions.ttl)
+
         do
         {
-            let result:Success = try await body(session)
-            await self.checkin(id: session.id, metadata: session.metadata)
+            let result:Success = try await body(id, &metadata)
+            await self.checkin(id: id, metadata: metadata)
             return result
         }
         catch let error
         {
-            await self.checkin(id: session.id, metadata: session.metadata)
+            await self.checkin(id: id, metadata: metadata)
             throw error
         }
     }
@@ -161,7 +173,7 @@ extension Mongo.SessionPool
     func run<Command>(command:Command) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand
     {    
-        try await self.withMutableSession
+        try await self.withSession
         {
             try await $0.run(command: command)
         }
@@ -173,7 +185,7 @@ extension Mongo.SessionPool
         against database:Mongo.Database) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand & MongoDatabaseCommand
     {    
-        try await self.withMutableSession
+        try await self.withSession
         {
             try await $0.run(command: command, against: database)
         }

@@ -24,14 +24,10 @@ extension MongoTopology.Single
     {
         self.state.connection?.channel.heart.stop()
     }
-    // func errors() -> [MongoTopology.Host: any Error]
-    // {
-    //     self.state.error.map { [self.host: $0] } ?? [:]
-    // }
 }
 extension MongoTopology.Single
 {
-    var servers:MongoTopology.Servers
+    var snapshot:MongoTopology.Servers
     {
         switch self.state
         {
@@ -39,10 +35,10 @@ extension MongoTopology.Single
             return .single(.init(connection: connection, host: self.host))
         
         case .errored(let error):
-            return .none([.init(reason: .errored(error), host: self.host)])
+            return .none([self.host: .errored(error)])
         
         case .queued:
-            return .none([.init(reason: .queued, host: self.host)])
+            return .none([self.host: .queued])
         }
     }
 }

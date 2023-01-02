@@ -4,7 +4,7 @@ import UUID
 
 extension Mongo
 {
-    public 
+    @frozen public 
     struct SessionIdentifier:Hashable, Sendable 
     {
         public
@@ -33,7 +33,7 @@ extension Mongo.SessionIdentifier:BSONDictionaryDecodable, BSONDocumentEncodable
     {
         self.init(try bson["id"].decode(to: UUID.self))
     }
-    @inlinable public
+    public
     func encode(to bson:inout BSON.Fields)
     {
         bson["id"] = self.uuid
