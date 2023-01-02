@@ -1,37 +1,28 @@
 import Heartbeats
+import MongoChannel
 
-extension MongoChannel
+extension MongoConnection
 {
     @frozen public
-    enum State<Metadata>
+    enum State
     {
-        case connected(MongoChannel, metadata:Metadata)
+        case connected(MongoConnection<Metadata>)
         case errored(any Error)
         case queued
     }
 }
-extension MongoChannel.State
+extension MongoConnection.State:Sendable where Metadata:Sendable
 {
-    /// Returns the stored metadata, if this descriptor currently has any.
+}
+extension MongoConnection.State
+{
+    /// Returns the stored connection, if this descriptor currently has any.
     @inlinable public
-    var metadata:Metadata?
+    var connection:MongoConnection<Metadata>?
     {
-        if case .connected(_, metadata: let metadata) = self
+        if case .connected(let connection) = self
         {
-            return metadata
-        }
-        else
-        {
-            return nil
-        }
-    }
-    /// Returns the stored channel, if this descriptor currently has one.
-    @inlinable public
-    var channel:MongoChannel?
-    {
-        if case .connected(let channel, metadata: _) = self
-        {
-            return channel
+            return connection
         }
         else
         {
@@ -51,8 +42,23 @@ extension MongoChannel.State
             return nil
         }
     }
+
+    /// Returns the stored metadata, if this descriptor currently has any.
+    @available(*, deprecated, message: "use `connection?.metadata` instead")
+    @inlinable public
+    var metadata:Metadata?
+    {
+        self.connection?.metadata
+    }
+    /// Returns the stored channel, if this descriptor currently has one.
+    @available(*, deprecated, message: "use `connection?.channel` instead")
+    @inlinable public
+    var channel:MongoChannel?
+    {
+        self.connection?.channel
+    }
 }
-extension MongoChannel.State
+extension MongoConnection.State
 {
     /// Updates the metadata for the stored channel.
     /// If this descriptor does not already have a channel, the
@@ -62,50 +68,43 @@ extension MongoChannel.State
     ///     -   channel: A wrapped NIO channel. If this descriptor already has one,
     ///         the parameter must be identical to it.
     ///     -   metadata: The metadata to update.
-    ///
-    /// -   Returns: [`true`](), always.
     @inlinable public mutating
-    func update(channel:MongoChannel, metadata:Metadata) -> Bool
+    func update(with connection:MongoConnection<Metadata>)
     {
-        guard let original:MongoChannel = self.channel
+        guard let original:MongoChannel = self.connection?.channel
         else
         {
-            self = .connected(channel, metadata: metadata)
-            return true
+            self = .connected(connection)
+            return
         }
-        if channel === original
+        if connection.channel === original
         {
             // original === channel, so it should not matter which
             // gets assigned here
-            self = .connected(original, metadata: metadata)
-            return true
+            self = .connected(connection)
         }
         else
         {
-            fatalError("unreachable: channel !== original")
+            fatalError("unreachable: connection.channel !== original")
         }
     }
     /// Places this descriptor in an ``case errored(_:)`` or ``case queued``
     /// state. If `status` is [`nil`]() and the descriptor is already in
     /// an errored state, the descriptor will remain in that state, and the
     /// stored error will not be overwritten.
-    ///
-    /// -   Returns: [`true`](), always.
-    @discardableResult
     @inlinable public mutating
-    func clear(status:(any Error)?) -> Bool
+    func clear(status:(any Error)?)
     {
         // only overwrite an existing error if we have a new one
-        switch (self, status)
+        switch (status, self)
         {
-        case (.errored(_), nil):
-            break
-        case (_, nil):
-            self = .queued
-        case (_, let error?):
+        case (let error?, _):
             self = .errored(error)
+        case (nil, .connected):
+            self = .queued
+        case (nil, _):
+            break
         }
-        return true
     }
 }
 
@@ -113,16 +112,12 @@ extension Optional
 {
     /// Sends a termination signal to the monitoring thread for this
     /// channel if non-[`nil`](), and sets this optional to [`nil`]()
-    /// afterwards, preventing further use of the channel state descriptor.
+    /// afterwards, preventing further use of the connection state descriptor.
     /// The optional will always be [`nil`]() after calling this method.
-    ///
-    /// -   Returns: [`false`](), always.
-    @discardableResult
     @inlinable public mutating
-    func remove<Member>() -> Bool where Wrapped == MongoChannel.State<Member>
+    func remove<Member>() where Wrapped == MongoConnection<Member>.State
     {
-        self?.channel?.heart.stop()
+        self?.connection?.channel.heart.stop()
         self = nil
-        return false
     }
 }

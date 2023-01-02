@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoTopology
 
 extension Mongo
 {
@@ -7,6 +8,8 @@ extension Mongo
     {
         @usableFromInline
         let clusterTime:ClusterTime?
+        @usableFromInline
+        let readPreference:ReadPreference?
         @usableFromInline
         let readConcern:ReadConcern?
         @usableFromInline
@@ -17,11 +20,15 @@ extension Mongo
         let command:Command
 
         @usableFromInline
-        init(clusterTime:ClusterTime?, readConcern:ReadConcern?, transaction:Transaction,
+        init(clusterTime:ClusterTime?,
+            readPreference:ReadPreference?,
+            readConcern:ReadConcern?,
+            transaction:Transaction,
             session:SessionIdentifier,
             command:Command)
         {
             self.clusterTime = clusterTime
+            self.readPreference = readPreference
             self.readConcern = readConcern
             self.transaction = transaction
             self.session = session
@@ -36,9 +43,10 @@ extension Mongo.Labeled
     {
         self.command.encode(to: &bson, database: database)
 
-        bson["lsid"] = self.session
-        bson["readConcern"] = self.readConcern
         bson["$clusterTime"] = self.clusterTime
+        bson["$readPreference"] = self.readPreference
+        bson["readConcern"] = self.readConcern
+        bson["lsid"] = self.session
 
         guard let phase:Mongo.TransactionPhase = self.transaction.phase
         else

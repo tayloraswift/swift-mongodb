@@ -6,13 +6,13 @@ struct DatabaseEnvironment
 {
     let bootstrap:Mongo.DriverBootstrap,
         database:Mongo.Database,
-        host:MongoTopology.Host
+        hosts:Set<MongoTopology.Host>
     
-    init(bootstrap:Mongo.DriverBootstrap, database:Mongo.Database, host:MongoTopology.Host)
+    init(bootstrap:Mongo.DriverBootstrap, database:Mongo.Database, hosts:Set<MongoTopology.Host>)
     {
         self.bootstrap = bootstrap
         self.database = database
-        self.host = host
+        self.hosts = hosts
     }
 }
 extension DatabaseEnvironment:AsyncTestEnvironment
@@ -37,7 +37,7 @@ extension DatabaseEnvironment:AsyncTestEnvironment
     func runWithContext<Success>(tests:inout Tests,
         body:(inout Tests, Context) async throws -> Success) async throws -> Success
     {
-        try await self.bootstrap.withSessionPool(seedlist: [self.host])
+        try await self.bootstrap.withSessionPool(seedlist: self.hosts)
         {
             //  if we already have a database with this name, drop it.
             try await $0.run(command: Mongo.DropDatabase.init(), against: self.database)

@@ -1,4 +1,4 @@
-extension Mongo.MutableSession
+extension Mongo.Session
 {
     @usableFromInline final
     class State
@@ -15,7 +15,7 @@ extension Mongo.MutableSession
         }
     }
 }
-extension Mongo.MutableSession.State
+extension Mongo.Session.State
 {
     @usableFromInline
     func update(touched:ContinuousClock.Instant,

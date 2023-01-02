@@ -14,3 +14,12 @@ extension BSONDictionaryDecodable
         try self.init(bson: try .init(fields: try bson.parse()))
     }
 }
+extension Dictionary:BSONDictionaryDecodable, BSONDocumentDecodable, BSONDecodable
+    where Key == String, Value:BSONDecodable
+{
+    @inlinable public
+    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    {
+        self = try bson.items.mapValues(Value.init(bson:))
+    }
+}

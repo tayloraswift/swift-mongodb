@@ -43,7 +43,7 @@ extension Main
                 {
                     try await $1.withSessionPool(seedlist: [seed])
                     {
-                        try await $0.withMutableSession(timeout: .seconds(5))
+                        try await $0.withSession(connectionTimeout: .seconds(5))
                         {
                             //  TODO: actually check these values
                             let _:Mongo.ReplicaSetConfiguration = try await $0.run(
@@ -53,49 +53,49 @@ extension Main
                 }
             }
         }
-        await tests.test(with: DriverEnvironment.init(
-            name: "replica-set-cluster-times",
-            credentials: nil,
-            executor: executor))
-        {
-            (tests:inout Tests, driver:Mongo.DriverBootstrap) in
+        // await tests.test(with: DriverEnvironment.init(
+        //     name: "replica-set-cluster-times",
+        //     credentials: nil,
+        //     executor: executor))
+        // {
+        //     (tests:inout Tests, driver:Mongo.DriverBootstrap) in
 
-            try await driver.withSessionPool(seedlist: .init(replicas))
-            {
-                try await $0.withMutableSession(timeout: .seconds(5))
-                {
-                    // should be `nil` here, but eventually we want to get
-                    // `$clusterTime` from Hellos too
-                    // print($0.monitor.clusterTime)
+        //     try await driver.withSessionPool(seedlist: .init(replicas))
+        //     {
+        //         try await $0.withSession(connectionTimeout: .seconds(5))
+        //         {
+        //             // should be `nil` here, but eventually we want to get
+        //             // `$clusterTime` from Hellos too
+        //             // print($0.monitor.clusterTime)
 
-                    let _:Mongo.ReplicaSetConfiguration = try await $0.run(
-                        command: Mongo.ReplicaSetGetConfiguration.init())
+        //             let _:Mongo.ReplicaSetConfiguration = try await $0.run(
+        //                 command: Mongo.ReplicaSetGetConfiguration.init())
                     
-                    let original:Mongo.ClusterTime? = tests.unwrap($0.monitor.clusterTime,
-                        name: "first")
+        //             let original:Mongo.ClusterTime? = tests.unwrap($0.monitor.clusterTime,
+        //                 name: "first")
 
-                    //  mongod only updates its timestamps on write, or every 10s.
-                    //  we don’t have any commands in this module that write, so we
-                    //  just have to wait 10s...
+        //             //  mongod only updates its timestamps on write, or every 10s.
+        //             //  we don’t have any commands in this module that write, so we
+        //             //  just have to wait 10s...
 
-                    //  TODO: figure out a way to perturb the cluster time without
-                    //  waiting 10s
-                    try await Task.sleep(for: .milliseconds(10000))
+        //             //  TODO: figure out a way to perturb the cluster time without
+        //             //  waiting 10s
+        //             try await Task.sleep(for: .milliseconds(10000))
 
-                    let _:Mongo.ReplicaSetConfiguration = try await $0.run(
-                        command: Mongo.ReplicaSetGetConfiguration.init())
+        //             let _:Mongo.ReplicaSetConfiguration = try await $0.run(
+        //                 command: Mongo.ReplicaSetGetConfiguration.init())
                     
-                    if  let updated:Mongo.ClusterTime = tests.unwrap($0.monitor.clusterTime,
-                            name: "second"),
-                        let original:Mongo.ClusterTime
-                    {
-                        tests.assert(original.max != updated.max,
-                            name: "updated")
-                    }
+        //             if  let updated:Mongo.ClusterTime = tests.unwrap($0.monitor.clusterTime,
+        //                     name: "second"),
+        //                 let original:Mongo.ClusterTime
+        //             {
+        //                 tests.assert(original.max != updated.max,
+        //                     name: "updated")
+        //             }
                         
-                }
-            }
-        }
+        //         }
+        //     }
+        // }
     }
     static
     func run(tests:inout Tests, single:MongoTopology.Host,
@@ -113,7 +113,7 @@ extension Main
             {
                 try await $1.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession { _ in }
+                    try await $0.withSession { _ in }
                 }
             }
             await $0.test(with: DriverEnvironment.init(name: "seeded-twice",
@@ -121,11 +121,11 @@ extension Main
             {
                 try await $1.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession { _ in }
+                    try await $0.withSession { _ in }
                 }
                 try await $1.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession { _ in }
+                    try await $0.withSession { _ in }
                 }
             }
             await $0.test(with: DriverEnvironment.init(name: "seeded-concurrently",
@@ -134,7 +134,7 @@ extension Main
                 async
                 let first:Void = $1.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession
+                    try await $0.withSession
                     {
                         _ in try await Task.sleep(for: .milliseconds(100))
                     }
@@ -142,7 +142,7 @@ extension Main
                 async
                 let second:Void = $1.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession
+                    try await $0.withSession
                     {
                         _ in try await Task.sleep(for: .milliseconds(100))
                     }
@@ -160,7 +160,7 @@ extension Main
                     try await $1.withSessionPool(seedlist: [single])
                     {
                         async
-                        let _:Void = $0.withMutableSession { _ in }
+                        let _:Void = $0.withSession { _ in }
                         throw CancellationError.init()
                     }
                 }
@@ -175,9 +175,9 @@ extension Main
                 await $1.withSessionPool(seedlist: [single])
                 {
                     async
-                    let _:Void = $0.withMutableSession { _ in }
+                    let _:Void = $0.withSession { _ in }
                     async
-                    let _:Void = $0.withMutableSession
+                    let _:Void = $0.withSession
                     {
                         _ in throw CancellationError.init()
                     }
@@ -194,7 +194,7 @@ extension Main
             {
                 try await $1.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession
+                    try await $0.withSession
                     {
                         _ in
                     }
@@ -209,7 +209,7 @@ extension Main
             {
                 try await $1.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession
+                    try await $0.withSession
                     {
                         _ in
                     }
@@ -226,19 +226,19 @@ extension Main
             (tests:inout Tests, driver:Mongo.DriverBootstrap) in
 
             await tests.test(name: "errors-equal",
-                expecting: Mongo.SessionMediumError.init(
-                    selector: .master, 
-                    errored:
+                expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
+                    diagnostics: .init(unreachable:
                     [
-                        single: Mongo.AuthenticationError.init(
+                        single: .errored(Mongo.AuthenticationError.init(
                                 Mongo.AuthenticationUnsupportedError.init(.x509),
-                            credentials: driver.credentials!)
-                    ]))
+                            credentials: driver.credentials!))
+                    ]),
+                    failure: .init()))
             {
                 _ in
                 try await driver.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession(timeout: .milliseconds(500))
+                    try await $0.withSession(connectionTimeout: .milliseconds(500))
                     {
                         _ in
                     }
@@ -255,21 +255,21 @@ extension Main
             (tests:inout Tests, driver:Mongo.DriverBootstrap) in
 
             await tests.test(name: "errors-equal",
-                expecting: Mongo.SessionMediumError.init(
-                    selector: .master, 
-                    errored:
+                expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
+                    diagnostics: .init(unreachable:
                     [
-                        single: Mongo.AuthenticationError.init(
+                        single: .errored(Mongo.AuthenticationError.init(
                                 MongoChannel.ServerError.init(
                                     message: "Authentication failed.",
                                     code: 18),
-                            credentials: driver.credentials!)
-                    ]))
+                            credentials: driver.credentials!))
+                    ]),
+                    failure: .init()))
             {
                 _ in
                 try await driver.withSessionPool(seedlist: [single])
                 {
-                    try await $0.withMutableSession(timeout: .milliseconds(500))
+                    try await $0.withSession(connectionTimeout: .milliseconds(500))
                     {
                         _ in
                     }

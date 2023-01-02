@@ -15,6 +15,7 @@ let package:Package = .init(name: "swift-mongodb",
 
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoChannel", targets: ["MongoChannel"]),
+        .library(name: "MongoConnection", targets: ["MongoConnection"]),
         .library(name: "MongoSchema", targets: ["MongoSchema"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
         .library(name: "MongoTopology", targets: ["MongoTopology"]),
@@ -130,10 +131,16 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Atomics",               package: "swift-atomics"),
             ]),
 
-        .target(name: "MongoTopology",
-            dependencies: 
+        .target(name: "MongoConnection",
+            dependencies:
             [
                 .target(name: "MongoChannel"),
+            ]),
+
+        .target(name: "MongoTopology",
+            dependencies:
+            [
+                .target(name: "MongoConnection"),
             ]),
 
         .target(name: "MongoDriver",

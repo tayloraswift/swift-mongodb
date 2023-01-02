@@ -2,8 +2,8 @@ import BSONSchema
 
 extension Mongo
 {
-    public final
-    class ClusterTime:Sendable
+    public
+    struct ClusterTime:Sendable
     {
         let signature:BSON.Fields
         public
@@ -28,7 +28,7 @@ extension Mongo.ClusterTime:BSONDocumentEncodable
 }
 extension Mongo.ClusterTime:BSONDictionaryDecodable
 {
-    @inlinable public convenience
+    @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
     {
         self.init(signature: try bson["signature"].decode(to: BSON.Fields.self),

@@ -1,5 +1,7 @@
 import BSON
+import Durations
 import MongoChannel
+import MongoConnection
 
 extension MongoTopology
 {
@@ -7,7 +9,7 @@ extension MongoTopology
     struct Replicated
     {
         private
-        var replicas:[Host: MongoChannel.State<Replica?>]
+        var members:[Host: MongoConnection<Member?>.State]
         private
         var regime:Regime?
         private
@@ -17,11 +19,11 @@ extension MongoTopology
         var primary:Host?
 
         private
-        init(replicas:[Host: MongoChannel.State<Replica?>],
+        init(members:[Host: MongoConnection<Member?>.State],
             regime:Regime? = nil,
             name:String)
         {
-            self.replicas = replicas
+            self.members = members
             self.regime = regime
             self.name = name
 
@@ -31,58 +33,38 @@ extension MongoTopology
 }
 extension MongoTopology.Replicated
 {
-    func terminate()
+    func snapshot(heartbeatInterval:Milliseconds) -> MongoTopology.Members
     {
-        for router:MongoChannel.State<MongoTopology.Replica?> in self.replicas.values
-        {
-            router.channel?.heart.stop()
-        }
-    }
-    func errors() -> [MongoTopology.Host: any Error]
-    {
-        self.replicas.compactMapValues(\.error)
+        .init(heartbeatInterval: heartbeatInterval, members: self.members)
     }
 }
 extension MongoTopology.Replicated
 {
-    init?(host:MongoTopology.Host, channel:MongoChannel, metadata:MongoTopology.Replica,
-        seedlist:inout MongoTopology.Unknown,
-        peerlist:MongoTopology.Peerlist,
-        monitor:(MongoTopology.Host) -> ())
+    func terminate()
     {
-        switch metadata
+        for member:MongoConnection<MongoTopology.Member?>.State in self.members.values
         {
-        case    .primary(let master):
-            self.init(replicas: seedlist.topology(of: MongoTopology.Replica?.self),
-                regime: master.regime,
-                name: master.set)
-        case    .secondary(let slave),
-                .arbiter(let slave),
-                .other(let slave):
-            self.init(replicas: seedlist.topology(of: MongoTopology.Replica?.self),
-                name: slave.set)
+            member.connection?.channel.heart.stop()
         }
-        guard   self.update(host: host, channel: channel,
-                    metadata: metadata,
-                    peerlist: peerlist,
-                    monitor: monitor)
-        else
-        {
-            seedlist.pick(host: host)
-            return nil
-        }
+    }
+}
+extension MongoTopology.Replicated
+{
+    init(from unknown:MongoTopology.Unknown, name:String)
+    {
+        self.init(members: unknown.topology(of: MongoTopology.Member?.self), name: name)
     }
     mutating
     func remove(host:MongoTopology.Host) -> Bool
     {
-        self.replicas[host].remove()
+        self.members[host].remove()
         self.crown(primary: nil)
         return false
     }
     mutating
     func clear(host:MongoTopology.Host, status:(any Error)?) -> Bool
     {
-        if case true? = self.replicas[host]?.clear(status: status)
+        if case ()? = self.members[host]?.clear(status: status)
         {
             self.crown(primary: nil)
             return true
@@ -93,9 +75,10 @@ extension MongoTopology.Replicated
         }
     }
     mutating
-    func update(host:MongoTopology.Host, channel:MongoChannel, metadata:Void) -> Bool
+    func update(host:MongoTopology.Host, metadata:Void, channel:MongoChannel) -> Bool
     {
-        if case true? = self.replicas[host]?.update(channel: channel, metadata: nil)
+        if  case ()? = self.members[host]?.update(with: .init(metadata: nil,
+                channel: channel))
         {
             self.crown(primary: nil)
             return true
@@ -106,114 +89,130 @@ extension MongoTopology.Replicated
         }
     }
     mutating
-    func update(host:MongoTopology.Host, channel:MongoChannel,
-        metadata:MongoTopology.Replica,
+    func update(host:MongoTopology.Host, as slave:MongoTopology.Slave,
         peerlist:MongoTopology.Peerlist,
+        channel:MongoChannel,
         monitor:(MongoTopology.Host) -> ()) -> Bool
     {
-        guard case true? = self.replicas[host]?.update(channel: channel, metadata: metadata)
+        guard self.name == peerlist.set
         else
         {
-            return false
+            // not part of this replica set
+            return self.remove(host: host)
         }
 
-        switch (self.primary, metadata)
-        {
-        case (_,    .primary(let metadata)):
-            defer
+        if case nil = self.primary
+        {            
+            // use the peerlist, even if the `me` field is wrong
+            for new:MongoTopology.Host in peerlist.peers().subtracting(self.members.keys)
             {
-                self.crown(primary: host)
-            }
-            return self.update(host: host, channel: channel, metadata: metadata,
-                peerlist: peerlist,
-                monitor: monitor)
-            
-        case (_?,   .secondary(let metadata)),
-             (_?,   .arbiter(let metadata)),
-             (_?,   .other(let metadata)):
-            defer
-            {
-                self.crown(primary: nil)
-            }
-            if self.name == metadata.set, host == peerlist.me
-            {
-                return true
-            }
-            else
-            {
-                return self.replicas[host].remove()
-            }
-            
-        case (nil,  .secondary(let metadata)),
-             (nil,  .arbiter(let metadata)),
-             (nil,  .other(let metadata)):
-            guard self.name == metadata.set
-            else
-            {
-                return self.replicas[host].remove()
-            }
-            // always use the peerlist, even if the `me` field is wrong
-            for new:MongoTopology.Host in peerlist.peers().subtracting(self.replicas.keys)
-            {
-                self.replicas[new] = .queued
+                self.members[new] = .queued
                 monitor(new)
             }
-            if host == peerlist.me
-            {
-                return true
-            }
-            else
-            {
-                return self.replicas[host].remove()
-            }
-        }
-    }
-    private mutating
-    func update(host:MongoTopology.Host, channel:MongoChannel,
-        metadata:MongoTopology.Replica.Master,
-        peerlist:MongoTopology.Peerlist,
-        monitor:(MongoTopology.Host) -> ()) -> Bool
-    {
-        guard self.name == metadata.set
-        else
-        {
-            return self.replicas[host].remove()
-        }
-        if let regime:MongoTopology.Regime = self.regime, metadata.regime < regime
-        {
-            // stale primary
-            return self.replicas[host]?.clear(status: nil) ?? false
-        }
-        else
-        {
-            self.regime = metadata.regime
         }
 
+        guard host == peerlist.me
+        else
+        {
+            return self.remove(host: host)
+        }
+
+        guard case ()? = self.members[host]?.update(with: .init(
+                metadata: slave.metadata,
+                channel: channel))
+        else
+        {
+            return false
+        }
+
+        defer
+        {
+            self.crown(primary: nil)
+        }
+
+        return true
+    }
+    mutating
+    func update(host:MongoTopology.Host, as master:MongoTopology.Master,
+        peerlist:MongoTopology.Peerlist,
+        channel:MongoChannel,
+        monitor:(MongoTopology.Host) -> ()) -> Bool
+    {
+        guard self.name == peerlist.set
+        else
+        {
+            // not part of this replica set
+            return self.remove(host: host)
+        }
+        if let regime:MongoTopology.Regime = self.regime, master.regime < regime
+        {
+            // stale primary
+            return self.clear(host: host, status: nil)
+        }
+
+        guard case ()? = self.members[host]?.update(with: .init(
+                metadata: master.metadata,
+                channel: channel))
+        else
+        {
+            // not part of topology to begin with
+            return false
+        }
+
+        defer
+        {
+            self.crown(primary: host)
+        }
+
+        self.regime = master.regime
+
         var discovered:Set<MongoTopology.Host> = peerlist.peers()
-        for old:MongoTopology.Host in self.replicas.keys
+        for old:MongoTopology.Host in self.members.keys
         {
             if case nil = discovered.remove(old)
             {
-                self.replicas[old].remove()
+                self.members[old].remove()
             }
         }
         for new:MongoTopology.Host in discovered
         {
-            self.replicas[new] = .queued
+            self.members[new] = .queued
             monitor(new)
         }
+
         return true
     }
+
+    /// Checks if the current ``primary`` host still refers to a primary,
+    /// and if a hint is provided, checks if the new host actually
+    /// refers to a primary. Always updates this topology’s ``primary``
+    /// property accordingly.
+    ///
+    /// If the old primary still refers to a primary (e.g., it was not
+    /// preemptively removed or cleared) *and* a hint is provided,
+    /// this method will trigger a heartbeat on the old primary and then
+    /// clear its descriptor, regardless of the validity of the hint.
+    /// (The hint may be invalid because the new primary may have been
+    /// temporarily removed from the topology because it would like to
+    /// be referred to by a host name that is different than the one the
+    /// connection was seeded with.)
+    ///
+    /// This method guarantees that ``primary`` points to a primary replica
+    /// after returning. Moreover, if `hint` was the only host whose
+    /// metadata was ever (optionally) assigned to ``case Member.primary(_:)``
+    /// between calls to this method, it guarantees that the topology
+    /// contains *at most* one primary, and that ``primary`` points to that
+    /// member if it exists.
     private mutating
-    func crown(primary:MongoTopology.Host?)
+    func crown(primary hint:MongoTopology.Host?)
     {
-        switch (self.primary, primary)
+        switch (self.primary, hint)
         {
         case (nil, nil): 
             break
         
         case (nil, let new?):
-            if case .primary(_)?? = self.replicas[new]?.metadata
+            if case .primary(_)? = self.members[new]?.connection?.metadata
             {
                 self.primary = new
             }
@@ -224,7 +223,7 @@ extension MongoTopology.Replicated
             {
                 fallthrough
             }
-            if case .primary(_)?? = self.replicas[new]?.metadata
+            if case .primary(_)? = self.members[new]?.connection?.metadata
             {
                 self.primary = new
             }
@@ -233,17 +232,19 @@ extension MongoTopology.Replicated
                 self.primary = nil
             }
             if  let old:Dictionary<MongoTopology.Host,
-                        MongoChannel.State<MongoTopology.Replica?>>.Index =
-                    self.replicas.index(forKey: old),
-                let channel:MongoChannel = self.replicas.values[old].primary
+                        MongoConnection<MongoTopology.Member?>.State>.Index =
+                    self.members.index(forKey: old),
+                let connection:MongoConnection =
+                    self.members.values[old].connection,
+                case .primary = connection.metadata
             {
                 //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-monitoring.rst#requesting-an-immediate-check
-                channel.heart.beat()
-                self.replicas.values[old].clear(status: nil)
+                connection.channel.heart.beat()
+                self.members.values[old].clear(status: nil)
             }
         
         case (let old?, nil):
-            guard case .primary(_)?? = self.replicas[old]?.metadata
+            guard case .primary(_)? = self.members[old]?.connection?.metadata
             else
             {
                 self.primary = nil
@@ -252,37 +253,66 @@ extension MongoTopology.Replicated
         }
     }
 }
-extension MongoTopology.Replicated
-{
-    /// Returns a channel to the primary replica, if available.
-    public
-    var master:MongoChannel?
-    {
-        if let primary:MongoTopology.Host = self.primary
-        {
-            return self.replicas[primary]?.primary
-        }
-        else
-        {
-            return nil
-        }
-    }
-    /// Returns a channel to any available primary or secondary replica.
-    public
-    var any:MongoChannel?
-    {
-        for replica:MongoChannel.State<MongoTopology.Replica?> in self.replicas.values
-        {
-            switch replica
-            {
-            case    .connected(let channel, metadata: .primary(_)?),
-                    .connected(let channel, metadata: .secondary(_)?):
-                return channel
+// extension MongoTopology.Replicated
+// {
+//     public
+//     subscript(host:MongoTopology.Host) -> MongoChannel?
+//     {
+//         self.members[host]?.channel
+//     }
+
+//     public
+//     subscript(mode:MongoTopology.ReadMode) -> MongoChannel?
+//     {
+//         var primary:MongoChannel?
+//         {
+//             self.primary.flatMap { self[$0] }
+//         }
+//         var secondary:MongoChannel?
+//         {
+//             // TODO: get rid of the shuffle and replace with something more efficient
+//             for member:MongoConnection.State<MongoTopology.Replica?>
+//                 in self.members.values.shuffled()
+//             {
+//                 switch member
+//                 {
+//                 case .connected(let channel, metadata: .secondary(_)?):
+//                     return channel
+                
+//                 default:
+//                     continue
+//                 }
+//             }
+//             return nil
+//         }
+
+//         switch mode
+//         {
+//         case .nearest:              return self.nearest
+//         case .primary:              return primary
+//         case .primaryPreferred:     return primary ?? secondary
+//         case .secondaryPreferred:   return secondary ?? primary
+//         case .secondary:            return secondary
+//         }
+//     }
+    
+//     /// Returns a channel to any available primary or secondary member.
+//     public
+//     var nearest:MongoChannel?
+//     {
+//         // TODO: get rid of the shuffle and replace with something more efficient
+//         for member:MongoConnection.State<MongoTopology.Replica?> in self.members.values.shuffled()
+//         {
+//             switch member
+//             {
+//             case    .connected(let channel, metadata: .primary(_)?),
+//                     .connected(let channel, metadata: .secondary(_)?):
+//                 return channel
             
-            default:
-                continue
-            }
-        }
-        return nil
-    }
-}
+//             default:
+//                 continue
+//             }
+//         }
+//         return nil
+//     }
+// }
