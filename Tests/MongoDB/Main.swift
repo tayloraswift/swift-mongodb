@@ -10,7 +10,7 @@ enum Main:AsyncTests
     func run(tests:inout Tests) async
     {
         let single:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
-        let replicas:Set<MongoTopology.Host> =
+        let members:Set<MongoTopology.Host> =
         [
             .init(name: "mongo-1", port: 27017),
             .init(name: "mongo-2", port: 27017),
@@ -29,12 +29,12 @@ enum Main:AsyncTests
             hosts: [single],
             on: executor)
         
-        print("running tests for replicated topology (hosts: \(replicas))")
+        print("running tests for replicated topology (hosts: \(members))")
         await self.run(tests: &tests, bootstrap: .init(
                 commandTimeout: .seconds(10),
                 credentials: nil,
                 executor: executor),
-            hosts: replicas,
+            hosts: members,
             on: executor)
     }
     static

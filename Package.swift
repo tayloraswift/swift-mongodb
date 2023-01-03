@@ -16,8 +16,9 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoChannel", targets: ["MongoChannel"]),
         .library(name: "MongoConnection", targets: ["MongoConnection"]),
-        .library(name: "MongoSchema", targets: ["MongoSchema"]),
+        .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
+        .library(name: "MongoSchema", targets: ["MongoSchema"]),
         .library(name: "MongoTopology", targets: ["MongoTopology"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
@@ -33,9 +34,10 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/kelvin13/swift-package-factory.git",
             revision: "swift-DEVELOPMENT-SNAPSHOT-2022-12-17-a"),
         
+        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.3"),
+        .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.0.4")),
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.46.0")),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(from: "2.23.0")),
-        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.3"),
     ],
     targets:
     [
@@ -87,6 +89,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONSchema"),
                 .target(name: "Durations"),
             ]),
+        .target(name: "BSON_OrderedCollections",
+            dependencies:
+            [
+                .target(name: "BSONSchema"),
+                .product(name: "OrderedCollections",    package: "swift-collections"),
+            ]),
         
         .target(name: "Durations"),
         
@@ -106,18 +114,6 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSON"),
                 .product(name: "CRC", package: "swift-hash"),
-            ]),
-        
-        // basic type definitions and conformances. driver peripherals can
-        // import this instead of ``/MongoDriver`` to avoid depending on `swift-nio`.
-        .target(name: "Mongo",
-            dependencies: 
-            [
-                // this dependency is here because we need several of the
-                // enumeration types to be ``BSONDecodable`` and ``BSONEncodable``,
-                // and we do not want a downstream module to have to declare
-                // retroactive conformances.
-                .target(name: "BSONSchema"),
             ]),
 
         .target(name: "MongoChannel",
@@ -146,45 +142,34 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoDriver",
             dependencies: 
             [
-                .target(name: "BSON_UUID"),
                 .target(name: "BSON_Durations"),
-                .target(name: "Mongo"),
-                .target(name: "MongoChannel"),
+                .target(name: "BSON_OrderedCollections"),
+                .target(name: "BSON_UUID"),
                 .target(name: "MongoTopology"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2",                  package: "swift-hash"),
-                // already included by `MongoTopology`’s transitive `Atomics` dependency,
-                // but restated here for clarity.
-                .product(name: "Atomics",               package: "swift-atomics"),
-                // already included by `MongoTopology`’s transitive `NIOCore` dependency,
-                // but restated here for clarity.
-                .product(name: "NIOCore",               package: "swift-nio"),
                 .product(name: "NIOPosix",              package: "swift-nio"),
                 .product(name: "NIOSSL",                package: "swift-nio-ssl"),
             ]),
         
         .target(name: "MongoSchema",
-            dependencies: 
+            dependencies:
             [
                 .target(name: "BSONSchema"),
             ]),
         
         .target(name: "MongoDB",
-            dependencies: 
+            dependencies:
             [
                 .target(name: "MongoDriver"),
                 .target(name: "MongoSchema"),
             ]),
 
-        // connection uri strings.
-        .target(name: "MongoURI",
-            dependencies: 
+        .target(name: "MongoConnectionString",
+            dependencies:
             [
-                .target(name: "Durations"),
-                .target(name: "Mongo"),
-                .target(name: "MongoTopology"),
+                .target(name: "MongoDriver"),
             ]),
-        
 
         .executableTarget(name: "BSONTests",
             dependencies:

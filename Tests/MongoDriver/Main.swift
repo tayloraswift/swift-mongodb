@@ -15,7 +15,7 @@ enum Main:AsyncTests
         await self.run(tests: &tests, single: .init(name: "mongo-single", port: 27017),
             on: executor)
         await self.run(tests: &tests,
-            replicas:
+            members:
             [
                 .init(name: "mongo-1", port: 27017),
                 .init(name: "mongo-2", port: 27017),
@@ -27,27 +27,51 @@ enum Main:AsyncTests
 extension Main
 {
     static
-    func run(tests:inout Tests, replicas:[MongoTopology.Host],
+    func run(tests:inout Tests, members:[MongoTopology.Host],
         on executor:MultiThreadedEventLoopGroup) async
     {
-        print("running tests for replicated topology (hosts: \(replicas))")
+        print("running tests for replicated topology (hosts: \(members))")
         //  we should be able to connect to the primary using any seed
         await tests.group("replica-set-seeding")
         {
-            for seed:MongoTopology.Host in replicas
+            //  this was the configuration we initialized the test set with:
+            //  (/.github/mongonet/create-replica-set.js)
+            let expected:Mongo.ReplicaSetConfiguration = .init(name: "test-set",
+                writeConcernMajorityJournalDefault: true,
+                members:
+                [
+                    .init(id: 1, host: members[0], replica: .init(
+                        rights: .init(priority: 2.0),
+                        votes: 1,
+                        tags: ["c": "C", "a": "A", "b": "B"])),
+                    
+                    .init(id: 2, host: members[1], replica: .init(
+                        rights: .init(priority: 1.0),
+                        votes: 1,
+                        tags: ["b": "B", "d": "D", "c": "C"])),
+                    
+                    .init(id: 3, host: members[2], replica: nil),
+                ],
+                version: 1,
+                term: 1)
+            
+            for seed:MongoTopology.Host in members
             {
                 await $0.test(with: DriverEnvironment.init(
                     name: "discover-primary-from-\(seed.name)",
                     credentials: nil,
                     executor: executor))
                 {
-                    try await $1.withSessionPool(seedlist: [seed])
+                    (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
+
+                    try await bootstrap.withSessionPool(seedlist: [seed])
                     {
                         try await $0.withSession(connectionTimeout: .seconds(5))
                         {
-                            //  TODO: actually check these values
-                            let _:Mongo.ReplicaSetConfiguration = try await $0.run(
+                            let configuration:Mongo.ReplicaSetConfiguration = try await $0.run(
                                 command: Mongo.ReplicaSetGetConfiguration.init())
+                            
+                            tests.assert(configuration ==? expected, name: "configuration")
                         }
                     }
                 }
@@ -58,9 +82,9 @@ extension Main
         //     credentials: nil,
         //     executor: executor))
         // {
-        //     (tests:inout Tests, driver:Mongo.DriverBootstrap) in
+        //     (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
 
-        //     try await driver.withSessionPool(seedlist: .init(replicas))
+        //     try await bootstrap.withSessionPool(seedlist: .init(members))
         //     {
         //         try await $0.withSession(connectionTimeout: .seconds(5))
         //         {
@@ -223,7 +247,7 @@ extension Main
                 password: "80085"),
             executor: executor))
         {
-            (tests:inout Tests, driver:Mongo.DriverBootstrap) in
+            (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
 
             await tests.test(name: "errors-equal",
                 expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
@@ -231,12 +255,12 @@ extension Main
                     [
                         single: .errored(Mongo.AuthenticationError.init(
                                 Mongo.AuthenticationUnsupportedError.init(.x509),
-                            credentials: driver.credentials!))
+                            credentials: bootstrap.credentials!))
                     ]),
                     failure: .init()))
             {
                 _ in
-                try await driver.withSessionPool(seedlist: [single])
+                try await bootstrap.withSessionPool(seedlist: [single])
                 {
                     try await $0.withSession(connectionTimeout: .milliseconds(500))
                     {
@@ -252,7 +276,7 @@ extension Main
                 password: "1234"),
             executor: executor))
         {
-            (tests:inout Tests, driver:Mongo.DriverBootstrap) in
+            (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
 
             await tests.test(name: "errors-equal",
                 expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
@@ -262,12 +286,12 @@ extension Main
                                 MongoChannel.ServerError.init(
                                     message: "Authentication failed.",
                                     code: 18),
-                            credentials: driver.credentials!))
+                            credentials: bootstrap.credentials!))
                     ]),
                     failure: .init()))
             {
                 _ in
-                try await driver.withSessionPool(seedlist: [single])
+                try await bootstrap.withSessionPool(seedlist: [single])
                 {
                     try await $0.withSession(connectionTimeout: .milliseconds(500))
                     {
