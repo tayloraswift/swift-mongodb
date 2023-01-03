@@ -8,9 +8,9 @@ extension Mongo
     actor Cluster
     {
         private
-        var sessionsRequests:[UInt: SessionsRequest]
+        var selectionRequests:[UInt: SelectionRequest]
         private
-        var mediumRequests:[UInt: MediumRequest]
+        var sessionsRequests:[UInt: SessionsRequest]
         private
         var counter:UInt
 
@@ -20,7 +20,7 @@ extension Mongo
         private
         var snapshot:MongoTopology.Servers
         /// The current largest-seen cluster time, if any.
-        private
+        public private(set)
         var time:ClusterTime
 
         init()
@@ -29,8 +29,8 @@ extension Mongo
             self.snapshot = .none
             self.time = .init(nil)
 
+            self.selectionRequests = [:]
             self.sessionsRequests = [:]
-            self.mediumRequests = [:]
             self.counter = 0
         }
 
@@ -38,15 +38,15 @@ extension Mongo
         {
             self.sessionTimeoutMinutes.destroy()
 
+            guard self.selectionRequests.isEmpty
+            else
+            {
+                fatalError("unreachable (deinitialized while selection requests are awaiting)")
+            }
             guard self.sessionsRequests.isEmpty
             else
             {
                 fatalError("unreachable (deinitialized while session requests are awaiting)")
-            }
-            guard self.mediumRequests.isEmpty
-            else
-            {
-                fatalError("unreachable (deinitialized while medium requests are awaiting)")
             }
         }
     }
@@ -60,27 +60,18 @@ extension Mongo.Cluster
         return rawValue == 0 ? nil : .init(ttl: .init(rawValue: rawValue))
     }
 
-    subscript(preference:Mongo.ReadPreference) -> Mongo.ReadMedium?
+    subscript(preference:Mongo.ReadPreference) -> MongoChannel?
     {
-        let channel:MongoChannel?
         switch preference
         {
         case    .primary:
-            channel = self.snapshot[.primary]
+            return self.snapshot[.primary]
         
         case    .primaryPreferred   (let eligibility, hedge: _),
                 .nearest            (let eligibility, hedge: _),
                 .secondaryPreferred (let eligibility, hedge: _),
                 .secondary          (let eligibility, hedge: _):
-            channel = self.snapshot[preference.mode, where: eligibility]
-        }
-        if let channel:MongoChannel
-        {
-            return .init(clusterTime: self.time, channel: channel)
-        }
-        else
-        {
-            return nil
+            return self.snapshot[preference.mode, where: eligibility]
         }
     }
 }
@@ -102,17 +93,17 @@ extension Mongo.Cluster
     public
     func push(time:Mongo.ClusterTime.Sample)
     {
-        self.time.combine(time)
+        self.time.combine(with: time)
     }
     func push(snapshot:MongoTopology.Servers, sessions:Mongo.LogicalSessions? = nil)
     {
         self.snapshot = snapshot
 
-        for (id, request):(UInt, MediumRequest) in self.mediumRequests
+        for (id, request):(UInt, SelectionRequest) in self.selectionRequests
         {
-            if  let connection:Mongo.ReadMedium = self[request.preference]
+            if  let channel:MongoChannel = self[request.preference]
             {
-                self.mediumRequests[id].fulfill(with: connection)
+                self.selectionRequests[id].fulfill(with: channel)
             }
         }
 
@@ -194,39 +185,52 @@ extension Mongo.Cluster
 extension Mongo.Cluster
 {
     public
-    func medium(to preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant) async throws -> Mongo.ReadMedium
+    func select(preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant) async throws ->
+    (
+        clusterTime:Mongo.ClusterTime,
+        selection:Mongo.Selection
+    )
     {
-        if  let medium:Mongo.ReadMedium = self[preference]
+        (
+            self.time, .init(preference: preference,
+                channel: try await self.channel(to: preference, by: deadline))
+        )
+    }
+    private
+    func channel(to preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant) async throws -> MongoChannel
+    {
+        if  let channel:MongoChannel = self[preference]
         {
-            return medium
+            return channel
         }
         else
         {
-            return try await self.mediumAvailable(to: preference, by: deadline)
+            return try await self.channelAvailable(to: preference, by: deadline)
         }
     }
     private
-    func mediumAvailable(to preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant) async throws -> Mongo.ReadMedium
+    func channelAvailable(to preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant) async throws -> MongoChannel
     {
         let id:UInt = self.request()
 
         async
-        let _:Void = self.mediumUnavailable(for: id, once: deadline)
+        let _:Void = self.channelUnavailable(for: id, once: deadline)
 
         return try await withCheckedThrowingContinuation
         {
-            self.mediumRequests.updateValue(.init(preference: preference, promise: $0),
+            self.selectionRequests.updateValue(.init(preference: preference, promise: $0),
                 forKey: id)
         }
     }
     private
-    func mediumUnavailable(for id:UInt, once instant:ContinuousClock.Instant) async throws
+    func channelUnavailable(for id:UInt, once instant:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
         try await Task.sleep(until: instant, clock: .continuous)
-        self.mediumRequests[id].fail(diagnosing: self.snapshot)
+        self.selectionRequests[id].fail(diagnosing: self.snapshot)
     }
 }
 extension Mongo.Cluster
@@ -263,6 +267,6 @@ extension Mongo.Cluster
     private
     func run(endSessions command:__owned Mongo.EndSessions) async throws -> Void?
     {
-        try await self[.primaryPreferred]?.channel.run(endSessions: command)
+        try await self[.primaryPreferred]?.run(endSessions: command)
     }
 }
