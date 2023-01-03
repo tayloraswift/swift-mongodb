@@ -19,15 +19,15 @@ extension Mongo
 
         private
         var snapshot:MongoTopology.Servers
-        /// The current largest-seen cluster time.
+        /// The current largest-seen cluster time, if any.
         private
-        var time:ClusterTime?
+        var time:ClusterTime
 
         init()
         {
             self.sessionTimeoutMinutes = .create(0)
             self.snapshot = .none
-            self.time = nil
+            self.time = .init(nil)
 
             self.sessionsRequests = [:]
             self.mediumRequests = [:]
@@ -87,9 +87,9 @@ extension Mongo.Cluster
 extension Mongo.Cluster
 {
     @inlinable public nonisolated
-    func push(time:Mongo.ClusterTime?)
+    func push(time:Mongo.ClusterTime.Sample?)
     {
-        guard let time:Mongo.ClusterTime
+        guard let time:Mongo.ClusterTime.Sample
         else
         {
             return
@@ -100,13 +100,9 @@ extension Mongo.Cluster
         }
     }
     public
-    func push(time:Mongo.ClusterTime)
+    func push(time:Mongo.ClusterTime.Sample)
     {
-        if  let observed:Mongo.ClusterTime = self.time,
-                observed.max < time.max
-        {
-            self.time = time
-        }
+        self.time.combine(time)
     }
     func push(snapshot:MongoTopology.Servers, sessions:Mongo.LogicalSessions? = nil)
     {
