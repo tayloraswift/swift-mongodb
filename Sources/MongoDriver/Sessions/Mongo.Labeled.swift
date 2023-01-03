@@ -7,7 +7,7 @@ extension Mongo
     struct Labeled<Command> where Command:MongoSessionCommand
     {
         @usableFromInline
-        let clusterTime:ClusterTime?
+        let clusterTime:ClusterTime
         @usableFromInline
         let readPreference:ReadPreference?
         @usableFromInline
@@ -20,7 +20,7 @@ extension Mongo
         let command:Command
 
         @usableFromInline
-        init(clusterTime:ClusterTime?,
+        init(clusterTime:ClusterTime,
             readPreference:ReadPreference?,
             readConcern:ReadConcern?,
             transaction:Transaction,
@@ -43,7 +43,7 @@ extension Mongo.Labeled
     {
         self.command.encode(to: &bson, database: database)
 
-        bson["$clusterTime"] = self.clusterTime
+        bson["$clusterTime"] = self.clusterTime.max
         bson["$readPreference"] = self.readPreference
         bson["readConcern"] = self.readConcern
         bson["lsid"] = self.session

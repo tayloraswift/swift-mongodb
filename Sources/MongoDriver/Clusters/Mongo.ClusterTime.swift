@@ -1,37 +1,31 @@
-import BSONSchema
-
 extension Mongo
 {
-    public
+    @frozen public
     struct ClusterTime:Sendable
     {
-        let signature:BSON.Fields
-        public
-        let max:Mongo.Instant
+        public private(set)
+        var max:Sample?
 
-        @usableFromInline
-        init(signature:BSON.Fields, max:Mongo.Instant)
+        init(_ sample:Sample?)
         {
-            self.signature = signature
-            self.max = max
+            self.max = sample
         }
     }
 }
-extension Mongo.ClusterTime:BSONDocumentEncodable
+extension Mongo.ClusterTime
 {
-    public
-    func encode(to bson:inout BSON.Fields)
+    mutating
+    func combine(_ sample:Sample)
     {
-        bson["signature", elide: false] = self.signature
-        bson["clusterTime"] = self.max
-    }
-}
-extension Mongo.ClusterTime:BSONDictionaryDecodable
-{
-    @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
-    {
-        self.init(signature: try bson["signature"].decode(to: BSON.Fields.self),
-            max: try bson["clusterTime"].decode(to: Mongo.Instant.self))
+        guard let max:Sample = self.max
+        else
+        {
+            self.max = sample
+            return
+        }
+        if  max.instant < sample.instant
+        {
+            self.max = sample
+        }
     }
 }

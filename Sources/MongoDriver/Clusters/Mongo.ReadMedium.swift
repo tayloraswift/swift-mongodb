@@ -7,11 +7,11 @@ extension Mongo
     struct ReadMedium:Sendable
     {
         public
-        var clusterTime:Mongo.ClusterTime?
+        var clusterTime:Mongo.ClusterTime
         public
         let channel:MongoChannel
 
-        init(clusterTime:Mongo.ClusterTime?, channel:MongoChannel)
+        init(clusterTime:Mongo.ClusterTime, channel:MongoChannel)
         {
             self.clusterTime = clusterTime
             self.channel = channel
