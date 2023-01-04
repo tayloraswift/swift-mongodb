@@ -52,3 +52,12 @@ extension Mongo.Namespaced:LosslessStringConvertible
 extension Mongo.Namespaced:BSONStringScheme
 {
 }
+
+extension Mongo.Namespaced<Mongo.Collection>
+{
+    @inlinable public
+    var collection:Mongo.Collection
+    {
+        self.name
+    }
+}

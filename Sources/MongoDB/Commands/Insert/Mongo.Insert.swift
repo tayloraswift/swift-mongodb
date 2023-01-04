@@ -38,7 +38,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Insert:MongoCommand
+extension Mongo.Insert:MongoDatabaseCommand, MongoCommand
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -52,10 +52,6 @@ extension Mongo.Insert:MongoCommand
 
     public
     typealias Response = Mongo.InsertResponse
-}
-
-extension Mongo.Insert:MongoDatabaseCommand
-{
 }
 extension Mongo.Insert:MongoImplicitSessionCommand
 {

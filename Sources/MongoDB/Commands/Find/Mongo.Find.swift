@@ -113,14 +113,10 @@ extension Mongo.Find
     }
     var awaitData:Bool
     {
-        switch self.tailing
-        {
-        case .await:    return true
-        default:        return false
-        }
+        self.tailing?.awaits ?? false
     }
 }
-extension Mongo.Find:MongoCommand
+extension Mongo.Find:MongoQuery, MongoReadCommand, MongoDatabaseCommand, MongoCommand
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -153,13 +149,7 @@ extension Mongo.Find:MongoCommand
     public
     typealias Response = Mongo.Cursor<Element>
 }
-extension Mongo.Find:MongoDatabaseCommand
-{
-}
-extension Mongo.Find:MongoReadCommand, MongoImplicitSessionCommand
-{
-}
-extension Mongo.Find:MongoStreamableCommand
+extension Mongo.Find:MongoImplicitSessionCommand
 {
 }
 extension Mongo.Find:MongoTransactableCommand

@@ -30,9 +30,6 @@ extension Mongo.KillCursors:MongoCommand
 extension Mongo.KillCursors:MongoDatabaseCommand
 {
 }
-// extension Mongo.KillCursors:MongoReadOnlyCommand
-// {
-// }
 extension Mongo.KillCursors:MongoTransactableCommand
 {
 }

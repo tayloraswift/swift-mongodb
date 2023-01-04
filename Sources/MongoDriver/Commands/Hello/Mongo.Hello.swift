@@ -5,9 +5,9 @@ extension Mongo
     struct Hello:Sendable
     {
         let client:ClientMetadata?
-        let user:User?
+        let user:Mongo.Namespaced<String>?
 
-        init(client:ClientMetadata? = nil, user:User?)
+        init(client:ClientMetadata? = nil, user:Mongo.Namespaced<String>?)
         {
             self.client = client
             self.user = user

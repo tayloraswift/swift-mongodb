@@ -139,12 +139,19 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoConnection"),
             ]),
 
+        .target(name: "MongoSchema",
+            dependencies:
+            [
+                .target(name: "BSONSchema"),
+            ]),
+        
         .target(name: "MongoDriver",
             dependencies: 
             [
                 .target(name: "BSON_Durations"),
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
+                .target(name: "MongoSchema"),
                 .target(name: "MongoTopology"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2",                  package: "swift-hash"),
@@ -152,17 +159,10 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "NIOSSL",                package: "swift-nio-ssl"),
             ]),
         
-        .target(name: "MongoSchema",
-            dependencies:
-            [
-                .target(name: "BSONSchema"),
-            ]),
-        
         .target(name: "MongoDB",
             dependencies:
             [
                 .target(name: "MongoDriver"),
-                .target(name: "MongoSchema"),
             ]),
 
         .target(name: "MongoConnectionString",

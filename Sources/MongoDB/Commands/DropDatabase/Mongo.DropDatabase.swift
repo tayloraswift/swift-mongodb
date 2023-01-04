@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.DropDatabase:MongoCommand
+extension Mongo.DropDatabase:MongoDatabaseCommand, MongoCommand
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -26,9 +26,6 @@ extension Mongo.DropDatabase:MongoCommand
         bson["dropDatabase"] = 1 as Int32
         bson["writeConcern"] = self.writeConcern
     }
-}
-extension Mongo.DropDatabase:MongoDatabaseCommand
-{
 }
 extension Mongo.DropDatabase:MongoImplicitSessionCommand
 {

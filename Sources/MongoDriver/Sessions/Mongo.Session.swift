@@ -1,7 +1,3 @@
-import MongoChannel
-import MongoWire
-import NIOCore
-
 extension Mongo
 {
     /// Tracks a session on a MongoDB server. Sessions have reference semantics.
@@ -48,42 +44,23 @@ extension Mongo.Session:Sendable
 extension Mongo.Session
 {
     @inlinable public
-    func run<Command>(unsafe command:Command,
-        against database:Mongo.Database,
-        on selection:Mongo.Selection)
-        async throws -> Command.Response
-        where Command:MongoSessionCommand
+    func deadline(from start:ContinuousClock.Instant = .now) -> ContinuousClock.Instant
     {
-        try await self.run(unsafe: command, against: database, on: selection,
-            clusterTime: await self.cluster.time)
+        start.advanced(by: self.connectionTimeout)
     }
-    
+}
+extension Mongo.Session
+{    
     @inlinable public
-    func run<Command>(unsafe command:Command,
-        against database:Mongo.Database,
-        on selection:Mongo.Selection,
-        clusterTime:Mongo.ClusterTime)
-        async throws -> Command.Response
-        where Command:MongoSessionCommand
+    func runner(preference:Mongo.ReadPreference) async throws ->
+    (
+        clusterTime:Mongo.ClusterTime,
+        runner:Mongo.UnsafeRunner
+    )
     {
-        let labeled:Mongo.Labeled<Command> = .init(clusterTime: clusterTime,
-            readPreference: selection.preference,
-            readConcern: (command as? any MongoReadCommand).map
-            {
-                .init(level: $0.readLevel, after: self.state.lastOperationTime)
-            },
-            transaction: self.state.metadata.transaction,
-            session: self.id,
-            command: command)
-        
-        let sent:ContinuousClock.Instant = .now
-        let reply:Mongo.Reply = try await selection.channel.run(labeled: labeled,
-            against: database)
-
-        self.state.update(touched: sent, operationTime: reply.operationTime)
-        self.cluster.push(time: reply.clusterTime)
-
-        return try Command.decode(reply: try reply.result.get())
+        let (time, selection):(Mongo.ClusterTime, Mongo.Selection) =
+            try await self.cluster.select(preference: preference, by: self.deadline())
+        return (time, .init(selection: selection, session: self))
     }
 
     /// Runs a session command against the ``Mongo/Database/.admin`` database.
@@ -92,11 +69,9 @@ extension Mongo.Session
         on preference:Mongo.ReadPreference = .primary) async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        let deadline:ContinuousClock.Instant = .now.advanced(by: self.connectionTimeout)
-        let (clusterTime, selection):(Mongo.ClusterTime, Mongo.Selection) =
-            try await self.cluster.select(preference: preference, by: deadline)
-        
-        return try await self.run(unsafe: command, against: .admin, on: selection,
+        let (clusterTime, runner):(Mongo.ClusterTime, Mongo.UnsafeRunner) =
+            try await self.runner(preference: preference)
+        return try await runner.run(command: command, against: .admin,
             clusterTime: clusterTime)
     }
     
@@ -108,11 +83,40 @@ extension Mongo.Session
         async throws -> Command.Response
         where Command:MongoSessionCommand & MongoDatabaseCommand
     {
-        let deadline:ContinuousClock.Instant = .now.advanced(by: self.connectionTimeout)
-        let (clusterTime, selection):(Mongo.ClusterTime, Mongo.Selection) =
-            try await self.cluster.select(preference: preference, by: deadline)
-        
-        return try await self.run(unsafe: command, against: database, on: selection,
+        let (clusterTime, runner):(Mongo.ClusterTime, Mongo.UnsafeRunner) =
+            try await self.runner(preference: preference)
+        return try await runner.run(command: command, against: database,
             clusterTime: clusterTime)
+    }
+}
+
+extension Mongo.Session
+{
+    @inlinable public
+    func run<Query, Success>(query:Query, against database:Mongo.Database,
+        on preference:Mongo.ReadPreference = .primary,
+        with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
+        async throws -> Success
+        where Query:MongoQuery
+    {
+        let (initialTime, runner):(Mongo.ClusterTime, Mongo.UnsafeRunner) =
+            try await self.runner(preference: preference)
+        
+        let batches:Mongo.Batches<Query.Element> = .init(runner: runner,
+            initial: try await runner.run(command: query, against: database,
+                clusterTime: initialTime),
+            timeout: query.tailing?.timeout,
+            stride: query.stride)
+        let result:Result<Success, any Error>
+        do
+        {
+            result = .success(try await consumer(batches))
+        }
+        catch let error
+        {
+            result = .failure(error)
+        }
+        try await batches.deinit()
+        return try result.get()
     }
 }

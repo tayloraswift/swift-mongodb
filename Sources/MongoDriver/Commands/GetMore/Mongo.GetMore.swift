@@ -33,7 +33,7 @@ extension Mongo.GetMore:MongoCommand
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["getMore"] = self.cursor.handle
+        bson["getMore"] = self.cursor
         bson["collection"] = self.collection
         bson["maxTimeMS"] = self.timeout
         bson["batchSize"] = self.count
@@ -45,10 +45,6 @@ extension Mongo.GetMore:MongoCommand
 extension Mongo.GetMore:MongoDatabaseCommand
 {
 }
-// TODO: does getMore support read level?
-// extension Mongo.GetMore:MongoReadOnlyCommand
-// {
-// }
 extension Mongo.GetMore:MongoTransactableCommand
 {
 }
