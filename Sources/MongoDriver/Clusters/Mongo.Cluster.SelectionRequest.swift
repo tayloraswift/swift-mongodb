@@ -1,26 +1,27 @@
+import MongoChannel
 import MongoTopology
 
 extension Mongo.Cluster
 {
-    struct MediumRequest
+    struct SelectionRequest
     {
         let preference:Mongo.ReadPreference
-        let promise:CheckedContinuation<Mongo.ReadMedium, any Error>
+        let promise:CheckedContinuation<MongoChannel, any Error>
 
         init(preference:Mongo.ReadPreference,
-            promise:CheckedContinuation<Mongo.ReadMedium, any Error>)
+            promise:CheckedContinuation<MongoChannel, any Error>)
         {
             self.preference = preference
             self.promise = promise
         }
     }
 }
-extension Mongo.Cluster.MediumRequest?
+extension Mongo.Cluster.SelectionRequest?
 {
     mutating
     func fail(diagnosing servers:MongoTopology.Servers)
     {
-        guard let request:Mongo.Cluster.MediumRequest = self
+        guard let request:Mongo.Cluster.SelectionRequest = self
         else
         {
             return
@@ -35,11 +36,11 @@ extension Mongo.Cluster.MediumRequest?
             failure: .init(preference: request.preference)))
     }
     mutating
-    func fulfill(with connection:Mongo.ReadMedium)
+    func fulfill(with channel:MongoChannel)
     {
-        if  let request:Mongo.Cluster.MediumRequest = self
+        if  let request:Mongo.Cluster.SelectionRequest = self
         {
-            request.promise.resume(returning: connection)
+            request.promise.resume(returning: channel)
             self = nil
         }
     }

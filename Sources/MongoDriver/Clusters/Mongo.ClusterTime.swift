@@ -15,7 +15,7 @@ extension Mongo
 extension Mongo.ClusterTime
 {
     mutating
-    func combine(_ sample:Sample)
+    func combine(with sample:Sample)
     {
         guard let max:Sample = self.max
         else

@@ -48,18 +48,26 @@ extension Mongo.Session:Sendable
 extension Mongo.Session
 {
     @inlinable public
-    func time<Command>(command:Command, on preference:Mongo.ReadPreference,
-        operation:(MongoChannel, Mongo.Labeled<Command>) async throws -> Mongo.Reply)
+    func run<Command>(unsafe command:Command,
+        against database:Mongo.Database,
+        on selection:Mongo.Selection)
         async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        let started:ContinuousClock.Instant = .now
-
-        let medium:Mongo.ReadMedium = try await self.cluster.medium(to: preference,
-            by: .now.advanced(by: self.connectionTimeout))
-        
-        let labeled:Mongo.Labeled<Command> = .init(clusterTime: medium.clusterTime,
-            readPreference: preference,
+        try await self.run(unsafe: command, against: database, on: selection,
+            clusterTime: await self.cluster.time)
+    }
+    
+    @inlinable public
+    func run<Command>(unsafe command:Command,
+        against database:Mongo.Database,
+        on selection:Mongo.Selection,
+        clusterTime:Mongo.ClusterTime)
+        async throws -> Command.Response
+        where Command:MongoSessionCommand
+    {
+        let labeled:Mongo.Labeled<Command> = .init(clusterTime: clusterTime,
+            readPreference: selection.preference,
             readConcern: (command as? any MongoReadCommand).map
             {
                 .init(level: $0.readLevel, after: self.state.lastOperationTime)
@@ -68,9 +76,11 @@ extension Mongo.Session
             session: self.id,
             command: command)
         
-        let reply:Mongo.Reply = try await operation(medium.channel, labeled)
+        let sent:ContinuousClock.Instant = .now
+        let reply:Mongo.Reply = try await selection.channel.run(labeled: labeled,
+            against: database)
 
-        self.state.update(touched: started, operationTime: reply.operationTime)
+        self.state.update(touched: sent, operationTime: reply.operationTime)
         self.cluster.push(time: reply.clusterTime)
 
         return try Command.decode(reply: try reply.result.get())
@@ -82,10 +92,12 @@ extension Mongo.Session
         on preference:Mongo.ReadPreference = .primary) async throws -> Command.Response
         where Command:MongoSessionCommand
     {
-        try await self.time(command: command, on: preference)
-        {
-            try await $0.run(labeled: $1, against: .admin)
-        }
+        let deadline:ContinuousClock.Instant = .now.advanced(by: self.connectionTimeout)
+        let (clusterTime, selection):(Mongo.ClusterTime, Mongo.Selection) =
+            try await self.cluster.select(preference: preference, by: deadline)
+        
+        return try await self.run(unsafe: command, against: .admin, on: selection,
+            clusterTime: clusterTime)
     }
     
     /// Runs a session command against the specified database.
@@ -96,9 +108,11 @@ extension Mongo.Session
         async throws -> Command.Response
         where Command:MongoSessionCommand & MongoDatabaseCommand
     {
-        try await self.time(command: command, on: preference)
-        {
-            try await $0.run(labeled: $1, against: database)
-        }
+        let deadline:ContinuousClock.Instant = .now.advanced(by: self.connectionTimeout)
+        let (clusterTime, selection):(Mongo.ClusterTime, Mongo.Selection) =
+            try await self.cluster.select(preference: preference, by: deadline)
+        
+        return try await self.run(unsafe: command, against: database, on: selection,
+            clusterTime: clusterTime)
     }
 }
