@@ -97,18 +97,32 @@ func TestSessionPool(_ tests:inout Tests,
             {
             }
         }
-
+        //  We should be able to throw an error from inside a session context,
+        //  without disturbing other sessions, or the pool as a whole.
         await $0.test(with: DriverEnvironment.init(name: "error-session",
-            credentials: nil, executor: executor))
+            credentials: credentials, executor: executor))
         {
-            await $1.withSessionPool(seedlist: seedlist)
+            try await $1.withSessionPool(seedlist: seedlist)
             {
                 async
-                let _:Void = $0.withSession { _ in }
+                let succeeding:Void = $0.withSession
+                {
+                    try await Task.sleep(for: .milliseconds(100))
+                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                }
                 async
-                let _:Void = $0.withSession
+                let failing:Void = $0.withSession
                 {
                     _ in throw CancellationError.init()
+                }
+
+                try await succeeding
+                do
+                {
+                    try await failing
+                }
+                catch is CancellationError
+                {
                 }
             }
         }
