@@ -1,11 +1,12 @@
 extension Mongo
 {
     public
-    struct ReadPreferenceError:Error
+    struct ReadPreferenceError:Equatable, Error
     {
         public
         let preference:ReadPreference
 
+        public
         init(preference:ReadPreference)
         {
             self.preference = preference

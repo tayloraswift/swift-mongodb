@@ -10,14 +10,14 @@ extension Mongo.ReplicaSetConfiguration
 extension Mongo.ReplicaSetConfiguration.Rights
 {
     /// Configures a citizen with a priority of [`1.0`]().
-    @inlinable public
+    @inlinable public static
     var citizen:Self
     {
         .citizen(.init())
     }
     /// Configures a resident with default settings.
     /// (Builds indexes, and is not delayed.)
-    @inlinable public
+    @inlinable public static
     var resident:Self
     {
         .resident(.init())

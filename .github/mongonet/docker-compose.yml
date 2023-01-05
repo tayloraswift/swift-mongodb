@@ -7,7 +7,7 @@ services:
         networks:
             - mongonet
         ports:
-            - 30000:27017
+            - 40000:27017
         restart: always
         volumes:
             - ./create-users.js:/docker-entrypoint-initdb.d/create-users.js
@@ -15,8 +15,20 @@ services:
             - ./data/db:/data/db
         command: mongod --config /etc/mongod.conf
 
-    # a mock replica set deployment. *every* member runs the init script,
-    # the last one to do so will know about all the other members.
+    mongo-0:
+        image: mongo:latest
+        hostname: mongo-0
+        networks:
+            - mongonet
+        ports:
+            - 30000:27017
+        restart: always
+        volumes:
+            # cannot put this in docker-entrypoint-initdb.d, it does not work
+            - ./create-replica-set.js:/create-replica-set.js
+            - ./test-set.conf:/etc/mongod.conf
+            - ./data-0/db:/data/db
+        command: mongod --config /etc/mongod.conf
     mongo-1:
         image: mongo:latest
         hostname: mongo-1
@@ -54,6 +66,18 @@ services:
         volumes:
             - ./test-set.conf:/etc/mongod.conf
             - ./data-3/db:/data/db
+        command: mongod --config /etc/mongod.conf
+    mongo-4:
+        image: mongo:latest
+        hostname: mongo-4
+        networks:
+            - mongonet
+        ports:
+            - 30004:27017
+        restart: always
+        volumes:
+            - ./test-set.conf:/etc/mongod.conf
+            - ./data-4/db:/data/db
         command: mongod --config /etc/mongod.conf
 
 networks: 
