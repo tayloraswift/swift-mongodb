@@ -14,9 +14,11 @@ enum Main:AsyncTests
         let standalone:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
         let members:[MongoTopology.Host] =
         [
+            .init(name: "mongo-0", port: 27017),
             .init(name: "mongo-1", port: 27017),
             .init(name: "mongo-2", port: 27017),
             .init(name: "mongo-3", port: 27017),
+            .init(name: "mongo-4", port: 27017),
         ]
 
         await tests.group("replicated-topology")
@@ -27,9 +29,13 @@ enum Main:AsyncTests
                 seedlist: .init(members),
                 on: executor)
             
-            await TestMemberDiscovery(&$0,
-                members: members,
-                on: executor)
+            let bootstrap:Mongo.DriverBootstrap = .init(
+                commandTimeout: .seconds(10),
+                credentials: nil,
+                executor: executor)
+            
+            await TestMemberDiscovery(&$0, bootstrap: bootstrap, members: members)
+            await TestReadPreference(&$0, bootstrap: bootstrap, members: members)
         }
 
         await tests.group("single-topology")
@@ -40,12 +46,12 @@ enum Main:AsyncTests
                 username: "root",
                 password: "80085")
 
-            await TestSessionPool(&$0, credentials: credentials,
-                seedlist: [standalone],
-                on: executor)
-            
             await TestAuthentication(&$0, credentials: credentials,
                 standalone: standalone,
+                on: executor)
+            
+            await TestSessionPool(&$0, credentials: credentials,
+                seedlist: [standalone],
                 on: executor)
         }
     }
