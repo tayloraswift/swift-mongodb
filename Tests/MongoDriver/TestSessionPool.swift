@@ -127,4 +127,57 @@ func TestSessionPool(_ tests:inout Tests,
             }
         }
     }
+    await tests.group("sessions")
+    {
+        /// Two non-overlapping sessions should re-use the same session.
+        await $0.test(with: DriverEnvironment.init(name: "non-overlapping",
+            credentials: credentials, executor: executor))
+        {
+            (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
+
+            try await bootstrap.withSessionPool(seedlist: seedlist)
+            {
+                let id:(Mongo.SessionIdentifier, Mongo.SessionIdentifier)
+
+                id.0 = try await $0.withSession
+                {
+                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    return $0.id
+                }
+                id.1 = try await $0.withSession
+                {
+                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    return $0.id
+                }
+
+                tests.assert(id.0 ==? id.1, name: "identifiers-equal")
+            }
+        }
+        /// Two overlapping sessions should not re-use the same session.
+        await $0.test(with: DriverEnvironment.init(name: "overlapping",
+            credentials: credentials, executor: executor))
+        {
+            (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
+
+            try await bootstrap.withSessionPool(seedlist: seedlist)
+            {
+                (pool:Mongo.SessionPool) in 
+
+                let id:(Mongo.SessionIdentifier, Mongo.SessionIdentifier) =
+                    try await pool.withSession
+                {
+                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+
+                    let id:Mongo.SessionIdentifier = try await pool.withSession
+                    {
+                        try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                        return $0.id
+                    }
+                    return ($0.id, id)
+                }
+
+                tests.assert(id.0 != id.1, name: "identifiers-not-equal")
+            }
+        }
+    }
 }
