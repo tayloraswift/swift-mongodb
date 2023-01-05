@@ -2,11 +2,11 @@ import Durations
 import MongoSchema
 
 public
-protocol MongoStreamableCommand<Element>:MongoDatabaseCommand, MongoImplicitSessionCommand
+protocol MongoQuery<Element>:MongoDatabaseCommand, MongoSessionCommand
     where Response == Mongo.Cursor<Element>
 {
     associatedtype Element:MongoDecodable
 
-    var timeout:Milliseconds? { get }
+    var tailing:Mongo.Tailing? { get }
     var stride:Int { get }
 }

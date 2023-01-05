@@ -270,7 +270,7 @@ enum Main:AsyncTests
                     against: context.database)
                 {
                     guard   let cursor:Mongo.CursorIdentifier =
-                                tests.unwrap(.init($0.cursor.next), name: "cursor-id")
+                                tests.unwrap($0.current.next, name: "cursor-id")
                     else
                     {
                         return
@@ -294,36 +294,40 @@ enum Main:AsyncTests
             {
                 (tests:inout Tests, session:Mongo.Session) in
 
-                let cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)? =
+                let cursor:Mongo.CursorIdentifier? =
                     try await session.run(
                         query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
                         against: context.database)
                 {
-                    if  let cursor:Mongo.CursorIdentifier = tests.unwrap(.init($0.cursor.next),
+                    if  let cursor:Mongo.CursorIdentifier = tests.unwrap($0.current.next,
                             name: "cursor-id")
                     {
-                        return (cursor, $0.namespace)
+                        tests.assert($0.database ==? context.database,
+                            name: "cursor-database-name")
+                        tests.assert($0.collection ==? collection,
+                            name: "cursor-collection-name")
+                        return cursor
                     }
                     else
                     {
                         return nil
                     }
                 }
-                guard let cursor:(id:Mongo.CursorIdentifier, namespace:Mongo.Namespace)
+                guard let cursor:Mongo.CursorIdentifier
                 else
                 {
                     return
                 }
 
                 let cursors:Mongo.KillCursors.Response = try await session.run(
-                    command: Mongo.KillCursors.init([cursor.id], 
-                        collection: cursor.namespace.collection),
-                    against: cursor.namespace.database)
+                    command: Mongo.KillCursors.init([cursor], 
+                        collection: collection),
+                    against: context.database)
                 // if the cursor is already dead, killing it manually will return 'notFound'.
                 tests.assert(cursors.alive **? [], name: "cursors-alive")
                 tests.assert(cursors.killed **? [], name: "cursors-killed")
                 tests.assert(cursors.unknown **? [], name: "cursors-unknown")
-                tests.assert(cursors.notFound **? [cursor.id], name: "cursors-not-found")
+                tests.assert(cursors.notFound **? [cursor], name: "cursors-not-found")
             }
             await tests.test(with: SessionEnvironment.init(name: "connection-multiplexing",
                 pool: context.pool))

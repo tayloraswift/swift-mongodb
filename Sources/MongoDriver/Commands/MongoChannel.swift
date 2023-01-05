@@ -13,7 +13,7 @@ extension MongoChannel
     func establish(credentials:Mongo.Credentials?,
         appname:String?) async throws -> Mongo.Hello.Response
     {
-        let user:Mongo.User?
+        let user:Mongo.Namespaced<String>?
         // if we don’t have an explicit authentication mode, ask the server
         // what it supports (for the current user).
         if  let credentials:Mongo.Credentials,

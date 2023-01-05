@@ -27,7 +27,7 @@ extension Mongo
 }
 extension Mongo.Credentials
 {
-    var user:Mongo.User
+    var user:Mongo.Namespaced<String>
     {
         .init(self.database, self.username)
     }
