@@ -11,16 +11,15 @@ enum Main:AsyncTests
     {
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        let standalone:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
-        let members:Set<MongoTopology.Host> =
-        [
-            .init(name: "mongo-1", port: 27017),
-            .init(name: "mongo-2", port: 27017),
-            .init(name: "mongo-3", port: 27017),
-        ]
-
         await tests.group("replicated-topology")
         {
+            let members:Set<MongoTopology.Host> =
+            [
+                .init(name: "mongo-1", port: 27017),
+                .init(name: "mongo-2", port: 27017),
+                .init(name: "mongo-3", port: 27017),
+            ]
+            
             print("running tests for replicated topology (hosts: \(members))")
 
             let bootstrap:Mongo.DriverBootstrap = .init(
@@ -28,6 +27,7 @@ enum Main:AsyncTests
                 credentials: nil,
                 executor: executor)
 
+            await TestFsync(&$0, bootstrap: bootstrap, hosts: members)
             await TestDatabases(&$0, bootstrap: bootstrap, hosts: members)
             await TestInsert(&$0, bootstrap: bootstrap, hosts: members)
             await TestFind(&$0, bootstrap: bootstrap, hosts: members)
@@ -36,6 +36,8 @@ enum Main:AsyncTests
 
         await tests.group("single-topology")
         {
+            let standalone:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
+
             print("running tests for single topology (host: \(standalone))")
 
             let bootstrap:Mongo.DriverBootstrap = .init(
@@ -45,6 +47,7 @@ enum Main:AsyncTests
                     password: "80085"),
                 executor: executor)
 
+            await TestFsync(&$0, bootstrap: bootstrap, hosts: [standalone])
             await TestDatabases(&$0, bootstrap: bootstrap, hosts: [standalone])
             await TestInsert(&$0, bootstrap: bootstrap, hosts: [standalone])
             await TestFind(&$0, bootstrap: bootstrap, hosts: [standalone])
