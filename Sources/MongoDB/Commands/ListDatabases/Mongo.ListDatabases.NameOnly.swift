@@ -30,8 +30,10 @@ extension Mongo.ListDatabases.NameOnly
         self.init(.init(authorizedDatabases: authorizedDatabases, filter: filter))
     }
 }
-extension Mongo.ListDatabases.NameOnly:MongoCommand
+extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
 {
+    public
+    typealias Database = Mongo.Database.Admin
     public
     typealias Response = [Mongo.Database]
 
@@ -43,7 +45,7 @@ extension Mongo.ListDatabases.NameOnly:MongoCommand
     }
 
     @inlinable public static
-    func decode<Bytes>(reply bson:BSON.Dictionary<Bytes>) throws -> Response
+    func decode<Bytes>(reply bson:BSON.Dictionary<Bytes>) throws -> [Mongo.Database]
     {
         try bson["databases"].decode(as: BSON.Array<Bytes.SubSequence>.self)
         {
@@ -59,9 +61,3 @@ extension Mongo.ListDatabases.NameOnly:MongoCommand
 }
 // FIXME: ListDatabases.NameOnly *can* run on a secondary,
 // but *should* run on a primary.
-// extension Mongo.ListDatabases.NameOnly:MongoReadOnlyCommand
-// {
-// }
-extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand
-{
-}

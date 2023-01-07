@@ -14,11 +14,13 @@ func TestFsync(_ tests:inout Tests,
 
         var lock:Mongo.FsyncLock
         
-        lock = try await context.pool.run(command: Mongo.Fsync.init(lock: true))
+        lock = try await context.pool.run(command: Mongo.Fsync.init(lock: true),
+            against: .admin)
         
         tests.assert(lock.count ==? 1, name: "lock-count-locked")
 
-        lock = try await context.pool.run(command: Mongo.FsyncUnlock.init())
+        lock = try await context.pool.run(command: Mongo.FsyncUnlock.init(),
+            against: .admin)
 
         tests.assert(lock.count ==? 0, name: "lock-count-unlocked")
     }

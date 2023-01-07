@@ -42,9 +42,6 @@ extension Mongo.GetMore:MongoCommand
     public
     typealias Response = Mongo.Cursor<Element>
 }
-extension Mongo.GetMore:MongoDatabaseCommand
-{
-}
 extension Mongo.GetMore:MongoTransactableCommand
 {
 }

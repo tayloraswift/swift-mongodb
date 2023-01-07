@@ -26,9 +26,9 @@ extension Mongo
         let projection:BSON.Fields
 
         public
-        let skip:Int
+        let skip:Int?
         public
-        let limit:Int
+        let limit:Int?
 
         public
         let collation:Collation?
@@ -51,12 +51,12 @@ extension Mongo
             timeout:Milliseconds? = nil,
             tailing:Tailing? = nil,
             stride:Int,
+            limit:Int? = nil,
+            skip:Int? = nil,
             `let`:BSON.Fields = .init(),
             filter:BSON.Fields = .init(),
             sort:BSON.Fields = .init(),
             projection:BSON.Fields = .init(),
-            skip:Int = 0,
-            limit:Int = 0,
             collation:Collation? = nil,
             readLevel:ReadLevel? = nil,
             hint:IndexHint? = nil,
@@ -69,12 +69,12 @@ extension Mongo
             self.timeout = timeout
             self.tailing = tailing
             self.stride = stride
+            self.limit = limit
+            self.skip = skip
             self.let = `let`
             self.filter = filter
             self.sort = sort
             self.projection = projection
-            self.skip = skip
-            self.limit = limit
             self.collation = collation
             self.readLevel = readLevel
             self.hint = hint
@@ -116,7 +116,15 @@ extension Mongo.Find
         self.tailing?.awaits ?? false
     }
 }
-extension Mongo.Find:MongoQuery, MongoReadCommand, MongoDatabaseCommand, MongoCommand
+extension Mongo.Find:MongoQuery
+{
+    public
+    typealias Response = Mongo.Cursor<Element>
+}
+extension Mongo.Find:MongoReadCommand
+{
+}
+extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -145,13 +153,4 @@ extension Mongo.Find:MongoQuery, MongoReadCommand, MongoDatabaseCommand, MongoCo
         bson["returnKey"] = self.returnKey
         bson["showRecordId"] = self.showRecordIdentifier
     }
-
-    public
-    typealias Response = Mongo.Cursor<Element>
-}
-extension Mongo.Find:MongoImplicitSessionCommand
-{
-}
-extension Mongo.Find:MongoTransactableCommand
-{
 }

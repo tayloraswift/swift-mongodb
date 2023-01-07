@@ -25,18 +25,57 @@ func TestFind(_ tests:inout Tests,
             
             $0.assert(response ==? expected, name: "response")
         }
-        // await tests.test(name: "single-batch")
-        // {
-        //     let expected:Mongo.Cursor<Ordinal> = .init(id: 0,
-        //         namespace: .init(database, collection),
-        //         elements: [Ordinal].init(ordinals.prefix(10)))
-        //     let cursor:Mongo.Cursor<Ordinal> = try await cluster.run(
-        //         command: Mongo.Find<Ordinal>.init(collection: collection,
-        //             returning: .batch(of: 10)),
-        //         against: database)
+        await tests.test(name: "single-batch")
+        {
+            let batch:[Ordinal] = try await context.pool.run(
+                command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    collection: collection,
+                    limit: 10),
+                against: context.database)
 
-        //     $0.assert(cursor ==? expected, name: "cursor")
-        // }
+            $0.assert(batch ..? ordinals.prefix(10), name: "elements")
+        }
+        await tests.test(name: "single-batch-skip")
+        {
+            let batch:[Ordinal] = try await context.pool.run(
+                command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    collection: collection,
+                    limit: 7,
+                    skip: 5),
+                against: context.database)
+
+            $0.assert(batch ..? ordinals[5 ..< 12], name: "elements")
+        }
+        await tests.test(name: "single-batch-hint")
+        {
+            let batch:[Ordinal] = try await context.pool.run(
+                command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    collection: collection,
+                    limit: 5,
+                    skip: 10,
+                    hint: .index(.init
+                    {
+                        $0["_id"] = 1 as Int32
+                    })),
+                against: context.database)
+
+            $0.assert(batch ..? ordinals[10 ..< 15], name: "elements")
+        }
+        await tests.test(name: "single-batch-sort")
+        {
+            let batch:[Ordinal] = try await context.pool.run(
+                command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    collection: collection,
+                    limit: 5,
+                    skip: 10,
+                    sort: .init
+                    {
+                        $0["ordinal"] = -1 as Int32
+                    }),
+                against: context.database)
+
+            $0.assert(batch ..? ordinals[85 ..< 90].reversed(), name: "elements")
+        }
         await tests.test(name: "multiple-batches")
         {
             (tests:inout Tests) in
@@ -75,7 +114,10 @@ func TestFind(_ tests:inout Tests,
                     stride: 10,
                     filter: .init
                     {
-                        $0["ordinal"] = ["$mod": [3, 0]]
+                        $0["ordinal"] = .init
+                        {
+                            $0["$mod"] = [3, 0]
+                        }
                     }),
                 against: context.database)
             {

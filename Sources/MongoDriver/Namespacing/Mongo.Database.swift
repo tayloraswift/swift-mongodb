@@ -3,7 +3,7 @@ import BSONSchema
 extension Mongo
 {
     @frozen public
-    struct Database:Hashable, Sendable
+    struct Database:MongoCommandDatabase, Hashable, Sendable
     {
         public
         let name:String

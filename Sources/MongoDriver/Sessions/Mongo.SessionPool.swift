@@ -167,27 +167,16 @@ extension Mongo.SessionPool
 }
 extension Mongo.SessionPool
 {
-    /// Runs a session command against the ``Mongo/Database/.admin`` database,
+    /// Runs a session command against the specified database,
     /// sending the command to an appropriate cluster member for its type.
     @inlinable public nonisolated
-    func run<Command>(command:Command) async throws -> Command.Response
+    func run<Command>(command:Command, against database:Command.Database,
+        on preference:Mongo.ReadPreference = .primary) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand
     {    
         try await self.withSession
         {
-            try await $0.run(command: command)
-        }
-    }
-    /// Runs a session command against the specified database,
-    /// sending the command to an appropriate cluster member for its type.
-    @inlinable public nonisolated
-    func run<Command>(command:Command, 
-        against database:Mongo.Database) async throws -> Command.Response
-        where Command:MongoImplicitSessionCommand & MongoDatabaseCommand
-    {    
-        try await self.withSession
-        {
-            try await $0.run(command: command, against: database)
+            try await $0.run(command: command, against: database, on: preference)
         }
     }
 }

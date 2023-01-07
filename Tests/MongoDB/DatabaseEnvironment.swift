@@ -43,7 +43,8 @@ extension DatabaseEnvironment:AsyncTestEnvironment
             try await $0.run(command: Mongo.DropDatabase.init(), against: self.database)
 
             let before:[Mongo.Database] = try await $0.run(
-                command: Mongo.ListDatabases.NameOnly.init())
+                command: Mongo.ListDatabases.NameOnly.init(),
+                against: .admin)
 
             let result:Result<Success, any Error>
             do
@@ -60,7 +61,8 @@ extension DatabaseEnvironment:AsyncTestEnvironment
             try await $0.run(command: Mongo.DropDatabase.init(), against: self.database)
 
             let after:[Mongo.Database] = try await $0.run(
-                command: Mongo.ListDatabases.NameOnly.init())
+                command: Mongo.ListDatabases.NameOnly.init(),
+                against: .admin)
             
             tests.assert(before ..? after, name: "cleanup")
 

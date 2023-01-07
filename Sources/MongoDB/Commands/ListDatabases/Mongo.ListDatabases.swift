@@ -25,8 +25,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.ListDatabases:MongoCommand
+extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
 {
+    public
+    typealias Database = Mongo.Database.Admin
     public
     typealias Response =
     (
@@ -43,8 +45,11 @@ extension Mongo.ListDatabases:MongoCommand
     }
 
     @inlinable public static
-    func decode(
-        reply bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws -> Response
+    func decode(reply bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws ->
+    (
+        totalSize:Int,
+        databases:[Mongo.DatabaseMetadata]
+    )
     {
         (
             totalSize: try bson["totalSize"].decode(to: Int.self),
@@ -54,9 +59,3 @@ extension Mongo.ListDatabases:MongoCommand
 }
 // FIXME: ListDatabases *can* run on a secondary,
 // but *should* run on a primary.
-// extension Mongo.ListDatabases:MongoReadOnlyCommand
-// {
-// }
-extension Mongo.ListDatabases:MongoImplicitSessionCommand
-{
-}

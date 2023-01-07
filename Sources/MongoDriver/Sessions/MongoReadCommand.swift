@@ -1,5 +1,5 @@
 public
-protocol MongoReadCommand<Response>:MongoSessionCommand
+protocol MongoReadCommand<Response>:MongoCommand
 {
     var readLevel:Mongo.ReadLevel? { get }
 }

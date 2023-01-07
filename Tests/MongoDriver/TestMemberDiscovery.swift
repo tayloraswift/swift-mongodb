@@ -19,6 +19,7 @@ func TestMemberDiscovery(_ tests:inout Tests,
                 {
                     let configuration:Mongo.ReplicaSetConfiguration = try await $0.run(
                         command: Mongo.ReplicaSetGetConfiguration.init(),
+                        against: .admin,
                         on: .primary)
                     //  this was the configuration we initialized the test set with:
                     //  (/.github/mongonet/create-replica-set.js)
@@ -49,11 +50,16 @@ func TestMemberDiscovery(_ tests:inout Tests,
                                 tags: ["priority": "zero", "name": "C"])),
                             
                             .init(id: 3, host: members[3], replica: .init(
+                                rights: .resident,
+                                votes: 1,
+                                tags: ["priority": "zero", "name": "D"])),
+                            
+                            .init(id: 4, host: members[4], replica: .init(
                                 rights: .resident(.init(buildsIndexes: true, delay: 5)),
                                 votes: 0,
                                 tags: ["priority": "zero", "name": "H"])),
                             
-                            .init(id: 4, host: members[4], replica: nil),
+                            .init(id: 5, host: members[5], replica: nil),
                         ],
                         name: "configuration-members")
                     

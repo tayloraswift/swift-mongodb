@@ -4,7 +4,7 @@ import MongoTopology
 extension Mongo
 {
     @frozen public
-    struct Labeled<Command> where Command:MongoSessionCommand
+    struct Labeled<Command> where Command:MongoCommand
     {
         @usableFromInline
         let clusterTime:ClusterTime
@@ -39,7 +39,7 @@ extension Mongo
 extension Mongo.Labeled
 {
     @inlinable public
-    func encode(to bson:inout BSON.Fields, database:Mongo.Database)
+    func encode(to bson:inout BSON.Fields, database:Command.Database)
     {
         self.command.encode(to: &bson, database: database)
 

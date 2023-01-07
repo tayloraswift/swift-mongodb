@@ -30,15 +30,13 @@ func TestReadPreference(_ tests:inout Tests,
                     //  of tag sets.
                     (
                         "primary-preferred-tagged",
-                        .primaryPreferred(.init(maxStaleness: nil,
-                            tagSets: [["name": "A", "priority": "high"]]))
+                        .primaryPreferred(tagSets: [["name": "A", "priority": "high"]])
                     ),
                     //  We should be able to select the primary even if
                     //  none of the tags match.
                     (
                         "primary-preferred-no-matches",
-                        .primaryPreferred(.init(maxStaleness: nil,
-                            tagSets: [["name": "Z"]]))
+                        .primaryPreferred(tagSets: [["name": "Z"]])
                     ),
                     //  We should be able to select any replica with nearest
                     //  read preference.
@@ -50,58 +48,53 @@ func TestReadPreference(_ tests:inout Tests,
                     //  tag set list.
                     (
                         "nearest-empty-tag-set-list",
-                        .nearest(.init(maxStaleness: nil, tagSets: []))
+                        .nearest(tagSets: [])
                     ),
                     //  A tag set list with a single, empty tag set should
                     //  behave the same as no tag set list.
                     (
                         "nearest-empty-tag-set",
-                        .nearest(.init(maxStaleness: nil, tagSets: [[:]]))
+                        .nearest(tagSets: [[:]])
                     ),
                     //  A tag set list with many empty tag sets should
                     //  behave the same as no tag set list.
                     (
                         "nearest-empty-tag-sets",
-                        .nearest(.init(maxStaleness: nil, tagSets: [[:], [:]]))
+                        .nearest(tagSets: [[:], [:]])
                     ),
                     //  We should be able to select a replica by specifying
                     //  all of its tags.
                     (
                         "nearest-tagged",
-                        .nearest(.init(maxStaleness: nil,
-                            tagSets: [["name": "A", "priority": "high"]]))
+                        .nearest(tagSets: [["name": "A", "priority": "high"]])
                     ),
                     //  We should be able to select a replica by specifying
                     //  some of its tags.
                     (
                         "nearest-tagged-name-A",
-                        .nearest(.init(maxStaleness: nil,
-                            tagSets: [["name": "A"]]))
+                        .nearest(tagSets: [["name": "A"]])
                     ),
                     //  Moreover, all non-hidden replicas should qualify for
                     //  nearest read preference.
                     (
                         "nearest-tagged-name-B",
-                        .nearest(.init(maxStaleness: nil,
-                            tagSets: [["name": "B"]]))
+                        .nearest(tagSets: [["name": "B"]])
                     ),
                     (
                         "nearest-tagged-name-C",
-                        .nearest(.init(maxStaleness: nil,
-                            tagSets: [["name": "C"]]))
+                        .nearest(tagSets: [["name": "C"]])
                     ),
                     //  A secondary should qualify for nearest read preference.
                     (
                         "nearest-tagged-priority-zero",
-                        .nearest(.init(maxStaleness: nil,
-                            tagSets: [["priority": "zero"]]))
+                        .nearest(tagSets: [["priority": "zero"]])
                     ),
                     //  If we use a maximum staleness of zero, we should still be
                     //  able to select the primary. (Because the primary has
                     //  zero staleness by definition.)
                     (
                         "nearest-staleness-zero",
-                        .nearest(.init(maxStaleness: 0, tagSets: nil))
+                        .nearest(maxStaleness: 0)
                     ),
                     //  We should be able to select any replica with
                     //  secondary-preferred read preference.
@@ -113,29 +106,25 @@ func TestReadPreference(_ tests:inout Tests,
                     //  none of the tags match.
                     (
                         "secondary-preferred-no-matches",
-                        .primaryPreferred(.init(maxStaleness: nil,
-                            tagSets: [["name": "Z"]]))
+                        .primaryPreferred(tagSets: [["name": "Z"]])
                     ),
                     //  A secondary should qualify for secondary-preferred
                     //  read preference.
                     (
                         "secondary-preferred-priority-zero",
-                        .secondaryPreferred(.init(maxStaleness: nil,
-                            tagSets: [["priority": "zero"]]))
+                        .secondaryPreferred(tagSets: [["priority": "zero"]])
                     ),
                     //  We should be able to select a member by tag sets
                     //  as long as one set matches.
                     (
                         "secondary-preferred-multiple-tag-sets",
-                        .secondaryPreferred(.init(maxStaleness: nil,
-                            tagSets: [["name": "Z"], ["priority": "zero"]]))
+                        .secondaryPreferred(tagSets: [["name": "Z"], ["priority": "zero"]])
                     ),
                     //  It follows that we should be able to select a member
                     //  by tag sets as long as one set is empty.
                     (
                         "secondary-preferred-multiple-tag-sets",
-                        .secondaryPreferred(.init(maxStaleness: nil,
-                            tagSets: [["name": "Z"], [:]]))
+                        .secondaryPreferred(tagSets: [["name": "Z"], [:]])
                     ),
                     //  We should be able to select any secondary with
                     //  secondary read preference.
@@ -149,6 +138,7 @@ func TestReadPreference(_ tests:inout Tests,
                     {
                         _ in try await session.run(
                             command: Mongo.RefreshSessions.init(session.id),
+                            against: .admin,
                             on: preference)
                     }
                 }
@@ -160,16 +150,14 @@ func TestReadPreference(_ tests:inout Tests,
                     //  (Because eligibility applies to the primary.)
                     (
                         "nearest-no-matches",
-                        .nearest(.init(maxStaleness: nil,
-                            tagSets: [["name": "Z"]]))
+                        .nearest(tagSets: [["name": "Z"]])
                     ),
                     //  We should not be able to select a member if any of
                     //  the tag set patterns do not match, even if some of
                     //  them do match.
                     (
                         "nearest-partial-match",
-                        .nearest(.init(maxStaleness: nil,
-                            tagSets: [["name": "A", "priority": "bananas"]]))
+                        .nearest(tagSets: [["name": "A", "priority": "bananas"]])
                     ),
                 ]
                 {
@@ -178,19 +166,32 @@ func TestReadPreference(_ tests:inout Tests,
                             diagnostics: .init(
                                 undesirable:
                                 [
-                                    members[4]: .arbiter,
+                                    members[5]: .arbiter,
                                 ],
                                 unsuitable:
                                 [
                                     members[0]: .tags(["name": "A", "priority": "high"]),
                                     members[1]: .tags(["name": "B", "priority": "low"]),
                                     members[2]: .tags(["name": "C", "priority": "zero"]),
+                                    members[3]: .tags(["name": "D", "priority": "zero"]),
                                 ]),
                             failure: .init(preference: preference)))
                     {
-                        _ in try await session.run(
-                            command: Mongo.RefreshSessions.init(session.id),
-                            on: preference)
+                        _ in try await session.refresh(on: preference)
+                    }
+                }
+                // We should never be able to select a secondary with zero staleness.
+                await tests.test(name: "secondary-staleness-zero")
+                {
+                    do
+                    {
+                        try await session.refresh(on: .secondary(maxStaleness: 0))
+                        
+                        $0.assert(false, name: "error")
+                    }
+                    catch is Mongo.ClusterError<Mongo.ReadPreferenceError>
+                    {
+                        return
                     }
                 }
             }

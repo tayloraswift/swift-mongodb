@@ -40,7 +40,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Create:MongoDatabaseCommand, MongoCommand
+extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -78,10 +78,4 @@ extension Mongo.Create:MongoDatabaseCommand, MongoCommand
             bson["pipeline", elide: false] = pipeline
         }
     }
-}
-extension Mongo.Create:MongoImplicitSessionCommand
-{
-}
-extension Mongo.Create:MongoTransactableCommand
-{
 }

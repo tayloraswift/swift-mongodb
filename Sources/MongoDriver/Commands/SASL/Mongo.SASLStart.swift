@@ -3,6 +3,9 @@ import SCRAM
 
 extension Mongo
 {
+    /// The MongoDB `saslStart` command.
+    ///
+    /// This command is internal because it must not be used with sessions.
     struct SASLStart
     {
         let mechanism:Mongo.Authentication.SASL
@@ -15,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.SASLStart:MongoDatabaseCommand
+extension Mongo.SASLStart:MongoCommand
 {
     typealias Response = Mongo.SASLResponse
     

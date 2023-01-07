@@ -15,8 +15,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.Fsync:MongoCommand
+extension Mongo.Fsync:MongoImplicitSessionCommand, MongoCommand
 {
+    public
+    typealias Database = Mongo.Database.Admin
     public
     typealias Response = Mongo.FsyncLock
 
@@ -26,7 +28,4 @@ extension Mongo.Fsync:MongoCommand
         bson["fsync"] = 1 as Int32
         bson["lock"] = self.lock
     }
-}
-extension Mongo.Fsync:MongoImplicitSessionCommand
-{
 }
