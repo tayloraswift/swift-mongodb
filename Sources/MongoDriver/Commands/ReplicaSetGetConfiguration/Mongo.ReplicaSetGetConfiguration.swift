@@ -14,6 +14,10 @@ extension Mongo
 }
 extension Mongo.ReplicaSetGetConfiguration:MongoCommand
 {
+    /// `ReplicaSetGetConfiguration` must be sent to the `admin` database.
+    public
+    typealias Database = Mongo.Database.Admin
+
     public
     typealias Response = Mongo.ReplicaSetConfiguration
 

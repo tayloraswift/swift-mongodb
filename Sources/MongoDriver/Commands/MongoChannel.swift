@@ -11,7 +11,7 @@ extension MongoChannel
     /// if possible. If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
     func establish(credentials:Mongo.Credentials?,
-        appname:String?) async throws -> Mongo.Hello.Response
+        appname:String?) async throws -> Mongo.HelloResponse
     {
         let user:Mongo.Namespaced<String>?
         // if we don’t have an explicit authentication mode, ask the server
@@ -26,7 +26,7 @@ extension MongoChannel
             user = nil
         }
 
-        let response:Mongo.Hello.Response = try await self.run(hello: .init(
+        let response:Mongo.HelloResponse = try await self.run(hello: .init(
             client: .init(appname: appname),
             user: user))
 
@@ -184,7 +184,7 @@ extension MongoChannel
         try await self.run(command: command, against: database)
     }
     /// Runs a ``Mongo/Hello`` command, and decodes its response.
-    func run(hello command:__owned Mongo.Hello) async throws -> Mongo.Hello.Response
+    func run(hello command:__owned Mongo.Hello) async throws -> Mongo.HelloResponse
     {
         try await self.run(command: command, against: .admin)
     }
@@ -196,7 +196,7 @@ extension MongoChannel
 
     private
     func run<Command>(command:__owned Command,
-        against database:Mongo.Database) async throws -> Command.Response
+        against database:Command.Database) async throws -> Command.Response
         where Command:MongoCommand
     {
         let reply:Mongo.Reply = try await self.run(command: command, against: database)
@@ -208,8 +208,9 @@ extension MongoChannel
     /// Encodes the given labeled command to a document, sends it over this connection and
     /// awaits its response.
     @inlinable public
-    func run(labeled:__owned Mongo.Labeled<some MongoCommand>,
-        against database:Mongo.Database) async throws -> Mongo.Reply
+    func run<Command>(labeled:__owned Mongo.Labeled<Command>,
+        against database:Command.Database) async throws -> Mongo.Reply
+        where Command:MongoCommand
     {
         try .init(message: try await self.send(
             command: .init { labeled.encode(to: &$0, database: database) }))
@@ -217,8 +218,9 @@ extension MongoChannel
     /// Encodes the given command to a document, sends it over this connection and
     /// awaits its response.
     @inlinable public
-    func run(command:__owned some MongoCommand,
-        against database:Mongo.Database) async throws -> Mongo.Reply
+    func run<Command>(command:__owned Command,
+        against database:Command.Database) async throws -> Mongo.Reply
+        where Command:MongoCommand
     {
         try .init(message: try await self.send(
             command: .init { command.encode(to: &$0, database: database) }))

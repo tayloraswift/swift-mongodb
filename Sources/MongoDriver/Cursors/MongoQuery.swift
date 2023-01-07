@@ -2,7 +2,7 @@ import Durations
 import MongoSchema
 
 public
-protocol MongoQuery<Element>:MongoDatabaseCommand, MongoSessionCommand
+protocol MongoQuery<Element>:MongoCommand
     where Response == Mongo.Cursor<Element>
 {
     associatedtype Element:MongoDecodable

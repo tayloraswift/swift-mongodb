@@ -35,6 +35,15 @@ db.runCommand({'replSetInitiate': {
             "host": "mongo-3:27017",
             "tags": {
                 "priority": "zero",
+                "name": "D",
+            },
+            "priority": 0
+        },
+        {
+            "_id": 4,
+            "host": "mongo-4:27017",
+            "tags": {
+                "priority": "zero",
                 "name": "H",
             },
             "secondaryDelaySecs": 5,
@@ -43,8 +52,8 @@ db.runCommand({'replSetInitiate': {
             "hidden": true
         },
         {
-            "_id": 4,
-            "host": "mongo-4:27017",
+            "_id": 5,
+            "host": "mongo-5:27017",
             "priority": 0,
             "arbiterOnly": true
         }

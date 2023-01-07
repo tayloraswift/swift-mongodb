@@ -1,24 +1,24 @@
 import BSONDecoding
 
-extension Mongo.KillCursors
+extension Mongo
 {
     public
-    struct Response:Sendable
+    struct KillCursorsResponse:Sendable
     {
         public
-        let alive:[Mongo.CursorIdentifier]
+        let alive:[CursorIdentifier]
         public
-        let killed:[Mongo.CursorIdentifier]
+        let killed:[CursorIdentifier]
         public
-        let notFound:[Mongo.CursorIdentifier]
+        let notFound:[CursorIdentifier]
         public
-        let unknown:[Mongo.CursorIdentifier]
+        let unknown:[CursorIdentifier]
 
         public
-        init(alive:[Mongo.CursorIdentifier],
-            killed:[Mongo.CursorIdentifier],
-            notFound:[Mongo.CursorIdentifier],
-            unknown:[Mongo.CursorIdentifier])
+        init(alive:[CursorIdentifier],
+            killed:[CursorIdentifier],
+            notFound:[CursorIdentifier],
+            unknown:[CursorIdentifier])
         {
             self.alive = alive
             self.killed = killed
@@ -27,7 +27,7 @@ extension Mongo.KillCursors
         }
     }
 }
-extension Mongo.KillCursors.Response:BSONDictionaryDecodable
+extension Mongo.KillCursorsResponse:BSONDictionaryDecodable
 {
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws

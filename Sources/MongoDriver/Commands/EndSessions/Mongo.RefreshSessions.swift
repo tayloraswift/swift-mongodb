@@ -27,8 +27,12 @@ extension Mongo
         }
     }
 }
-extension Mongo.RefreshSessions:MongoSessionCommand, MongoCommand
+extension Mongo.RefreshSessions:MongoCommand
 {
+    /// `RefreshSessions` must be sent to the `admin` database.
+    public
+    typealias Database = Mongo.Database.Admin
+
     public
     func encode(to bson:inout BSON.Fields)
     {

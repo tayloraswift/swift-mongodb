@@ -18,7 +18,7 @@ extension MongoTopology
             self.tagSets = nil
         }
 
-        public
+        @inlinable public
         init(maxStaleness:Seconds?, tagSets:[TagSet]?)
         {
             // normalize, to simplify filtering algorithm

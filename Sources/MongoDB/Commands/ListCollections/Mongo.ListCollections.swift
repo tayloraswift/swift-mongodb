@@ -36,8 +36,22 @@ extension Mongo
         }
     }
 }
-// TODO: ListCollections *should* support timeoutMS...
-extension Mongo.ListCollections:MongoDatabaseCommand, MongoCommand
+extension Mongo.ListCollections:MongoQuery
+{
+    public
+    typealias Response = Mongo.Cursor<Mongo.CollectionMetadata>
+    public
+    typealias Element = Mongo.CollectionMetadata
+    
+    @inlinable public
+    var tailing:Mongo.Tailing?
+    {
+        nil
+    }
+}
+extension Mongo.ListCollections:MongoImplicitSessionCommand,
+    MongoTransactableCommand,
+    MongoCommand
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -52,29 +66,7 @@ extension Mongo.ListCollections:MongoDatabaseCommand, MongoCommand
         bson["filter", elide: true] = self.filter
     }
 
-    public
-    typealias Response = Mongo.Cursor<Mongo.CollectionMetadata>
-}
-extension Mongo.ListCollections:MongoQuery
-{
-    public
-    typealias Element = Mongo.CollectionMetadata
-    
-    @inlinable public
-    var tailing:Mongo.Tailing?
-    {
-        nil
-    }
 }
 // TODO: `listCollections` should by a streamable command...
 // FIXME: ListCollections *can* run on a secondary,
 // but *should* run on a primary.
-// extension Mongo.ListCollections:MongoReadOnlyCommand
-// {
-// }
-extension Mongo.ListCollections:MongoImplicitSessionCommand
-{
-}
-extension Mongo.ListCollections:MongoTransactableCommand
-{
-}

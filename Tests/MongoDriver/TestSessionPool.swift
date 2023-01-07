@@ -22,7 +22,7 @@ func TestSessionPool(_ tests:inout Tests,
                 try await $0.withSession
                 {
                     //  run at least one command to ensure we actually use the session
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                 }
             }
         }
@@ -35,14 +35,14 @@ func TestSessionPool(_ tests:inout Tests,
             {
                 try await $0.withSession
                 {
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                 }
             }
             try await $1.withSessionPool(seedlist: seedlist)
             {
                 try await $0.withSession
                 {
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                 }
             }
         }
@@ -57,7 +57,7 @@ func TestSessionPool(_ tests:inout Tests,
                 try await $0.withSession
                 {
                     try await Task.sleep(for: .milliseconds(100))
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                 }
             }
             async
@@ -66,7 +66,7 @@ func TestSessionPool(_ tests:inout Tests,
                 try await $0.withSession
                 {
                     try await Task.sleep(for: .milliseconds(100))
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                 }
             }
 
@@ -85,9 +85,9 @@ func TestSessionPool(_ tests:inout Tests,
                     async
                     let _:Void = $0.withSession
                     {
-                        try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                        try await $0.refresh()
                         try await Task.sleep(for: .milliseconds(100))
-                        try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                        try await $0.refresh()
                     }
                     try await Task.sleep(for: .milliseconds(50))
                     throw CancellationError.init()
@@ -108,7 +108,7 @@ func TestSessionPool(_ tests:inout Tests,
                 let succeeding:Void = $0.withSession
                 {
                     try await Task.sleep(for: .milliseconds(100))
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                 }
                 async
                 let failing:Void = $0.withSession
@@ -141,12 +141,12 @@ func TestSessionPool(_ tests:inout Tests,
 
                 id.0 = try await $0.withSession
                 {
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                     return $0.id
                 }
                 id.1 = try await $0.withSession
                 {
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
                     return $0.id
                 }
 
@@ -166,11 +166,11 @@ func TestSessionPool(_ tests:inout Tests,
                 let id:(Mongo.SessionIdentifier, Mongo.SessionIdentifier) =
                     try await pool.withSession
                 {
-                    try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                    try await $0.refresh()
 
                     let id:Mongo.SessionIdentifier = try await pool.withSession
                     {
-                        try await $0.run(command: Mongo.RefreshSessions.init($0.id))
+                        try await $0.refresh()
                         return $0.id
                     }
                     return ($0.id, id)

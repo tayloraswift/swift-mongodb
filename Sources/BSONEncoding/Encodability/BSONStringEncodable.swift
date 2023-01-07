@@ -24,3 +24,12 @@ extension BSONStringEncodable
         self.description.encode(to: &field)
     }
 }
+extension Substring:BSONStringEncodable
+{
+}
+extension Character:BSONStringEncodable
+{
+}
+extension Unicode.Scalar:BSONStringEncodable
+{
+}

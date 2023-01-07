@@ -45,7 +45,7 @@ func TestCursors(_ tests:inout Tests,
                 for try await _:[Ordinal] in $0
                 {
                 }
-                let cursors:Mongo.KillCursors.Response = try await session.run(
+                let cursors:Mongo.KillCursorsResponse = try await session.run(
                     command: Mongo.KillCursors.init([cursor], 
                         collection: $0.collection),
                     against: $0.database)
@@ -86,7 +86,7 @@ func TestCursors(_ tests:inout Tests,
                 return
             }
 
-            let cursors:Mongo.KillCursors.Response = try await session.run(
+            let cursors:Mongo.KillCursorsResponse = try await session.run(
                 command: Mongo.KillCursors.init([cursor], 
                     collection: collection),
                 against: context.database)
@@ -109,7 +109,8 @@ func TestCursors(_ tests:inout Tests,
                 for try await batch:[Ordinal] in $0
                 {
                     let names:[Mongo.Database] = try await context.pool.run(
-                        command: Mongo.ListDatabases.NameOnly.init())
+                        command: Mongo.ListDatabases.NameOnly.init(),
+                        against: .admin)
                     tests.assert(!batch.isEmpty, name: "stream.\(counter)")
                     tests.assert(!names.isEmpty, name: "list-databases.\(counter)")
 

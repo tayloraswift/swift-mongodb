@@ -5,14 +5,14 @@ import MongoChannel
 import MongoTopology
 import MongoWire
 
-extension Mongo.Hello
+extension Mongo
 {
     //@frozen public
-    struct Response
+    struct HelloResponse
     {
         /// An array of SASL mechanisms used to create the user's credential or credentials.
         public
-        let saslSupportedMechs:Set<Mongo.Authentication.SASL>?
+        let saslSupportedMechs:Set<Authentication.SASL>?
 
         /// The maximum number of write operations permitted in a write batch.
         public
@@ -45,7 +45,7 @@ extension Mongo.Hello
         //public
         //let wireVersions:ClosedRange<MongoWire>
 
-        let sessions:Mongo.LogicalSessions
+        let sessions:LogicalSessions
 
         /// Type-specific information about the server which can be used to
         /// update a topology model. This is [`nil`]() if the server type is
@@ -53,7 +53,7 @@ extension Mongo.Hello
         let variant:MongoTopology.Update.Variant?
     }
 }
-extension Mongo.Hello.Response:BSONDictionaryDecodable
+extension Mongo.HelloResponse:BSONDictionaryDecodable
 {
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {

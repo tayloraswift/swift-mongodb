@@ -214,14 +214,29 @@ extension Mongo.Monitor
             channel.close()
         }
 
+        let _pool:MongoChannel = try await self.bootstrap.channel(to: host,
+            attaching: heartbeat.heart)
+        
+        defer
+        {
+            _pool.close()
+        }
+
+        async
+        let authentication:Mongo.HelloResponse = _pool.establish(
+            credentials: self.bootstrap.credentials,
+            appname: self.bootstrap.appname)
+
         //  initial login, performs auth (if using auth).
-        let initial:Mongo.Hello.Response = try await channel.establish(
+        let initial:Mongo.HelloResponse = try await channel.establish(
             credentials: self.bootstrap.credentials,
             appname: self.bootstrap.appname)
         
+        let _:Mongo.HelloResponse = try await authentication
+
         guard await self.update(host: host, with: .init(
                     variant: initial.variant, 
-                    channel: channel),
+                    channel: _pool),
                 sessions: initial.sessions)
         else
         {
@@ -230,7 +245,7 @@ extension Mongo.Monitor
 
         for try await _:Void in heartbeat
         {
-            let updated:Mongo.Hello.Response = try await channel.run(
+            let updated:Mongo.HelloResponse = try await channel.run(
                 hello: .init(user: nil))
             if  updated.token != initial.token
             {
@@ -239,7 +254,7 @@ extension Mongo.Monitor
             }
             guard await self.update(host: host, with: .init(
                         variant: updated.variant, 
-                        channel: channel),
+                        channel: _pool),
                     sessions: updated.sessions)
             else
             {

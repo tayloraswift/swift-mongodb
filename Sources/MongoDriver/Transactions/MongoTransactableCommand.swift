@@ -1,4 +1,4 @@
 public
-protocol MongoTransactableCommand<Response>:MongoSessionCommand
+protocol MongoTransactableCommand<Response>:MongoCommand
 {
 }

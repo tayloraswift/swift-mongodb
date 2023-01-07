@@ -31,6 +31,9 @@ enum Main:AsyncTests
             await TestDatabases(&$0, bootstrap: bootstrap, hosts: members)
             await TestInsert(&$0, bootstrap: bootstrap, hosts: members)
             await TestFind(&$0, bootstrap: bootstrap, hosts: members)
+
+            await TestCausalConsistency(&$0, bootstrap: bootstrap, hosts: members)
+
             await TestCursors(&$0, bootstrap: bootstrap, hosts: members)
         }
 

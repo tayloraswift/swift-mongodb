@@ -16,7 +16,7 @@ extension MongoChannel
         var requests:
         [
             MongoWire.MessageIdentifier:
-                CheckedContinuation<MongoWire.Message<ByteBufferView>, Error>
+                CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>
         ]
 
         public
@@ -34,7 +34,7 @@ extension MongoChannel
             for (id, continuation):
             (
                 MongoWire.MessageIdentifier,
-                CheckedContinuation<MongoWire.Message<ByteBufferView>, Error>
+                CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>
             )   in self.requests
             {
                 continuation.resume(throwing: TimeoutError.init(awaiting: id))
@@ -54,7 +54,7 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
     {
         let message:MongoWire.Message<ByteBufferView> = self.unwrapInboundIn(data)
         let request:MongoWire.MessageIdentifier = message.header.request
-        if  let continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, Error> = 
+        if  let continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error> = 
                 self.requests.removeValue(forKey: request)
         {
             continuation.resume(returning: message)
@@ -72,7 +72,7 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
     typealias OutboundIn =
     (
         BSON.Fields,
-        CheckedContinuation<MongoWire.Message<ByteBufferView>, Error>
+        CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>
     )
     public
     typealias OutboundOut = ByteBuffer
@@ -108,7 +108,7 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
 
             try? await Task.sleep(for: timeout)
             if  let self:MongoChannel.MessageRouter,
-                let continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, Error> = 
+                let continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error> = 
                     self.requests.removeValue(forKey: id)
             {
                 continuation.resume(throwing: MongoChannel.TimeoutError.init(awaiting: id,

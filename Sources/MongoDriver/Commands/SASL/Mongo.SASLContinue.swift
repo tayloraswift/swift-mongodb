@@ -3,13 +3,16 @@ import SCRAM
 
 extension Mongo
 {
+    /// The MongoDB `saslContinue` command.
+    ///
+    /// This command is internal because it must not be used with sessions.
     struct SASLContinue
     {
         let conversation:Int32
         let message:SCRAM.Message
     }
 }
-extension Mongo.SASLContinue:MongoDatabaseCommand
+extension Mongo.SASLContinue:MongoCommand
 {
     typealias Response = Mongo.SASLResponse
     

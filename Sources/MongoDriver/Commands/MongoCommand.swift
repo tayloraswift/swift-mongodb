@@ -9,12 +9,14 @@ import NIOCore
 public
 protocol MongoCommand<Response>:BSONDocumentEncodable, Sendable
 {
+    /// The type of database this command can be run against.
+    associatedtype Database:MongoCommandDatabase = Mongo.Database
     /// The server response this command expects to receive.
     ///
     /// >   Note:
     ///     By convention, the library refers to a decoded message as a *response*,
     ///     and an undecoded message as a *reply*.
-    associatedtype Response:Sendable = Void
+    associatedtype Response:Sendable
 
     /// @import(BSONDecoding)
     /// A hook to decode an untyped server reply to a typed ``Response``.
@@ -48,10 +50,10 @@ extension MongoCommand
     /// Encodes this command to a BSON document, adding the given database
     /// as a field with the key [`"$db"`]().
     @inlinable public
-    func encode(to bson:inout BSON.Fields, database:Mongo.Database)
+    func encode(to bson:inout BSON.Fields, database:Database)
     {
         //  this is `@inlinable` because we want ``MongoCommand.encode(to:)`` to be inlined
         self.encode(to: &bson)
-        bson["$db"] = database
+        bson["$db"] = database.name
     }
 }

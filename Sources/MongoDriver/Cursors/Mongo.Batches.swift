@@ -8,9 +8,10 @@ extension Mongo
     struct Batches<BatchElement> where BatchElement:MongoDecodable
     {
         public
-        let current:Current
+        let selection:Mongo.Selection,
+            session:Mongo.Session
         public
-        let runner:UnsafeRunner
+        let current:Current
         /// The database and collection this batch sequence is drawn from.
         public
         let namespace:Namespaced<Collection>
@@ -23,13 +24,15 @@ extension Mongo
         let stride:Int
 
         @usableFromInline
-        init(runner:UnsafeRunner,
+        init(selection:Mongo.Selection, session:Mongo.Session,
             initial:Cursor<BatchElement>,
             timeout:Milliseconds?,
             stride:Int)
         {
+            self.selection = selection
+            self.session = session
+
             self.current = .init(elements: initial.elements, handle: initial.handle)
-            self.runner = runner
 
             self.namespace = initial.namespace
             self.timeout = timeout
@@ -74,12 +77,13 @@ extension Mongo.Batches:AsyncSequence, AsyncIteratorProtocol
             return nil
         }
 
-        let cursor:Mongo.Cursor<BatchElement> = try await self.runner.run(
+        let cursor:Mongo.Cursor<BatchElement> = try await self.session.run(
             command: Mongo.GetMore<BatchElement>.init(cursor: next,
                 collection: self.collection,
                 timeout: self.timeout,
                 count: self.stride),
-            against: self.database)
+            against: self.database,
+            on: self.selection)
         
         self.current.handle = cursor.handle
 
@@ -100,9 +104,10 @@ extension Mongo.Batches
     {
         if  let cursor:Mongo.CursorIdentifier = self.current.next
         {
-            let _:Mongo.KillCursors.Response = try await self.runner.run(
+            let _:Mongo.KillCursorsResponse = try await self.session.run(
                 command: Mongo.KillCursors.init([cursor], collection: self.collection),
-                against: self.database)
+                against: self.database,
+                on: self.selection)
         }
     }
 }

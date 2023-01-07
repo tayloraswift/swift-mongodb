@@ -19,6 +19,7 @@ enum Main:AsyncTests
             .init(name: "mongo-2", port: 27017),
             .init(name: "mongo-3", port: 27017),
             .init(name: "mongo-4", port: 27017),
+            .init(name: "mongo-5", port: 27017),
         ]
 
         await tests.group("replicated-topology")

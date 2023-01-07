@@ -26,9 +26,9 @@ extension Mongo.KillCursors:MongoCommand
         bson["killCursors"] = self.collection
         bson["cursors"] = self.cursors
     }
-}
-extension Mongo.KillCursors:MongoDatabaseCommand
-{
+    
+    public
+    typealias Response = Mongo.KillCursorsResponse
 }
 extension Mongo.KillCursors:MongoTransactableCommand
 {

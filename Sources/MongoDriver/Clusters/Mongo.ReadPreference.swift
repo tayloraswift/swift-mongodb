@@ -7,10 +7,10 @@ extension Mongo
     @frozen public
     enum ReadPreference:Equatable, Sendable
     {
-        case secondary          (MongoTopology.Eligibility = .init(), hedge:Hedging? = nil)
-        case secondaryPreferred (MongoTopology.Eligibility = .init(), hedge:Hedging? = nil)
-        case nearest            (MongoTopology.Eligibility = .init(), hedge:Hedging? = nil)
-        case primaryPreferred   (MongoTopology.Eligibility = .init(), hedge:Hedging? = nil)
+        case secondary          (MongoTopology.Eligibility, hedge:Hedging? = nil)
+        case secondaryPreferred (MongoTopology.Eligibility, hedge:Hedging? = nil)
+        case nearest            (MongoTopology.Eligibility, hedge:Hedging? = nil)
+        case primaryPreferred   (MongoTopology.Eligibility, hedge:Hedging? = nil)
         case primary
     }
 }
@@ -19,63 +19,63 @@ extension Mongo.ReadPreference
     @inlinable public static
     var secondary:Self
     {
-        .secondary()
+        .secondary(.init())
     }
     @inlinable public static
     var secondaryPreferred:Self
     {
-        .secondaryPreferred()
+        .secondaryPreferred(.init())
     }
     @inlinable public static
     var nearest:Self
     {
-        .nearest()
+        .nearest(.init())
     }
     @inlinable public static
     var primaryPreferred:Self
     {
-        .primaryPreferred()
+        .primaryPreferred(.init())
     }
 }
-// extension Mongo.ReadPreference
-// {
-//     @inlinable public static
-//     func secondary(
-//         maxStaleness seconds:Seconds? = nil,
-//         tagSets:[MongoTopology.TagSet]? = nil,
-//         hedge hedging:Hedging? = nil) -> Self
-//     {
-//         .secondary(.init(maxStaleness: seconds, tagSets: tagSets),
-//             hedge: hedging)
-//     }
-//     @inlinable public static
-//     func secondaryPreferred(
-//         maxStaleness seconds:Seconds? = nil,
-//         tagSets:[MongoTopology.TagSet]? = nil,
-//         hedge hedging:Hedging? = nil) -> Self
-//     {
-//         .secondaryPreferred(.init(maxStaleness: seconds, tagSets: tagSets),
-//             hedge: hedging)
-//     }
-//     @inlinable public static
-//     func nearest(
-//         maxStaleness seconds:Seconds? = nil,
-//         tagSets:[MongoTopology.TagSet]? = nil,
-//         hedge hedging:Hedging? = nil) -> Self
-//     {
-//         .nearest(.init(maxStaleness: seconds, tagSets: tagSets),
-//             hedge: hedging)
-//     }
-//     @inlinable public static
-//     func primaryPreferred(
-//         maxStaleness seconds:Seconds? = nil,
-//         tagSets:[MongoTopology.TagSet]? = nil,
-//         hedge hedging:Hedging? = nil) -> Self
-//     {
-//         .primaryPreferred(.init(maxStaleness: seconds, tagSets: tagSets),
-//             hedge: hedging)
-//     }
-// }
+extension Mongo.ReadPreference
+{
+    @inlinable public static
+    func secondary(
+        maxStaleness seconds:Seconds? = nil,
+        tagSets:[MongoTopology.TagSet]? = nil,
+        hedge hedging:Hedging? = nil) -> Self
+    {
+        .secondary(.init(maxStaleness: seconds, tagSets: tagSets),
+            hedge: hedging)
+    }
+    @inlinable public static
+    func secondaryPreferred(
+        maxStaleness seconds:Seconds? = nil,
+        tagSets:[MongoTopology.TagSet]? = nil,
+        hedge hedging:Hedging? = nil) -> Self
+    {
+        .secondaryPreferred(.init(maxStaleness: seconds, tagSets: tagSets),
+            hedge: hedging)
+    }
+    @inlinable public static
+    func nearest(
+        maxStaleness seconds:Seconds? = nil,
+        tagSets:[MongoTopology.TagSet]? = nil,
+        hedge hedging:Hedging? = nil) -> Self
+    {
+        .nearest(.init(maxStaleness: seconds, tagSets: tagSets),
+            hedge: hedging)
+    }
+    @inlinable public static
+    func primaryPreferred(
+        maxStaleness seconds:Seconds? = nil,
+        tagSets:[MongoTopology.TagSet]? = nil,
+        hedge hedging:Hedging? = nil) -> Self
+    {
+        .primaryPreferred(.init(maxStaleness: seconds, tagSets: tagSets),
+            hedge: hedging)
+    }
+}
 extension Mongo.ReadPreference
 {
     var mode:MongoTopology.ReadMode

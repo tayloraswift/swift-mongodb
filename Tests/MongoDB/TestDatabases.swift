@@ -22,7 +22,8 @@ func TestDatabases(_ tests:inout Tests,
         await tests.test(name: "list-database-names")
         {
             let names:[Mongo.Database] = try await context.pool.run(
-                command: Mongo.ListDatabases.NameOnly.init())
+                command: Mongo.ListDatabases.NameOnly.init(),
+                against: .admin)
             $0.assert(names.contains(context.database),
                 name: "contains")
         }
@@ -30,7 +31,8 @@ func TestDatabases(_ tests:inout Tests,
         await tests.test(name: "list-databases")
         {
             let (size, databases):(Int, [Mongo.DatabaseMetadata]) = try await context.pool.run(
-                command: Mongo.ListDatabases.init())
+                command: Mongo.ListDatabases.init(),
+                against: .admin)
             $0.assert(size > 0,
                 name: "nonzero-size")
             $0.assert(databases.contains { $0.database == context.database },

@@ -26,3 +26,11 @@ extension Mongo
 extension Mongo.CursorIdentifier:BSONScheme
 {
 }
+extension Mongo.CursorIdentifier:CustomStringConvertible
+{
+    public
+    var description:String
+    {
+        self.rawValue.description
+    }
+}
