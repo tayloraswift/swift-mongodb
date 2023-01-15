@@ -13,13 +13,12 @@ let package:Package = .init(name: "swift-mongodb",
 
         .library(name: "Heartbeats", targets: ["Heartbeats"]),
 
+        .library(name: "Mongo", targets: ["Mongo"]),
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoChannel", targets: ["MongoChannel"]),
-        .library(name: "MongoConnection", targets: ["MongoConnection"]),
         .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
         .library(name: "MongoSchema", targets: ["MongoSchema"]),
-        .library(name: "MongoTopology", targets: ["MongoTopology"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
         .library(name: "SCRAM", targets: ["SCRAM"]),
@@ -122,21 +121,22 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONSchema"),
                 .target(name: "Heartbeats"),
                 .target(name: "MongoWire"),
-                .target(name: "TraceableErrors"),
                 .product(name: "NIOCore",               package: "swift-nio"),
                 .product(name: "Atomics",               package: "swift-atomics"),
             ]),
 
-        .target(name: "MongoConnection",
+        .target(name: "MongoMonitoringDelegate",
             dependencies:
             [
-                .target(name: "MongoChannel"),
             ]),
 
-        .target(name: "MongoTopology",
+        .target(name: "Mongo",
             dependencies:
             [
-                .target(name: "MongoConnection"),
+                .target(name: "BSONSchema"),
+                .target(name: "Durations"),
+                .target(name: "MongoMonitoringDelegate"),
+                .target(name: "TraceableErrors"),
             ]),
 
         .target(name: "MongoSchema",
@@ -151,8 +151,9 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSON_Durations"),
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
+                .target(name: "Mongo"),
+                .target(name: "MongoChannel"),
                 .target(name: "MongoSchema"),
-                .target(name: "MongoTopology"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2",                  package: "swift-hash"),
                 .product(name: "NIOPosix",              package: "swift-nio"),

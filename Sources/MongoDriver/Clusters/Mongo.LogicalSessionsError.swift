@@ -1,5 +1,3 @@
-import MongoTopology
-
 extension Mongo
 {
     public

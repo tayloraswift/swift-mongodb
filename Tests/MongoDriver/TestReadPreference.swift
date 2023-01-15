@@ -1,10 +1,9 @@
 import MongoDriver
-import MongoTopology
 import Testing
 
 func TestReadPreference(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
-    members:[MongoTopology.Host]) async
+    members:[Mongo.Host]) async
 {
     await tests.test(name: "read-preferences")
     {

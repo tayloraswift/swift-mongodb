@@ -30,12 +30,12 @@ extension Mongo
                     self.released.isEmpty
             else
             {
-                fatalError("unreachable (deinit while session pool still contains sessions)")
+                fatalError("unreachable (deinitialized while session pool still contains sessions!)")
             }
             guard case nil = self.draining
             else
             {
-                fatalError("unreachable (deinit while session pool is still being drained)")
+                fatalError("unreachable (deinitialized while session pool is still being drained!)")
             }
         }
     }
@@ -101,7 +101,7 @@ extension Mongo.SessionPool
             guard case nil = self.draining
             else
             {
-                fatalError("cannot drain session pool that is already being drained!")
+                fatalError("unreachable (draining session pool that is already being drained!)")
             }
             await withCheckedContinuation
             {
@@ -120,12 +120,12 @@ extension Mongo.SessionPool
         guard case _? = self.retained.remove(id)
         else
         {
-            fatalError("unreachable: released an unknown session! (\(id))")
+            fatalError("unreachable (released an unknown session!)")
         }
         guard case nil = self.released.updateValue(metadata, forKey: id)
         else
         {
-            fatalError("unreachable: released an duplicate session! (\(id))")
+            fatalError("unreachable (released a session more than once!)")
         }
         if  self.retained.isEmpty,
             let draining:CheckedContinuation<Void, Never> = self.draining
@@ -140,7 +140,7 @@ extension Mongo.SessionPool
         guard case nil = self.draining
         else
         {
-            fatalError("unreachable: cannot checkout session while session pool is being drained!")
+            fatalError("unreachable (checking out a session while pool is being drained!)")
         }
         let now:ContinuousClock.Instant = .now
         while case let (id, metadata)? = self.released.popFirst()

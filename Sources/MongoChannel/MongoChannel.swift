@@ -1,45 +1,32 @@
-import BSONDecoding
+import BSON
 import Heartbeats
 import MongoWire
 import NIOCore
 
 /// @import(NIOCore)
-/// A connection to a `mongod`/`mongos` host. This type is an API wrapper around
-/// an NIO ``Channel``.
-///
-/// > Warning: This type is not managed! If you are storing instances of this type, 
-/// there must be code elsewhere responsible for closing the wrapped NIO ``Channel``!
+/// A channel to a `mongod`/`mongos` host. This type is a thin wrapper around an
+/// NIO ``Channel`` and provides no lifecycle management.
 public
 struct MongoChannel:Sendable
 {
     @usableFromInline
     let channel:any Channel
-    public
-    let heart:Heart
 
-    private
-    init(channel:any Channel, heart:Heart)
+    /// Wraps the provided NIO ``Channel`` without attaching any heartbeat
+    /// controller.
+    public
+    init(_ channel:any Channel)
     {
         self.channel = channel
-        self.heart = heart
-    }
-
-    /// Closes the NIO ``Channel`` wrapped by this instance, which will
-    /// also (indirectly) stop its attached heartbeat via the channel’s
-    /// close-future.
-    public
-    func close()
-    {
-        self.channel.close(mode: .all, promise: nil)
     }
 }
 extension MongoChannel
 {
-    /// Creates a instance of this type wrapping the given NIO ``Channel``,
-    /// and registers a callback on its close-future stopping the given
-    /// heartbeat.
+    /// Wraps the provided NIO ``Channel`` and attaches the given heartbeat
+    /// controller, which will terminate the associated stream of heartbeats
+    /// when the channel closes.
     public
-    init(channel:any Channel, attaching heart:Heart)
+    init(_ channel:any Channel, attaching heart:__shared Heart)
     {
         channel.closeFuture.whenComplete
         {
@@ -53,20 +40,47 @@ extension MongoChannel
                 heart.stop(throwing: error)
             }
         }
-        self.init(channel: channel, heart: heart)
+        self.init(channel)
+    }
+    /// Closes this channel, returning when the channel has been closed.
+    ///
+    /// If a heartbeat controller was attached to this channel, this method
+    /// will also terminate the associated stream of heartbeats.
+    public
+    func close() async
+    {
+        try? await self.channel.close(mode: .all)
+    }
+    /// Interrupts this channel, forcing it to close (asynchronously), but
+    /// returning without waiting for the channel to complete its shutdown
+    /// procedure.
+    ///
+    /// If a heartbeat controller was attached to this channel, this method
+    /// will also terminate the associated stream of heartbeats.
+    public
+    func interrupt()
+    {
+        self.channel.close(mode: .all, promise: nil)
     }
 }
 extension MongoChannel
 {
-    public static
-    func === (lhs:Self, rhs:Self) -> Bool
+
+}
+extension MongoChannel:Equatable
+{
+    @inlinable public static
+    func == (lhs:Self, rhs:Self) -> Bool
     {
         lhs.channel === rhs.channel
     }
-    public static
-    func !== (lhs:Self, rhs:Self) -> Bool
+}
+extension MongoChannel:Hashable
+{
+    @inlinable public
+    func hash(into hasher:inout Hasher)
     {
-        lhs.channel !== rhs.channel
+        hasher.combine(ObjectIdentifier.init(self.channel))
     }
 }
 extension MongoChannel

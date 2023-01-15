@@ -1,4 +1,3 @@
-import MongoTopology
 import TraceableErrors
 
 extension Mongo
@@ -7,12 +6,12 @@ extension Mongo
     struct ClusterError<Underlying>:Error where Underlying:Error
     {
         public
-        let diagnostics:MongoTopology.Diagnostics
+        let diagnostics:Mongo.SelectionDiagnostics
         public
         let failure:Underlying
 
         public
-        init(diagnostics:MongoTopology.Diagnostics, failure:Underlying)
+        init(diagnostics:Mongo.SelectionDiagnostics, failure:Underlying)
         {
             self.diagnostics = diagnostics
             self.failure = failure

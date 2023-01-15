@@ -1,15 +1,12 @@
-import MongoChannel
-import MongoTopology
-
 extension Mongo.Cluster
 {
     struct SelectionRequest
     {
         let preference:Mongo.ReadPreference
-        let promise:CheckedContinuation<MongoChannel, any Error>
+        let promise:CheckedContinuation<Mongo.ConnectionPool, any Error>
 
         init(preference:Mongo.ReadPreference,
-            promise:CheckedContinuation<MongoChannel, any Error>)
+            promise:CheckedContinuation<Mongo.ConnectionPool, any Error>)
         {
             self.preference = preference
             self.promise = promise
@@ -19,7 +16,7 @@ extension Mongo.Cluster
 extension Mongo.Cluster.SelectionRequest?
 {
     mutating
-    func fail(diagnosing servers:MongoTopology.Servers)
+    func fail(diagnosing servers:Mongo.Servers)
     {
         guard let request:Mongo.Cluster.SelectionRequest = self
         else
@@ -32,15 +29,15 @@ extension Mongo.Cluster.SelectionRequest?
         }
         
         request.promise.resume(throwing: Mongo.ClusterError<Mongo.ReadPreferenceError>.init(
-            diagnostics: request.preference.diagnose(unsuitable: servers),
+            diagnostics: request.preference.diagnose(servers: servers),
             failure: .init(preference: request.preference)))
     }
     mutating
-    func fulfill(with channel:MongoChannel)
+    func fulfill(with pool:Mongo.ConnectionPool)
     {
         if  let request:Mongo.Cluster.SelectionRequest = self
         {
-            request.promise.resume(returning: channel)
+            request.promise.resume(returning: pool)
             self = nil
         }
     }

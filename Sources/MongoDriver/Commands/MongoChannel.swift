@@ -1,6 +1,5 @@
 import BSON
 import MongoChannel
-import MongoTopology
 import NIOPosix
 import SCRAM
 import SHA2
@@ -11,7 +10,7 @@ extension MongoChannel
     /// if possible. If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
     func establish(credentials:Mongo.Credentials?,
-        appname:String?) async throws -> Mongo.HelloResponse
+        appname:String?) async -> Result<Mongo.HelloResponse, any Error>
     {
         let user:Mongo.Namespaced<String>?
         // if we don’t have an explicit authentication mode, ask the server
@@ -26,9 +25,17 @@ extension MongoChannel
             user = nil
         }
 
-        let response:Mongo.HelloResponse = try await self.run(hello: .init(
-            client: .init(appname: appname),
-            user: user))
+        let response:Mongo.HelloResponse
+        do
+        {
+            response = try await self.run(hello: .init(
+                client: .init(appname: appname),
+                user: user))
+        }
+        catch let error
+        {
+            return .failure(error)
+        }
 
         if let credentials:Mongo.Credentials
         {
@@ -39,11 +46,12 @@ extension MongoChannel
             }
             catch let error
             {
-                throw Mongo.AuthenticationError.init(error, credentials: credentials)
+                return .failure(Mongo.AuthenticationError.init(error,
+                    credentials: credentials))
             }
         }
 
-        return response
+        return .success(response)
     }
 }
 

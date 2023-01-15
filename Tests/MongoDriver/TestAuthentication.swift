@@ -1,12 +1,11 @@
 import MongoChannel
 import MongoDriver
-import MongoTopology
 import NIOPosix
 import Testing
 
 func TestAuthentication(_ tests:inout Tests,
     credentials:Mongo.Credentials,
-    standalone:MongoTopology.Host,
+    standalone:Mongo.Host,
     on executor:MultiThreadedEventLoopGroup) async
 {
     await tests.group("authentication")
@@ -82,7 +81,7 @@ func TestAuthentication(_ tests:inout Tests,
                 diagnostics: .init(unreachable:
                 [
                     standalone: .errored(Mongo.AuthenticationError.init(
-                            MongoChannel.ServerError.init(
+                            Mongo.ServerError.init(
                                 message: "Authentication failed.",
                                 code: 18),
                         credentials: bootstrap.credentials!))

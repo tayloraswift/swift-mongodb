@@ -1,11 +1,10 @@
-import MongoTopology
 import MongoDriver
 import NIOPosix
 import Testing
 
 func TestSessionPool(_ tests:inout Tests,
     credentials:Mongo.Credentials?,
-    seedlist:Set<MongoTopology.Host>,
+    seedlist:Set<Mongo.Host>,
     on executor:MultiThreadedEventLoopGroup) async
 {
     await tests.group("lifecycles")

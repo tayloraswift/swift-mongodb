@@ -1,10 +1,9 @@
 import MongoDB
-import MongoTopology
 import Testing
 
 func TestDatabases(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<MongoTopology.Host>) async
+    hosts:Set<Mongo.Host>) async
 {
     await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
         database: "databases",

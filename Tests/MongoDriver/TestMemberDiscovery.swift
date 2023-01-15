@@ -1,13 +1,12 @@
 import MongoDriver
-import MongoTopology
 import Testing
 
 func TestMemberDiscovery(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
-    members:[MongoTopology.Host]) async
+    members:[Mongo.Host]) async
 {
     //  we should be able to connect to the primary using any seed
-    for seed:MongoTopology.Host in members
+    for seed:Mongo.Host in members
     {
         await tests.test(name: "discover-primary-from-\(seed.name)")
         {

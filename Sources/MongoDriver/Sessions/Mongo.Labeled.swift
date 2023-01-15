@@ -1,5 +1,4 @@
 import BSONEncoding
-import MongoTopology
 
 extension Mongo
 {

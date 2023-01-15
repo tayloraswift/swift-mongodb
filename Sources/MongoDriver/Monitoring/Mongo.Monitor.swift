@@ -3,7 +3,6 @@ import BSON
 import Durations
 import Heartbeats
 import MongoChannel
-import MongoTopology
 import MongoWire
 import NIOCore
 
@@ -21,7 +20,7 @@ extension Mongo
         let cluster:Cluster
 
         private
-        var topology:MongoTopology
+        var topology:Mongo.Topology<ConnectionPool>
         private
         var tasks:Tasks
         
@@ -43,56 +42,7 @@ extension Mongo
 }
 extension Mongo.Monitor
 {
-    // TODO: we don’t need to traffic the allocated object outside of this setter
-    // nonisolated public
-    // var clusterTime:Mongo.ClusterTime?
-    // {
-    //     get
-    //     {
-    //         self._clusterTime.load(ordering: .relaxed)?.takeUnretainedValue()
-    //     }
-    //     set(value)
-    //     {
-    //         guard let value:Mongo.ClusterTime
-    //         else
-    //         {
-    //             return
-    //         }
-
-    //         let owned:Unmanaged<Mongo.ClusterTime> = .passRetained(value)
-    //         var shared:Unmanaged<Mongo.ClusterTime>? = self._clusterTime.load(
-    //             ordering: .relaxed)
-            
-    //         while true
-    //         {
-    //             if  let old:Mongo.ClusterTime = shared?.takeUnretainedValue(),
-    //                     old.max.timestamp >= value.max.timestamp
-    //             {
-    //                 owned.release()
-    //                 return
-    //             }
-
-    //             switch self._clusterTime.weakCompareExchange(expected: shared, desired: owned,
-    //                 successOrdering: .acquiringAndReleasing,
-    //                 failureOrdering: .acquiring)
-    //             {
-    //             case (exchanged: false, let current):
-    //                 shared = current
-                
-    //             case (exchanged: true, let owned?):
-    //                 owned.release()
-    //                 return
-                
-    //             case (exchanged: true, nil):
-    //                 return
-    //             }
-    //         }
-    //     }
-    // }
-}
-extension Mongo.Monitor
-{
-    func seed(with seeds:Set<MongoTopology.Host>)
+    func seed(with seeds:Set<Mongo.Host>)
     {
         guard case .terminated = self.topology
         else
@@ -101,7 +51,7 @@ extension Mongo.Monitor
         }
 
         self.topology = .unknown(.init(hosts: seeds))
-        for host:MongoTopology.Host in seeds
+        for host:Mongo.Host in seeds
         {
             guard case _? = self.monitor(host)
             else
@@ -118,7 +68,7 @@ extension Mongo.Monitor
             fatalError("cannot terminate monitoring tasks that are already being terminated")
         }
 
-        self.topology.terminate()
+        self.topology.removeAll()
 
         guard self.tasks.count != 0
         else
@@ -132,23 +82,25 @@ extension Mongo.Monitor
     }
 
     private
-    func snapshot() -> MongoTopology.Servers
+    func snapshot() -> Mongo.Servers
     {
-        self.topology.snapshot(heartbeatInterval: self.heartbeatInterval)
+        .init(from: self.topology, heartbeatInterval: self.heartbeatInterval)
     }
 
     private
-    func clear(host:MongoTopology.Host, status:(any Error)?) async -> Bool
+    func sequence(error status:(any Error)?, host:Mongo.Host) async -> ExitStatus
     {
-        let monitor:Bool = self.topology.clear(host: host, status: status)
+        let monitor:Bool = self.topology.combine(error: status, host: host)
         await self.cluster.push(snapshot: self.snapshot())
-        return monitor
+        return monitor ? .reconnect : .stop
     }
     private
-    func update(host:MongoTopology.Host, with update:MongoTopology.Update,
-        sessions:Mongo.LogicalSessions) async -> Bool
+    func sequence(update:Mongo.TopologyUpdate?,
+        sessions:Mongo.LogicalSessions,
+        pool:Mongo.ConnectionPool,
+        host:Mongo.Host) async -> Bool
     {
-        let monitor:Bool = self.topology.update(host: host, with: update)
+        let monitor:Bool = self.topology.combine(update: update, host: host, pool: pool)
         { 
             let _:Task<Void, Never>? = self.monitor($0) 
         }
@@ -161,125 +113,145 @@ extension Mongo.Monitor
 extension Mongo.Monitor
 {
     private
-    func monitor(_ host:MongoTopology.Host) -> Task<Void, Never>?
+    func monitor(_ host:Mongo.Host) -> Task<Void, Never>?
     {
         self.tasks.retain { await self.monitor(host) }
     }
     private
-    func monitor(_ host:MongoTopology.Host) async
+    func monitor(_ host:Mongo.Host) async
     {
         defer
         {
             self.tasks.release()
         }
-        while true
+        for generation:UInt in 0...
         {
             // do not spam connections more than once per second
             async
-            let cooldown:Void = try await Task.sleep(for: .seconds(1))
-            let status:(any Error)?
-            
-            do
-            {
-                try await self.connect(to: host)
-                status = nil
-            }
-            catch let error
-            {
-                status = error
-            }
+            let cooldown:Void? = try? Task.sleep(for: .seconds(1))
 
-            if await self.clear(host: host, status: status)
+            switch await self.pool(generation: generation, host: host)
             {
-                try? await cooldown
-            }
-            else
-            {
-                //  host was removed.
-                break
+            case .reconnect:
+                await cooldown
+                continue
+            
+            case .stop:
+                return
             }
         }
     }
     private
-    func connect(to host:MongoTopology.Host) async throws
+    func pool(generation:UInt, host:Mongo.Host) async -> ExitStatus
     {
         let heartbeat:Heartbeat = .init(interval: .milliseconds(self.heartbeatInterval))
-        let channel:MongoChannel = try await self.bootstrap.channel(to: host,
-            attaching: heartbeat.heart)
-        
-        defer
+        let channel:MongoChannel
+        do
         {
-            // will be a no-op if the channel closed spontaneously,
-            // terminating the stream of heartbeats
-            channel.close()
+            channel = try await self.bootstrap.channel(to: host, attaching: heartbeat.heart)
+        }
+        catch let error
+        {
+            return await self.sequence(error: error, host: host)
         }
 
-        let _pool:MongoChannel = try await self.bootstrap.channel(to: host,
-            attaching: heartbeat.heart)
-        
-        defer
-        {
-            _pool.close()
-        }
+        let helloResponse:Mongo.HelloResponse
 
-        async
-        let authentication:Mongo.HelloResponse = _pool.establish(
+        switch await channel.establish(
             credentials: self.bootstrap.credentials,
             appname: self.bootstrap.appname)
-
-        //  initial login, performs auth (if using auth).
-        let initial:Mongo.HelloResponse = try await channel.establish(
-            credentials: self.bootstrap.credentials,
-            appname: self.bootstrap.appname)
-        
-        let _:Mongo.HelloResponse = try await authentication
-
-        guard await self.update(host: host, with: .init(
-                    variant: initial.variant, 
-                    channel: _pool),
-                sessions: initial.sessions)
-        else
         {
-            return
+        case .failure(let error):
+            async
+            let checker:Void = channel.close()
+
+            let exit:ExitStatus = await self.sequence(error: error, host: host)
+
+            await checker
+
+            return exit
+        
+        case .success(let response):
+            helloResponse = response
         }
 
-        for try await _:Void in heartbeat
+        let pool:Mongo.ConnectionPool = .init(generation: generation,
+            signaling: heartbeat.heart,
+            bootstrap: self.bootstrap,
+            host: host)
+
+        switch await self.check(host: host,
+                initialHelloResponse: helloResponse,
+                every: heartbeat,
+                over: channel,
+                pool: pool)
         {
-            let updated:Mongo.HelloResponse = try await channel.run(
-                hello: .init(user: nil))
-            if  updated.token != initial.token
-            {
-                throw MongoChannel.TokenError.init(recorded: initial.token,
-                    invalid: updated.token)
-            }
-            guard await self.update(host: host, with: .init(
-                        variant: updated.variant, 
-                        channel: _pool),
-                    sessions: updated.sessions)
-            else
-            {
-                break
-            }
+        case .failure(let error):
+            async
+            let checker:Void = channel.close()
+            async
+            let pool:Void = pool.drain()
+
+            let exit:ExitStatus = await self.sequence(error: error, host: host)
+
+            await checker
+            await pool
+
+            return exit
+        
+        case .success:
+            //  a variety of errors can happen while checking a server.
+            //  but if the checker returns without an error, that means
+            //  that monitoring was explicitly halted. so we never try
+            //  to reconnect on this path.
+            async
+            let pool:Void = pool.drain()
+
+            await channel.close()
+            await pool
+
+            return .stop
         }
     }
-}
-extension Mongo.Monitor
-{
-    /// Attempts to obtain a channel to a cluster member matching the given
-    /// instance selector, and if successful, generates and attaches a ``Session/ID``
-    /// to it that the driver believes is not currently in use.
-    ///
-    /// Because the session identifier is random and generated locally, there
-    /// is a (small) chance that it may collide with a session identifier
-    /// generated by another driver, a concurrently-seeded session pool, or a
-    /// previous application run, if the application exited abnormally.
-    ///
-    /// UUID collisions are exceedingly rare, and the topology monitor always
-    /// attempts to clear sessions it generated on shutdown, so this is an
-    /// extremely unlikely scenario.
-    ///
-    /// The driver will attempt to re-use session identifiers that are no
-    /// longer in use if it believes the server has not yet released the
-    /// session descriptor on its end, to minimize the number of active server
-    /// sessions at a given time.
+    private
+    func check(host:Mongo.Host, initialHelloResponse initial:Mongo.HelloResponse,
+        every heartbeat:Heartbeat,
+        over channel:MongoChannel,
+        pool:Mongo.ConnectionPool) async -> Result<Void, any Error>
+    {
+        guard await self.sequence(update: initial.update,
+                sessions: initial.sessions,
+                pool: pool,
+                host: host)
+        else
+        {
+            return .success(())
+        }
+        do
+        {
+            for try await _:Void in heartbeat
+            {
+                let subsequent:Mongo.HelloResponse = try await channel.run(
+                    hello: .init(user: nil))
+                if  subsequent.token != initial.token
+                {
+                    throw Mongo.ConnectionTokenError.init(recorded: initial.token,
+                        invalid: subsequent.token)
+                }
+                guard await self.sequence(update: subsequent.update,
+                        sessions: subsequent.sessions,
+                        pool: pool,
+                        host: host)
+                else
+                {
+                    break
+                }
+            }
+            return .success(())
+        }
+        catch let error
+        {
+            return .failure(error)
+        }
+    }
 }

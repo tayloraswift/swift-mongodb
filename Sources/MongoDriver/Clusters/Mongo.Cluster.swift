@@ -1,6 +1,5 @@
 import Atomics
-import MongoChannel
-import MongoTopology
+import Durations
 
 extension Mongo
 {
@@ -15,19 +14,20 @@ extension Mongo
         var counter:UInt
 
         private nonisolated
-        let sessionTimeoutMinutes:UnsafeAtomic<Int64>
+        let atomic:
+        (
+            sessions:UnsafeAtomic<LogicalSessions>,
+            time:UnsafeAtomic<AtomicTime?>
+        )
 
         private
-        var snapshot:MongoTopology.Servers
-        /// The current largest-seen cluster time, if any.
-        public private(set)
-        var time:ClusterTime
+        var snapshot:Servers
 
         init()
         {
-            self.sessionTimeoutMinutes = .create(0)
+            self.atomic.sessions = .create(.init(ttl: 0))
+            self.atomic.time = .create(nil)
             self.snapshot = .none
-            self.time = .init(nil)
 
             self.selectionRequests = [:]
             self.sessionsRequests = [:]
@@ -36,48 +36,40 @@ extension Mongo
 
         deinit
         {
-            self.sessionTimeoutMinutes.destroy()
+            self.atomic.sessions.destroy()
+            self.atomic.time.destroy()
 
             guard self.selectionRequests.isEmpty
             else
             {
-                fatalError("unreachable (deinitialized while selection requests are awaiting)")
+                fatalError("unreachable (deinitialized while selection requests are awaiting!)")
             }
             guard self.sessionsRequests.isEmpty
             else
             {
-                fatalError("unreachable (deinitialized while session requests are awaiting)")
+                fatalError("unreachable (deinitialized while session requests are awaiting!)")
             }
         }
     }
 }
 extension Mongo.Cluster
 {
-    nonisolated
+    public nonisolated
     var sessions:Mongo.LogicalSessions?
     {
-        let rawValue:Int64 = self.sessionTimeoutMinutes.load(ordering: .relaxed)
-        return rawValue == 0 ? nil : .init(ttl: .init(rawValue: rawValue))
+        let sessions:Mongo.LogicalSessions = self.atomic.sessions.load(ordering: .relaxed)
+        return sessions.ttl == 0 ? nil : sessions
     }
-
-    subscript(preference:Mongo.ReadPreference) -> MongoChannel?
+    /// The current largest-seen cluster time, if any.
+    public nonisolated
+    var time:Mongo.ClusterTime
     {
-        switch preference
-        {
-        case    .primary:
-            return self.snapshot[.primary]
-        
-        case    .primaryPreferred   (let eligibility, hedge: _),
-                .nearest            (let eligibility, hedge: _),
-                .secondaryPreferred (let eligibility, hedge: _),
-                .secondary          (let eligibility, hedge: _):
-            return self.snapshot[preference.mode, where: eligibility]
-        }
+        .init(self.atomic.time.load(ordering: .relaxed)?.value)
     }
 }
 extension Mongo.Cluster
 {
-    @inlinable public nonisolated
+    public nonisolated
     func push(time:Mongo.ClusterTime.Sample?)
     {
         guard let time:Mongo.ClusterTime.Sample
@@ -90,20 +82,19 @@ extension Mongo.Cluster
             await self.push(time: time)
         }
     }
-    public
     func push(time:Mongo.ClusterTime.Sample)
     {
-        self.time.combine(with: time)
+        self.atomic.time.store(.init(self.time.combined(with: time)), ordering: .relaxed)
     }
-    func push(snapshot:MongoTopology.Servers, sessions:Mongo.LogicalSessions? = nil)
+    func push(snapshot:Mongo.Servers, sessions:Mongo.LogicalSessions? = nil)
     {
         self.snapshot = snapshot
 
         for (id, request):(UInt, SelectionRequest) in self.selectionRequests
         {
-            if  let channel:MongoChannel = self[request.preference]
+            if  let pool:Mongo.ConnectionPool = self.snapshot[request.preference]
             {
-                self.selectionRequests[id].fulfill(with: channel)
+                self.selectionRequests[id].fulfill(with: pool)
             }
         }
 
@@ -116,8 +107,7 @@ extension Mongo.Cluster
         switch self.sessions.map({ sessions.ttl < $0.ttl })
         {
         case nil, true?:
-            self.sessionTimeoutMinutes.store(sessions.ttl.rawValue,
-                ordering: .relaxed)
+            self.atomic.sessions.store(sessions, ordering: .relaxed)
         case false?:
             break
         }
@@ -184,40 +174,37 @@ extension Mongo.Cluster
 }
 extension Mongo.Cluster
 {
-    public
-    func select(preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant) async throws ->
-    (
-        clusterTime:Mongo.ClusterTime,
-        selection:Mongo.Selection
-    )
+    // @inlinable public nonisolated
+    // func withConnection<Success>(
+    //     to preference:Mongo.ReadPreference,
+    //     by deadline:ContinuousClock.Instant,
+    //     run body:(Mongo.Connection) async throws -> Success) async throws -> Success
+    // {
+    //     try await self.pool(preference: preference, by: deadline).withConnection(by: deadline,
+    //         run: body)
+    // }
+
+    @usableFromInline
+    func pool(preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.ConnectionPool
     {
-        (
-            self.time, .init(preference: preference,
-                channel: try await self.channel(to: preference, by: deadline))
-        )
-    }
-    private
-    func channel(to preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant) async throws -> MongoChannel
-    {
-        if  let channel:MongoChannel = self[preference]
+        if  let pool:Mongo.ConnectionPool = self.snapshot[preference]
         {
-            return channel
+            return pool
         }
         else
         {
-            return try await self.channelAvailable(to: preference, by: deadline)
+            return try await self.poolAvailable(preference: preference, by: deadline)
         }
     }
     private
-    func channelAvailable(to preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant) async throws -> MongoChannel
+    func poolAvailable(preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.ConnectionPool
     {
         let id:UInt = self.request()
 
         async
-        let _:Void = self.channelUnavailable(for: id, once: deadline)
+        let _:Void = self.poolUnavailable(for: id, once: deadline)
 
         return try await withCheckedThrowingContinuation
         {
@@ -226,7 +213,7 @@ extension Mongo.Cluster
         }
     }
     private
-    func channelUnavailable(for id:UInt, once instant:ContinuousClock.Instant) async throws
+    func poolUnavailable(for id:UInt, once instant:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
         try await Task.sleep(until: instant, clock: .continuous)
@@ -267,6 +254,7 @@ extension Mongo.Cluster
     private
     func run(endSessions command:__owned Mongo.EndSessions) async throws -> Void?
     {
-        try await self[.primaryPreferred]?.run(endSessions: command)
+        fatalError("unimplemented")
+        //try await self.snapshot[.primaryPreferred]?.run(endSessions: command)
     }
 }

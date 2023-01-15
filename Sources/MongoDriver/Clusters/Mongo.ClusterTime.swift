@@ -3,8 +3,8 @@ extension Mongo
     @frozen public
     struct ClusterTime:Sendable
     {
-        public private(set)
-        var max:Sample?
+        public
+        let max:Sample?
 
         init(_ sample:Sample?)
         {
@@ -14,18 +14,25 @@ extension Mongo
 }
 extension Mongo.ClusterTime
 {
-    mutating
-    func combine(with sample:Sample)
+    func combined(with sample:Sample) -> Self
     {
         guard let max:Sample = self.max
         else
         {
-            self.max = sample
-            return
+            return .init(sample)
         }
         if  max.instant < sample.instant
         {
-            self.max = sample
+            return .init(sample)
         }
+        else
+        {
+            return self
+        }
+    }
+    mutating
+    func combine(with sample:Sample)
+    {
+        self = self.combined(with: sample)
     }
 }

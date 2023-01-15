@@ -1,10 +1,9 @@
 import MongoDB
-import MongoTopology
 import Testing
 
 func TestFsync(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<MongoTopology.Host>) async
+    hosts:Set<Mongo.Host>) async
 {
     await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
         database: "fsync-locking",

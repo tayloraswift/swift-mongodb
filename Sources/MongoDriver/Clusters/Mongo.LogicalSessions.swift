@@ -1,3 +1,4 @@
+import Atomics
 import Durations
 
 extension Mongo
@@ -20,5 +21,21 @@ extension Mongo
         {
             self.ttl = ttl
         }
+    }
+}
+extension Mongo.LogicalSessions:AtomicValue
+{
+}
+extension Mongo.LogicalSessions:RawRepresentable
+{
+    @inlinable public
+    var rawValue:Minutes.RawValue
+    {
+        self.ttl.rawValue
+    }
+    @inlinable public
+    init(rawValue:Minutes.RawValue)
+    {
+        self.init(ttl: .init(rawValue: rawValue))
     }
 }

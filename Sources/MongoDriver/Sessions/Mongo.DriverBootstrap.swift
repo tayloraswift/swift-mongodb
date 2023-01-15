@@ -1,7 +1,6 @@
 import Durations
 import Heartbeats
 import MongoChannel
-import MongoTopology
 import NIOCore
 import NIOPosix
 import NIOSSL
@@ -56,10 +55,17 @@ extension Mongo.DriverBootstrap
     /// will not be stopped if the channel cannot be created in the first
     /// place; the caller is responsible for disposing of the heartbeat
     /// if this constructor throws an error.
-    func channel(to host:MongoTopology.Host,
-        attaching heart:Heart) async throws -> MongoChannel
+    func channel(to host:Mongo.Host, attaching heart:Heart) async throws -> MongoChannel
     {
-        let bootstrap:ClientBootstrap = .init(group: self.executor)
+        .init(try await self.bootstrap(for: host).connect(
+                host: host.name,
+                port: host.port).get(),
+            attaching: heart)
+    }
+
+    func bootstrap(for host:Mongo.Host) -> ClientBootstrap
+    {
+        .init(group: self.executor)
             .resolver(self.resolver)
             .channelOption(
                 ChannelOptions.socket(SocketOptionLevel.init(SOL_SOCKET), SO_REUSEADDR), 
@@ -92,11 +98,6 @@ extension Mongo.DriverBootstrap
                 return channel.eventLoop.makeFailedFuture(error)
             }
         }
-
-        return .init(channel: try await bootstrap.connect(
-                host: host.name,
-                port: host.port).get(),
-            attaching: heart)
     }
 }
 extension Mongo.DriverBootstrap
@@ -115,7 +116,7 @@ extension Mongo.DriverBootstrap
     /// outage. This means that if the passed `body` closure throws an error, that
     /// error will be the same error observed by the caller of this method.
     public
-    func withSessionPool<Success>(seedlist:Set<MongoTopology.Host>,
+    func withSessionPool<Success>(seedlist:Set<Mongo.Host>,
         _ body:(Mongo.SessionPool) async throws -> Success) async rethrows -> Success
     {
         let monitor:Mongo.Monitor = .init(bootstrap: self)

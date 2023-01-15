@@ -1,6 +1,5 @@
 import NIOPosix
 import MongoDB
-import MongoTopology
 import Testing
 
 @main
@@ -13,7 +12,7 @@ enum Main:AsyncTests
 
         await tests.group("replicated-topology")
         {
-            let members:Set<MongoTopology.Host> =
+            let members:Set<Mongo.Host> =
             [
                 .init(name: "mongo-1", port: 27017),
                 .init(name: "mongo-2", port: 27017),
@@ -39,7 +38,7 @@ enum Main:AsyncTests
 
         await tests.group("single-topology")
         {
-            let standalone:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
+            let standalone:Mongo.Host = .init(name: "mongo-single", port: 27017)
 
             print("running tests for single topology (host: \(standalone))")
 

@@ -1,5 +1,4 @@
 import MongoDriver
-import MongoTopology
 import NIOPosix
 import Testing
 
@@ -11,8 +10,8 @@ enum Main:AsyncTests
     {
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        let standalone:MongoTopology.Host = .init(name: "mongo-single", port: 27017)
-        let members:[MongoTopology.Host] =
+        let standalone:Mongo.Host = .init(name: "mongo-single", port: 27017)
+        let members:[Mongo.Host] =
         [
             .init(name: "mongo-0", port: 27017),
             .init(name: "mongo-1", port: 27017),
