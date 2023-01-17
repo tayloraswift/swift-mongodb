@@ -1,9 +1,9 @@
-import MongoMonitoringDelegate
+import MongoMonitoring
 
 extension Mongo
 {
     @frozen public
-    enum ServerDescription<Metadata, Pool> where Pool:MongoMonitoringDelegate
+    enum ServerDescription<Metadata, Pool> where Pool:AnyObject & MongoMonitoringDelegate
     {
         case monitoring(Metadata, Pool)
         case errored(any Error)
@@ -30,9 +30,9 @@ extension Mongo.ServerDescription
     @inlinable public
     var pool:Pool?
     {
-        if case .monitoring(_, let monitor) = self
+        if case .monitoring(_, let pool) = self
         {
-            return monitor
+            return pool
         }
         else
         {

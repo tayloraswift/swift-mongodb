@@ -1,4 +1,3 @@
-import Atomics
 import BSONEncoding
 import MongoWire
 import NIOCore
@@ -9,36 +8,39 @@ extension MongoChannel
     class MessageRouter
     {
         private
-        let counter:UnsafeAtomic<Int32>
+        var request:MongoWire.MessageIdentifier
         private
-        let timeout:Duration
-        private
-        var requests:
-        [
-            MongoWire.MessageIdentifier:
-                CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>
-        ]
+        var state:State
 
         public
-        init(timeout:Duration)
+        init()
         {
             // MongoDB uses 0 as the ‘nil’ id.
-            self.counter = .create(1)
-            self.timeout = timeout
-            self.requests = [:]
+            self.request = .none
+            self.state = .awaiting(nil)
         }
 
         deinit
         {
-            self.counter.destroy()
-            for (id, continuation):
-            (
-                MongoWire.MessageIdentifier,
-                CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>
-            )   in self.requests
+            if case .awaiting(_?) = self.state
             {
-                continuation.resume(throwing: TimeoutError.init(awaiting: id))
+                fatalError("unreachable (deinitialized channel handler while a continuation is still awaiting")
             }
+        }
+    }
+}
+extension MongoChannel.MessageRouter
+{
+    func perish(throwing error:any Error)
+    {
+        switch self.state
+        {
+        case .awaiting(let continuation):
+            continuation?.resume(throwing: error)
+            self.state = .perished
+        
+        case .perished:
+            break
         }
     }
 }
@@ -53,67 +55,95 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
     func channelRead(context:ChannelHandlerContext, data:NIOAny)
     {
         let message:MongoWire.Message<ByteBufferView> = self.unwrapInboundIn(data)
-        let request:MongoWire.MessageIdentifier = message.header.request
-        if  let continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error> = 
-                self.requests.removeValue(forKey: request)
+
+        switch self.state
         {
+        case .awaiting(let continuation?):
+            guard self.request == message.header.request
+            else
+            {
+                fallthrough
+            }
+
             continuation.resume(returning: message)
+            self.state = .awaiting(nil)
+        
+        case .awaiting(nil):
+            self.state = .perished
+            context.fireErrorCaught(MongoChannel.MessageRoutingError.init(
+                unknown: message.header.request))
+        
+        case .perished:
+            break
         }
-        else
-        {
-            context.fireErrorCaught(MongoChannel.MessageRoutingError.init(unknown: request))
-            return
-        }
+    }
+    public
+    func errorCaught(context:ChannelHandlerContext, error:any Error)
+    {
+        context.fireErrorCaught(error)
+        
+        self.perish(throwing: error)
+    }
+    public
+    func channelInactive(context:ChannelHandlerContext)
+    {
+        context.fireChannelInactive()
+
+        self.perish(throwing: MongoChannel.SocketError.init(awaiting: self.request))
     }
 }
 extension MongoChannel.MessageRouter:ChannelOutboundHandler
 {
     public
-    typealias OutboundIn =
-    (
-        BSON.Fields,
-        CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>
-    )
+    typealias OutboundIn = MongoChannel.Action
     public
     typealias OutboundOut = ByteBuffer
 
     public
     func write(context:ChannelHandlerContext, data:NIOAny, promise:EventLoopPromise<Void>?)
     {
-        let (command, continuation):OutboundIn = self.unwrapOutboundIn(data)
-        
-        let id:MongoWire.MessageIdentifier = .init(self.counter.loadThenWrappingIncrement(
-            ordering: .relaxed))
-        let message:MongoWire.Message<[UInt8]> = .init(sections: .init(body: .init(command)),
-            checksum: false,
-            id: id)
-        
-        guard case nil = self.requests.updateValue(continuation, forKey: id)
-        else
+        switch self.unwrapOutboundIn(data)
         {
-            fatalError("unreachable: atomic counter is broken!")
-        }
+        case .interrupt:
+            context.channel.close(mode: .all, promise: nil)
 
-        var output:BSON.Output<ByteBufferView> = .init(
-            preallocated: .init(context.channel.allocator.buffer(
-                capacity: .init(message.header.size))))
+            self.perish(throwing: MongoChannel.InterruptError.init(
+                awaiting: self.request))
         
-        output.serialize(message: message)
-        context.writeAndFlush(self.wrapOutboundOut(ByteBuffer.init(output.destination)),
-            promise: promise)
-        
-        Task.init
-        {
-            [weak self, id, timeout] in
+        case .timeout:
+            context.channel.close(mode: .all, promise: nil)
 
-            try? await Task.sleep(for: timeout)
-            if  let self:MongoChannel.MessageRouter,
-                let continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error> = 
-                    self.requests.removeValue(forKey: id)
+            self.perish(throwing: MongoChannel.TimeoutError.init(
+                awaiting: self.request))
+        
+        case .request(let command, let continuation):
+            let request:MongoWire.MessageIdentifier = self.request.next()
+            let message:MongoWire.Message<[UInt8]> = .init(
+                sections: .init(body: .init(command)),
+                checksum: false,
+                id: request)
+            
+            switch self.state
             {
-                continuation.resume(throwing: MongoChannel.TimeoutError.init(awaiting: id,
-                    for: timeout))
+            case .perished:
+                continuation.resume(throwing: MongoChannel.InterruptError.init(
+                    awaiting: self.request))
+                return
+            
+            case .awaiting(_?):
+                fatalError("submitted a command to a channel that is already running a command")
+            
+            case .awaiting(nil):
+                self.state = .awaiting(continuation)
             }
+
+            var output:BSON.Output<ByteBufferView> = .init(
+                preallocated: .init(context.channel.allocator.buffer(
+                    capacity: .init(message.header.size))))
+            
+            output.serialize(message: message)
+            context.writeAndFlush(self.wrapOutboundOut(ByteBuffer.init(output.destination)),
+                promise: promise)
         }
     }
 }

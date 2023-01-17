@@ -58,9 +58,10 @@ func TestAuthentication(_ tests:inout Tests,
                 failure: .init()))
         {
             _ in
-            try await bootstrap.withSessionPool(seedlist: [standalone])
+            try await bootstrap.withSessionPool(seedlist: [standalone],
+                timeout: .init(milliseconds: 500))
             {
-                try await $0.withSession(connectionTimeout: .milliseconds(500))
+                try await $0.withSession
                 {
                     _ in
                 }
@@ -89,9 +90,10 @@ func TestAuthentication(_ tests:inout Tests,
                 failure: .init()))
         {
             _ in
-            try await bootstrap.withSessionPool(seedlist: [standalone])
+            try await bootstrap.withSessionPool(seedlist: [standalone],
+                timeout: .init(milliseconds: 500))
             {
-                try await $0.withSession(connectionTimeout: .milliseconds(500))
+                try await $0.withSession
                 {
                     _ in
                 }

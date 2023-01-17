@@ -9,9 +9,10 @@ func TestReadPreference(_ tests:inout Tests,
     {
         (tests:inout Tests) in
 
-        try await bootstrap.withSessionPool(seedlist: .init(members))
+        try await bootstrap.withSessionPool(seedlist: .init(members),
+            timeout: .init(milliseconds: 250))
         {
-            try await $0.withSession(connectionTimeout: .milliseconds(250))
+            try await $0.withSession
             {
                 (session:Mongo.Session) in
 

@@ -22,7 +22,6 @@ enum Main:AsyncTests
             print("running tests for replicated topology (hosts: \(members))")
 
             let bootstrap:Mongo.DriverBootstrap = .init(
-                commandTimeout: .seconds(10),
                 credentials: nil,
                 executor: executor)
 
@@ -43,7 +42,6 @@ enum Main:AsyncTests
             print("running tests for single topology (host: \(standalone))")
 
             let bootstrap:Mongo.DriverBootstrap = .init(
-                commandTimeout: .seconds(10),
                 credentials: .init(authentication: .sasl(.sha256),
                     username: "root",
                     password: "80085"),

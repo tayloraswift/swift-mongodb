@@ -1,6 +1,9 @@
+import BSON
 import Heartbeats
 import MongoChannel
-import MongoMonitoringDelegate
+import MongoMonitoring
+import MongoWire
+import NIOCore
 
 //  these are extensions on the ``MongoMonitoringDelegate`` so they
 //  only appear as public API if you import that module explicitly.
@@ -35,6 +38,11 @@ extension Mongo
         /// token to every connection created from it.
         nonisolated
         let generation:UInt
+        /// The connection timeout used internally by the pool to create connections.
+        /// The service monitor also uses this to compute deadlines for server
+        /// monitoring operations.
+        nonisolated
+        let timeout:ConnectionTimeout
         /// The heartbeat controller for the monitoring task that created this pool.
         nonisolated
         let heart:Heart
@@ -49,6 +57,7 @@ extension Mongo
         /// The host this pool creates connections to.
         nonisolated
         let host:Host
+
 
         private
         var requests:[UInt: CheckedContinuation<MongoChannel?, Never>]
@@ -65,12 +74,12 @@ extension Mongo
         private
         var state:State
 
-        init(generation:UInt,
-            signaling heart:Heart,
-            bootstrap:DriverBootstrap,
+        init(generation:UInt, signaling heart:Heart,
+            bootstrap:Bootstrap,
             host:Mongo.Host)
         {
             self.generation = generation
+            self.timeout = bootstrap.timeout
             self.heart = heart
             self.width = 2
             self.size = 0 ... 100
@@ -83,7 +92,10 @@ extension Mongo
             self.released = []
             self.pending = 0
 
-            self.state = .filling(.init(from: bootstrap, host: host))
+            self.state = .filling(.init(channel: bootstrap.bootstrap(for: host),
+                _credentials: bootstrap.credentials,
+                _appname: bootstrap.appname,
+                host: host))
 
             let _:Task<Void, Never> = .init
             {
@@ -100,7 +112,7 @@ extension Mongo
             guard self.requests.isEmpty
             else
             {
-                fatalError("unreachable (deinitialized connection pool while requests are awaiting!)")
+                fatalError("unreachable (deinitialized connection pool while continuations are awaiting!)")
             }
             guard self.released.isEmpty
             else
@@ -134,12 +146,54 @@ extension Mongo.ConnectionPool
     }
 }
 extension Mongo.ConnectionPool
+{
+    private
+    func next() -> MongoChannel?
+    {
+        guard let channel:MongoChannel = self.released.popLast()
+        else
+        {
+            return nil
+        }
+        if case nil = self.retained.update(with: channel)
+        {
+            return channel
+        }
+        else
+        {
+            fatalError("unreachable (retained a channel more than once!)")
+        }
+    }
+    private
+    func request() -> UInt
+    {
+        self.counter += 1
+        return self.counter
+    }
+    private
+    func submit(_ request:UInt, continuation:CheckedContinuation<MongoChannel?, Never>)
+    {
+        self.requests.updateValue(continuation, forKey: request)
+    }
+    private
+    func fail(_ request:UInt, by deadline:Mongo.ConnectionDeadline) async throws
+    {
+        //  will throw ``CancellationError`` if request succeeds
+        try await Task.sleep(until: deadline.instant, clock: .continuous)
+        if  let continuation:CheckedContinuation<MongoChannel?, Never> =
+                self.requests.removeValue(forKey: request)
+        {
+            continuation.resume(returning: nil)
+        }
+    }
+}
+extension Mongo.ConnectionPool
 {    
     func drain() async
     {
         if case .draining(_?) = self.state
         {
-            fatalError("unreachable: (draining connection pool that is already being drained!)")
+            fatalError("unreachable (draining connection pool that is already being drained!)")
         }
 
         for request:CheckedContinuation<MongoChannel?, Never> in self.requests.values
@@ -170,6 +224,15 @@ extension Mongo.ConnectionPool
                 }
             }
         }
+        
+        //  need to check this again since we got rid of the released channels
+        if  self.isEmpty
+        {
+            self.state = .draining(nil)
+            await direct
+            return
+        }
+
         await withCheckedContinuation
         {
             self.state = .draining($0)
@@ -199,7 +262,7 @@ extension Mongo.ConnectionPool
         }
     }
     public nonisolated
-    func create(by deadline:ContinuousClock.Instant) async throws -> Mongo.Connection
+    func create(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Connection
     {
         if let channel:MongoChannel = await self.checkout(by: deadline)
         {
@@ -214,7 +277,7 @@ extension Mongo.ConnectionPool
 extension Mongo.ConnectionPool
 {
     private
-    func checkout(by deadline:ContinuousClock.Instant) async -> MongoChannel?
+    func checkout(by deadline:Mongo.ConnectionDeadline) async -> MongoChannel?
     {
         while case .filling(let bootstrap) = self.state
         {
@@ -294,12 +357,14 @@ extension Mongo.ConnectionPool
         }
     }
     private
-    func grow(using bootstrap:Mongo.ConnectionBootstrap) async
+    func grow(using bootstrap:Mongo.Connection.Bootstrap) async
     {
         do
         {
             self.pending += 1
-            let channel:MongoChannel = try await bootstrap.channel(to: self.host)
+
+            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
+            let channel:MongoChannel = try await bootstrap.channel(to: self.host, by: deadline)
 
             switch self.state
             {
@@ -355,46 +420,23 @@ extension Mongo.ConnectionPool
         }
     }
 }
+// extension Mongo.ConnectionPool
+// {
+//     /// Attempts to obtain a connection by the given deadline, encodes the given
+//     /// labeled command to a document, sends it over the connection and awaits
+//     /// its reply.
+//     @inlinable public
+//     func run<Command>(command:__owned Mongo.LabeledCommand<Command>,
+//         against database:Command.Database,
+//         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
+//         where Command:MongoCommand
+//     {
+//         let connection:Mongo.Connection = try await self.create(by: deadline)
+//         defer
+//         {
+//             self.destroy(connection)
+//         }
+//         return try await connection.run(command: command, against: database)
+//     }
+// }
 
-extension Mongo.ConnectionPool
-{
-    private
-    func next() -> MongoChannel?
-    {
-        guard let channel:MongoChannel = self.released.popLast()
-        else
-        {
-            return nil
-        }
-        if case nil = self.retained.update(with: channel)
-        {
-            return channel
-        }
-        else
-        {
-            fatalError("unreachable (retained a channel more than once!)")
-        }
-    }
-    private
-    func request() -> UInt
-    {
-        self.counter += 1
-        return self.counter
-    }
-    private
-    func submit(_ request:UInt, continuation:CheckedContinuation<MongoChannel?, Never>)
-    {
-        self.requests.updateValue(continuation, forKey: request)
-    }
-    private
-    func fail(_ request:UInt, by deadline:ContinuousClock.Instant) async throws
-    {
-        //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: deadline, clock: .continuous)
-        if  let continuation:CheckedContinuation<MongoChannel?, Never> =
-                self.requests.removeValue(forKey: request)
-        {
-            continuation.resume(returning: nil)
-        }
-    }
-}

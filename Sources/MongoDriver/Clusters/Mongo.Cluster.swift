@@ -6,6 +6,10 @@ extension Mongo
     public final
     actor Cluster
     {
+        /// The combined connection and operation timeout for driver operations.
+        public nonisolated
+        let timeout:ConnectionTimeout
+
         private
         var selectionRequests:[UInt: SelectionRequest]
         private
@@ -23,8 +27,10 @@ extension Mongo
         private
         var snapshot:Servers
 
-        init()
+        init(timeout:ConnectionTimeout)
         {
+            self.timeout = timeout
+            
             self.atomic.sessions = .create(.init(ttl: 0))
             self.atomic.time = .create(nil)
             self.snapshot = .none
@@ -52,6 +58,7 @@ extension Mongo
         }
     }
 }
+
 extension Mongo.Cluster
 {
     public nonisolated
@@ -138,7 +145,7 @@ extension Mongo.Cluster
     /// a session pool, because the pool did not have time to connect to any
     /// servers yet.
     public nonisolated
-    func sessions(by deadline:ContinuousClock.Instant) async throws -> Mongo.LogicalSessions
+    func sessions(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.LogicalSessions
     {
         if  let sessions:Mongo.LogicalSessions = self.sessions
         {
@@ -151,7 +158,7 @@ extension Mongo.Cluster
     }
     private
     func sessionsAvailable(
-        by deadline:ContinuousClock.Instant) async throws -> Mongo.LogicalSessions
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.LogicalSessions
     {
         let id:UInt = self.request()
 
@@ -165,10 +172,10 @@ extension Mongo.Cluster
         }
     }
     private
-    func sessionsUnavailable(for id:UInt, once instant:ContinuousClock.Instant) async throws
+    func sessionsUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: instant, clock: .continuous)
+        try await Task.sleep(until: deadline.instant, clock: .continuous)
         self.sessionsRequests[id].fail(diagnosing: self.snapshot)
     }
 }
@@ -186,7 +193,7 @@ extension Mongo.Cluster
 
     @usableFromInline
     func pool(preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant) async throws -> Mongo.ConnectionPool
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionPool
     {
         if  let pool:Mongo.ConnectionPool = self.snapshot[preference]
         {
@@ -199,7 +206,7 @@ extension Mongo.Cluster
     }
     private
     func poolAvailable(preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant) async throws -> Mongo.ConnectionPool
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionPool
     {
         let id:UInt = self.request()
 
@@ -213,10 +220,10 @@ extension Mongo.Cluster
         }
     }
     private
-    func poolUnavailable(for id:UInt, once instant:ContinuousClock.Instant) async throws
+    func poolUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: instant, clock: .continuous)
+        try await Task.sleep(until: deadline.instant, clock: .continuous)
         self.selectionRequests[id].fail(diagnosing: self.snapshot)
     }
 }
@@ -233,28 +240,50 @@ extension Mongo.Cluster
     ///         sending any command if `sessions` is empty.
     ///
     /// -   Returns:
-    ///     A ``Void`` tuple if `sessions` was empty or the command was sent
-    ///     and successfully executed; [`nil`]() if at least one session was
+    ///     [`true`]() if `sessions` was empty or the command was sent
+    ///     and successfully executed; [`false`]() if at least one session was
     ///     provided, but there were no suitable servers to send the command
     ///     to, or if the command was sent but it failed on the server’s side.
     ///
     /// This method will not submit any work to the actor if `sessions` is empty.
+    @discardableResult
     nonisolated
-    func end(sessions:__owned [Mongo.SessionIdentifier]) async -> Void?
+    func end(sessions:__owned [Mongo.SessionIdentifier]) async -> Bool
     {
-        if let command:Mongo.EndSessions = .init(sessions)
-        {
-            return try? await self.run(endSessions: command)
-        }
+        guard let command:Mongo.EndSessions = .init(sessions)
         else
         {
-            return ()
+            return true
         }
-    }
-    private
-    func run(endSessions command:__owned Mongo.EndSessions) async throws -> Void?
-    {
-        fatalError("unimplemented")
-        //try await self.snapshot[.primaryPreferred]?.run(endSessions: command)
+        do
+        {
+            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
+
+            let connections:Mongo.ConnectionPool = try await self.pool(
+                preference: .primaryPreferred,
+                by: deadline)
+            let connection:Mongo.Connection = try await connections.create(
+                by: deadline)
+            defer
+            {
+                connections.destroy(connection)
+            }
+            
+            let reply:Mongo.Reply = try await connection.channel.run(command: command,
+                against: .admin,
+                by: deadline.instant)
+            
+            switch reply.result
+            {
+            case .success:
+                return true
+            case .failure:
+                return false
+            }
+        }
+        catch
+        {
+            return false
+        }
     }
 }

@@ -35,8 +35,8 @@ func TestCursors(_ tests:inout Tests,
                     stride: 10),
                 against: context.database)
             {
-                guard   let cursor:Mongo.CursorIdentifier =
-                            tests.unwrap($0.current.next, name: "cursor-id")
+                guard   let cursor:Mongo.CursorIterator<Ordinal> =
+                            tests.unwrap($0.cursor, name: "cursor-id")
                 else
                 {
                     return
@@ -45,14 +45,14 @@ func TestCursors(_ tests:inout Tests,
                 {
                 }
                 let cursors:Mongo.KillCursorsResponse = try await session.run(
-                    command: Mongo.KillCursors.init([cursor], 
-                        collection: $0.collection),
-                    against: $0.database)
+                    command: Mongo.KillCursors.init([cursor.id], 
+                        collection: cursor.namespace.collection),
+                    against: cursor.namespace.database)
                 // if the cursor is already dead, killing it manually will return 'notFound'.
                 tests.assert(cursors.alive **? [], name: "cursors-alive")
                 tests.assert(cursors.killed **? [], name: "cursors-killed")
                 tests.assert(cursors.unknown **? [], name: "cursors-unknown")
-                tests.assert(cursors.notFound **? [cursor], name: "cursors-not-found")
+                tests.assert(cursors.notFound **? [cursor.id], name: "cursors-not-found")
             }
         }
         await tests.test(with: SessionEnvironment.init(name: "cursor-cleanup-interruption",
@@ -65,14 +65,14 @@ func TestCursors(_ tests:inout Tests,
                     query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
                     against: context.database)
             {
-                if  let cursor:Mongo.CursorIdentifier = tests.unwrap($0.current.next,
+                if  let cursor:Mongo.CursorIterator<Ordinal> = tests.unwrap($0.cursor,
                         name: "cursor-id")
                 {
-                    tests.assert($0.database ==? context.database,
+                    tests.assert(cursor.namespace.database ==? context.database,
                         name: "cursor-database-name")
-                    tests.assert($0.collection ==? collection,
+                    tests.assert(cursor.namespace.collection ==? collection,
                         name: "cursor-collection-name")
-                    return cursor
+                    return cursor.id
                 }
                 else
                 {

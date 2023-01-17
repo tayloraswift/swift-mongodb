@@ -5,7 +5,7 @@ extension Mongo
     public final
     actor SessionPool
     {
-        private nonisolated
+        @usableFromInline nonisolated
         let cluster:Cluster
 
         private
@@ -43,15 +43,14 @@ extension Mongo
 extension Mongo.SessionPool
 {
     public nonisolated
-    func withSession<Success>(connectionTimeout:Duration = .seconds(10),
+    func withSession<Success>(
         _ body:(Mongo.Session) async throws -> Success) async throws -> Success
     {
-        try await self.withSessionMetadata(connectionTimeout: connectionTimeout)
+        try await self.withSessionMetadata
         {
             (id:Mongo.SessionIdentifier, metadata:inout Mongo.SessionMetadata) in
 
             let session:Mongo.Session = .init(on: self.cluster,
-                connectionTimeout: connectionTimeout,
                 metadata: metadata,
                 id: id)
             defer
@@ -61,8 +60,8 @@ extension Mongo.SessionPool
             return try await body(session)
         }
     }
-    public nonisolated
-    func withSessionMetadata<Success>(connectionTimeout:Duration,
+    private nonisolated
+    func withSessionMetadata<Success>(
         _ body:(Mongo.SessionIdentifier, inout Mongo.SessionMetadata) async throws -> Success)
         async throws -> Success
     {
@@ -71,8 +70,9 @@ extension Mongo.SessionPool
         //  https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-must-drivers-wait-to-consume-a-server-session-until-after-a-connection-is-checked-out
         //  TODO: above only applies for IMPLICIT sessions
 
+        let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(clamping: nil)
         let sessions:Mongo.LogicalSessions = try await self.cluster.sessions(
-            by: .now.advanced(by: connectionTimeout))
+            by: deadline)
         
         var metadata:Mongo.SessionMetadata
         let id:Mongo.SessionIdentifier
@@ -171,12 +171,15 @@ extension Mongo.SessionPool
     /// sending the command to an appropriate cluster member for its type.
     @inlinable public nonisolated
     func run<Command>(command:Command, against database:Command.Database,
-        on preference:Mongo.ReadPreference = .primary) async throws -> Command.Response
+        on preference:Mongo.ReadPreference = .primary,
+        by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand
-    {    
-        try await self.withSession
+    {
+        let started:ContinuousClock.Instant = .now
+        return try await self.withSession
         {
-            try await $0.run(command: command, against: database, on: preference)
+            try await $0.run(command: command, against: database, on: preference, by: deadline,
+                started: started)
         }
     }
 }

@@ -17,10 +17,19 @@ extension Mongo
 }
 extension Mongo.Batches
 {
+    public
+    var cursor:Mongo.CursorIterator<BatchElement>?
+    {
+        self.iterator.cursor
+    }
+}
+extension Mongo.Batches
+{
     @usableFromInline static
     func create(preference:Mongo.ReadPreference,
+        lifespan:Mongo.CursorLifespan,
+        timeout:Mongo.OperationTimeout,
         initial:Mongo.Cursor<BatchElement>,
-        timeout:Milliseconds?,
         stride:Int,
         pinned:
         (
@@ -32,10 +41,10 @@ extension Mongo.Batches
         let iterator:AsyncIterator
         if  let cursor:Mongo.CursorIdentifier = initial.id
         {
-            iterator = .init(cursor: .init(cursor: cursor,
+            iterator = .init(timeout: timeout, cursor: .init(cursor: cursor,
                     preference: preference,
                     namespace: initial.namespace,
-                    timeout: timeout,
+                    lifespan: lifespan,
                     stride: stride,
                     pinned: pinned,
                     pool: pool),
@@ -43,7 +52,8 @@ extension Mongo.Batches
         }
         else
         {
-            iterator = .init(cursor: nil, first: initial.elements)
+            iterator = .init(timeout: timeout, cursor: nil,
+                first: initial.elements)
             /// if cursor is already closed, destroy the connection
             pool.destroy(pinned.connection)
         }
@@ -60,7 +70,9 @@ extension Mongo.Batches
                     collection: cursor.namespace.collection),
                 against: cursor.namespace.database,
                 over: cursor.pinned.connection,
-                on: cursor.preference)
+                on: cursor.preference,
+                //  ``KillCursors`` always refreshes the timeout
+                by: self.iterator.timeout.deadline())
             cursor.pool.destroy(cursor.pinned.connection)
         }
     }

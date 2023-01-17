@@ -12,9 +12,10 @@ func TestMemberDiscovery(_ tests:inout Tests,
         {
             (tests:inout Tests) in
 
-            try await bootstrap.withSessionPool(seedlist: [seed])
+            try await bootstrap.withSessionPool(seedlist: [seed],
+                timeout: .init(milliseconds: 3000))
             {
-                try await $0.withSession(connectionTimeout: .seconds(3))
+                try await $0.withSession
                 {
                     let configuration:Mongo.ReplicaSetConfiguration = try await $0.run(
                         command: Mongo.ReplicaSetGetConfiguration.init(),

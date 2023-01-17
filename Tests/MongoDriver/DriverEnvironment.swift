@@ -9,10 +9,8 @@ struct DriverEnvironment
 
     init(name:String, credentials:Mongo.Credentials?, executor:MultiThreadedEventLoopGroup)
     {
-        self.bootstrap = .init(commandTimeout: .seconds(10),
-            certificatePath: nil,
+        self.bootstrap = .init(
             credentials: credentials,
-            resolver: nil,
             executor: executor,
             appname: name)
         self.name = name

@@ -1,3 +1,4 @@
+import BSON
 import MongoChannel
 
 extension Mongo
@@ -6,7 +7,7 @@ extension Mongo
     struct Connection:Sendable
     {
         let generation:UInt
-        public
+        @usableFromInline
         let channel:MongoChannel
 
         init(generation:UInt, channel:MongoChannel)

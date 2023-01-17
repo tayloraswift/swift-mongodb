@@ -6,15 +6,12 @@ extension MongoChannel
     struct TimeoutError:Equatable, Error
     {
         public
-        let request:MongoWire.MessageIdentifier
-        public
-        let duration:Duration?
+        let request:MongoWire.MessageIdentifier?
 
         public
-        init(awaiting request:MongoWire.MessageIdentifier, for duration:Duration? = nil)
+        init(awaiting request:MongoWire.MessageIdentifier? = nil)
         {
             self.request = request
-            self.duration = duration
         }
     }
 }
@@ -23,13 +20,13 @@ extension MongoChannel.TimeoutError:CustomStringConvertible
     public
     var description:String
     {
-        if let duration:Duration = self.duration
+        if let request:MongoWire.MessageIdentifier = self.request
         {
-            return "timed out while awaiting response for message (id: \(self.request), duration: \(duration))"
+            return "Timed out while awaiting response for message (id: \(request))."
         }
         else
         {
-            return "channel shut down while awaiting response for message (id: \(self.request))"
+            return "Timed out before request could be sent."
         }
     }
 }

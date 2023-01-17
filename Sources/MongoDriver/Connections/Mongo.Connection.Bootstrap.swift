@@ -3,18 +3,17 @@ import NIOCore
 import NIOPosix
 import NIOSSL
 
-extension Mongo
+extension Mongo.Connection
 {
-    struct ConnectionBootstrap
+    struct Bootstrap
     {
         let channel:ClientBootstrap
-        let _credentials:Credentials?,
+        let _credentials:Mongo.Credentials?,
             _appname:String?
         let host:Mongo.Host
         
-        private
         init(channel:ClientBootstrap,
-            _credentials:Credentials?,
+            _credentials:Mongo.Credentials?,
             _appname:String?,
             host:Mongo.Host)
         {
@@ -25,25 +24,19 @@ extension Mongo
         }
     }
 }
-extension Mongo.ConnectionBootstrap
+extension Mongo.Connection.Bootstrap
 {
-    init(from bootstrap:__shared Mongo.DriverBootstrap, host:Mongo.Host)
+    func channel(to host:Mongo.Host,
+        by deadline:Mongo.ConnectionDeadline) async throws -> MongoChannel
     {
-        self.init(channel: bootstrap.bootstrap(for: host),
-            _credentials: bootstrap.credentials,
-            _appname: bootstrap.appname,
-            host: host)
-    }
-}
-extension Mongo.ConnectionBootstrap
-{
-    func channel(to host:Mongo.Host) async throws -> MongoChannel
-    {
+        // TODO: apply deadline to NIO channel construction
         let channel:MongoChannel = .init(try await self.channel.connect(
             host: host.name,
             port: host.port).get())
         
-        switch await channel.establish(credentials: self._credentials, appname: self._appname)
+        switch await channel.establish(credentials: self._credentials,
+            appname: self._appname,
+            by: deadline)
         {
         case .success(_):
             return channel

@@ -1,4 +1,4 @@
-import MongoMonitoringDelegate
+import MongoMonitoring
 
 extension Mongo.Topology
 {
@@ -46,11 +46,3 @@ extension Mongo.Topology.Single
         }
     }
 }
-// extension MongoTopology.Single
-// {
-//     public
-//     var channel:MongoChannel?
-//     {
-//         self.state.channel
-//     }
-// }

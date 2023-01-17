@@ -122,10 +122,9 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "Heartbeats"),
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore",               package: "swift-nio"),
-                .product(name: "Atomics",               package: "swift-atomics"),
             ]),
 
-        .target(name: "MongoMonitoringDelegate",
+        .target(name: "MongoMonitoring",
             dependencies:
             [
             ]),
@@ -135,7 +134,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONSchema"),
                 .target(name: "Durations"),
-                .target(name: "MongoMonitoringDelegate"),
+                .target(name: "MongoMonitoring"),
                 .target(name: "TraceableErrors"),
             ]),
 
@@ -156,6 +155,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoSchema"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2",                  package: "swift-hash"),
+                .product(name: "Atomics",               package: "swift-atomics"),
                 .product(name: "NIOPosix",              package: "swift-nio"),
                 .product(name: "NIOSSL",                package: "swift-nio-ssl"),
             ]),

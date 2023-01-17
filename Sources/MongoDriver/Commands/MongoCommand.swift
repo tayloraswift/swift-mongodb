@@ -50,10 +50,39 @@ extension MongoCommand
     /// Encodes this command to a BSON document, adding the given database
     /// as a field with the key [`"$db"`]().
     @inlinable public
-    func encode(to bson:inout BSON.Fields, database:Database)
+    func encode(to bson:inout BSON.Fields, database:Database, labels:Mongo.SessionLabels?)
     {
         //  this is `@inlinable` because we want ``MongoCommand.encode(to:)`` to be inlined
         self.encode(to: &bson)
+
         bson["$db"] = database.name
+
+        guard let labels:Mongo.SessionLabels
+        else
+        {
+            return
+        }
+
+        bson["$clusterTime"] = labels.clusterTime.max
+        bson["$readPreference"] = labels.readPreference
+        bson["readConcern"] = labels.readConcern
+        bson["lsid"] = labels.session
+
+        guard let phase:Mongo.TransactionPhase = labels.transaction.phase
+        else
+        {
+            return
+        }
+
+        bson["txnNumber"] = labels.transaction.number
+        bson["autocommit"] = false
+
+        guard case .starting = phase
+        else
+        {
+            return
+        }
+
+        bson["startTransaction"] = true
     }
 }

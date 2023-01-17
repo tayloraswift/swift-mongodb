@@ -3,13 +3,21 @@ extension Mongo.Batches
     public final
     class AsyncIterator
     {
+        /// The operation timeout used for ``KillCursors``, and the default
+        /// operation timeout used for ``GetMore`` for tailable cursors without
+        /// an explicit timeout set.
+        @usableFromInline
+        let timeout:Mongo.OperationTimeout
         @usableFromInline
         var cursor:Mongo.CursorIterator<BatchElement>?
         @usableFromInline
         var first:[BatchElement]?
 
-        init(cursor:Mongo.CursorIterator<BatchElement>?, first:[BatchElement])
+        init(timeout:Mongo.OperationTimeout,
+            cursor:Mongo.CursorIterator<BatchElement>?,
+            first:[BatchElement])
         {
+            self.timeout = timeout
             self.cursor = cursor
             self.first = first.isEmpty ? nil : first
         }
@@ -43,11 +51,12 @@ extension Mongo.Batches.AsyncIterator:AsyncIteratorProtocol
         let next:Mongo.Cursor<BatchElement> = try await cursor.pinned.session.run(
             command: Mongo.GetMore<BatchElement>.init(cursor: cursor.id,
                 collection: cursor.namespace.collection,
-                timeout: cursor.timeout,
+                timeout: cursor.lifespan._timeout,
                 count: cursor.stride),
             against: cursor.namespace.database,
             over: cursor.pinned.connection,
-            on: cursor.preference)
+            on: cursor.preference,
+            by: cursor.lifespan.deadline(default: self.timeout))
         
         switch next.id
         {

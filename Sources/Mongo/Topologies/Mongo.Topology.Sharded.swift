@@ -1,4 +1,4 @@
-import MongoMonitoringDelegate
+import MongoMonitoring
 
 extension Mongo.Topology
 {

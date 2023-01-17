@@ -18,6 +18,6 @@ extension MongoChannel.MessageRoutingError:CustomStringConvertible
     public
     var description:String
     {
-        "received response to unknown request (id: \(self.request))"
+        "Received response to unknown request (id: \(self.request))."
     }
 }

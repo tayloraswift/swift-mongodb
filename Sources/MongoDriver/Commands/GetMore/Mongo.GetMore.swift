@@ -12,13 +12,13 @@ extension Mongo
         public
         let collection:Collection
         public
-        let timeout:Milliseconds?
+        let timeout:OperationTimeout?
         public
         let count:Int?
 
         @inlinable public
         init(cursor:CursorIdentifier, collection:Collection,
-            timeout:Milliseconds? = nil,
+            timeout:OperationTimeout? = nil,
             count:Int? = nil)
         {
             self.cursor = cursor
@@ -35,7 +35,7 @@ extension Mongo.GetMore:MongoCommand
     {
         bson["getMore"] = self.cursor
         bson["collection"] = self.collection
-        bson["maxTimeMS"] = self.timeout
+        bson["maxTimeMS"] = self.timeout?.milliseconds
         bson["batchSize"] = self.count
     }
 

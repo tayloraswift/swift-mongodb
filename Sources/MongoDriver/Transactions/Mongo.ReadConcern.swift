@@ -2,7 +2,7 @@ import BSONEncoding
 
 extension Mongo
 {
-    @usableFromInline
+    public
     struct ReadConcern
     {
         let ordering:Ordering?
@@ -17,7 +17,7 @@ extension Mongo
 }
 extension Mongo.ReadConcern
 {
-    @usableFromInline
+    public
     init(level:Mongo.ReadLevel?, after clusterTime:Mongo.Instant?)
     {
         self.init(ordering: clusterTime.map(Ordering.after(_:)),

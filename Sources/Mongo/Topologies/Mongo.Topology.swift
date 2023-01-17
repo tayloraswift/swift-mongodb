@@ -1,12 +1,10 @@
-import MongoMonitoringDelegate
+import MongoMonitoring
 
 extension Mongo
 {
     @frozen public
-    enum Topology<Pool> where Pool:MongoMonitoringDelegate
+    enum Topology<Pool> where Pool:AnyObject & MongoMonitoringDelegate
     {
-        case terminated
-
         case unknown(Unknown)
         case single(Single)
         case sharded(Sharded)
@@ -22,11 +20,11 @@ extension Mongo.Topology
     {
         defer
         {
-            self = .terminated
+            self = .unknown(.init())
         }
         switch self
         {
-        case .terminated, .unknown(_):
+        case .unknown(_):
             break
         
         case .single(let topology):
@@ -120,9 +118,6 @@ extension Mongo.Topology
     {
         switch self
         {
-        case .terminated:
-            return false
-        
         case .unknown(var seedlist):
             self = .unknown(.init())
             defer
@@ -162,9 +157,6 @@ extension Mongo.Topology
     {
         switch self
         {
-        case .terminated:
-            return false
-        
         case .unknown(var unknown):
             if  let topology:Self = .init(host: host, with: update, pool: pool,
                     from: &unknown,

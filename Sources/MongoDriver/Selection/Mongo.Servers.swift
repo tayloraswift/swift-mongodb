@@ -29,9 +29,6 @@ extension Mongo.Servers
     {
         switch topology
         {
-        case .terminated:
-            self = .none
-        
         case .unknown(let unknown):
             self = .none(unknown.ghosts)
         

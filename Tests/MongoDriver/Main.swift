@@ -28,10 +28,7 @@ enum Main:AsyncTests
             await TestSessionPool(&$0, credentials: nil,
                 seedlist: .init(members),
                 on: executor)
-            
-            let bootstrap:Mongo.DriverBootstrap = .init(
-                commandTimeout: .seconds(10),
-                credentials: nil,
+            let bootstrap:Mongo.DriverBootstrap = .init(credentials: nil,
                 executor: executor)
             
             await TestMemberDiscovery(&$0, bootstrap: bootstrap, members: members)

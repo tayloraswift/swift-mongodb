@@ -60,7 +60,14 @@ extension MongoChannel
     public
     func interrupt()
     {
-        self.channel.close(mode: .all, promise: nil)
+        self.channel.writeAndFlush(Action.interrupt, promise: nil)
+    }
+
+    @usableFromInline
+    func timeout(by deadline:ContinuousClock.Instant) async throws
+    {
+        try await Task.sleep(until: deadline, clock: .continuous)
+        self.channel.writeAndFlush(Action.timeout, promise: nil)
     }
 }
 extension MongoChannel
@@ -88,13 +95,23 @@ extension MongoChannel
     /// Sends the given command document over this connection, unchanged, and
     /// awaits its message-response.
     @inlinable public
-    func send(command:__owned BSON.Fields) async throws -> MongoWire.Message<ByteBufferView>
+    func run(command:__owned BSON.Fields,
+        by deadline:ContinuousClock.Instant) async throws -> MongoWire.Message<ByteBufferView>
     {
-        try await withCheckedThrowingContinuation
+        guard .now <= deadline
+        else
+        {
+            throw TimeoutError.init()
+        }
+
+        async
+        let _:Void = self.timeout(by: deadline)
+
+        return try await withCheckedThrowingContinuation
         {
             (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
 
-            self.channel.writeAndFlush((command, continuation), promise: nil)
+            self.channel.writeAndFlush(Action.request(command, continuation), promise: nil)
         }
     }
 }
