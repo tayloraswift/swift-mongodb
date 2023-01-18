@@ -3,7 +3,7 @@ import MongoMonitoring
 extension Mongo
 {
     @frozen public
-    enum Topology<Pool> where Pool:AnyObject & MongoMonitoringDelegate
+    enum Topology<Pool>:Sendable where Pool:AnyObject & Sendable & MongoMonitoringDelegate
     {
         case unknown(Unknown)
         case single(Single)

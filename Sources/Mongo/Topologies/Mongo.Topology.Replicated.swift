@@ -3,7 +3,7 @@ import MongoMonitoring
 extension Mongo.Topology
 {
     public
-    struct Replicated
+    struct Replicated:Sendable
     {
         public private(set)
         var members:[Mongo.Host: Mongo.ServerDescription<Mongo.ReplicaSetMember?, Pool>]

@@ -67,12 +67,18 @@ func TestCausalConsistency(_ tests:inout Tests,
                 $0.assert(letters ..? [a], name: "letters")
             }
             
+            lock = try await session.run(command: Mongo.FsyncUnlock.init(),
+                against: .admin,
+                on: secondary)
+
+            tests.assert(lock.count ==? 0, name: "lock-count-unlocked")
+            
             await tests.test(name: "insert")
             {
                 let response:Mongo.InsertResponse = try await session.run(
                     command: Mongo.Insert<[Letter]>.init(collection: collection,
                         elements: [b],
-                        writeConcern: .init(level: .majority, journaled: true)),
+                        writeConcern: .init(level: .acknowledged(by: 3), journaled: true)),
                     against: context.database,
                     on: .primary)
                 
@@ -91,11 +97,6 @@ func TestCausalConsistency(_ tests:inout Tests,
             //     $0.assert(letters ..? [a, b], name: "letters")
             // }
 
-            lock = try await session.run(command: Mongo.FsyncUnlock.init(),
-                against: .admin,
-                on: secondary)
-
-            tests.assert(lock.count ==? 0, name: "lock-count-unlocked")
         }
     }
 }

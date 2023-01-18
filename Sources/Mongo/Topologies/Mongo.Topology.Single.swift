@@ -3,7 +3,7 @@ import MongoMonitoring
 extension Mongo.Topology
 {
     public
-    struct Single
+    struct Single:Sendable
     {
         public
         let host:Mongo.Host

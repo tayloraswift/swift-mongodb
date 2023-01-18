@@ -30,16 +30,16 @@ extension Mongo.ConnectionPool
             credentials:Mongo.Credentials?,
             resolver:DNS.Connection? = nil,
             executor:any EventLoopGroup,
-            appname:String? = nil,
-            timeout:Mongo.ConnectionTimeout = .init(milliseconds: 5000))
+            timeout:Mongo.ConnectionTimeout = .init(milliseconds: 5000),
+            appname:String? = nil)
         {
             self.heartbeatInterval = heartbeatInterval
             self._certificatePath = certificatePath
             self.credentials = credentials
             self.resolver = resolver
             self.executor = executor
-            self.appname = appname
             self.timeout = timeout
+            self.appname = appname
         }
     }
 }
@@ -52,10 +52,24 @@ extension Mongo.ConnectionPool.Bootstrap
     /// if this constructor throws an error.
     func channel(to host:Mongo.Host, attaching heart:Heart) async throws -> MongoChannel
     {
-        .init(try await self.bootstrap(for: host).connect(
-                host: host.name,
-                port: host.port).get(),
-            attaching: heart)
+        let channel:MongoChannel = .init(try await self.bootstrap(for: host).connect(
+            host: host.name,
+            port: host.port).get())
+        
+        channel.whenClosed
+        {
+            //  when the checker task is cancelled, it will also close the
+            //  connection again, which will be a no-op.
+            switch $0
+            {
+            case .success(()):
+                heart.stop()
+            case .failure(let error):
+                heart.stop(throwing: error)
+            }
+        }
+
+        return channel
     }
 
     func bootstrap(for host:Mongo.Host) -> ClientBootstrap

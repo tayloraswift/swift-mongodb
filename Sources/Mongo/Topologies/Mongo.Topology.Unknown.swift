@@ -3,7 +3,7 @@ import MongoMonitoring
 extension Mongo.Topology
 {
     public
-    struct Unknown
+    struct Unknown:Sendable
     {
         public private(set)
         var ghosts:[Mongo.Host: Mongo.Unreachable]

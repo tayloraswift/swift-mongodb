@@ -58,7 +58,7 @@ extension Mongo.Session
             session: self.id)
         
         let sent:ContinuousClock.Instant = .now
-        let reply:Mongo.Reply = try await connection.channel.run(command: command,
+        let reply:Mongo.Reply = try await connection.run(command: command,
             against: database,
             labels: labels,
             by: deadline)
@@ -130,7 +130,7 @@ extension Mongo.Session
         
         let deadline:ContinuousClock.Instant = deadline ?? connect.instant
         let batches:Mongo.Batches<Query.Element> = .create(preference: preference,
-            lifespan: query.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
+            lifecycle: query.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
             timeout: .init(
                 milliseconds: self.cluster.timeout.milliseconds),
             initial: try await self.run(command: query,
@@ -145,12 +145,12 @@ extension Mongo.Session
         do
         {
             let success:Success = try await consumer(batches)
-            try await batches.destroy()
+            await batches.destroy()
             return success
         }
         catch let error
         {
-            try await batches.destroy()
+            await batches.destroy()
             throw error
         }
     }

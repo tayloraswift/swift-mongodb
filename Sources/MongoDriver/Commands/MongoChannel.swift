@@ -1,6 +1,8 @@
 import BSON
 import Durations
 import MongoChannel
+import MongoWire
+import NIOCore
 import NIOPosix
 import SCRAM
 import SHA2
@@ -194,34 +196,17 @@ extension MongoChannel
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
         where Command:MongoCommand
     {
-        try .init(message: try await self.run(
-            command: .init { command.encode(to: &$0, database: database, labels: labels) },
-            by: deadline))
+        if  let message:MongoWire.Message<ByteBufferView> = try await self.run(
+                command: .init { command.encode(to: &$0, database: database, labels: labels) },
+                by: deadline)
+        {
+            return try .init(message: message)
+        }
+        else
+        {
+            throw MongoChannel.TimeoutError.init()
+        }
     }
-    /// Encodes the given command to a document, sends it over this channel and
-    /// awaits its reply.
-    // @inlinable public
-    // func run<Command>(command:__owned Command,
-    //     against database:Command.Database,
-    //     timeout:Milliseconds) async throws -> Mongo.Reply
-    //     where Command:MongoCommand
-    // {
-    //     try await self.run(command: command, against: database,
-    //         by: .now.advanced(by: .milliseconds(timeout)))
-    // }
-    // /// Encodes the given command and session labels to a document, sends it over this
-    // /// channel and awaits its reply.
-    // @inlinable public
-    // func run<Command>(command:__owned Command,
-    //     against database:Command.Database,
-    //     timeout:Milliseconds,
-    //     labels:Mongo.SessionLabels) async throws -> Mongo.Reply
-    //     where Command:MongoCommand
-    // {
-    //     try .init(message: try await self.run(
-    //         command: .init { command.encode(to: &$0, database: database, labels: labels) },
-    //         by: .now.advanced(by: .milliseconds(timeout))))
-    // }
 }
 extension MongoChannel
 {

@@ -35,7 +35,7 @@ func TestCursors(_ tests:inout Tests,
                     stride: 10),
                 against: context.database)
             {
-                guard   let cursor:Mongo.CursorIterator<Ordinal> =
+                guard   let cursor:Mongo.CursorIterator =
                             tests.unwrap($0.cursor, name: "cursor-id")
                 else
                 {
@@ -65,7 +65,7 @@ func TestCursors(_ tests:inout Tests,
                     query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
                     against: context.database)
             {
-                if  let cursor:Mongo.CursorIterator<Ordinal> = tests.unwrap($0.cursor,
+                if  let cursor:Mongo.CursorIterator = tests.unwrap($0.cursor,
                         name: "cursor-id")
                 {
                     tests.assert(cursor.namespace.database ==? context.database,

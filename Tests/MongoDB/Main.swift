@@ -14,9 +14,12 @@ enum Main:AsyncTests
         {
             let members:Set<Mongo.Host> =
             [
+                .init(name: "mongo-0", port: 27017),
                 .init(name: "mongo-1", port: 27017),
                 .init(name: "mongo-2", port: 27017),
                 .init(name: "mongo-3", port: 27017),
+                .init(name: "mongo-4", port: 27017),
+                .init(name: "mongo-5", port: 27017),
             ]
             
             print("running tests for replicated topology (hosts: \(members))")

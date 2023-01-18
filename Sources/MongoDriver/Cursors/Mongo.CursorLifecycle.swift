@@ -1,14 +1,14 @@
 extension Mongo
 {
     public
-    enum CursorLifespan
+    enum CursorLifecycle
     {
         /// The timeout used for ``GetMore`` operations on the relevant cursor.
         case iterable(Mongo.OperationTimeout?)
         case expires(ContinuousClock.Instant)
     }
 }
-extension Mongo.CursorLifespan
+extension Mongo.CursorLifecycle
 {
     @usableFromInline
     var _timeout:Mongo.OperationTimeout?
@@ -17,17 +17,6 @@ extension Mongo.CursorLifespan
         {
         case .iterable(let timeout):    return timeout
         case .expires:                  return nil
-        }
-    }
-    public
-    func deadline(default:Mongo.OperationTimeout) -> ContinuousClock.Instant
-    {
-        switch self
-        {
-        case .iterable(let timeout):
-            return (timeout ?? `default`).deadline()
-        case .expires(let deadline):
-            return deadline
         }
     }
 }

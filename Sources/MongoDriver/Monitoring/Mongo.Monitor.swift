@@ -1,5 +1,7 @@
+import Durations
 import Heartbeats
 import MongoChannel
+import NIOCore
 
 extension Mongo
 {
@@ -15,15 +17,30 @@ extension Mongo
         private
         var tasks:Int
         
-        init(bootstrap:Mongo.ConnectionPool.Bootstrap,
-            seedlist:Set<Mongo.Host>)
+        init(_ seedlist:Mongo.Topology<Mongo.ConnectionPool>.Unknown,
+            heartbeatInterval:Milliseconds,
+            certificatePath:String?,
+            credentials:Mongo.Credentials?,
+            resolver:DNS.Connection?,
+            executor:any EventLoopGroup,
+            timeout:Mongo.ConnectionTimeout,
+            appname:String?)
         {
-            self.cluster = .init(timeout: bootstrap.timeout)
+            let bootstrap:ConnectionPool.Bootstrap = .init(
+                heartbeatInterval: heartbeatInterval,
+                certificatePath: certificatePath,
+                credentials: credentials,
+                resolver: resolver,
+                executor: executor,
+                timeout: timeout,
+                appname: appname)
+            
+            self.cluster = .init(timeout: timeout)
 
-            self.state = .monitoring(bootstrap, .unknown(.init(hosts: seedlist)))
+            self.state = .monitoring(bootstrap, .unknown(seedlist))
             self.tasks = 0
 
-            for host:Mongo.Host in seedlist
+            for host:Mongo.Host in seedlist.ghosts.keys
             {
                 self.monitor(host: host)
             }

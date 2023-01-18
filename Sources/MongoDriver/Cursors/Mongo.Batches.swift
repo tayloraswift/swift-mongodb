@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.Batches
 {
     public
-    var cursor:Mongo.CursorIterator<BatchElement>?
+    var cursor:Mongo.CursorIterator?
     {
         self.iterator.cursor
     }
@@ -27,7 +27,7 @@ extension Mongo.Batches
 {
     @usableFromInline static
     func create(preference:Mongo.ReadPreference,
-        lifespan:Mongo.CursorLifespan,
+        lifecycle:Mongo.CursorLifecycle,
         timeout:Mongo.OperationTimeout,
         initial:Mongo.Cursor<BatchElement>,
         stride:Int,
@@ -41,10 +41,11 @@ extension Mongo.Batches
         let iterator:AsyncIterator
         if  let cursor:Mongo.CursorIdentifier = initial.id
         {
-            iterator = .init(timeout: timeout, cursor: .init(cursor: cursor,
+            iterator = .init(cursor: .init(cursor: cursor,
                     preference: preference,
                     namespace: initial.namespace,
-                    lifespan: lifespan,
+                    lifecycle: lifecycle,
+                    timeout: timeout,
                     stride: stride,
                     pinned: pinned,
                     pool: pool),
@@ -52,7 +53,7 @@ extension Mongo.Batches
         }
         else
         {
-            iterator = .init(timeout: timeout, cursor: nil,
+            iterator = .init(cursor: nil,
                 first: initial.elements)
             /// if cursor is already closed, destroy the connection
             pool.destroy(pinned.connection)
@@ -60,20 +61,13 @@ extension Mongo.Batches
         return .init(iterator: iterator)
     }
     @usableFromInline
-    func destroy() async throws
+    func destroy() async
     {
-        if  let cursor:Mongo.CursorIterator = self.iterator.cursor
+        if let cursor:Mongo.CursorIterator = self.iterator.cursor
         {
-            self.iterator.cursor = nil
-            let _:Mongo.KillCursorsResponse = try await cursor.pinned.session.run(
-                command: Mongo.KillCursors.init([cursor.id],
-                    collection: cursor.namespace.collection),
-                against: cursor.namespace.database,
-                over: cursor.pinned.connection,
-                on: cursor.preference,
-                //  ``KillCursors`` always refreshes the timeout
-                by: self.iterator.timeout.deadline())
+            let _:Mongo.KillCursorsResponse? = try? await cursor.kill()
             cursor.pool.destroy(cursor.pinned.connection)
+            self.iterator.cursor = nil
         }
     }
 }

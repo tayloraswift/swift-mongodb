@@ -80,16 +80,16 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
     public
     func errorCaught(context:ChannelHandlerContext, error:any Error)
     {
-        context.fireErrorCaught(error)
-        
         self.perish(throwing: error)
+        
+        context.fireErrorCaught(error)
     }
     public
     func channelInactive(context:ChannelHandlerContext)
     {
-        context.fireChannelInactive()
-
         self.perish(throwing: MongoChannel.SocketError.init(awaiting: self.request))
+
+        context.fireChannelInactive()
     }
 }
 extension MongoChannel.MessageRouter:ChannelOutboundHandler
@@ -105,16 +105,16 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
         switch self.unwrapOutboundIn(data)
         {
         case .interrupt:
-            context.channel.close(mode: .all, promise: nil)
-
             self.perish(throwing: MongoChannel.InterruptError.init(
                 awaiting: self.request))
+
+            context.channel.close(mode: .all, promise: nil)
         
         case .timeout:
-            context.channel.close(mode: .all, promise: nil)
-
             self.perish(throwing: MongoChannel.TimeoutError.init(
                 awaiting: self.request))
+
+            context.channel.close(mode: .all, promise: nil)
         
         case .request(let command, let continuation):
             let request:MongoWire.MessageIdentifier = self.request.next()

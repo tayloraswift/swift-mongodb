@@ -3,7 +3,7 @@ import MongoMonitoring
 extension Mongo.Topology
 {
     public
-    struct Sharded
+    struct Sharded:Sendable
     {
         public private(set)
         var routers:[Mongo.Host: Mongo.ServerDescription<Mongo.Router, Pool>]

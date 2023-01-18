@@ -58,15 +58,15 @@ extension Mongo.DriverBootstrap
         timeout:Mongo.ConnectionTimeout = .init(milliseconds: 5000),
         run body:(Mongo.SessionPool) async throws -> Success) async rethrows -> Success
     {
-        let monitor:Mongo.Monitor = .init(bootstrap: .init(
-                heartbeatInterval: heartbeatInterval,
-                certificatePath: self.certificatePath,
-                credentials: self.credentials,
-                resolver: self.resolver,
-                executor: self.executor,
-                appname: self.appname,
-                timeout: timeout),
-            seedlist: seedlist)
+        let monitor:Mongo.Monitor = .init(.init(hosts: seedlist),
+            heartbeatInterval: heartbeatInterval,
+            certificatePath: self.certificatePath,
+            credentials: self.credentials,
+            resolver: self.resolver,
+            executor: self.executor,
+            timeout: timeout,
+            appname: self.appname)
+        
         let pool:Mongo.SessionPool = .init(cluster: monitor.cluster)
         do
         {
