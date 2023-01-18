@@ -42,6 +42,16 @@ extension Mongo
 }
 extension Mongo.SessionPool
 {
+    /// The total number of sessions stored in the session pool. Some of
+    /// the sessions may be stale and not actually usable.
+    public
+    var count:Int
+    {
+        self.retained.count + self.released.count
+    }
+}
+extension Mongo.SessionPool
+{
     public nonisolated
     func withSession<Success>(
         _ body:(Mongo.Session) async throws -> Success) async throws -> Success
