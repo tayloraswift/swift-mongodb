@@ -16,6 +16,14 @@ extension Mongo.ClusterTime
         }
     }
 }
+extension Mongo.ClusterTime.Sample
+{
+    public static
+    func < (lhs:Self, rhs:Self) -> Bool
+    {
+        lhs.instant < rhs.instant
+    }
+}
 extension Mongo.ClusterTime.Sample:BSONDocumentEncodable
 {
     public

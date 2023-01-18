@@ -38,12 +38,6 @@ extension MongoChannel
     {
         try? await self.channel.close(mode: .all)
     }
-
-    @inlinable public
-    var isActive:Bool
-    {
-        self.channel.isActive
-    }
     /// Interrupts this channel, forcing it to close (asynchronously), but
     /// returning without waiting for the channel to complete its shutdown
     /// procedure.

@@ -87,7 +87,7 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
     public
     func channelInactive(context:ChannelHandlerContext)
     {
-        self.perish(throwing: MongoChannel.SocketError.init(awaiting: self.request))
+        self.perish(throwing: MongoChannel.DisconnectionError.init())
 
         context.fireChannelInactive()
     }
@@ -105,14 +105,12 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
         switch self.unwrapOutboundIn(data)
         {
         case .interrupt:
-            self.perish(throwing: MongoChannel.InterruptError.init(
-                awaiting: self.request))
+            self.perish(throwing: MongoChannel.InterruptError.init())
 
             context.channel.close(mode: .all, promise: nil)
         
         case .timeout:
-            self.perish(throwing: MongoChannel.TimeoutError.init(
-                awaiting: self.request))
+            self.perish(throwing: MongoChannel.TimeoutError.init(sent: true))
 
             context.channel.close(mode: .all, promise: nil)
         
@@ -126,8 +124,7 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
             switch self.state
             {
             case .perished:
-                continuation.resume(throwing: MongoChannel.InterruptError.init(
-                    awaiting: self.request))
+                continuation.resume(throwing: MongoChannel.DisconnectionError.init())
                 return
             
             case .awaiting(_?):

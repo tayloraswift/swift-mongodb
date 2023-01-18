@@ -6,12 +6,8 @@ extension MongoChannel
     struct InterruptError:Equatable, Error
     {
         public
-        let request:MongoWire.MessageIdentifier
-
-        public
-        init(awaiting request:MongoWire.MessageIdentifier)
+        init()
         {
-            self.request = request
         }
     }
 }
@@ -20,6 +16,6 @@ extension MongoChannel.InterruptError:CustomStringConvertible
     public
     var description:String
     {
-        "Interrupted while awaiting response for message (id: \(self.request))."
+        "Interrupted while awaiting reply from server."
     }
 }

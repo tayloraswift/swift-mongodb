@@ -52,7 +52,7 @@ extension Mongo.Session
             readPreference: preference,
             readConcern: (command as? any MongoReadCommand).map
             {
-                .init(level: $0.readLevel, after: self.state.lastOperationTime)
+                .init(level: $0.readLevel, after: self.state.operationTime)
             },
             transaction: self.state.metadata.transaction,
             session: self.id)

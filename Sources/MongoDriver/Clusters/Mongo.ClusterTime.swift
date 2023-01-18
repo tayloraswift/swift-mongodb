@@ -21,7 +21,7 @@ extension Mongo.ClusterTime
         {
             return .init(sample)
         }
-        if  max.instant < sample.instant
+        if  max < sample
         {
             return .init(sample)
         }
