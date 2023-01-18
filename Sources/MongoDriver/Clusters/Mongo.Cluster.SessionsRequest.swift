@@ -1,5 +1,3 @@
-import MongoTopology
-
 extension Mongo.Cluster
 {
     struct SessionsRequest
@@ -15,7 +13,7 @@ extension Mongo.Cluster
 extension Mongo.Cluster.SessionsRequest?
 {
     mutating
-    func fail(diagnosing servers:MongoTopology.Servers)
+    func fail(diagnosing servers:Mongo.Servers)
     {
         guard let request:Mongo.Cluster.SessionsRequest = self
         else

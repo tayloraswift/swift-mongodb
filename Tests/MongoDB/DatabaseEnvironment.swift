@@ -1,14 +1,13 @@
 import MongoDB
-import MongoTopology
 import Testing
 
 struct DatabaseEnvironment
 {
     let bootstrap:Mongo.DriverBootstrap,
         database:Mongo.Database,
-        hosts:Set<MongoTopology.Host>
+        hosts:Set<Mongo.Host>
     
-    init(bootstrap:Mongo.DriverBootstrap, database:Mongo.Database, hosts:Set<MongoTopology.Host>)
+    init(bootstrap:Mongo.DriverBootstrap, database:Mongo.Database, hosts:Set<Mongo.Host>)
     {
         self.bootstrap = bootstrap
         self.database = database

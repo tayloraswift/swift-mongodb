@@ -6,6 +6,14 @@ protocol QuantizedDuration<RawValue>:DurationProtocol, RawRepresentable, Hashabl
     /// Rounds the given attosecond-resolution duration towards zero.
     init(truncating duration:Duration)
 }
+extension QuantizedDuration where RawValue:FixedWidthInteger
+{
+    @inlinable public static
+    var max:Self
+    {
+        .init(rawValue: .max)
+    }
+}
 extension QuantizedDuration where Self == Minutes
 {
     @inlinable public static

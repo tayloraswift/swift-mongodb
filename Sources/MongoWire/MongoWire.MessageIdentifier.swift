@@ -4,13 +4,22 @@ extension MongoWire
     struct MessageIdentifier:Hashable, Sendable
     {
         public
-        let value:Int32
+        var value:Int32
 
         @inlinable public
         init(_ value:Int32)
         {
             self.value = value
         }
+    }
+}
+extension MongoWire.MessageIdentifier
+{
+    @inlinable public mutating
+    func next() -> Self
+    {
+        self.value += 1
+        return self
     }
 }
 extension MongoWire.MessageIdentifier

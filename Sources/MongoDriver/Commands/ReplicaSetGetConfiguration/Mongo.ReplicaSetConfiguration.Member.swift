@@ -2,7 +2,6 @@ import BSONSchema
 import BSON_Durations
 import BSON_OrderedCollections
 import Durations
-import MongoTopology
 import OrderedCollections
 
 extension OrderedDictionary:@unchecked Sendable where Key:Sendable, Value:Sendable
@@ -17,14 +16,14 @@ extension Mongo.ReplicaSetConfiguration
         public
         let id:Int64
         public
-        let host:MongoTopology.Host
+        let host:Mongo.Host
         /// Information about this member if it is a replica, [`nil`]()
         /// if (and only if) it is an arbiter.
         public
         let replica:Replica?
 
         public
-        init(id:Int64, host:MongoTopology.Host, replica:Replica?)
+        init(id:Int64, host:Mongo.Host, replica:Replica?)
         {
             self.id = id
             self.host = host
@@ -38,7 +37,7 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDictionaryDecodable
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
     {
         let id:Int64 = try bson["_id"].decode(to: Int64.self)
-        let host:MongoTopology.Host = try bson["host"].decode(to: MongoTopology.Host.self)
+        let host:Mongo.Host = try bson["host"].decode(to: Mongo.Host.self)
 
         if  try bson["arbiterOnly"].decode(to: Bool.self)
         {

@@ -1,4 +1,3 @@
-import MongoTopology
 import NIOCore
 import NIOPosix
 
@@ -31,7 +30,7 @@ extension DNS.Connection:Resolver
 }
 extension DNS.Connection
 {
-    func srv(_ host:MongoTopology.Host) async throws -> [MongoTopology.Host] 
+    func srv(_ host:Mongo.Host) async throws -> [Mongo.Host] 
     {
         fatalError("unimplemented")
     }

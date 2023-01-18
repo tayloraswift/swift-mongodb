@@ -1,6 +1,5 @@
 import Durations
 import MongoDriver
-import MongoTopology
 
 @frozen public
 struct MongoConnectionString:Sendable
@@ -8,7 +7,7 @@ struct MongoConnectionString:Sendable
     public
     var user:(name:String, password:String)?
     public 
-    var discovery:MongoTopology.Discovery
+    var discovery:Mongo.Discovery
     public
     var defaultauthdb:Mongo.Database?
 
@@ -29,7 +28,7 @@ struct MongoConnectionString:Sendable
 
     @inlinable public
     init(user:(name:String, password:String)? = nil,
-        discovery:MongoTopology.Discovery,
+        discovery:Mongo.Discovery,
         defaultauthdb:Mongo.Database? = nil,
         tls:Bool? = nil,
         tlsCAFile:String? = nil,

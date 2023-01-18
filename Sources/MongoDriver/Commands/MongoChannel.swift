@@ -1,6 +1,8 @@
 import BSON
+import Durations
 import MongoChannel
-import MongoTopology
+import MongoWire
+import NIOCore
 import NIOPosix
 import SCRAM
 import SHA2
@@ -10,8 +12,8 @@ extension MongoChannel
     /// Establishes a connection, performing authentication with the given credentials,
     /// if possible. If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
-    func establish(credentials:Mongo.Credentials?,
-        appname:String?) async throws -> Mongo.HelloResponse
+    func establish(credentials:Mongo.Credentials?, appname:String?,
+        by deadline:Mongo.ConnectionDeadline) async -> Result<Mongo.HelloResponse, any Error>
     {
         let user:Mongo.Namespaced<String>?
         // if we don’t have an explicit authentication mode, ask the server
@@ -26,24 +28,35 @@ extension MongoChannel
             user = nil
         }
 
-        let response:Mongo.HelloResponse = try await self.run(hello: .init(
-            client: .init(appname: appname),
-            user: user))
+        let response:Mongo.HelloResponse
+        do
+        {
+            response = try await self.run(hello: .init(
+                    client: .init(appname: appname),
+                    user: user),
+                by: deadline)
+        }
+        catch let error
+        {
+            return .failure(error)
+        }
 
         if let credentials:Mongo.Credentials
         {
             do
             {
                 try await self.authenticate(with: credentials,
-                    mechanisms: response.saslSupportedMechs)
+                    mechanisms: response.saslSupportedMechs,
+                    by: deadline)
             }
             catch let error
             {
-                throw Mongo.AuthenticationError.init(error, credentials: credentials)
+                return .failure(Mongo.AuthenticationError.init(error,
+                    credentials: credentials))
             }
         }
 
-        return response
+        return .success(response)
     }
 }
 
@@ -51,7 +64,8 @@ extension MongoChannel
 {
     private
     func authenticate(with credentials:Mongo.Credentials,
-        mechanisms:Set<Mongo.Authentication.SASL>?) async throws
+        mechanisms:Set<Mongo.Authentication.SASL>?,
+        by deadline:Mongo.ConnectionDeadline) async throws
     {
         let sasl:Mongo.Authentication.SASL
         switch credentials.authentication
@@ -94,7 +108,8 @@ extension MongoChannel
             try await self.authenticate(sasl: .sha256,
                 database: credentials.database,
                 username: credentials.username,
-                password: credentials.password)
+                password: credentials.password,
+                by: deadline)
         
         case .sha1:
             // note: we need to hash the password per
@@ -109,12 +124,14 @@ extension MongoChannel
     func authenticate(sasl mechanism:Mongo.Authentication.SASL, 
         database:Mongo.Database, 
         username:String, 
-        password:String) async throws 
+        password:String,
+        by deadline:Mongo.ConnectionDeadline) async throws 
     {
         let start:SCRAM.Start = .init(username: username)
         let first:Mongo.SASLResponse = try await self.run(
             saslStart: .init(mechanism: mechanism, scram: start),
-            against: database)
+            against: database,
+            by: deadline)
         
         if  first.done 
         {
@@ -140,7 +157,8 @@ extension MongoChannel
             sent: start)
         let second:Mongo.SASLResponse = try await self.run(
             saslContinue: first.command(message: client.message),
-            against: database)
+            against: database,
+            by: deadline)
         
         let server:SCRAM.ServerResponse = try .init(from: second.message)
 
@@ -157,7 +175,8 @@ extension MongoChannel
         
         let third:Mongo.SASLResponse = try await self.run(
             saslContinue: second.command(message: .init("")),
-            against: database)
+            against: database,
+            by: deadline)
         
         guard third.done
         else 
@@ -166,63 +185,54 @@ extension MongoChannel
         }
     }
 }
-
+extension MongoChannel
+{
+    /// Encodes the given command to a document, sends it over this channel and
+    /// awaits its reply.
+    @inlinable public
+    func run<Command>(command:__owned Command,
+        against database:Command.Database,
+        labels:Mongo.SessionLabels? = nil,
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
+        where Command:MongoCommand
+    {
+        if  let message:MongoWire.Message<ByteBufferView> = try await self.run(
+                command: .init { command.encode(to: &$0, database: database, labels: labels) },
+                by: deadline)
+        {
+            return try .init(message: message)
+        }
+        else
+        {
+            throw MongoChannel.TimeoutError.init()
+        }
+    }
+}
 extension MongoChannel
 {
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.
     func run(saslStart command:__owned Mongo.SASLStart,
-        against database:Mongo.Database) async throws -> Mongo.SASLResponse
+        against database:Mongo.Database,
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.SASLResponse
     {
-        try await self.run(command: command, against: database)
+        try .init(bson: try await self.run(command: command, against: database,
+            by: deadline.instant).result.get())
     }
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.
     func run(saslContinue command:__owned Mongo.SASLContinue,
-        against database:Mongo.Database) async throws -> Mongo.SASLResponse
+        against database:Mongo.Database,
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.SASLResponse
     {
-        try await self.run(command: command, against: database)
+        try .init(bson: try await self.run(command: command, against: database,
+            by: deadline.instant).result.get())
     }
     /// Runs a ``Mongo/Hello`` command, and decodes its response.
-    func run(hello command:__owned Mongo.Hello) async throws -> Mongo.HelloResponse
+    func run(hello command:__owned Mongo.Hello,
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.HelloResponse
     {
-        try await self.run(command: command, against: .admin)
-    }
-    /// Runs a ``Mongo/EndSessions`` command, and decodes its response.
-    func run(endSessions command:__owned Mongo.EndSessions) async throws
-    {
-        try await self.run(command: command, against: .admin) as ()
-    }
-
-    private
-    func run<Command>(command:__owned Command,
-        against database:Command.Database) async throws -> Command.Response
-        where Command:MongoCommand
-    {
-        let reply:Mongo.Reply = try await self.run(command: command, against: database)
-        return try Command.decode(reply: try reply.result.get())
-    }
-}
-extension MongoChannel
-{
-    /// Encodes the given labeled command to a document, sends it over this connection and
-    /// awaits its response.
-    @inlinable public
-    func run<Command>(labeled:__owned Mongo.Labeled<Command>,
-        against database:Command.Database) async throws -> Mongo.Reply
-        where Command:MongoCommand
-    {
-        try .init(message: try await self.send(
-            command: .init { labeled.encode(to: &$0, database: database) }))
-    }
-    /// Encodes the given command to a document, sends it over this connection and
-    /// awaits its response.
-    @inlinable public
-    func run<Command>(command:__owned Command,
-        against database:Command.Database) async throws -> Mongo.Reply
-        where Command:MongoCommand
-    {
-        try .init(message: try await self.send(
-            command: .init { command.encode(to: &$0, database: database) }))
+        try .init(bson: try await self.run(command: command, against: .admin,
+            by: deadline.instant).result.get())
     }
 }

@@ -1,18 +1,18 @@
 import MongoDriver
-import MongoTopology
 import Testing
 
 func TestReadPreference(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
-    members:[MongoTopology.Host]) async
+    members:[Mongo.Host]) async
 {
     await tests.test(name: "read-preferences")
     {
         (tests:inout Tests) in
 
-        try await bootstrap.withSessionPool(seedlist: .init(members))
+        try await bootstrap.withSessionPool(seedlist: .init(members),
+            timeout: .init(milliseconds: 250))
         {
-            try await $0.withSession(connectionTimeout: .milliseconds(250))
+            try await $0.withSession
             {
                 (session:Mongo.Session) in
 

@@ -8,6 +8,7 @@ extension Mongo
         public
         var phase:TransactionPhase?
 
+        @inlinable public
         init()
         {
             self.number = 1

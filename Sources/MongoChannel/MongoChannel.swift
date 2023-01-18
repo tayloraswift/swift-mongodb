@@ -1,86 +1,110 @@
-import BSONDecoding
-import Heartbeats
+import BSON
+//import BSONUnions
 import MongoWire
 import NIOCore
 
 /// @import(NIOCore)
-/// A connection to a `mongod`/`mongos` host. This type is an API wrapper around
-/// an NIO ``Channel``.
-///
-/// > Warning: This type is not managed! If you are storing instances of this type, 
-/// there must be code elsewhere responsible for closing the wrapped NIO ``Channel``!
+/// A channel to a `mongod`/`mongos` host. This type is a thin wrapper around an
+/// NIO ``Channel`` and provides no lifecycle management.
 public
 struct MongoChannel:Sendable
 {
     @usableFromInline
     let channel:any Channel
-    public
-    let heart:Heart
 
-    private
-    init(channel:any Channel, heart:Heart)
+    /// Wraps the provided NIO ``Channel`` without attaching any heartbeat
+    /// controller.
+    public
+    init(_ channel:any Channel)
     {
         self.channel = channel
-        self.heart = heart
+    }
+}
+extension MongoChannel
+{
+    /// Attaches the provided callback to the underlying NIO ``Channel``’s
+    /// close-future.
+    @inlinable public
+    func whenClosed(run callback:@Sendable @escaping (Result<Void, any Error>) -> ())
+    {
+        channel.closeFuture.whenComplete(callback)
+    }
+    /// Closes this channel, returning when the channel has been closed.
+    ///
+    /// If a heartbeat controller was attached to this channel, this method
+    /// will also terminate the associated stream of heartbeats.
+    @inlinable public
+    func close() async
+    {
+        try? await self.channel.close(mode: .all)
+    }
+    /// Interrupts this channel, forcing it to close (asynchronously), but
+    /// returning without waiting for the channel to complete its shutdown
+    /// procedure.
+    ///
+    /// If a heartbeat controller was attached to this channel, this method
+    /// will also terminate the associated stream of heartbeats.
+    @inlinable public
+    func interrupt()
+    {
+        self.channel.writeAndFlush(Action.interrupt, promise: nil)
     }
 
-    /// Closes the NIO ``Channel`` wrapped by this instance, which will
-    /// also (indirectly) stop its attached heartbeat via the channel’s
-    /// close-future.
-    public
-    func close()
+    @inlinable public
+    func timeout(by deadline:ContinuousClock.Instant) async throws
     {
-        self.channel.close(mode: .all, promise: nil)
+        try await Task.sleep(until: deadline, clock: .continuous)
+        self.channel.writeAndFlush(Action.timeout, promise: nil)
     }
 }
-extension MongoChannel
+extension MongoChannel:Equatable
 {
-    /// Creates a instance of this type wrapping the given NIO ``Channel``,
-    /// and registers a callback on its close-future stopping the given
-    /// heartbeat.
-    public
-    init(channel:any Channel, attaching heart:Heart)
-    {
-        channel.closeFuture.whenComplete
-        {
-            //  when the checker task is cancelled, it will also close the
-            //  connection again, which will be a no-op.
-            switch $0
-            {
-            case .success(()):
-                heart.stop()
-            case .failure(let error):
-                heart.stop(throwing: error)
-            }
-        }
-        self.init(channel: channel, heart: heart)
-    }
-}
-extension MongoChannel
-{
-    public static
-    func === (lhs:Self, rhs:Self) -> Bool
+    @inlinable public static
+    func == (lhs:Self, rhs:Self) -> Bool
     {
         lhs.channel === rhs.channel
     }
-    public static
-    func !== (lhs:Self, rhs:Self) -> Bool
+}
+extension MongoChannel:Hashable
+{
+    @inlinable public
+    func hash(into hasher:inout Hasher)
     {
-        lhs.channel !== rhs.channel
+        hasher.combine(ObjectIdentifier.init(self.channel))
     }
 }
 extension MongoChannel
 {
     /// Sends the given command document over this connection, unchanged, and
     /// awaits its message-response.
+    ///
+    /// If the deadline passes without a reply from the server, the channel
+    /// will be closed. However, if the deadline has already passed before the
+    /// command can be sent, the channel will not be closed.
     @inlinable public
-    func send(command:__owned BSON.Fields) async throws -> MongoWire.Message<ByteBufferView>
+    func run(command:__owned BSON.Fields,
+        by deadline:ContinuousClock.Instant) async throws -> MongoWire.Message<ByteBufferView>?
     {
-        try await withCheckedThrowingContinuation
+        guard .now <= deadline
+        else
+        {
+            return nil
+        }
+        async
+        let _:Void = self.timeout(by: deadline)
+
+        return try await withCheckedThrowingContinuation
         {
             (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
 
-            self.channel.writeAndFlush((command, continuation), promise: nil)
+            self.channel.writeAndFlush(Action.request(command, continuation)).whenComplete
+            {
+                // don’t leak the continuation!
+                if case .failure(let error) = $0
+                {
+                    continuation.resume(throwing: error)
+                }
+            }
         }
     }
 }

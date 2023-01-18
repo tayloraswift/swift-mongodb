@@ -1,21 +1,21 @@
 import MongoDriver
-import MongoTopology
 import Testing
 
 func TestMemberDiscovery(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
-    members:[MongoTopology.Host]) async
+    members:[Mongo.Host]) async
 {
     //  we should be able to connect to the primary using any seed
-    for seed:MongoTopology.Host in members
+    for seed:Mongo.Host in members
     {
         await tests.test(name: "discover-primary-from-\(seed.name)")
         {
             (tests:inout Tests) in
 
-            try await bootstrap.withSessionPool(seedlist: [seed])
+            try await bootstrap.withSessionPool(seedlist: [seed],
+                timeout: .init(milliseconds: 3000))
             {
-                try await $0.withSession(connectionTimeout: .seconds(3))
+                try await $0.withSession
                 {
                     let configuration:Mongo.ReplicaSetConfiguration = try await $0.run(
                         command: Mongo.ReplicaSetGetConfiguration.init(),
