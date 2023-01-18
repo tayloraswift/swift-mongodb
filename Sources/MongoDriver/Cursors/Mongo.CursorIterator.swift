@@ -18,6 +18,9 @@ extension Mongo
         /// The database and collection this cursor iterates over.
         public
         let namespace:Namespaced<Collection>
+        /// The lifecycle mode of this cursor. This is
+        /// ``case CursorLifecycle.iterable(_:)`` for tailable cursors, and
+        /// ``case CursorLifecycle.expires(_:)`` for non-tailable cursors.
         @usableFromInline
         let lifecycle:CursorLifecycle
         /// The operation timeout used for ``KillCursors``, and the default
@@ -37,8 +40,6 @@ extension Mongo
             connection:Connection,
             session:Session
         )
-        @usableFromInline
-        let pool:ConnectionPool
 
         init(cursor id:CursorIdentifier,
             preference:ReadPreference,
@@ -50,8 +51,7 @@ extension Mongo
             (
                 connection:Connection,
                 session:Session
-            ),
-            pool:ConnectionPool)
+            ))
         {
             self.id = id
             self.preference = preference
@@ -60,7 +60,6 @@ extension Mongo
             self.timeout = timeout
             self.stride = stride
             self.pinned = pinned
-            self.pool = pool
         }
     }
 }
@@ -80,6 +79,23 @@ extension Mongo.CursorIterator
 }
 extension Mongo.CursorIterator
 {
+    /// Runs a ``GetMore`` command from this cursor. This operation will set a
+    /// deadline for itself depending on the cursor’s ``lifecycle`` mode.
+    ///
+    /// -   If the cursor is **tailable** with a user-specified timeout
+    ///     (``case CursorLifecycle.iterable(_:)``), the deadline will be the
+    ///     current time, advanced by that timeout.
+    ///
+    /// -   If the cursor is **tailable** with no user-specified timeout
+    ///     (``case CursorLifecycle.iterable(_:)``), the deadline will be the
+    ///     current time, advanced by the default operation timeout.
+    ///
+    /// -   If the cursor is **non-tailable** (``case CursorLifecycle.expires(_:)``),
+    ///     the deadline will be the same as the deadline that was set for the
+    ///     command that obtained the cursor.
+    ///
+    /// If this method throws an error, attempting to call it again is not
+    /// recommended, and the cursor should be discarded.
     @inlinable public
     func get<Element>(more _:Element.Type) async throws -> Mongo.Cursor<Element>
         where Element:MongoDecodable
@@ -94,7 +110,10 @@ extension Mongo.CursorIterator
             on: self.preference,
             by: self.deadline())
     }
-    /// Runs ``KillCursors`` for this cursor, without destroying its pinned connection.
+    /// Runs a ``KillCursors`` command for this cursor. This operation sets its
+    /// own deadline using the default operation timeout for this cursor, regardless
+    /// of when the cursor was obtained or last iterated.
+    @usableFromInline
     func kill() async throws -> Mongo.KillCursorsResponse
     {
         try await self.pinned.session.run(command: Mongo.KillCursors.init([self.id],

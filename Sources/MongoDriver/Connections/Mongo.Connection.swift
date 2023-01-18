@@ -5,23 +5,64 @@ import NIOCore
 
 extension Mongo
 {
+    /// A connection to a server that was created from a connection pool.
+    ///
+    /// Connections are mutable move-only types; this is currently implemented
+    /// as a reference type. The connection will be returned to its pool on
+    /// `deinit`.
     public final
     class Connection
     {
         @usableFromInline
         let channel:MongoChannel
-
-        let generation:UInt
-
+        private
+        let pool:ConnectionPool
         @usableFromInline
         var reusable:Bool
 
-        init(generation:UInt, channel:MongoChannel)
+        private
+        init(channel:MongoChannel, pool:Mongo.ConnectionPool)
         {
             self.channel = channel
+            self.pool = pool
 
-            self.generation = generation
             self.reusable = true
+        }
+        deinit
+        {
+            let _:Task<Void, Never> = .init
+            {
+                [pool, channel, reusable] in await pool.destroy(channel, reuse: reusable)
+            }
+        }
+    }
+}
+@available(*, unavailable, message: "connections are mutable move-only types.")
+extension Mongo.Connection:Sendable
+{
+}
+extension Mongo.Connection
+{
+    /// Obtains a connection from the given pool if one is available, creating it
+    /// if the pool has capacity for additional connections. Otherwise, blocks
+    /// until one of those conditions is met, or the specified deadline passes.
+    ///
+    /// The deadline is not enforced if a connection is already available in the
+    /// pool when its actor services the request.
+    ///
+    /// If the deadline passes while the pool is creating a connection for the
+    /// caller, the call will error, but the connection will still be created
+    /// and added to the pool, and may be used to complete a different request.
+    public convenience
+    init(from pool:Mongo.ConnectionPool, by deadline:Mongo.ConnectionDeadline) async throws
+    {
+        if  let channel:MongoChannel = await pool.create(by: deadline)
+        {
+            self.init(channel: channel, pool: pool)
+        }
+        else
+        {
+            throw Mongo.ConnectionCheckoutError.init()
         }
     }
 }

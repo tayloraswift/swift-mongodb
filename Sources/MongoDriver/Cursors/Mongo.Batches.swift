@@ -35,8 +35,7 @@ extension Mongo.Batches
         (
             connection:Mongo.Connection,
             session:Mongo.Session
-        ),
-        pool:Mongo.ConnectionPool) -> Self
+        )) -> Self
     {
         let iterator:AsyncIterator
         if  let cursor:Mongo.CursorIdentifier = initial.id
@@ -47,26 +46,22 @@ extension Mongo.Batches
                     lifecycle: lifecycle,
                     timeout: timeout,
                     stride: stride,
-                    pinned: pinned,
-                    pool: pool),
+                    pinned: pinned),
                 first: initial.elements)
         }
         else
         {
-            iterator = .init(cursor: nil,
-                first: initial.elements)
-            /// if cursor is already closed, destroy the connection
-            pool.destroy(pinned.connection)
+            // connection will be dropped and returned to its pool automatically.
+            iterator = .init(cursor: nil, first: initial.elements)
         }
         return .init(iterator: iterator)
     }
     @usableFromInline
     func destroy() async
     {
-        if let cursor:Mongo.CursorIterator = self.iterator.cursor
+        if  let cursor:Mongo.CursorIterator = self.iterator.cursor
         {
             let _:Mongo.KillCursorsResponse? = try? await cursor.kill()
-            cursor.pool.destroy(cursor.pinned.connection)
             self.iterator.cursor = nil
         }
     }

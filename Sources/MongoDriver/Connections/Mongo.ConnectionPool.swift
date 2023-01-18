@@ -243,56 +243,20 @@ extension Mongo.ConnectionPool
         await direct
     }
 }
-
 extension Mongo.ConnectionPool
 {
-    /// Returns a connection back to the pool. Every *successful* call to
-    /// ``create(by:)`` must be paired with a call to `destroy(_:)`.
-    ///
-    /// The connection must have been created by this pool.
-    public nonisolated
-    func destroy(_ connection:Mongo.Connection)
-    {
-        guard self.generation == connection.generation
-        else
-        {
-            fatalError("unreachable (destroying connection that was created by a different pool)")
-        }
-        let channel:MongoChannel = connection.channel
-        let reuse:Bool = connection.reusable
-        
-        let _:Task<Void, Never> = .init
-        {
-            await self.checkin(channel: channel, reuse: reuse)
-        }
-    }
-    /// Returns a connection if one is available, creating it if the pool has
-    /// capacity for additional connections. Otherwise, blocks until one of those
-    /// conditions is met, or the specified deadline passes.
+    /// Returns an existing channel in the pool if one is available, creating it
+    /// if the pool has capacity for additional connections. Otherwise, blocks
+    /// until one of those conditions is met, or the specified deadline passes.
     ///
     /// The deadline is not enforced if a connection is already available in the
     /// pool when the actor services the request.
     ///
     /// If the deadline passes while the pool is creating a connection for the
-    /// caller, the call will error, but the connection will still be created
-    /// and added to the pool, and may be used to complete a different request.
-    public nonisolated
-    func create(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Connection
-    {
-        if let channel:MongoChannel = await self.checkout(by: deadline)
-        {
-            return .init(generation: self.generation, channel: channel)
-        }
-        else
-        {
-            throw Mongo.ConnectionCheckoutError.init()
-        }
-    }
-}
-extension Mongo.ConnectionPool
-{
-    private
-    func checkout(by deadline:Mongo.ConnectionDeadline) async -> MongoChannel?
+    /// caller, the call will return [`nil`](), but the channel will still be
+    /// created and added to the pool, and may be used to complete a different
+    /// request.
+    func create(by deadline:Mongo.ConnectionDeadline) async -> MongoChannel?
     {
         while case .filling(let bootstrap) = self.state
         {
@@ -320,8 +284,11 @@ extension Mongo.ConnectionPool
 
         return nil
     }
-    private
-    func checkin(channel:MongoChannel, reuse:Bool) async
+    /// Returns a channel back to the pool. Every *successful* call to
+    /// ``create(by:)`` must be paired with a call to `destroy(_:)`.
+    ///
+    /// The channel must have been created by this pool.
+    func destroy(_ channel:MongoChannel, reuse:Bool) async
     {
         switch self.state
         {
