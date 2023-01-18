@@ -43,8 +43,9 @@ enum Main:AsyncTests
                 username: "root",
                 password: "80085")
 
-            await TestAuthentication(&$0, credentials: credentials,
-                standalone: standalone,
+            await TestAuthentication(&$0, standalone: standalone,
+                username: credentials.username,
+                password: credentials.password,
                 on: executor)
             
             await TestSessionPool(&$0, credentials: credentials,

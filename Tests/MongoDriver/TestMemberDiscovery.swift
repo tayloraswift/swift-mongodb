@@ -69,47 +69,4 @@ func TestMemberDiscovery(_ tests:inout Tests,
             }
         }
     }
-    // await tests.test(with: DriverEnvironment.init(
-    //     name: "replica-set-cluster-times",
-    //     credentials: nil,
-    //     executor: executor))
-    // {
-    //     (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
-
-    //     try await bootstrap.withSessionPool(seedlist: .init(members))
-    //     {
-    //         try await $0.withSession(connectionTimeout: .seconds(5))
-    //         {
-    //             // should be `nil` here, but eventually we want to get
-    //             // `$clusterTime` from Hellos too
-    //             // print($0.monitor.clusterTime)
-
-    //             let _:Mongo.ReplicaSetConfiguration = try await $0.run(
-    //                 command: Mongo.ReplicaSetGetConfiguration.init())
-                
-    //             let original:Mongo.ClusterTime? = tests.unwrap($0.monitor.clusterTime,
-    //                 name: "first")
-
-    //             //  mongod only updates its timestamps on write, or every 10s.
-    //             //  we don’t have any commands in this module that write, so we
-    //             //  just have to wait 10s...
-
-    //             //  TODO: figure out a way to perturb the cluster time without
-    //             //  waiting 10s
-    //             try await Task.sleep(for: .milliseconds(10000))
-
-    //             let _:Mongo.ReplicaSetConfiguration = try await $0.run(
-    //                 command: Mongo.ReplicaSetGetConfiguration.init())
-                
-    //             if  let updated:Mongo.ClusterTime = tests.unwrap($0.monitor.clusterTime,
-    //                     name: "second"),
-    //                 let original:Mongo.ClusterTime
-    //             {
-    //                 tests.assert(original.max != updated.max,
-    //                     name: "updated")
-    //             }
-                    
-    //         }
-    //     }
-    // }
 }

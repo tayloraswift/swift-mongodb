@@ -7,16 +7,19 @@ func TestSessionPool(_ tests:inout Tests,
     seedlist:Set<Mongo.Host>,
     on executor:MultiThreadedEventLoopGroup) async
 {
+    let bootstrap:Mongo.DriverBootstrap = .init(
+        credentials: credentials,
+        executor: executor)
+    
     await tests.group("lifecycles")
     {
         //  these tests ensure we do proper cleanup on all exit paths.
         //  they use no assertions, but should trip sanity checks within
         //  the driver’s `deinit`s if cleanup is not performed correctly.
-        await $0.test(with: DriverEnvironment.init(name: "seeded-once",
-            credentials: credentials,
-            executor: executor))
+        await $0.test(name: "seeded-once")
         {
-            try await $1.withSessionPool(seedlist: seedlist)
+            _ in
+            try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 try await $0.withSession
                 {
@@ -27,17 +30,17 @@ func TestSessionPool(_ tests:inout Tests,
         }
         //  We should be able to initialize a new session pool immediately after
         //  draining the previous one.
-        await $0.test(with: DriverEnvironment.init(name: "seeded-twice",
-            credentials: credentials, executor: executor))
+        await $0.test(name: "seeded-twice")
         {
-            try await $1.withSessionPool(seedlist: seedlist)
+            _ in
+            try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 try await $0.withSession
                 {
                     try await $0.refresh()
                 }
             }
-            try await $1.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 try await $0.withSession
                 {
@@ -47,11 +50,11 @@ func TestSessionPool(_ tests:inout Tests,
         }
         //  We should be able to operate two session pools on the same deployment
         //  at the same time.
-        await $0.test(with: DriverEnvironment.init(name: "seeded-concurrently",
-            credentials: credentials, executor: executor))
+        await $0.test(name: "seeded-concurrently")
         {
+            _ in
             async
-            let first:Void = $1.withSessionPool(seedlist: seedlist)
+            let first:Void = bootstrap.withSessionPool(seedlist: seedlist)
             {
                 try await $0.withSession
                 {
@@ -60,7 +63,7 @@ func TestSessionPool(_ tests:inout Tests,
                 }
             }
             async
-            let second:Void = $1.withSessionPool(seedlist: seedlist)
+            let second:Void = bootstrap.withSessionPool(seedlist: seedlist)
             {
                 try await $0.withSession
                 {
@@ -74,12 +77,12 @@ func TestSessionPool(_ tests:inout Tests,
         }
         //  We should be able to tear down a session pool by throwing an error,
         //  even if operations are in progress.
-        await $0.test(with: DriverEnvironment.init(name: "error-pool",
-            credentials: credentials, executor: executor))
+        await $0.test(name: "error-pool")
         {
+            _ in
             do
             {
-                try await $1.withSessionPool(seedlist: seedlist)
+                try await bootstrap.withSessionPool(seedlist: seedlist)
                 {
                     async
                     let _:Void = $0.withSession
@@ -98,10 +101,10 @@ func TestSessionPool(_ tests:inout Tests,
         }
         //  We should be able to throw an error from inside a session context,
         //  without disturbing other sessions, or the pool as a whole.
-        await $0.test(with: DriverEnvironment.init(name: "error-session",
-            credentials: credentials, executor: executor))
+        await $0.test(name: "error-session")
         {
-            try await $1.withSessionPool(seedlist: seedlist)
+            _ in
+            try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 async
                 let succeeding:Void = $0.withSession
@@ -129,10 +132,9 @@ func TestSessionPool(_ tests:inout Tests,
     await tests.group("sessions")
     {
         /// Two non-overlapping sessions should re-use the same session.
-        await $0.test(with: DriverEnvironment.init(name: "non-overlapping",
-            credentials: credentials, executor: executor))
+        await $0.test(name: "non-overlapping")
         {
-            (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
+            (tests:inout Tests) in
 
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
@@ -153,10 +155,9 @@ func TestSessionPool(_ tests:inout Tests,
             }
         }
         /// Two overlapping sessions should not re-use the same session.
-        await $0.test(with: DriverEnvironment.init(name: "overlapping",
-            credentials: credentials, executor: executor))
+        await $0.test(name: "overlapping")
         {
-            (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
+            (tests:inout Tests) in
 
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {

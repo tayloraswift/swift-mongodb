@@ -5,21 +5,21 @@ func TestInsert(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
-        database: "collection-insert",
-        hosts: hosts))
+    await tests.withTemporaryDatabase(name: "collection-insert",
+        bootstrap: bootstrap,
+        hosts: hosts)
     {
-        (tests:inout Tests, context:DatabaseEnvironment.Context) in
+        (tests:inout Tests, pool:Mongo.SessionPool, database:Mongo.Database) in
 
         let collection:Mongo.Collection = "ordinals"
 
         await tests.test(name: "insert-one")
         {
             let expected:Mongo.InsertResponse = .init(inserted: 1)
-            let response:Mongo.InsertResponse = try await context.pool.run(
+            let response:Mongo.InsertResponse = try await pool.run(
                 command: Mongo.Insert<Ordinals>.init(collection: collection,
                     elements: .init(identifiers: 0 ..< 1)),
-                against: context.database)
+                against: database)
             
             $0.assert(response ==? expected, name: "response")
         }
@@ -27,10 +27,10 @@ func TestInsert(_ tests:inout Tests,
         await tests.test(name: "insert-multiple")
         {
             let expected:Mongo.InsertResponse = .init(inserted: 15)
-            let response:Mongo.InsertResponse = try await context.pool.run(
+            let response:Mongo.InsertResponse = try await pool.run(
                 command: Mongo.Insert<Ordinals>.init(collection: collection,
                     elements: .init(identifiers: 1 ..< 16)),
-                against: context.database)
+                against: database)
             
             $0.assert(response ==? expected, name: "response")
         }
@@ -44,14 +44,14 @@ func TestInsert(_ tests:inout Tests,
                         message:
                         """
                         E11000 duplicate key error collection: \
-                        \(context.database).\(collection) index: _id_ dup key: { _id: 0 }
+                        \(database).\(collection) index: _id_ dup key: { _id: 0 }
                         """,
                         code: 11000),
                 ])
-            let response:Mongo.InsertResponse = try await context.pool.run(
+            let response:Mongo.InsertResponse = try await pool.run(
                 command: Mongo.Insert<Ordinals>.init(collection: collection,
                     elements: .init(identifiers: 0 ..< 1)),
-                against: context.database)
+                against: database)
             
             $0.assert(response ==? expected, name: "response")
         }
@@ -65,14 +65,14 @@ func TestInsert(_ tests:inout Tests,
                         message:
                         """
                         E11000 duplicate key error collection: \
-                        \(context.database).\(collection) index: _id_ dup key: { _id: 0 }
+                        \(database).\(collection) index: _id_ dup key: { _id: 0 }
                         """,
                         code: 11000),
                 ])
-            let response:Mongo.InsertResponse = try await context.pool.run(
+            let response:Mongo.InsertResponse = try await pool.run(
                 command: Mongo.Insert<Ordinals>.init(collection: collection,
                     elements: .init(identifiers: -8 ..< 32)),
-                against: context.database)
+                against: database)
             
             $0.assert(response ==? expected, name: "response")
         }
@@ -86,15 +86,15 @@ func TestInsert(_ tests:inout Tests,
                         message:
                         """
                         E11000 duplicate key error collection: \
-                        \(context.database).\(collection) index: _id_ dup key: { _id: \($0 - 16) }
+                        \(database).\(collection) index: _id_ dup key: { _id: \($0 - 16) }
                         """,
                         code: 11000)
                 })
-            let response:Mongo.InsertResponse = try await context.pool.run(
+            let response:Mongo.InsertResponse = try await pool.run(
                 command: Mongo.Insert<Ordinals>.init(collection: collection,
                     elements: .init(identifiers: -16 ..< 32),
                     ordered: false),
-                against: context.database)
+                against: database)
             
             $0.assert(response ==? expected, name: "response")
         }

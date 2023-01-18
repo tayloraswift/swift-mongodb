@@ -44,24 +44,6 @@ extension Mongo
     /// monitoring channel, and align its lifetime with the lifetime of the
     /// monitoring channel. If the monitoring channel collapses, the pool will
     /// be drained, and a new one may be created to replace it.
-    ///
-    /// Connection pools have two “size-like” variables:
-    ///
-    /// 1.  **Width**. A pool’s width is the conceptual size of the pool from
-    ///     an availability perspective. It includes pending connections, but
-    ///     does not include perished connections.
-    ///
-    ///     Width is regulated by the pool’s ``size`` parameters and ``rate``.
-    ///
-    /// 2.  **Count**. A pool’s count is the conceptual size of the pool from
-    ///     a resource-allocation perspective. Count is equal to the pool width,
-    ///     plus the number of perished connections known to the pool. A pool
-    ///     is not considered fully-drained until its connection count reaches
-    ///     zero.
-    ///
-    ///     Connection count is important to the semantics of the pool, but
-    ///     is only publicly observable through the behavior of its ``drain``
-    ///     method.
     public
     actor ConnectionPool
     {
@@ -103,9 +85,9 @@ extension Mongo
         /// “filling” state, and eventually transition to the “draining” state,
         /// which is terminal. There are no “in-between” states.
         ///
-        /// The implementation does not lint idle connections, so the pool width
-        /// will only decrease during the filling stage if individual connections
-        /// perish.
+        /// The implementation does not lint idle connections, so the connection
+        /// count can only decrease during the filling stage if individual
+        /// connections perish.
         private
         var state:State
 
@@ -160,12 +142,15 @@ extension Mongo
 }
 extension Mongo.ConnectionPool
 {
-    /// The conceptual size of the pool from an availability perspective.
-    /// This number counts pending connections, but does not count perished
-    /// connections.
-    var width:Int
+    /// The number of non-perished connections, including pending connections,
+    /// currently in the pool.
+    ///
+    /// Connection count is regulated by the pool’s ``size`` and ``rate``
+    /// parameters.
+    public
+    var count:Int
     {
-        self.connections.width
+        self.connections.count
     }
 }
 extension Mongo.ConnectionPool
@@ -265,7 +250,7 @@ extension Mongo.ConnectionPool
                 return channel
             }
             guard   self.connections.pending < self.rate,
-                    self.connections.width < self.size.upperBound
+                    self.connections.count < self.size.upperBound
             else
             {
                 let request:UInt = self.request()
@@ -329,7 +314,7 @@ extension Mongo.ConnectionPool
             self.state = .draining(nil)
         }
     }
-    /// Checks if the pool’s width is below its desired ``size``, and
+    /// Checks if the pool’s ``count`` is below its desired ``size``, and
     /// calls ``grow(using:)`` if so. Does nothing if the pool is draining
     /// or if ``rate`` connections are already being created.
     private
@@ -337,19 +322,39 @@ extension Mongo.ConnectionPool
     {
         if  case .filling(let bootstrap) = self.state,
             self.connections.pending < self.rate,
-            self.connections.width < self.size.lowerBound
+            self.connections.count < self.size.lowerBound
         {
             await self.grow(using: bootstrap)
         }
     }
-    /// Marks the given channel as “perished”, and triggers a pool ``resize``.
-    /// In practice, this means the channel will only be replaced if the
-    /// width of the pool would fall below [`size.lowerBound`]().
+    /// Marks the given channel as “perished”, and replaces it (by dispatching
+    /// to ``grow(using:)``) if the pool is in the filling stage and its ``count``
+    /// would fall below [`size.lowerBound`](). If the pool is in the draining
+    /// stage, and perishing the channel reduced the connection count to zero,
+    /// calling this method may unblock a call to ``drain``.
     private
     func replace(perished channel:MongoChannel) async
     {
         self.connections.perish(channel)
-        await self.resize()
+        switch self.state
+        {
+        case .filling(let bootstrap):
+            if  self.connections.pending < self.rate,
+                self.connections.count < self.size.lowerBound
+            {
+                await self.grow(using: bootstrap)
+            }
+        
+        case .draining(let continuation?):
+            if  self.connections.isEmpty
+            {
+                continuation.resume()
+                self.state = .draining(nil)
+            }
+        
+        case .draining(nil):
+            break
+        }
     }
     /// Tries to create and add a new connection to the pool. If anything goes wrong
     /// during this process, the ``stopMonitoring(throwing:)`` signal will be emitted
@@ -360,7 +365,7 @@ extension Mongo.ConnectionPool
     /// established, it will trigger a (non-blocking) recursive call to this method
     /// via ``resize``. Because the call to ``resize`` is non-blocking, it is possible
     /// that no recursive call actually takes place, because a concurrent `grow(using:)`
-    /// call may have already brought the pool back to a healthy width in the meantime.
+    /// call may have already brought the pool back to a healthy size in the meantime.
     ///
     /// If the pool transitions to the draining stage while the connection is being
     /// created, the connection will be closed and the connection count decremented.
@@ -392,7 +397,7 @@ extension Mongo.ConnectionPool
                 self.connections.pending -= 1
 
                 if  self.connections.pending < self.rate,
-                    self.connections.width < self.size.lowerBound
+                    self.connections.count < self.size.lowerBound
                 {
                     let _:Task<Void, Never> = .init
                     {

@@ -4,19 +4,22 @@ import NIOPosix
 import Testing
 
 func TestAuthentication(_ tests:inout Tests,
-    credentials:Mongo.Credentials,
     standalone:Mongo.Host,
+    username:String,
+    password:String,
     on executor:MultiThreadedEventLoopGroup) async
 {
     await tests.group("authentication")
     {
-        await $0.test(with: DriverEnvironment.init(name: "defaulted",
-            credentials: .init(authentication: nil,
-                username: credentials.username,
-                password: credentials.password),
-            executor: executor))
+        await $0.test(name: "defaulted")
         {
-            try await $1.withSessionPool(seedlist: [standalone])
+            _ in
+            let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
+                    authentication: nil,
+                    username: username,
+                    password: password),
+                executor: executor)
+            try await bootstrap.withSessionPool(seedlist: [standalone])
             {
                 try await $0.withSession
                 {
@@ -25,11 +28,15 @@ func TestAuthentication(_ tests:inout Tests,
             }
         }
 
-        await $0.test(with: DriverEnvironment.init(name: "scram-sha256",
-            credentials: credentials,
-            executor: executor))
+        await $0.test(name: "scram-sha256")
         {
-            try await $1.withSessionPool(seedlist: [standalone])
+            _ in
+            let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
+                    authentication: .sasl(.sha256),
+                    username: username,
+                    password: password),
+                executor: executor)
+            try await bootstrap.withSessionPool(seedlist: [standalone])
             {
                 try await $0.withSession
                 {
@@ -39,13 +46,15 @@ func TestAuthentication(_ tests:inout Tests,
         }
     }
 
-    await tests.test(with: DriverEnvironment.init(name: "authentication-unsupported",
-        credentials: .init(authentication: .x509,
-            username: credentials.username,
-            password: credentials.password),
-        executor: executor))
+    await tests.test(name: "authentication-unsupported")
     {
-        (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
+        (tests:inout Tests) in
+
+        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
+                authentication: .x509,
+                username: username,
+                password: password),
+            executor: executor)
 
         await tests.test(name: "errors-equal",
             expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
@@ -69,13 +78,15 @@ func TestAuthentication(_ tests:inout Tests,
         }
     }
 
-    await tests.test(with: DriverEnvironment.init(name: "authentication-wrong-password",
-        credentials: .init(authentication: .sasl(.sha256),
-            username: "root",
-            password: "1234"),
-        executor: executor))
+    await tests.test(name: "authentication-wrong-password")
     {
-        (tests:inout Tests, bootstrap:Mongo.DriverBootstrap) in
+        (tests:inout Tests) in
+
+        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
+                authentication: .sasl(.sha256),
+                username: "root",
+                password: "1234"),
+            executor: executor)
 
         await tests.test(name: "errors-equal",
             expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
