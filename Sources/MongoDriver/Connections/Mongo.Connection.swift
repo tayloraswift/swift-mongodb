@@ -17,8 +17,9 @@ extension Mongo
         let channel:MongoChannel
         private
         let pool:ConnectionPool
+
         @usableFromInline
-        var reusable:Bool
+        var reuse:Bool
 
         private
         init(channel:MongoChannel, pool:Mongo.ConnectionPool)
@@ -26,14 +27,11 @@ extension Mongo
             self.channel = channel
             self.pool = pool
 
-            self.reusable = true
+            self.reuse = true
         }
         deinit
         {
-            let _:Task<Void, Never> = .init
-            {
-                [pool, channel, reusable] in await pool.destroy(channel, reuse: reusable)
-            }
+            self.pool.destroy(channel, reuse: self.reuse)
         }
     }
 }
@@ -68,6 +66,26 @@ extension Mongo.Connection
 }
 extension Mongo.Connection
 {
+    /// Indicates if the connection is believed to be reusable,
+    /// meaning it has not experienced a network error or a protocol
+    /// error that would invalidate subsequent commands run over this
+    /// connection.
+    @inlinable public
+    var reusable:Bool
+    {
+        self.reuse
+    }
+    /// Interrupts this connection’s IO channel, and marks it as
+    /// non-reusable.
+    public
+    func interrupt()
+    {
+        self.channel.interrupt()
+        self.reuse = false
+    }
+}
+extension Mongo.Connection
+{
     @inlinable public
     func run<Command>(command:__owned Command,
         against database:Command.Database,
@@ -84,7 +102,7 @@ extension Mongo.Connection
         }
         catch let error
         {
-            self.reusable = false
+            self.reuse = false
             throw error
         }
         if  let message:MongoWire.Message<ByteBufferView>

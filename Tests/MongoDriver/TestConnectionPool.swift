@@ -73,13 +73,48 @@ func TestConnectionPool(_ tests:inout Tests,
                     for _:Int in 0 ..< 50
                     {
                         var connections:[Mongo.Connection] = []
-                        for _:Int in 0 ... 10
+                        for _:Int in 0 ..< 10
                         {
                             connections.append(try await .init(from: pool, by: deadline))
                         }
                     }
 
-                    tests.assert(await 10 ... 20 ~=? pool.count, name: "pool-count")
+                    tests.assert(await pool.count ==? 10, name: "pool-count")
+                }
+            }
+        }
+        await $0.test(name: "perishment")
+        {
+            (tests:inout Tests) in
+
+            try await bootstrap.withSessionPool(seedlist: seedlist)
+            {
+                let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(1000))
+                try await $0.withDirectConnections(to: .primary, by: deadline)
+                {
+                    (pool:Mongo.ConnectionPool) in
+
+                    //  use up the pool’s entire capacity by hoarding connections.
+                    var connections:[Mongo.Connection] = []
+                    for _:Int in 0 ..< 100
+                    {
+                        connections.append(try await .init(from: pool, by: deadline))
+                    }
+
+                    tests.assert(await pool.count ==? 100, name: "pool-count")
+
+                    //  interrupt ten of those connections.
+                    for connection:Mongo.Connection in connections.prefix(10)
+                    {
+                        connection.interrupt()
+                    }
+                    //  even though we haven’t returned the perished connections
+                    //  to the pool, it should still be able to re-create ten
+                    //  connections to replace them.
+                    for _:Int in 0 ..< 10
+                    {
+                        connections.append(try await .init(from: pool, by: deadline))
+                    }
                 }
             }
         }

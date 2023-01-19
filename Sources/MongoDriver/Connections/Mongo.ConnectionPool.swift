@@ -1,3 +1,4 @@
+import Atomics
 import BSON
 import Heartbeats
 import MongoChannel
@@ -74,6 +75,8 @@ extension Mongo
         /// The connections stored in this pool.
         private
         var connections:Connections
+        private nonisolated
+        let releasing:UnsafeAtomic<Int>
         /// All requests currently awaiting connections, identified by `UInt`.
         private
         var requests:[UInt: CheckedContinuation<MongoChannel?, Never>]
@@ -107,6 +110,7 @@ extension Mongo
             self.rate = 2
 
             self.connections = .init()
+            self.releasing = .create(0)
             self.requests = [:]
             self.counter = 0
 
@@ -117,11 +121,13 @@ extension Mongo
 
             let _:Task<Void, Never> = .init
             {
-                await self.resize()
+                await self.fill()
             }
         }
         deinit
         {
+            self.releasing.destroy()
+
             guard self.requests.isEmpty
             else
             {
@@ -152,6 +158,17 @@ extension Mongo.ConnectionPool
     {
         self.connections.count
     }
+
+    /// The number of connections this pool is currently capable of providing
+    /// without needing to establish new connections. This is defined as the
+    /// number of currently available connections plus the number of connections
+    /// that have been returned to the pool’s actor loop, but have not yet been
+    /// re-indexed by this pool.
+    private
+    var unallocated:Int
+    {
+        self.connections.available + self.releasing.load(ordering: .relaxed)
+    }
 }
 extension Mongo.ConnectionPool
 {
@@ -161,6 +178,23 @@ extension Mongo.ConnectionPool
     {
         self.counter += 1
         return self.counter
+    }
+    /// Unblocks an awaiting request with the given channel, if one exists.
+    ///
+    /// -   Returns:
+    ///     [`true`]() if there was a request that was unblocked by this call,
+    ///     [`false`]() otherwise.
+    private
+    func yield(_ channel:MongoChannel) -> Bool
+    {
+        if case ()? = self.requests.popFirst()?.value.resume(returning: channel)
+        {
+            return true
+        }
+        else
+        {
+            return false
+        }
     }
     /// Sleeps until the specified deadline, then fails the specified connection
     /// request if it is still awaiting. It is expected that the duration of this
@@ -250,8 +284,13 @@ extension Mongo.ConnectionPool
                 return channel
             }
             if  self.connections.pending < self.rate,
-                self.connections.count < self.size.upperBound
+                self.connections.count < self.size.upperBound,
+                self.releasing.load(ordering: .relaxed) <= self.requests.count
             {
+                // note: this checks for awaiting requests, and may use the
+                // newly-established connection to succeed a different request.
+                // so it is not guaranteed that the next iteration of the loop
+                // will yield a channel.
                 await self.expand(using: bootstrap)
             }
             else
@@ -270,12 +309,48 @@ extension Mongo.ConnectionPool
 
         return nil
     }
-    /// Returns a channel back to the pool. Every *successful* call to
-    /// ``create(by:)`` must be paired with a call to `destroy(_:)`.
+    /// Synchronously notifies the pool that a connection is being returned
+    /// to it, and asynchronously re-indexes the connection.
     ///
-    /// The channel must have been created by this pool.
+    /// -   Parameters:
+    ///     -   channel:
+    ///         The channel to release, which must have been created by this
+    ///         pool.
+    ///     -   reuse:
+    ///         Indicates if the connection should be reused.
+    ///         If [`false`](), the channel will be asynchronously closed and
+    ///         removed from the pool.
+    ///
+    /// Every *successful* call to ``create(by:)`` must be paired with a call
+    /// to `destroy(_:reuse:)`.
+    ///
+    /// If `reuse` is [`true`](), later calls to ``create(by:)`` will wait for
+    /// the destroyed connection to be re-indexed, instead of establishing a new
+    /// one, provided that there are more un-indexed connections than
+    /// currently-blocked requests.
+    ///
+    /// If `reuse` is [`false`](), this method does not replace the connection,
+    /// because replacement is performed when the underlying channel closes,
+    /// which may take place before the wrapping connection is destroyed. 
+    nonisolated
+    func destroy(_ channel:MongoChannel, reuse:Bool)
+    {
+        if  reuse
+        {
+            self.releasing.wrappingIncrement(ordering: .relaxed)
+        }
+        let _:Task<Void, Never> = .init
+        {
+            await self.destroy(channel, reuse: reuse)
+        }
+    }
+    private
     func destroy(_ channel:MongoChannel, reuse:Bool) async
     {
+        if  reuse
+        {
+            self.releasing.wrappingDecrement(ordering: .relaxed)
+        }
         switch self.state
         {
         case .filling:
@@ -287,11 +362,9 @@ extension Mongo.ConnectionPool
                 // pool lifecycle stage may have changed
                 break
             }
-            if let continuation:CheckedContinuation<MongoChannel?, Never> =
-                    self.requests.popFirst()?.value
+            if  self.yield(channel)
             {
-                // hand-off directly to the next awaiter
-                continuation.resume(returning: channel)
+                // channel was handed-off directly to the next request
                 return
             }
             else
@@ -314,16 +387,6 @@ extension Mongo.ConnectionPool
         {
             continuation.resume()
             self.state = .draining(nil)
-        }
-    }
-    /// Checks if the pool is (still) in its filling stage and calls
-    /// ``fill(using:)`` if so. Does nothing if the pool is draining.
-    private
-    func resize() async
-    {
-        if  case .filling(let bootstrap) = self.state
-        {
-            await self.fill(using: bootstrap)
         }
     }
     /// Marks the given channel as “perished”, and replaces it (by dispatching
@@ -351,6 +414,16 @@ extension Mongo.ConnectionPool
             break
         }
     }
+    /// Checks if the pool is (still) in its filling stage and calls
+    /// ``fill(using:)`` if so. Does nothing if the pool is draining.
+    private
+    func fill() async
+    {
+        if  case .filling(let bootstrap) = self.state
+        {
+            await self.fill(using: bootstrap)
+        }
+    }
     /// Dispatches to ``expand(using:)``, but only if the pool ought to be
     /// establishing new connections, based on the current connection count,
     /// the number of connections already being established, and the number of
@@ -372,7 +445,7 @@ extension Mongo.ConnectionPool
             await self.expand(using: bootstrap)
         }
         else if self.connections.count < self.size.upperBound,
-                self.connections.available < self.requests.count
+                self.unallocated < self.requests.count
         {
             await self.expand(using: bootstrap)
         }
@@ -384,7 +457,7 @@ extension Mongo.ConnectionPool
     ///
     /// If the pool is still in the filling stage when the connection is successfully
     /// established, it will trigger a (non-blocking) recursive call to this method
-    /// via ``resize``. Because the call to ``resize`` is non-blocking, it is possible
+    /// via ``fill``. Because the call to ``fill`` is non-blocking, it is possible
     /// that no recursive call actually takes place, because a concurrent `expand(using:)`
     /// call may have already brought the pool back to a healthy size in the meantime.
     ///
@@ -414,18 +487,27 @@ extension Mongo.ConnectionPool
                     }
                 }
 
-                self.connections.insert(channel)
                 self.connections.pending -= 1
+                
+                if  self.yield(channel)
+                {
+                    //  channel was given to an already-awaiting request.
+                    self.connections.insert(retained: channel)
+                }
+                else
+                {
+                    self.connections.insert(released: channel)
+                }
 
                 if  self.connections.count < self.size.lowerBound ||
                     self.connections.count < self.size.upperBound &&
-                    self.connections.available < self.requests.count
+                    self.unallocated < self.requests.count
                 {
                     let _:Task<Void, Never> = .init
                     {
                         //  re-checks preconditions, since it may have been a while
                         //  since this task was initiated.
-                        await self.resize()
+                        await self.fill()
                     }
                 }
 
