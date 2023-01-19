@@ -1,3 +1,5 @@
+import Base64
+
 extension SCRAM
 {
     @frozen public
@@ -8,10 +10,10 @@ extension SCRAM
         public
         let nonce:Nonce
         public
-        let salt:String
+        let salt:[UInt8]
 
         private
-        init(iterations:Int, nonce:Nonce, salt:String)
+        init(iterations:Int, nonce:Nonce, salt:[UInt8])
         {
             self.iterations = iterations
             self.nonce = nonce
@@ -19,7 +21,14 @@ extension SCRAM
         }
     }
 }
-
+extension SCRAM.Challenge
+{
+    @inlinable public
+    func id(password:String) -> CacheIdentifier
+    {
+        .init(iterations: self.iterations, password: password, salt: self.salt)
+    }
+}
 extension SCRAM.Challenge
 {
     public
@@ -59,6 +68,7 @@ extension SCRAM.Challenge
             throw SCRAM.ChallengeError.attribute(missing: .salt)
         }
         
-        self.init(iterations: iterations, nonce: .init(nonce), salt: salt)
+        self.init(iterations: iterations, nonce: .init(nonce),
+            salt: Base64.decode(salt, to: [UInt8].self))
     }
 }

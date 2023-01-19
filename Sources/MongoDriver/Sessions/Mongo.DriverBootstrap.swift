@@ -14,25 +14,27 @@ extension Mongo
     struct DriverBootstrap:Sendable
     {
         let certificatePath:String?
+
+        public
+        let application:String?
         public
         let credentials:Credentials?
+
         let resolver:DNS.Connection?
         let executor:any EventLoopGroup
-        public
-        let appname:String?
 
         public
         init(certificatePath:String? = nil,
+            application:String? = nil,
             credentials:Credentials?,
             resolver:DNS.Connection? = nil,
-            executor:any EventLoopGroup,
-            appname:String? = nil)
+            executor:any EventLoopGroup)
         {
             self.certificatePath = certificatePath
+            self.application = application
             self.credentials = credentials
             self.resolver = resolver
             self.executor = executor
-            self.appname = appname
         }
     }
 }
@@ -61,11 +63,11 @@ extension Mongo.DriverBootstrap
         let monitor:Mongo.Monitor = .init(.init(hosts: seedlist),
             heartbeatInterval: heartbeatInterval,
             certificatePath: self.certificatePath,
+            application: self.application,
             credentials: self.credentials,
             resolver: self.resolver,
             executor: self.executor,
-            timeout: timeout,
-            appname: self.appname)
+            timeout: timeout)
         
         let pool:Mongo.SessionPool = .init(cluster: monitor.cluster)
         do

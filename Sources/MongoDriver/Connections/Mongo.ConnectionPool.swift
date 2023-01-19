@@ -62,7 +62,7 @@ extension Mongo
         /// The host this pool creates connections to.
         nonisolated
         let host:Host
-        /// The target size of this connection pool. The pool will attempt to grow
+        /// The target size of this connection pool. The pool will attempt to expand
         /// until it contains at least the minimum number of connections, and it will
         /// never exceed the maximum connection count.
         nonisolated
@@ -111,8 +111,8 @@ extension Mongo
             self.counter = 0
 
             self.state = .filling(.init(channel: bootstrap.bootstrap(for: host),
-                _credentials: bootstrap.credentials,
-                _appname: bootstrap.appname,
+                credentials: bootstrap.credentials,
+                cache: bootstrap.cache,
                 host: host))
 
             let _:Task<Void, Never> = .init
@@ -249,8 +249,11 @@ extension Mongo.ConnectionPool
             {
                 return channel
             }
-            guard   self.connections.pending < self.rate,
-                    self.connections.count < self.size.upperBound
+            if  self.connections.pending < self.rate,
+                self.connections.count < self.size.upperBound
+            {
+                await self.expand(using: bootstrap)
+            }
             else
             {
                 let request:UInt = self.request()
@@ -263,8 +266,6 @@ extension Mongo.ConnectionPool
                     self.requests.updateValue($0, forKey: request)
                 }
             }
-
-            await self.grow(using: bootstrap)
         }
 
         return nil
@@ -289,6 +290,7 @@ extension Mongo.ConnectionPool
             if let continuation:CheckedContinuation<MongoChannel?, Never> =
                     self.requests.popFirst()?.value
             {
+                // hand-off directly to the next awaiter
                 continuation.resume(returning: channel)
                 return
             }
@@ -314,24 +316,21 @@ extension Mongo.ConnectionPool
             self.state = .draining(nil)
         }
     }
-    /// Checks if the pool’s ``count`` is below its desired ``size``, and
-    /// calls ``grow(using:)`` if so. Does nothing if the pool is draining
-    /// or if ``rate`` connections are already being created.
+    /// Checks if the pool is (still) in its filling stage and calls
+    /// ``fill(using:)`` if so. Does nothing if the pool is draining.
     private
     func resize() async
     {
-        if  case .filling(let bootstrap) = self.state,
-            self.connections.pending < self.rate,
-            self.connections.count < self.size.lowerBound
+        if  case .filling(let bootstrap) = self.state
         {
-            await self.grow(using: bootstrap)
+            await self.fill(using: bootstrap)
         }
     }
     /// Marks the given channel as “perished”, and replaces it (by dispatching
-    /// to ``grow(using:)``) if the pool is in the filling stage and its ``count``
-    /// would fall below [`size.lowerBound`](). If the pool is in the draining
-    /// stage, and perishing the channel reduced the connection count to zero,
-    /// calling this method may unblock a call to ``drain``.
+    /// to ``fill(using:)``) if the pool is in its filling stage.
+    /// If the pool is in the draining stage, and perishing the channel reduced
+    /// the connection count to zero, calling this method may unblock a call to
+    /// ``drain``.
     private
     func replace(perished channel:MongoChannel) async
     {
@@ -339,11 +338,7 @@ extension Mongo.ConnectionPool
         switch self.state
         {
         case .filling(let bootstrap):
-            if  self.connections.pending < self.rate,
-                self.connections.count < self.size.lowerBound
-            {
-                await self.grow(using: bootstrap)
-            }
+            await self.fill(using: bootstrap)
         
         case .draining(let continuation?):
             if  self.connections.isEmpty
@@ -356,6 +351,32 @@ extension Mongo.ConnectionPool
             break
         }
     }
+    /// Dispatches to ``expand(using:)``, but only if the pool ought to be
+    /// establishing new connections, based on the current connection count,
+    /// the number of connections already being established, and the number of
+    /// blocked requests.
+    ///
+    /// This method must only be called while the pool is in the filling stage.
+    /// The ``Mongo/Connection/Bootstrap`` type is not ``Sendable``, which
+    /// should prevent some of the more-common reentrancy mistakes.
+    private
+    func fill(using bootstrap:Mongo.Connection.Bootstrap) async
+    {
+        guard   self.connections.pending < self.rate
+        else
+        {
+            return
+        }
+        if      self.connections.count < self.size.lowerBound
+        {
+            await self.expand(using: bootstrap)
+        }
+        else if self.connections.count < self.size.upperBound,
+                self.connections.available < self.requests.count
+        {
+            await self.expand(using: bootstrap)
+        }
+    }
     /// Tries to create and add a new connection to the pool. If anything goes wrong
     /// during this process, the ``stopMonitoring(throwing:)`` signal will be emitted
     /// if the pool is still in the filling stage when the error is observed, and
@@ -364,7 +385,7 @@ extension Mongo.ConnectionPool
     /// If the pool is still in the filling stage when the connection is successfully
     /// established, it will trigger a (non-blocking) recursive call to this method
     /// via ``resize``. Because the call to ``resize`` is non-blocking, it is possible
-    /// that no recursive call actually takes place, because a concurrent `grow(using:)`
+    /// that no recursive call actually takes place, because a concurrent `expand(using:)`
     /// call may have already brought the pool back to a healthy size in the meantime.
     ///
     /// If the pool transitions to the draining stage while the connection is being
@@ -372,7 +393,7 @@ extension Mongo.ConnectionPool
     /// Because a pending connection still contributes to connection count, this may
     /// unblock a call to ``drain``.
     private
-    func grow(using bootstrap:Mongo.Connection.Bootstrap) async
+    func expand(using bootstrap:Mongo.Connection.Bootstrap) async
     {
         do
         {
@@ -396,8 +417,9 @@ extension Mongo.ConnectionPool
                 self.connections.insert(channel)
                 self.connections.pending -= 1
 
-                if  self.connections.pending < self.rate,
-                    self.connections.count < self.size.lowerBound
+                if  self.connections.count < self.size.lowerBound ||
+                    self.connections.count < self.size.upperBound &&
+                    self.connections.available < self.requests.count
                 {
                     let _:Task<Void, Never> = .init
                     {

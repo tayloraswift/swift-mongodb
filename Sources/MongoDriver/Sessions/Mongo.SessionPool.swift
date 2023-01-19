@@ -177,6 +177,21 @@ extension Mongo.SessionPool
 }
 extension Mongo.SessionPool
 {
+    @inlinable public nonisolated
+    func withDirectConnections<Success>(to preference:Mongo.ReadPreference,
+        by deadline:Mongo.ConnectionDeadline? = nil,
+        _ body:(Mongo.ConnectionPool) async throws -> Success) async throws -> Success
+    {
+        let connect:Mongo.ConnectionDeadline = deadline ??
+            self.cluster.timeout.deadline(from: .now)
+        let pool:Mongo.ConnectionPool = try await self.cluster.pool(
+            preference: preference,
+            by: connect)
+        return try await body(pool)
+    }
+}
+extension Mongo.SessionPool
+{
     /// Runs a session command against the specified database,
     /// sending the command to an appropriate cluster member for its type.
     @inlinable public nonisolated

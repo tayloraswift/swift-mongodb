@@ -50,6 +50,11 @@ extension Mongo.Connections
     {
         self.pending + self.released.count + self.retained.count
     }
+    /// The number of released connections currently known to this structure.
+    var available:Int
+    {
+        self.released.count
+    }
 }
 extension Mongo.Connections
 {

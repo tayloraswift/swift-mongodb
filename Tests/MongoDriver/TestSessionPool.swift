@@ -11,7 +11,7 @@ func TestSessionPool(_ tests:inout Tests,
         credentials: credentials,
         executor: executor)
     
-    await tests.group("lifecycles")
+    await tests.group("session-pool-lifecycles")
     {
         //  these tests ensure we do proper cleanup on all exit paths.
         //  they use no assertions, but should trip sanity checks within
@@ -129,7 +129,7 @@ func TestSessionPool(_ tests:inout Tests,
             }
         }
     }
-    await tests.group("sessions")
+    await tests.group("session-pools")
     {
         /// Two non-overlapping sessions should re-use the same session.
         await $0.test(name: "non-overlapping")

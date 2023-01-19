@@ -20,10 +20,13 @@ extension SCRAM
         }
     }
 }
+
 extension SCRAM.ClientResponse
 {
     @inlinable public
-    init(challenge:SCRAM.Challenge, password:String,
+    init(cached:inout Keys?,
+        challenge:SCRAM.Challenge,
+        password:String,
         received:SCRAM.Message,
         sent:SCRAM.Start) throws
     {
@@ -37,20 +40,27 @@ extension SCRAM.ClientResponse
         let prefix:String = "c=biws,r=\(challenge.nonce)"
         let message:String = "\(sent.bare),\(received),\(prefix)"
 
-        // TODO: Cache saltedKey, as it takes a long time to compute
-        let saltedKey:MessageAuthenticationKey<Hash> = .init(Hash.pbkdf2(password: password.utf8,
-            salt: Base64.decode(challenge.salt, to: [UInt8].self),
-            iterations: challenge.iterations))
+        let keys:Keys
+        if  let cached:Keys
+        {
+            keys = cached
+        }
+        else
+        {
+            // computing the salted key is very slow, so we cache it if possible
+            keys = .init(salted: .init(Hash.pbkdf2(
+                password: password.utf8,
+                salt: challenge.salt,
+                iterations: challenge.iterations)))
+            cached = keys
+        }
 
-        let serverKey:Hash = saltedKey.authenticate("Server Key".utf8)
-        let clientKey:Hash = saltedKey.authenticate("Client Key".utf8)
-        let storedKey:Hash = .init(hashing: clientKey)
-        let signature:Hash = .init(authenticating: message.utf8, key: storedKey)
+        let signature:Hash = .init(authenticating: message.utf8, key: keys.stored)
 
-        let proof:[UInt8] = zip(clientKey, signature).map(^)
+        let proof:[UInt8] = zip(keys.client, signature).map(^)
 
         self.init(message: .init("\(prefix),p=\(Base64.encode(proof))"),
-            signature: .init(authenticating: message.utf8, key: serverKey))
+            signature: .init(authenticating: message.utf8, key: keys.server))
     }
 }
 extension SCRAM.ClientResponse
