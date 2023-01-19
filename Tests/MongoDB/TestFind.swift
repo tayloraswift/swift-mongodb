@@ -5,11 +5,11 @@ func TestFind(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
-        database: "collection-find",
-        hosts: hosts))
+    await tests.withTemporaryDatabase(name: "collection-find",
+        bootstrap: bootstrap,
+        hosts: hosts)
     {
-        (tests:inout Tests, context:DatabaseEnvironment.Context) in
+        (tests:inout Tests, pool:Mongo.SessionPool, database:Mongo.Database) in
 
         let collection:Mongo.Collection = "ordinals"
         let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
@@ -17,37 +17,37 @@ func TestFind(_ tests:inout Tests,
         await tests.test(name: "initialize")
         {
             let expected:Mongo.InsertResponse = .init(inserted: 100)
-            let response:Mongo.InsertResponse = try await context.pool.run(
+            let response:Mongo.InsertResponse = try await pool.run(
                 command: Mongo.Insert<Ordinals>.init(collection: collection,
                     elements: ordinals),
-                against: context.database)
+                against: database)
             
             $0.assert(response ==? expected, name: "response")
         }
         await tests.test(name: "single-batch")
         {
-            let batch:[Ordinal] = try await context.pool.run(
+            let batch:[Ordinal] = try await pool.run(
                 command: Mongo.Find<Ordinal>.SingleBatch.init(
                     collection: collection,
                     limit: 10),
-                against: context.database)
+                against: database)
 
             $0.assert(batch ..? ordinals.prefix(10), name: "elements")
         }
         await tests.test(name: "single-batch-skip")
         {
-            let batch:[Ordinal] = try await context.pool.run(
+            let batch:[Ordinal] = try await pool.run(
                 command: Mongo.Find<Ordinal>.SingleBatch.init(
                     collection: collection,
                     limit: 7,
                     skip: 5),
-                against: context.database)
+                against: database)
 
             $0.assert(batch ..? ordinals[5 ..< 12], name: "elements")
         }
         await tests.test(name: "single-batch-hint")
         {
-            let batch:[Ordinal] = try await context.pool.run(
+            let batch:[Ordinal] = try await pool.run(
                 command: Mongo.Find<Ordinal>.SingleBatch.init(
                     collection: collection,
                     limit: 5,
@@ -56,13 +56,13 @@ func TestFind(_ tests:inout Tests,
                     {
                         $0["_id"] = 1 as Int32
                     })),
-                against: context.database)
+                against: database)
 
             $0.assert(batch ..? ordinals[10 ..< 15], name: "elements")
         }
         await tests.test(name: "single-batch-sort")
         {
-            let batch:[Ordinal] = try await context.pool.run(
+            let batch:[Ordinal] = try await pool.run(
                 command: Mongo.Find<Ordinal>.SingleBatch.init(
                     collection: collection,
                     limit: 5,
@@ -71,7 +71,7 @@ func TestFind(_ tests:inout Tests,
                     {
                         $0["ordinal"] = -1 as Int32
                     }),
-                against: context.database)
+                against: database)
 
             $0.assert(batch ..? ordinals[85 ..< 90].reversed(), name: "elements")
         }
@@ -79,12 +79,12 @@ func TestFind(_ tests:inout Tests,
         {
             (tests:inout Tests) in
 
-            try await context.pool.withSession
+            try await pool.withSession
             {
                 try await $0.run(query: Mongo.Find<Ordinal>.init(
                         collection: collection,
                         stride: 10),
-                    against: context.database)
+                    against: database)
                 {
                     var expected:Ordinals.Iterator = ordinals.makeIterator()
                     for try await batch:[Ordinal] in $0
@@ -103,8 +103,7 @@ func TestFind(_ tests:inout Tests,
                 }
             }
         }
-        await tests.test(with: SessionEnvironment.init(name: "filtering",
-            pool: context.pool))
+        await tests.withSession(name: "filtering", pool: pool)
         {
             (tests:inout Tests, session:Mongo.Session) in
         
@@ -118,7 +117,7 @@ func TestFind(_ tests:inout Tests,
                             $0["$mod"] = [3, 0]
                         }
                     }),
-                against: context.database)
+                against: database)
             {
                 var expected:Array<Ordinal>.Iterator = 
                     ordinals.filter { $0.value % 3 == 0 }.makeIterator()

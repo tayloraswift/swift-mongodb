@@ -97,12 +97,7 @@ extension Mongo.Session
         let connections:Mongo.ConnectionPool = try await self.cluster.pool(
             preference: preference,
             by: connect)
-        let connection:Mongo.Connection = try await connections.create(
-            by: connect)
-        defer
-        {
-            connections.destroy(connection)
-        }
+        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
         return try await self.run(command: command, against: database,
             over: connection,
             on: preference,
@@ -111,6 +106,27 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
+    /// Runs an iterable command against the specified database, on a server selected
+    /// according to the specified read preference.
+    ///
+    /// -   Parameters:
+    ///     -   consumer:
+    ///         A closure that will be called with an iterable sequence of ``Batches``.
+    ///         if the closure returns while the cursor is still open, this method will
+    ///         run ``KillCursors`` and wait for it to either complete or error.
+    ///
+    /// This method always makes a best-effort to destroy the cursor it creates, if it
+    /// is still open after the closure parameter returns. This only happens if the
+    /// consumer aborts iteration before obtaining the final batch of results, and this
+    /// is the only situation where this method will block on exit.
+    /// 
+    /// This method will not block on exit in the following situations:
+    ///
+    /// -   The consumer completes iteration of the cursor, in which case it is already
+    ///     known that the cursor is dead.
+    /// -   An error was thrown by the cursor while it was being iterated, in which case
+    ///     the cursor had already attempted to kill itself eagerly before propogating
+    ///     the error to the consumer.
     @inlinable public
     func run<Query, Success>(query:Query, against database:Query.Database,
         on preference:Mongo.ReadPreference = .primary,
@@ -125,8 +141,7 @@ extension Mongo.Session
         let connections:Mongo.ConnectionPool = try await self.cluster.pool(
             preference: preference,
             by: connect)
-        let connection:Mongo.Connection = try await connections.create(
-            by: connect)
+        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
         
         let deadline:ContinuousClock.Instant = deadline ?? connect.instant
         let batches:Mongo.Batches<Query.Element> = .create(preference: preference,
@@ -139,8 +154,7 @@ extension Mongo.Session
                 on: preference,
                 by: deadline),
             stride: query.stride,
-            pinned: (connection, self),
-            pool: connections)
+            pinned: (connection, self))
         
         do
         {

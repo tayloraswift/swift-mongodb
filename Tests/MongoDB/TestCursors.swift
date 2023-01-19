@@ -5,11 +5,11 @@ func TestCursors(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
-        database: "cursors",
-        hosts: hosts))
+    await tests.withTemporaryDatabase(name: "cursors",
+        bootstrap: bootstrap,
+        hosts: hosts)
     {
-        (tests:inout Tests, context:DatabaseEnvironment.Context) in
+        (tests:inout Tests, pool:Mongo.SessionPool, database:Mongo.Database) in
 
         let collection:Mongo.Collection = "ordinals"
         let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
@@ -17,23 +17,22 @@ func TestCursors(_ tests:inout Tests,
         await tests.test(name: "initialize")
         {
             let expected:Mongo.InsertResponse = .init(inserted: 100)
-            let response:Mongo.InsertResponse = try await context.pool.run(
+            let response:Mongo.InsertResponse = try await pool.run(
                 command: Mongo.Insert<Ordinals>.init(collection: collection,
                     elements: ordinals),
-                against: context.database)
+                against: database)
             
             $0.assert(response ==? expected, name: "response")
         }
         
-        await tests.test(with: SessionEnvironment.init(name: "cursor-cleanup-normal",
-            pool: context.pool))
+        await tests.withSession(name: "cursor-cleanup-normal", pool: pool)
         {
             (tests:inout Tests, session:Mongo.Session) in
 
             try await session.run(query: Mongo.Find<Ordinal>.init(
                     collection: collection,
                     stride: 10),
-                against: context.database)
+                against: database)
             {
                 guard   let cursor:Mongo.CursorIterator =
                             tests.unwrap($0.cursor, name: "cursor-id")
@@ -55,20 +54,19 @@ func TestCursors(_ tests:inout Tests,
                 tests.assert(cursors.notFound **? [cursor.id], name: "cursors-not-found")
             }
         }
-        await tests.test(with: SessionEnvironment.init(name: "cursor-cleanup-interruption",
-            pool: context.pool))
+        await tests.withSession(name: "cursor-cleanup-interruption", pool: pool)
         {
             (tests:inout Tests, session:Mongo.Session) in
 
             let cursor:Mongo.CursorIdentifier? =
                 try await session.run(
                     query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
-                    against: context.database)
+                    against: database)
             {
                 if  let cursor:Mongo.CursorIterator = tests.unwrap($0.cursor,
                         name: "cursor-id")
                 {
-                    tests.assert(cursor.namespace.database ==? context.database,
+                    tests.assert(cursor.namespace.database ==? database,
                         name: "cursor-database-name")
                     tests.assert(cursor.namespace.collection ==? collection,
                         name: "cursor-collection-name")
@@ -88,26 +86,25 @@ func TestCursors(_ tests:inout Tests,
             let cursors:Mongo.KillCursorsResponse = try await session.run(
                 command: Mongo.KillCursors.init([cursor], 
                     collection: collection),
-                against: context.database)
+                against: database)
             // if the cursor is already dead, killing it manually will return 'notFound'.
             tests.assert(cursors.alive **? [], name: "cursors-alive")
             tests.assert(cursors.killed **? [], name: "cursors-killed")
             tests.assert(cursors.unknown **? [], name: "cursors-unknown")
             tests.assert(cursors.notFound **? [cursor], name: "cursors-not-found")
         }
-        await tests.test(with: SessionEnvironment.init(name: "connection-multiplexing",
-            pool: context.pool))
+        await tests.withSession(name: "connection-multiplexing", pool: pool)
         {
             (tests:inout Tests, session:Mongo.Session) in
 
             try await session.run(
                 query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
-                against: context.database)
+                against: database)
             {
                 var counter:Int = 0
                 for try await batch:[Ordinal] in $0
                 {
-                    let names:[Mongo.Database] = try await context.pool.run(
+                    let names:[Mongo.Database] = try await pool.run(
                         command: Mongo.ListDatabases.NameOnly.init(),
                         against: .admin)
                     tests.assert(!batch.isEmpty, name: "stream.\(counter)")

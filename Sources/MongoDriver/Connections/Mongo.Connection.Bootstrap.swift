@@ -8,18 +8,18 @@ extension Mongo.Connection
     struct Bootstrap
     {
         let channel:ClientBootstrap
-        let _credentials:Mongo.Credentials?,
-            _appname:String?
+        let credentials:Mongo.Credentials?
+        let cache:Mongo.CredentialCache
         let host:Mongo.Host
         
         init(channel:ClientBootstrap,
-            _credentials:Mongo.Credentials?,
-            _appname:String?,
+            credentials:Mongo.Credentials?,
+            cache:Mongo.CredentialCache,
             host:Mongo.Host)
         {
             self.channel = channel
-            self._credentials = _credentials
-            self._appname = _appname
+            self.credentials = credentials
+            self.cache = cache
             self.host = host
         }
     }
@@ -34,9 +34,7 @@ extension Mongo.Connection.Bootstrap
             host: host.name,
             port: host.port).get())
         
-        switch await channel.establish(credentials: self._credentials,
-            appname: self._appname,
-            by: deadline)
+        switch await self.cache.establish(channel, credentials: self.credentials, by: deadline)
         {
         case .success(_):
             return channel

@@ -4,11 +4,11 @@ extension Mongo
 {
     struct ClientMetadata
     {
-        let appname:String?
+        let application:String?
 
-        init(appname:String?)
+        init(application:String?)
         {
-            self.appname = appname
+            self.application = application
         }
     }
 }
@@ -30,11 +30,11 @@ extension Mongo.ClientMetadata:BSONDocumentEncodable
 
     func encode(to bson:inout BSON.Fields)
     {
-        if let appname:String = self.appname
+        if let application:String = self.application
         {
             bson["application"] = .init
             {
-                $0["name"] = appname
+                $0["name"] = application
             }
         }
         bson["driver"] = .init

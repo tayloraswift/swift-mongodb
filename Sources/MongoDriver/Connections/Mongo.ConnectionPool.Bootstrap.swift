@@ -7,39 +7,36 @@ import NIOSSL
 
 extension Mongo.ConnectionPool
 {
-    public
     struct Bootstrap:Sendable
     {
-        var heartbeatInterval:Milliseconds
+        let heartbeatInterval:Milliseconds
         // TODO: need a better way to handle TLS certificates,
         // should probably cache certificate loading...
-        var _certificatePath:String?
+        let _certificatePath:String?
 
-        public
-        var credentials:Mongo.Credentials?
-        var appname:String?
-
-        var timeout:Mongo.ConnectionTimeout
+        let credentials:Mongo.Credentials?
+        let cache:Mongo.CredentialCache
 
         let resolver:DNS.Connection?,
             executor:any EventLoopGroup
+        
+        let timeout:Mongo.ConnectionTimeout
 
-        public
-        init(heartbeatInterval:Milliseconds = 1000,
-            certificatePath:String? = nil,
+        init(heartbeatInterval:Milliseconds,
+            certificatePath:String?,
             credentials:Mongo.Credentials?,
-            resolver:DNS.Connection? = nil,
+            cache:Mongo.CredentialCache,
+            resolver:DNS.Connection?,
             executor:any EventLoopGroup,
-            timeout:Mongo.ConnectionTimeout = .init(milliseconds: 5000),
-            appname:String? = nil)
+            timeout:Mongo.ConnectionTimeout)
         {
             self.heartbeatInterval = heartbeatInterval
             self._certificatePath = certificatePath
             self.credentials = credentials
+            self.cache = cache
             self.resolver = resolver
             self.executor = executor
             self.timeout = timeout
-            self.appname = appname
         }
     }
 }

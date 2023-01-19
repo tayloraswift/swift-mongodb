@@ -44,24 +44,6 @@ extension Mongo
     /// monitoring channel, and align its lifetime with the lifetime of the
     /// monitoring channel. If the monitoring channel collapses, the pool will
     /// be drained, and a new one may be created to replace it.
-    ///
-    /// Connection pools have two “size-like” variables:
-    ///
-    /// 1.  **Width**. A pool’s width is the conceptual size of the pool from
-    ///     an availability perspective. It includes pending connections, but
-    ///     does not include perished connections.
-    ///
-    ///     Width is regulated by the pool’s ``size`` parameters and ``rate``.
-    ///
-    /// 2.  **Count**. A pool’s count is the conceptual size of the pool from
-    ///     a resource-allocation perspective. Count is equal to the pool width,
-    ///     plus the number of perished connections known to the pool. A pool
-    ///     is not considered fully-drained until its connection count reaches
-    ///     zero.
-    ///
-    ///     Connection count is important to the semantics of the pool, but
-    ///     is only publicly observable through the behavior of its ``drain``
-    ///     method.
     public
     actor ConnectionPool
     {
@@ -80,7 +62,7 @@ extension Mongo
         /// The host this pool creates connections to.
         nonisolated
         let host:Host
-        /// The target size of this connection pool. The pool will attempt to grow
+        /// The target size of this connection pool. The pool will attempt to expand
         /// until it contains at least the minimum number of connections, and it will
         /// never exceed the maximum connection count.
         nonisolated
@@ -103,9 +85,9 @@ extension Mongo
         /// “filling” state, and eventually transition to the “draining” state,
         /// which is terminal. There are no “in-between” states.
         ///
-        /// The implementation does not lint idle connections, so the pool width
-        /// will only decrease during the filling stage if individual connections
-        /// perish.
+        /// The implementation does not lint idle connections, so the connection
+        /// count can only decrease during the filling stage if individual
+        /// connections perish.
         private
         var state:State
 
@@ -129,8 +111,8 @@ extension Mongo
             self.counter = 0
 
             self.state = .filling(.init(channel: bootstrap.bootstrap(for: host),
-                _credentials: bootstrap.credentials,
-                _appname: bootstrap.appname,
+                credentials: bootstrap.credentials,
+                cache: bootstrap.cache,
                 host: host))
 
             let _:Task<Void, Never> = .init
@@ -160,12 +142,15 @@ extension Mongo
 }
 extension Mongo.ConnectionPool
 {
-    /// The conceptual size of the pool from an availability perspective.
-    /// This number counts pending connections, but does not count perished
-    /// connections.
-    var width:Int
+    /// The number of non-perished connections, including pending connections,
+    /// currently in the pool.
+    ///
+    /// Connection count is regulated by the pool’s ``size`` and ``rate``
+    /// parameters.
+    public
+    var count:Int
     {
-        self.connections.width
+        self.connections.count
     }
 }
 extension Mongo.ConnectionPool
@@ -243,56 +228,20 @@ extension Mongo.ConnectionPool
         await direct
     }
 }
-
 extension Mongo.ConnectionPool
 {
-    /// Returns a connection back to the pool. Every *successful* call to
-    /// ``create(by:)`` must be paired with a call to `destroy(_:)`.
-    ///
-    /// The connection must have been created by this pool.
-    public nonisolated
-    func destroy(_ connection:Mongo.Connection)
-    {
-        guard self.generation == connection.generation
-        else
-        {
-            fatalError("unreachable (destroying connection that was created by a different pool)")
-        }
-        let channel:MongoChannel = connection.channel
-        let reuse:Bool = connection.reusable
-        
-        let _:Task<Void, Never> = .init
-        {
-            await self.checkin(channel: channel, reuse: reuse)
-        }
-    }
-    /// Returns a connection if one is available, creating it if the pool has
-    /// capacity for additional connections. Otherwise, blocks until one of those
-    /// conditions is met, or the specified deadline passes.
+    /// Returns an existing channel in the pool if one is available, creating it
+    /// if the pool has capacity for additional connections. Otherwise, blocks
+    /// until one of those conditions is met, or the specified deadline passes.
     ///
     /// The deadline is not enforced if a connection is already available in the
     /// pool when the actor services the request.
     ///
     /// If the deadline passes while the pool is creating a connection for the
-    /// caller, the call will error, but the connection will still be created
-    /// and added to the pool, and may be used to complete a different request.
-    public nonisolated
-    func create(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Connection
-    {
-        if let channel:MongoChannel = await self.checkout(by: deadline)
-        {
-            return .init(generation: self.generation, channel: channel)
-        }
-        else
-        {
-            throw Mongo.ConnectionCheckoutError.init()
-        }
-    }
-}
-extension Mongo.ConnectionPool
-{
-    private
-    func checkout(by deadline:Mongo.ConnectionDeadline) async -> MongoChannel?
+    /// caller, the call will return [`nil`](), but the channel will still be
+    /// created and added to the pool, and may be used to complete a different
+    /// request.
+    func create(by deadline:Mongo.ConnectionDeadline) async -> MongoChannel?
     {
         while case .filling(let bootstrap) = self.state
         {
@@ -300,8 +249,11 @@ extension Mongo.ConnectionPool
             {
                 return channel
             }
-            guard   self.connections.pending < self.rate,
-                    self.connections.width < self.size.upperBound
+            if  self.connections.pending < self.rate,
+                self.connections.count < self.size.upperBound
+            {
+                await self.expand(using: bootstrap)
+            }
             else
             {
                 let request:UInt = self.request()
@@ -314,14 +266,15 @@ extension Mongo.ConnectionPool
                     self.requests.updateValue($0, forKey: request)
                 }
             }
-
-            await self.grow(using: bootstrap)
         }
 
         return nil
     }
-    private
-    func checkin(channel:MongoChannel, reuse:Bool) async
+    /// Returns a channel back to the pool. Every *successful* call to
+    /// ``create(by:)`` must be paired with a call to `destroy(_:)`.
+    ///
+    /// The channel must have been created by this pool.
+    func destroy(_ channel:MongoChannel, reuse:Bool) async
     {
         switch self.state
         {
@@ -337,6 +290,7 @@ extension Mongo.ConnectionPool
             if let continuation:CheckedContinuation<MongoChannel?, Never> =
                     self.requests.popFirst()?.value
             {
+                // hand-off directly to the next awaiter
                 continuation.resume(returning: channel)
                 return
             }
@@ -362,27 +316,66 @@ extension Mongo.ConnectionPool
             self.state = .draining(nil)
         }
     }
-    /// Checks if the pool’s width is below its desired ``size``, and
-    /// calls ``grow(using:)`` if so. Does nothing if the pool is draining
-    /// or if ``rate`` connections are already being created.
+    /// Checks if the pool is (still) in its filling stage and calls
+    /// ``fill(using:)`` if so. Does nothing if the pool is draining.
     private
     func resize() async
     {
-        if  case .filling(let bootstrap) = self.state,
-            self.connections.pending < self.rate,
-            self.connections.width < self.size.lowerBound
+        if  case .filling(let bootstrap) = self.state
         {
-            await self.grow(using: bootstrap)
+            await self.fill(using: bootstrap)
         }
     }
-    /// Marks the given channel as “perished”, and triggers a pool ``resize``.
-    /// In practice, this means the channel will only be replaced if the
-    /// width of the pool would fall below [`size.lowerBound`]().
+    /// Marks the given channel as “perished”, and replaces it (by dispatching
+    /// to ``fill(using:)``) if the pool is in its filling stage.
+    /// If the pool is in the draining stage, and perishing the channel reduced
+    /// the connection count to zero, calling this method may unblock a call to
+    /// ``drain``.
     private
     func replace(perished channel:MongoChannel) async
     {
         self.connections.perish(channel)
-        await self.resize()
+        switch self.state
+        {
+        case .filling(let bootstrap):
+            await self.fill(using: bootstrap)
+        
+        case .draining(let continuation?):
+            if  self.connections.isEmpty
+            {
+                continuation.resume()
+                self.state = .draining(nil)
+            }
+        
+        case .draining(nil):
+            break
+        }
+    }
+    /// Dispatches to ``expand(using:)``, but only if the pool ought to be
+    /// establishing new connections, based on the current connection count,
+    /// the number of connections already being established, and the number of
+    /// blocked requests.
+    ///
+    /// This method must only be called while the pool is in the filling stage.
+    /// The ``Mongo/Connection/Bootstrap`` type is not ``Sendable``, which
+    /// should prevent some of the more-common reentrancy mistakes.
+    private
+    func fill(using bootstrap:Mongo.Connection.Bootstrap) async
+    {
+        guard   self.connections.pending < self.rate
+        else
+        {
+            return
+        }
+        if      self.connections.count < self.size.lowerBound
+        {
+            await self.expand(using: bootstrap)
+        }
+        else if self.connections.count < self.size.upperBound,
+                self.connections.available < self.requests.count
+        {
+            await self.expand(using: bootstrap)
+        }
     }
     /// Tries to create and add a new connection to the pool. If anything goes wrong
     /// during this process, the ``stopMonitoring(throwing:)`` signal will be emitted
@@ -392,15 +385,15 @@ extension Mongo.ConnectionPool
     /// If the pool is still in the filling stage when the connection is successfully
     /// established, it will trigger a (non-blocking) recursive call to this method
     /// via ``resize``. Because the call to ``resize`` is non-blocking, it is possible
-    /// that no recursive call actually takes place, because a concurrent `grow(using:)`
-    /// call may have already brought the pool back to a healthy width in the meantime.
+    /// that no recursive call actually takes place, because a concurrent `expand(using:)`
+    /// call may have already brought the pool back to a healthy size in the meantime.
     ///
     /// If the pool transitions to the draining stage while the connection is being
     /// created, the connection will be closed and the connection count decremented.
     /// Because a pending connection still contributes to connection count, this may
     /// unblock a call to ``drain``.
     private
-    func grow(using bootstrap:Mongo.Connection.Bootstrap) async
+    func expand(using bootstrap:Mongo.Connection.Bootstrap) async
     {
         do
         {
@@ -424,8 +417,9 @@ extension Mongo.ConnectionPool
                 self.connections.insert(channel)
                 self.connections.pending -= 1
 
-                if  self.connections.pending < self.rate,
-                    self.connections.width < self.size.lowerBound
+                if  self.connections.count < self.size.lowerBound ||
+                    self.connections.count < self.size.upperBound &&
+                    self.connections.available < self.requests.count
                 {
                     let _:Task<Void, Never> = .init
                     {

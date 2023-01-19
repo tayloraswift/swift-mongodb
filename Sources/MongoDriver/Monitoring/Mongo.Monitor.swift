@@ -12,6 +12,9 @@ extension Mongo
         public nonisolated
         let cluster:Cluster
 
+        private nonisolated
+        let credentials:CredentialCache
+
         private
         var state:State
         private
@@ -20,20 +23,22 @@ extension Mongo
         init(_ seedlist:Mongo.Topology<Mongo.ConnectionPool>.Unknown,
             heartbeatInterval:Milliseconds,
             certificatePath:String?,
+            application:String?,
             credentials:Mongo.Credentials?,
             resolver:DNS.Connection?,
             executor:any EventLoopGroup,
-            timeout:Mongo.ConnectionTimeout,
-            appname:String?)
+            timeout:Mongo.ConnectionTimeout)
         {
+            self.credentials = .init(application: application)
+
             let bootstrap:ConnectionPool.Bootstrap = .init(
                 heartbeatInterval: heartbeatInterval,
                 certificatePath: certificatePath,
                 credentials: credentials,
+                cache: self.credentials,
                 resolver: resolver,
                 executor: executor,
-                timeout: timeout,
-                appname: appname)
+                timeout: timeout)
             
             self.cluster = .init(timeout: timeout)
 
@@ -198,9 +203,8 @@ extension Mongo.Monitor
 
         let helloResponse:Mongo.HelloResponse
 
-        switch await channel.establish(
+        switch await self.credentials.establish(channel,
             credentials: bootstrap.credentials,
-            appname: bootstrap.appname,
             by: deadline)
         {
         case .failure(let error):

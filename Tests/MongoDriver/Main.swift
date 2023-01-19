@@ -25,9 +25,16 @@ enum Main:AsyncTests
         {
             print("running tests for replicated topology (hosts: \(members))")
 
+            let seedlist:Set<Mongo.Host> = .init(members)
+
             await TestSessionPool(&$0, credentials: nil,
-                seedlist: .init(members),
+                seedlist: seedlist,
                 on: executor)
+            
+            await TestConnectionPool(&$0, credentials: nil,
+                seedlist: seedlist,
+                on: executor)
+            
             let bootstrap:Mongo.DriverBootstrap = .init(credentials: nil,
                 executor: executor)
             
@@ -43,11 +50,16 @@ enum Main:AsyncTests
                 username: "root",
                 password: "80085")
 
-            await TestAuthentication(&$0, credentials: credentials,
-                standalone: standalone,
+            await TestAuthentication(&$0, standalone: standalone,
+                username: credentials.username,
+                password: credentials.password,
                 on: executor)
             
             await TestSessionPool(&$0, credentials: credentials,
+                seedlist: [standalone],
+                on: executor)
+            
+            await TestConnectionPool(&$0, credentials: credentials,
                 seedlist: [standalone],
                 on: executor)
         }

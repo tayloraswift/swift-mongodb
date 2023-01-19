@@ -41,7 +41,17 @@ extension Mongo.Batches.AsyncIterator:AsyncIteratorProtocol
             return nil
         }
 
-        let next:Mongo.Cursor<BatchElement> = try await cursor.get(more: BatchElement.self)
+        let next:Mongo.Cursor<BatchElement>
+        do
+        {
+            next = try await cursor.get(more: BatchElement.self)
+        }
+        catch let error
+        {
+            let _:Mongo.KillCursorsResponse? = try? await cursor.kill()
+            self.cursor = nil
+            throw error
+        }
         
         switch next.id
         {
@@ -49,10 +59,11 @@ extension Mongo.Batches.AsyncIterator:AsyncIteratorProtocol
             return next.elements
         
         case let id?:
+            let _:Mongo.KillCursorsResponse? = try? await cursor.kill()
+            self.cursor = nil
             throw Mongo.CursorIdentifierError.init(invalid: id)
         
         case nil:
-            cursor.pool.destroy(cursor.pinned.connection)
             self.cursor = nil
             return next.elements.isEmpty ? nil : next.elements
         }

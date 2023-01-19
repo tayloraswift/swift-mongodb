@@ -262,12 +262,8 @@ extension Mongo.Cluster
             let connections:Mongo.ConnectionPool = try await self.pool(
                 preference: .primaryPreferred,
                 by: deadline)
-            let connection:Mongo.Connection = try await connections.create(
+            let connection:Mongo.Connection = try await .init(from: connections,
                 by: deadline)
-            defer
-            {
-                connections.destroy(connection)
-            }
             
             let reply:Mongo.Reply = try await connection.channel.run(command: command,
                 against: .admin,

@@ -6,13 +6,13 @@ func TestCausalConsistency(_ tests:inout Tests,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    await tests.test(with: DatabaseEnvironment.init(bootstrap: bootstrap,
-        database: "causal-consistency",
-        hosts: hosts))
+    await tests.withTemporaryDatabase(name: "causal-consistency",
+        bootstrap: bootstrap,
+        hosts: hosts)
     {
-        (tests:inout Tests, context:DatabaseEnvironment.Context) in
+        (tests:inout Tests, pool:Mongo.SessionPool, database:Mongo.Database) in
 
-        try await context.pool.withSession
+        try await pool.withSession
         {
             (session:Mongo.Session) in
 
@@ -34,7 +34,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                             //  ensure the write propogates to *all* the visible replicas.
                             level: .acknowledged(by: 4), 
                             journaled: true)),
-                    against: context.database,
+                    against: database,
                     on: .primary)
                 
                 $0.assert(response ==? .init(inserted: 1), name: "a")
@@ -63,7 +63,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                     command: Mongo.Find<Letter>.SingleBatch.init(
                         collection: collection,
                         limit: 10),
-                    against: context.database,
+                    against: database,
                     on: secondary)
                 $0.assert(letters ..? [a], name: "letters")
             }
@@ -76,7 +76,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                     command: Mongo.Insert<[Letter]>.init(collection: collection,
                         elements: [b],
                         writeConcern: .init(level: .majority, journaled: true)),
-                    against: context.database,
+                    against: database,
                     on: .primary)
                 
                 $0.assert(response ==? .init(inserted: 1), name: "b")
@@ -89,7 +89,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                     command: Mongo.Find<Letter>.SingleBatch.init(
                         collection: collection,
                         limit: 10),
-                    against: context.database,
+                    against: database,
                     on: .secondary(tagSets: [["name": "D"]]))
                 
                 $0.assert(letters ..? [a, b], name: "letters")
@@ -104,7 +104,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                     command: Mongo.Find<Letter>.SingleBatch.init(
                         collection: collection,
                         limit: 10),
-                    against: context.database,
+                    against: database,
                     on: secondary)
             }
             //  Attempt to read from the locked secondary from a different session.
@@ -113,11 +113,11 @@ func TestCausalConsistency(_ tests:inout Tests,
             //  (stale) data from before the insertion of the letter `b`.
             await tests.test(name: "non-causal")
             {
-                let letters:[Letter] = try await context.pool.run(
+                let letters:[Letter] = try await pool.run(
                     command: Mongo.Find<Letter>.SingleBatch.init(
                         collection: collection,
                         limit: 10),
-                    against: context.database,
+                    against: database,
                     on: secondary)
                 
                 $0.assert(letters ..? [a], name: "letters")
@@ -137,7 +137,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                     command: Mongo.Find<Letter>.SingleBatch.init(
                         collection: collection,
                         limit: 10),
-                    against: context.database,
+                    against: database,
                     on: secondary)
                 
                 $0.assert(letters ..? [a, b], name: "letters")
