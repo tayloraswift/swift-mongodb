@@ -45,18 +45,18 @@ extension Tests
             }
         }
     }
-    mutating
-    func withSession<Success>(name:String,
-        pool:Mongo.SessionPool,
-        run body:(inout Tests, Mongo.Session) async throws -> Success) async -> Success?
-    {
-        await self.test(name: name)
-        {
-            (self:inout Self) in
-            try await pool.withSession
-            {
-                try await body(&self, $0)
-            }
-        }
-    }
+    // mutating
+    // func withSession<Success>(name:String,
+    //     pool:Mongo.SessionPool,
+    //     run body:(inout Tests, Mongo.Session) async throws -> Success) async -> Success?
+    // {
+    //     await self.test(name: name)
+    //     {
+    //         (self:inout Self) in
+    //         try await pool.withSession
+    //         {
+    //             try await body(&self, $0)
+    //         }
+    //     }
+    // }
 }

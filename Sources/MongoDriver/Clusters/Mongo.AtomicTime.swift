@@ -5,11 +5,11 @@ extension Mongo
     final
     class AtomicTime:Sendable, AtomicReference
     {
-        let value:Mongo.ClusterTime.Sample
+        let notarized:NotarizedTime
 
-        init(_ value:Mongo.ClusterTime.Sample)
+        init(_ notarized:NotarizedTime)
         {
-            self.value = value
+            self.notarized = notarized
         }
     }
 }
@@ -18,7 +18,7 @@ extension Mongo.AtomicTime
     convenience
     init?(_ time:Mongo.ClusterTime)
     {
-        if let max:Mongo.ClusterTime.Sample = time.max
+        if let max:Mongo.NotarizedTime = time.max
         {
             self.init(max)
         }

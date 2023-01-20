@@ -27,7 +27,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.RefreshSessions:MongoCommand
+extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
 {
     /// `RefreshSessions` must be sent to the `admin` database.
     public

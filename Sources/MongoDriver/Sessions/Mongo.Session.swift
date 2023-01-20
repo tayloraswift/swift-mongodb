@@ -13,31 +13,74 @@ extension Mongo
     /// Most of the time when you want to perform concurrent operations
     /// on a database, you want each task to checkout its own session from a
     /// ``SessionPool``, which is ``Sendable``.
-    public
-    struct Session:Identifiable
+    public final
+    class Session
     {
-        @usableFromInline
-        let cluster:Mongo.Cluster
-        @usableFromInline
-        let state:State
+        public private(set)
+        var operationTime:OperationTime
+        public private(set)
+        var transaction:Transaction
+        private
+        var touched:ContinuousClock.Instant
 
         public
         let id:SessionIdentifier
 
-        init(on cluster:Mongo.Cluster,
-            metadata:SessionMetadata,
-            id:SessionIdentifier)
-        {
-            self.state = .init(metadata)
+        /// The server cluster associated with this session’s ``pool``.
+        /// This is stored inline to speed up access.
+        @usableFromInline
+        let cluster:Cluster
+        private
+        let pool:SessionPool
 
-            self.cluster = cluster
-            self.id = id
+        private
+        init(metadata:SessionMetadata, pool:SessionPool)
+        {
+            self.operationTime = .init(nil)
+            self.transaction = metadata.transaction
+            self.touched = metadata.touched
+            self.id = metadata.id
+
+            self.cluster = pool.cluster
+            self.pool = pool
         }
+        deinit
+        {
+            self.pool.destroy(.init(
+                    transaction: self.transaction,
+                    touched: self.touched,
+                    id: self.id),
+                reuse: true)
+        }
+    }
+}
+extension Mongo.Session
+{
+    public convenience
+    init(from pool:Mongo.SessionPool) async throws
+    {
+        self.init(metadata: try await pool.create(), pool: pool)
     }
 }
 @available(*, unavailable, message: "sessions have reference semantics")
 extension Mongo.Session:Sendable
 {
+}
+extension Mongo.Session:Identifiable
+{
+    @usableFromInline
+    func combine(operationTime:Mongo.Instant?, sent:ContinuousClock.Instant)
+    {
+        self.touched = sent
+        //  observed operation times will not necessarily be monotonic, if
+        //  commands are being sent to different servers across the same
+        //  session. to enforce causal consistency, we must only update the
+        //  operation time if it is greater than the stored operation time.
+        if let operationTime:Mongo.Instant
+        {
+            self.operationTime.combine(with: operationTime)
+        }
+    }
 }
 extension Mongo.Session
 {    
@@ -52,9 +95,9 @@ extension Mongo.Session
             readPreference: preference,
             readConcern: (command as? any MongoReadCommand).map
             {
-                .init(level: $0.readLevel, after: self.state.operationTime)
+                .init(level: $0.readLevel, after: self.operationTime.max)
             },
-            transaction: self.state.metadata.transaction,
+            transaction: self.transaction,
             session: self.id)
         
         let sent:ContinuousClock.Instant = .now
@@ -63,8 +106,8 @@ extension Mongo.Session
             labels: labels,
             by: deadline)
 
-        self.state.update(touched: sent, operationTime: reply.operationTime)
-        self.cluster.push(time: reply.clusterTime)
+        self.combine(operationTime: reply.operationTime, sent: sent)
+        self.cluster.yield(clusterTime: reply.clusterTime)
 
         return try Command.decode(reply: try reply.result.get())
     }

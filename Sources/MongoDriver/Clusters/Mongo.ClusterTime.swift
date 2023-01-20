@@ -4,26 +4,26 @@ extension Mongo
     struct ClusterTime:Sendable
     {
         public
-        let max:Sample?
+        let max:NotarizedTime?
 
-        init(_ sample:Sample?)
+        init(_ notarized:NotarizedTime?)
         {
-            self.max = sample
+            self.max = notarized
         }
     }
 }
 extension Mongo.ClusterTime
 {
-    func combined(with sample:Sample) -> Self
+    func combined(with notarized:Mongo.NotarizedTime) -> Self
     {
-        guard let max:Sample = self.max
+        guard let max:Mongo.NotarizedTime = self.max
         else
         {
-            return .init(sample)
+            return .init(notarized)
         }
-        if  max < sample
+        if  max.time < notarized.time
         {
-            return .init(sample)
+            return .init(notarized)
         }
         else
         {
@@ -31,8 +31,8 @@ extension Mongo.ClusterTime
         }
     }
     mutating
-    func combine(with sample:Sample)
+    func combine(with notarized:Mongo.NotarizedTime)
     {
-        self = self.combined(with: sample)
+        self = self.combined(with: notarized)
     }
 }

@@ -341,20 +341,20 @@ extension Mongo.ConnectionPool
         }
         let _:Task<Void, Never> = .init
         {
-            await self.destroy(channel, reuse: reuse)
+            await self.destroy(channel, reindex: reuse)
         }
     }
     private
-    func destroy(_ channel:MongoChannel, reuse:Bool) async
+    func destroy(_ channel:MongoChannel, reindex:Bool) async
     {
-        if  reuse
+        if  reindex
         {
             self.releasing.wrappingDecrement(ordering: .relaxed)
         }
         switch self.state
         {
         case .filling:
-            guard reuse
+            guard reindex
             else
             {
                 await channel.close()

@@ -79,34 +79,33 @@ func TestFind(_ tests:inout Tests,
         {
             (tests:inout Tests) in
 
-            try await pool.withSession
+            let session:Mongo.Session = try await .init(from: pool)
+            try await session.run(query: Mongo.Find<Ordinal>.init(
+                    collection: collection,
+                    stride: 10),
+                against: database)
             {
-                try await $0.run(query: Mongo.Find<Ordinal>.init(
-                        collection: collection,
-                        stride: 10),
-                    against: database)
+                var expected:Ordinals.Iterator = ordinals.makeIterator()
+                for try await batch:[Ordinal] in $0
                 {
-                    var expected:Ordinals.Iterator = ordinals.makeIterator()
-                    for try await batch:[Ordinal] in $0
+                    for returned:Ordinal in batch
                     {
-                        for returned:Ordinal in batch
+                        if  let expected:Ordinal = tests.unwrap(expected.next(),
+                                name: "next-expected")
                         {
-                            if  let expected:Ordinal = tests.unwrap(expected.next(),
-                                    name: "next-expected")
-                            {
-                                tests.assert(returned == expected,
-                                    name: expected.id.description)
-                            }
+                            tests.assert(returned == expected,
+                                name: expected.id.description)
                         }
                     }
-                    tests.assert(expected.next() == nil, name: "next-returned")
                 }
+                tests.assert(expected.next() == nil, name: "next-returned")
             }
         }
-        await tests.withSession(name: "filtering", pool: pool)
+        await tests.test(name: "filtering")
         {
-            (tests:inout Tests, session:Mongo.Session) in
-        
+            (tests:inout Tests) in
+
+            let session:Mongo.Session = try await .init(from: pool)
             try await session.run(query: Mongo.Find<Ordinal>.init(
                     collection: collection,
                     stride: 10,
