@@ -1,10 +1,9 @@
 extension Mongo
 {
     @frozen public
-    enum TransactionPhase
+    enum TransactionPhase:Sendable
     {
-        case starting
-        case aborting
-        case committing
+        case starting(ReadConcern?)
+        case started
     }
 }

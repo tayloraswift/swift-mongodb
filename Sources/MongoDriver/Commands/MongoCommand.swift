@@ -63,7 +63,7 @@ extension MongoCommand
             return
         }
 
-        bson["$clusterTime"] = labels.clusterTime.max
+        bson["$clusterTime"] = labels.clusterTime
         bson["$readPreference"] = labels.readPreference
         bson["readConcern"] = labels.readConcern
         bson["lsid"] = labels.session

@@ -3,7 +3,7 @@ import BSONEncoding
 extension Mongo
 {
     public
-    struct ReadConcern
+    struct ReadConcern:Sendable
     {
         let ordering:Ordering?
         let level:Level?

@@ -6,7 +6,7 @@ extension Mongo
     struct SessionLabels
     {
         public
-        let clusterTime:ClusterTime
+        let clusterTime:ClusterTime?
         public
         let readPreference:ReadPreference?
         public
@@ -17,7 +17,7 @@ extension Mongo
         let session:SessionIdentifier
 
         public
-        init(clusterTime:ClusterTime,
+        init(clusterTime:ClusterTime?,
             readPreference:ReadPreference?,
             readConcern:ReadConcern?,
             transaction:Transaction,

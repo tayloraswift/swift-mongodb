@@ -19,12 +19,12 @@ extension Mongo
 extension Mongo.Transaction
 {
     public mutating
-    func start()
+    func start(with readConcern:Mongo.ReadConcern?)
     {
         if case nil = self.phase
         {
             self.number += 1
-            self.phase = .starting
+            self.phase = .starting(readConcern)
         }
         else
         {

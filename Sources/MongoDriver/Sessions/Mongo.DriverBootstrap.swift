@@ -54,6 +54,10 @@ extension Mongo.DriverBootstrap
     /// active server sessions, which is inevitable in situations such as a network
     /// outage. This means that if the passed `body` closure throws an error, that
     /// error will be the same error observed by the caller of this method.
+    ///
+    /// Never escape sessions, connections, or connection pools from within the
+    /// closure parameter. This method cannot return until all such objects have
+    /// been deinitialized.
     public
     func withSessionPool<Success>(seedlist:Set<Mongo.Host>,
         heartbeatInterval:Milliseconds = 1000,

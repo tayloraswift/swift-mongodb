@@ -4,12 +4,25 @@ import DequeModule
 
 extension Mongo
 {
+    /// An interface for creating driver sessions.
+    ///
+    /// Session pools have precise lifetime semantics, so you cannot create them
+    /// directly. Instead, call a method like `withSessionPool` on
+    /// ``DriverBootstrap``, which yields a session pool, and performs necessary
+    /// cleanup on shutdown.
     public final
     actor SessionPool
     {
+        /// A reference to a deployment model. The session pool uses it directly,
+        /// and also copies (strong-references) it to give to individual
+        /// ``Session`` objects.
         @usableFromInline nonisolated
         let cluster:Cluster
 
+        /// The number of sessions currently being re-indexed by this pool.
+        /// Session deinitializers increment this counter, and the pool 
+        /// decrements it once the session has been re-indexed and made available
+        /// for reuse.
         private nonisolated
         let releasing:UnsafeAtomic<Int>
 
@@ -70,40 +83,70 @@ extension Mongo.SessionPool
 }
 extension Mongo.SessionPool
 {
-    @available(*, deprecated)
+    /// Awaits and returns a connection pool to a server matching the specified
+    /// read preference.
+    ///
+    /// The returned connection pool can only provide connections to the server
+    /// while it is being continuously monitored. If connectivity is lost, the
+    /// connection pool will begin draining, and the service monitoring system
+    /// will eventually replace it with a new pool if it is able to reconnect.
+    /// Therefore, for maximum fault-tolerance, you should avoid holding connection
+    /// pools for long periods of time, and instead acquire them as needed before
+    /// executing database operations.
     public nonisolated
-    func withSession<Success>(
-        _ body:(Mongo.Session) async throws -> Success) async throws -> Success
+    func connect(to preference:Mongo.ReadPreference,
+        by deadline:Mongo.ConnectionDeadline? = nil) async throws -> Mongo.ConnectionPool
     {
-        try await body(try await .init(from: self))
-    }
-    nonisolated
-    func create() async throws -> Mongo.SessionMetadata
-    {
-        let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(clamping: nil)
-        let sessions:Mongo.LogicalSessions = try await self.cluster.sessions(by: deadline)
-        return await self.create(ttl: sessions.ttl)
+        let connect:Mongo.ConnectionDeadline = deadline ??
+            self.cluster.timeout.deadline(from: .now)
+        return try await self.cluster.pool(preference: preference, by: connect)
     }
 }
 extension Mongo.SessionPool
 {
-    /// Unblocks an awaiting request with the given session, if one exists.
+    /// Runs a command against the specified database using an implicitly-assigned
+    /// session. The connection will be obtained first, and then a session will
+    /// be assigned to it, which is different from creating a `Session` manually
+    /// and calling `Session.run(command:against:on:by:)`.
+    ///
+    /// When sending many commands with implicit sessions at the same time, ordering
+    /// the blocking steps like this prevents the session pool from generating an
+    /// excessive number of parallel sessions if the commands themselves can only
+    /// executed a few at a time.
+    @inlinable public nonisolated
+    func run<Command>(command:Command, against database:Command.Database,
+        on preference:Mongo.ReadPreference = .primary,
+        by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
+        where Command:MongoImplicitSessionCommand
+    {
+        let started:ContinuousClock.Instant = .now
+
+        let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: started,
+            clamping: deadline)
+        let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+            preference: preference,
+            by: connect)
+        //  this creates the connection before creating the session, because
+        //  connections are limited but sessions are unlimited. so ordering it
+        //  like this 
+        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
+        let session:Mongo.Session = try await .init(from: self)
+
+        return try await session.run(command: command, against: database,
+            over: connection,
+            on: preference,
+            by: deadline ?? connect.instant)
+    }
+}
+extension Mongo.SessionPool
+{
+    /// Transitions the pool in a draining state, and waits for all created sessions
+    /// to be destroyed.
     ///
     /// -   Returns:
-    ///     [`true`]() if there was a request that was unblocked by this call,
-    ///     [`false`]() otherwise.
-    private
-    func yield(_ session:Mongo.SessionMetadata) -> Bool
-    {
-        if case ()? = self.requests.popFirst()?.resume(returning: session)
-        {
-            return true
-        }
-        else
-        {
-            return false
-        }
-    }
+    ///     An array of the identifiers of all the sessions in the pool. This array
+    ///     does not include sessions that were linted because the driver believed
+    ///     them to already be expired, or sessions that were discarded on destruction.
     func drain() async -> [Mongo.SessionIdentifier]
     {
         if case .draining(_?) = self.state
@@ -131,6 +174,21 @@ extension Mongo.SessionPool
 }
 extension Mongo.SessionPool
 {
+    /// Create (unsafe) session metadata. A successful call to this method must
+    /// be paired with a later call to ``destroy(_:reuse:)``.
+    ///
+    /// Expected usage is to immediately wrap the session metadata in a reference
+    /// or move-only type, such as ``Session``, which destroys the session metadata
+    /// on its `deinit`.
+    nonisolated
+    func create() async throws -> Mongo.SessionMetadata
+    {
+        let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(clamping: nil)
+        let sessions:Mongo.LogicalSessions = try await self.cluster.sessions(by: deadline)
+        return await self.create(ttl: sessions.ttl)
+    }
+    /// Destroy (unsafe) session metadata. The session will re-indexed by the
+    /// pool if `reuse` is true, otherwise it will be discarded.
     nonisolated
     func destroy(_ session:Mongo.SessionMetadata, reuse:Bool)
     {
@@ -143,43 +201,29 @@ extension Mongo.SessionPool
             await self.destroy(session, reindex: reuse)
         }
     }
+}
+extension Mongo.SessionPool
+{
+    /// Unblocks an awaiting request with the given session, if one exists.
+    ///
+    /// -   Returns:
+    ///     [`true`]() if there was a request that was unblocked by this call,
+    ///     [`false`]() otherwise.
     private
-    func destroy(_ session:Mongo.SessionMetadata, reindex:Bool)
+    func yield(_ session:Mongo.SessionMetadata) -> Bool
     {
-        if  reindex
+        if case ()? = self.requests.popFirst()?.resume(returning: session)
         {
-            self.releasing.wrappingDecrement(ordering: .relaxed)
+            return true
         }
-        switch self.state
+        else
         {
-        case .filling:
-            guard reindex
-            else
-            {
-                // dirty sessions do not use `endSessions`, per
-                // https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-don-t-drivers-run-the-endsessions-command-to-cleanup-dirty-server-sessions
-                self.retained.remove(session.id)
-                return
-            }
-            guard self.yield(session)
-            else
-            {
-                self.retained.remove(session.id)
-                self.released.append(session)
-                return
-            }
-        
-        case .draining(let continuation):
-            self.retained.remove(session.id)
-            self.released.append(session)
-
-            if self.retained.isEmpty
-            {
-                continuation?.resume()
-                self.state = .draining(nil)
-            }
+            return false
         }
     }
+}
+extension Mongo.SessionPool
+{
     private
     func create(ttl:Minutes) async -> Mongo.SessionMetadata
     {
@@ -238,37 +282,41 @@ extension Mongo.SessionPool
             }
         }
     }
-}
-extension Mongo.SessionPool
-{
-    @inlinable public nonisolated
-    func withDirectConnections<Success>(to preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline? = nil,
-        _ body:(Mongo.ConnectionPool) async throws -> Success) async throws -> Success
+    private
+    func destroy(_ session:Mongo.SessionMetadata, reindex:Bool)
     {
-        let connect:Mongo.ConnectionDeadline = deadline ??
-            self.cluster.timeout.deadline(from: .now)
-        let pool:Mongo.ConnectionPool = try await self.cluster.pool(
-            preference: preference,
-            by: connect)
-        return try await body(pool)
-    }
-}
-extension Mongo.SessionPool
-{
-    /// Runs a session command against the specified database,
-    /// sending the command to an appropriate cluster member for its type.
-    @inlinable public nonisolated
-    func run<Command>(command:Command, against database:Command.Database,
-        on preference:Mongo.ReadPreference = .primary,
-        by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
-        where Command:MongoImplicitSessionCommand
-    {
-        let started:ContinuousClock.Instant = .now
-        let session:Mongo.Session = try await .init(from: self)
-        return try await session.run(command: command, against: database,
-            on: preference,
-            by: deadline,
-            started: started)
+        if  reindex
+        {
+            self.releasing.wrappingDecrement(ordering: .relaxed)
+        }
+        switch self.state
+        {
+        case .filling:
+            guard reindex
+            else
+            {
+                // dirty sessions do not use `endSessions`, per
+                // https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-don-t-drivers-run-the-endsessions-command-to-cleanup-dirty-server-sessions
+                self.retained.remove(session.id)
+                return
+            }
+            guard self.yield(session)
+            else
+            {
+                self.retained.remove(session.id)
+                self.released.append(session)
+                return
+            }
+        
+        case .draining(let continuation):
+            self.retained.remove(session.id)
+            self.released.append(session)
+
+            if self.retained.isEmpty
+            {
+                continuation?.resume()
+                self.state = .draining(nil)
+            }
+        }
     }
 }
