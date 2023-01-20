@@ -63,9 +63,22 @@ extension Mongo.Connections
     ///
     /// Traps if the channel is already in the set of released channels.
     mutating
-    func insert(_ channel:MongoChannel)
+    func insert(released channel:MongoChannel)
     {
         guard case nil = self.released.update(with: channel)
+        else
+        {
+            fatalError("unreachable (inserted a channel more than once!)")
+        }
+    }
+    /// Unconditionally inserts the given channel into the set of retained
+    /// channels. Increments the connection count.
+    ///
+    /// Traps if the channel is already in the set of retained channels.
+    mutating
+    func insert(retained channel:MongoChannel)
+    {
+        guard case nil = self.retained.update(with: channel)
         else
         {
             fatalError("unreachable (inserted a channel more than once!)")

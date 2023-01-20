@@ -13,11 +13,11 @@ extension Mongo
         @usableFromInline
         let operationTime:Instant?
         @usableFromInline
-        let clusterTime:ClusterTime.Sample?
+        let clusterTime:NotarizedTime?
 
         init(result:Result<BSON.Dictionary<ByteBufferView>, Mongo.ServerError>,
             operationTime:Instant?,
-            clusterTime:ClusterTime.Sample?)
+            clusterTime:NotarizedTime?)
         {
             self.result = result
             self.operationTime = operationTime
@@ -37,8 +37,8 @@ extension Mongo.Reply
 
         let operationTime:Mongo.Instant? = try dictionary["operationTime"]?.decode(
             to: Mongo.Instant.self)
-        let clusterTime:Mongo.ClusterTime.Sample? = try dictionary["$clusterTime"]?.decode(
-            to: Mongo.ClusterTime.Sample.self)
+        let clusterTime:Mongo.NotarizedTime? = try dictionary["$clusterTime"]?.decode(
+            to: Mongo.NotarizedTime.self)
         
         if  status.ok
         {

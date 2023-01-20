@@ -25,10 +25,11 @@ func TestCursors(_ tests:inout Tests,
             $0.assert(response ==? expected, name: "response")
         }
         
-        await tests.withSession(name: "cursor-cleanup-normal", pool: pool)
+        await tests.test(name: "cursor-cleanup-normal")
         {
-            (tests:inout Tests, session:Mongo.Session) in
+            (tests:inout Tests) in
 
+            let session:Mongo.Session = try await .init(from: pool)
             try await session.run(query: Mongo.Find<Ordinal>.init(
                     collection: collection,
                     stride: 10),
@@ -54,10 +55,11 @@ func TestCursors(_ tests:inout Tests,
                 tests.assert(cursors.notFound **? [cursor.id], name: "cursors-not-found")
             }
         }
-        await tests.withSession(name: "cursor-cleanup-interruption", pool: pool)
+        await tests.test(name: "cursor-cleanup-interruption")
         {
-            (tests:inout Tests, session:Mongo.Session) in
+            (tests:inout Tests) in
 
+            let session:Mongo.Session = try await .init(from: pool)
             let cursor:Mongo.CursorIdentifier? =
                 try await session.run(
                     query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
@@ -93,10 +95,11 @@ func TestCursors(_ tests:inout Tests,
             tests.assert(cursors.unknown **? [], name: "cursors-unknown")
             tests.assert(cursors.notFound **? [cursor], name: "cursors-not-found")
         }
-        await tests.withSession(name: "connection-multiplexing", pool: pool)
+        await tests.test(name: "connection-multiplexing")
         {
-            (tests:inout Tests, session:Mongo.Session) in
+            (tests:inout Tests) in
 
+            let session:Mongo.Session = try await .init(from: pool)
             try await session.run(
                 query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
                 against: database)

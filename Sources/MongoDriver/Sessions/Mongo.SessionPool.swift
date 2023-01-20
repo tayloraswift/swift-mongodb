@@ -1,4 +1,6 @@
+import Atomics
 import Durations
+import DequeModule
 
 extension Mongo
 {
@@ -8,42 +10,58 @@ extension Mongo
         @usableFromInline nonisolated
         let cluster:Cluster
 
-        private
-        var released:[SessionIdentifier: SessionMetadata]
+        private nonisolated
+        let releasing:UnsafeAtomic<Int>
+
         private
         var retained:Set<SessionIdentifier>
         private
-        var draining:CheckedContinuation<Void, Never>?
+        var released:Deque<SessionMetadata>
+
+        /// All requests currently awaiting sessions.
+        /// Entering this should be very rare, because session requests can
+        /// only block while the pool is re-indexing released sessions.
+        private
+        var requests:Deque<CheckedContinuation<SessionMetadata, Never>>
+
+        private
+        var state:State
 
         init(cluster:Cluster) 
         {
             self.cluster = cluster
-
-            self.released = [:]
+            self.releasing = .create(0)
+            self.released = []
             self.retained = []
-            self.draining = nil
+            self.requests = []
+            self.state = .filling
         }
 
         deinit
         {
-            guard   self.retained.isEmpty,
-                    self.released.isEmpty
+            self.releasing.destroy()
+
+            guard self.requests.isEmpty
             else
             {
-                fatalError("unreachable (deinitialized while session pool still contains sessions!)")
+                fatalError("unreachable (deinitialized session pool while continuations are awaiting!)")
             }
-            guard case nil = self.draining
+            guard self.retained.isEmpty, self.released.isEmpty
             else
             {
-                fatalError("unreachable (deinitialized while session pool is still being drained!)")
+                fatalError("unreachable (deinitialized session pool while pool contains sessions!)")
+            }
+            guard case .draining(nil) = self.state
+            else
+            {
+                fatalError("unreachable (deinitialized session pool that has not been drained!)")
             }
         }
     }
 }
 extension Mongo.SessionPool
 {
-    /// The total number of sessions stored in the session pool. Some of
-    /// the sessions may be stale and not actually usable.
+    /// The total number of sessions stored in the session pool.
     public
     var count:Int
     {
@@ -52,125 +70,171 @@ extension Mongo.SessionPool
 }
 extension Mongo.SessionPool
 {
+    @available(*, deprecated)
     public nonisolated
     func withSession<Success>(
         _ body:(Mongo.Session) async throws -> Success) async throws -> Success
     {
-        try await self.withSessionMetadata
-        {
-            (id:Mongo.SessionIdentifier, metadata:inout Mongo.SessionMetadata) in
-
-            let session:Mongo.Session = .init(on: self.cluster,
-                metadata: metadata,
-                id: id)
-            defer
-            {
-                metadata = session.state.metadata
-            }
-            return try await body(session)
-        }
+        try await body(try await .init(from: self))
     }
-    private nonisolated
-    func withSessionMetadata<Success>(
-        _ body:(Mongo.SessionIdentifier, inout Mongo.SessionMetadata) async throws -> Success)
-        async throws -> Success
+    nonisolated
+    func create() async throws -> Mongo.SessionMetadata
     {
-        //  TODO: avoid generating excessive sessions if a medium is temporarily unavailable
-        //  rationale:
-        //  https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-must-drivers-wait-to-consume-a-server-session-until-after-a-connection-is-checked-out
-        //  TODO: above only applies for IMPLICIT sessions
-
         let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(clamping: nil)
-        let sessions:Mongo.LogicalSessions = try await self.cluster.sessions(
-            by: deadline)
-        
-        var metadata:Mongo.SessionMetadata
-        let id:Mongo.SessionIdentifier
-
-        (id, metadata) = await self.checkout(ttl: sessions.ttl)
-
-        do
-        {
-            let result:Success = try await body(id, &metadata)
-            await self.checkin(id: id, metadata: metadata)
-            return result
-        }
-        catch let error
-        {
-            await self.checkin(id: id, metadata: metadata)
-            throw error
-        }
+        let sessions:Mongo.LogicalSessions = try await self.cluster.sessions(by: deadline)
+        return await self.create(ttl: sessions.ttl)
     }
 }
 extension Mongo.SessionPool
 {
+    /// Unblocks an awaiting request with the given session, if one exists.
+    ///
+    /// -   Returns:
+    ///     [`true`]() if there was a request that was unblocked by this call,
+    ///     [`false`]() otherwise.
+    private
+    func yield(_ session:Mongo.SessionMetadata) -> Bool
+    {
+        if case ()? = self.requests.popFirst()?.resume(returning: session)
+        {
+            return true
+        }
+        else
+        {
+            return false
+        }
+    }
     func drain() async -> [Mongo.SessionIdentifier]
     {
-        if !self.retained.isEmpty
+        if case .draining(_?) = self.state
         {
-            guard case nil = self.draining
-            else
-            {
-                fatalError("unreachable (draining session pool that is already being drained!)")
-            }
-            await withCheckedContinuation
-            {
-                self.draining = $0
-            }
+            fatalError("unreachable (draining session pool that is already being drained!)")
         }
+
         defer
         {
-            self.released = [:]
+            self.released = []
         }
-        return .init(self.released.keys)
-    }
-    private
-    func checkin(id:Mongo.SessionIdentifier, metadata:Mongo.SessionMetadata)
-    {
-        guard case _? = self.retained.remove(id)
+        if  self.retained.isEmpty
+        {
+            self.state = .draining(nil)
+        }
         else
         {
-            fatalError("unreachable (released an unknown session!)")
+            await withCheckedContinuation
+            {
+                self.state = .draining($0)
+            }
         }
-        guard case nil = self.released.updateValue(metadata, forKey: id)
-        else
+        return self.released.map(\.id)
+    }
+}
+extension Mongo.SessionPool
+{
+    nonisolated
+    func destroy(_ session:Mongo.SessionMetadata, reuse:Bool)
+    {
+        if  reuse
         {
-            fatalError("unreachable (released a session more than once!)")
+            self.releasing.wrappingIncrement(ordering: .relaxed)
         }
-        if  self.retained.isEmpty,
-            let draining:CheckedContinuation<Void, Never> = self.draining
+        let _:Task<Void, Never> = .init
         {
-            draining.resume()
-            self.draining = nil
+            await self.destroy(session, reindex: reuse)
         }
     }
     private
-    func checkout(ttl:Minutes) -> (id:Mongo.SessionIdentifier, metadata:Mongo.SessionMetadata)
+    func destroy(_ session:Mongo.SessionMetadata, reindex:Bool)
     {
-        guard case nil = self.draining
+        if  reindex
+        {
+            self.releasing.wrappingDecrement(ordering: .relaxed)
+        }
+        switch self.state
+        {
+        case .filling:
+            guard reindex
+            else
+            {
+                // dirty sessions do not use `endSessions`, per
+                // https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-don-t-drivers-run-the-endsessions-command-to-cleanup-dirty-server-sessions
+                self.retained.remove(session.id)
+                return
+            }
+            guard self.yield(session)
+            else
+            {
+                self.retained.remove(session.id)
+                self.released.append(session)
+                return
+            }
+        
+        case .draining(let continuation):
+            self.retained.remove(session.id)
+            self.released.append(session)
+
+            if self.retained.isEmpty
+            {
+                continuation?.resume()
+                self.state = .draining(nil)
+            }
+        }
+    }
+    private
+    func create(ttl:Minutes) async -> Mongo.SessionMetadata
+    {
+        guard case .filling = self.state
         else
         {
             fatalError("unreachable (checking out a session while pool is being drained!)")
         }
+
         let now:ContinuousClock.Instant = .now
-        while case let (id, metadata)? = self.released.popFirst()
+
+        //  prune expired sessions from the front of the deque
+        while   let session:Mongo.SessionMetadata = self.released.first,
+                    session.expiration(ttl: ttl) <= now
         {
-            if now < metadata.touched.advanced(by: .minutes(ttl - 1))
+            self.released.removeFirst()
+        }
+        //  find a non-expired session at the end of the deque
+        while let session:Mongo.SessionMetadata = self.released.popLast()
+        {
+            guard now < session.expiration(ttl: ttl)
+            else
             {
-                self.retained.update(with: id)
-                return (id, metadata)
+                continue
+            }
+            if case nil = self.retained.update(with: session.id)
+            {
+                return session
+            }
+            else
+            {
+                fatalError("unreachable (retained a session more than once!)")
             }
         }
-        // very unlikely, but do not generate a session id that we have
-        // already generated. this is not foolproof (because we could
-        // have persistent sessions from a previous run), but allows us
-        // to maintain local dictionary invariants.
+        //  check that there are not enough currently-releasing sessions
+        //  to satisfy all outstanding requests, including this one
+        guard self.releasing.load(ordering: .relaxed) <= self.requests.count
+        else
+        {
+            return await withCheckedContinuation
+            {
+                self.requests.append($0)
+            }
+        }
+        //  generate a new one if there are none available
         while true
         {
+            // very unlikely, but do not generate a session id that we have
+            // already generated. this is not foolproof (because we could
+            // have persistent sessions from a previous run), but allows us
+            // to maintain local dictionary invariants.
             let id:Mongo.SessionIdentifier = .random()
             if case nil = self.retained.update(with: id)
             {
-                return (id, .init(touched: now))
+                return .init(transaction: .init(), touched: now, id: id)
             }
         }
     }
@@ -201,10 +265,10 @@ extension Mongo.SessionPool
         where Command:MongoImplicitSessionCommand
     {
         let started:ContinuousClock.Instant = .now
-        return try await self.withSession
-        {
-            try await $0.run(command: command, against: database, on: preference, by: deadline,
-                started: started)
-        }
+        let session:Mongo.Session = try await .init(from: self)
+        return try await session.run(command: command, against: database,
+            on: preference,
+            by: deadline,
+            started: started)
     }
 }

@@ -21,11 +21,9 @@ func TestSessionPool(_ tests:inout Tests,
             _ in
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                try await $0.withSession
-                {
-                    //  run at least one command to ensure we actually use the session
-                    try await $0.refresh()
-                }
+                //  run at least one command to ensure we actually use the session
+                let session:Mongo.Session = try await .init(from: $0)
+                try await session.refresh()
             }
         }
         //  We should be able to initialize a new session pool immediately after
@@ -35,17 +33,13 @@ func TestSessionPool(_ tests:inout Tests,
             _ in
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                try await $0.withSession
-                {
-                    try await $0.refresh()
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await session.refresh()
             }
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                try await $0.withSession
-                {
-                    try await $0.refresh()
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await session.refresh()
             }
         }
         //  We should be able to operate two session pools on the same deployment
@@ -56,20 +50,16 @@ func TestSessionPool(_ tests:inout Tests,
             async
             let first:Void = bootstrap.withSessionPool(seedlist: seedlist)
             {
-                try await $0.withSession
-                {
-                    try await Task.sleep(for: .milliseconds(100))
-                    try await $0.refresh()
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await Task.sleep(for: .milliseconds(100))
+                try await session.refresh()
             }
             async
             let second:Void = bootstrap.withSessionPool(seedlist: seedlist)
             {
-                try await $0.withSession
-                {
-                    try await Task.sleep(for: .milliseconds(100))
-                    try await $0.refresh()
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await Task.sleep(for: .milliseconds(100))
+                try await session.refresh()
             }
 
             try await first
@@ -84,13 +74,16 @@ func TestSessionPool(_ tests:inout Tests,
             {
                 try await bootstrap.withSessionPool(seedlist: seedlist)
                 {
+                    (pool:Mongo.SessionPool) in
+
                     async
-                    let _:Void = $0.withSession
+                    let _:Void =
                     {
-                        try await $0.refresh()
+                        let session:Mongo.Session = try await .init(from: pool)
+                        try await session.refresh()
                         try await Task.sleep(for: .milliseconds(100))
-                        try await $0.refresh()
-                    }
+                        try await session.refresh()
+                    }()
                     try await Task.sleep(for: .milliseconds(50))
                     throw CancellationError.init()
                 }
@@ -99,38 +92,27 @@ func TestSessionPool(_ tests:inout Tests,
             {
             }
         }
-        //  We should be able to throw an error from inside a session context,
-        //  without disturbing other sessions, or the pool as a whole.
-        await $0.test(name: "error-session")
-        {
-            _ in
-            try await bootstrap.withSessionPool(seedlist: seedlist)
-            {
-                async
-                let succeeding:Void = $0.withSession
-                {
-                    try await Task.sleep(for: .milliseconds(100))
-                    try await $0.refresh()
-                }
-                async
-                let failing:Void = $0.withSession
-                {
-                    _ in throw CancellationError.init()
-                }
-
-                try await succeeding
-                do
-                {
-                    try await failing
-                }
-                catch is CancellationError
-                {
-                }
-            }
-        }
     }
     await tests.group("session-pools")
     {
+        /// Two overlapping sessions should not re-use the same session.
+        await $0.test(name: "overlapping")
+        {
+            (tests:inout Tests) in
+
+            try await bootstrap.withSessionPool(seedlist: seedlist)
+            {
+                let a:Mongo.Session = try await .init(from: $0)
+                let b:Mongo.Session = try await .init(from: $0)
+
+                tests.assert(await $0.count ==? 2, name: "pool-count")
+
+                try await a.refresh()
+                try await b.refresh()
+                
+                tests.assert(a.id != b.id, name: "identifiers-not-equal")
+            }
+        }
         /// Two non-overlapping sessions should re-use the same session.
         await $0.test(name: "non-overlapping")
         {
@@ -139,44 +121,67 @@ func TestSessionPool(_ tests:inout Tests,
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 let id:(Mongo.SessionIdentifier, Mongo.SessionIdentifier)
-
-                id.0 = try await $0.withSession
+                do
                 {
-                    try await $0.refresh()
-                    return $0.id
-                }
-                id.1 = try await $0.withSession
-                {
-                    try await $0.refresh()
-                    return $0.id
-                }
+                    let session:Mongo.Session = try await .init(from: $0)
+                    try await session.refresh()
+                    tests.assert(await $0.count ==? 1, name: "pool-count-first")
 
+                    id.0 = session.id
+                }
+                do
+                {
+                    let session:Mongo.Session = try await .init(from: $0)
+                    try await session.refresh()
+                    tests.assert(await $0.count ==? 1, name: "pool-count-second")
+
+                    id.1 = session.id
+                }
                 tests.assert(id.0 ==? id.1, name: "identifiers-equal")
             }
         }
-        /// Two overlapping sessions should not re-use the same session.
-        await $0.test(name: "overlapping")
+        /// Session count should never exceed maximum logical width,
+        /// even taking into account task execution latencies.
+        await $0.test(name: "cohorts")
         {
             (tests:inout Tests) in
 
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                (pool:Mongo.SessionPool) in 
-
-                let id:(Mongo.SessionIdentifier, Mongo.SessionIdentifier) =
-                    try await pool.withSession
+                for _:Int in 0 ..< 50
                 {
-                    try await $0.refresh()
-
-                    let id:Mongo.SessionIdentifier = try await pool.withSession
+                    var sessions:[Mongo.Session] = []
+                    for _:Int in 0 ..< 10
                     {
-                        try await $0.refresh()
-                        return $0.id
+                        sessions.append(try await .init(from: $0))
                     }
-                    return ($0.id, id)
                 }
 
-                tests.assert(id.0 != id.1, name: "identifiers-not-equal")
+                tests.assert(await $0.count ==? 10, name: "pool-count")
+            }
+        }
+        /// Serialized usages of implcit sessions should never blow up the pool.
+        await $0.test(name: "implicit")
+        {
+            (tests:inout Tests) in
+
+            try await bootstrap.withSessionPool(seedlist: seedlist)
+            {
+                let explicit:Mongo.Session = try await .init(from: $0)
+
+                tests.assert(await $0.count ==? 1, name: "pool-count-before")
+
+                for _:Int in 0 ..< 100
+                {
+                    try await $0.run(command: Mongo.RefreshSessions.init(explicit.id),
+                        against: .admin)
+                }
+
+                // make sure we use the explicit session, to prevent it from
+                // being deinitialized
+                try await explicit.refresh()
+
+                tests.assert(await $0.count ==? 2, name: "pool-count-after")
             }
         }
     }

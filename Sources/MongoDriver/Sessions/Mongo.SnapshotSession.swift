@@ -1,28 +1,43 @@
 extension Mongo
 {
-    public
-    struct SnapshotSession:Identifiable
+    public final
+    class SnapshotSession:Identifiable
     {
-        public
-        let connectionTimeout:Duration
-        public
-        let cluster:Mongo.Cluster
-        @usableFromInline
-        let state:State
+        public private(set)
+        var snapshotTime:Mongo.Instant
+        public private(set)
+        var transaction:Transaction
+        private
+        var touched:ContinuousClock.Instant
+
         public
         let id:SessionIdentifier
 
-        init(on cluster:Mongo.Cluster,
-            connectionTimeout:Duration,
-            snapshotTime:Mongo.Instant,
-            metadata:SessionMetadata,
-            id:SessionIdentifier)
-        {
-            self.state = .init(metadata, snapshotTime: snapshotTime)
+        /// The server cluster associated with this session’s ``pool``.
+        /// This is stored inline to speed up access.
+        @usableFromInline
+        let cluster:Cluster
+        private
+        let pool:SessionPool
 
-            self.connectionTimeout = connectionTimeout
-            self.cluster = cluster
-            self.id = id
+        private
+        init(snapshotTime:Mongo.Instant, metadata:SessionMetadata, pool:SessionPool)
+        {
+            self.snapshotTime = snapshotTime
+            self.transaction = metadata.transaction
+            self.touched = metadata.touched
+            self.id = metadata.id
+
+            self.cluster = pool.cluster
+            self.pool = pool
+        }
+        deinit
+        {
+            self.pool.destroy(.init(
+                    transaction: self.transaction,
+                    touched: self.touched,
+                    id: self.id),
+                reuse: true)
         }
     }
 }

@@ -71,28 +71,35 @@ extension Mongo.Cluster
     public nonisolated
     var time:Mongo.ClusterTime
     {
-        .init(self.atomic.time.load(ordering: .relaxed)?.value)
+        .init(self.atomic.time.load(ordering: .relaxed)?.notarized)
     }
 }
 extension Mongo.Cluster
 {
     public nonisolated
-    func push(time:Mongo.ClusterTime.Sample?)
+    func yield(clusterTime notarized:Mongo.NotarizedTime?)
     {
-        guard let time:Mongo.ClusterTime.Sample
+        guard let notarized:Mongo.NotarizedTime
         else
         {
             return
         }
         let _:Task<Void, Never> = .init
         {
-            await self.push(time: time)
+            await self.combine(clusterTime: notarized)
         }
     }
-    func push(time:Mongo.ClusterTime.Sample)
+    /// Updates the stored cluster time if the given time is greater. This is
+    /// actor-isolated even though it only uses non-isolated operations, to prevent
+    /// races between the atomic load and the atomic store.
+    private
+    func combine(clusterTime notarized:Mongo.NotarizedTime)
     {
-        self.atomic.time.store(.init(self.time.combined(with: time)), ordering: .relaxed)
+        self.atomic.time.store(.init(self.time.combined(with: notarized)), ordering: .relaxed)
     }
+}
+extension Mongo.Cluster
+{
     func push(snapshot:Mongo.Servers, sessions:Mongo.LogicalSessions? = nil)
     {
         self.snapshot = snapshot

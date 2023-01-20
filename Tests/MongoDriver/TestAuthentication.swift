@@ -21,10 +21,8 @@ func TestAuthentication(_ tests:inout Tests,
                 executor: executor)
             try await bootstrap.withSessionPool(seedlist: [standalone])
             {
-                try await $0.withSession
-                {
-                    _ in
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await session.refresh()
             }
         }
 
@@ -38,10 +36,8 @@ func TestAuthentication(_ tests:inout Tests,
                 executor: executor)
             try await bootstrap.withSessionPool(seedlist: [standalone])
             {
-                try await $0.withSession
-                {
-                    _ in
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await session.refresh()
             }
         }
     }
@@ -70,10 +66,8 @@ func TestAuthentication(_ tests:inout Tests,
             try await bootstrap.withSessionPool(seedlist: [standalone],
                 timeout: .init(milliseconds: 500))
             {
-                try await $0.withSession
-                {
-                    _ in
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await session.refresh()
             }
         }
     }
@@ -104,10 +98,8 @@ func TestAuthentication(_ tests:inout Tests,
             try await bootstrap.withSessionPool(seedlist: [standalone],
                 timeout: .init(milliseconds: 500))
             {
-                try await $0.withSession
-                {
-                    _ in
-                }
+                let session:Mongo.Session = try await .init(from: $0)
+                try await session.refresh()
             }
         }
     }
