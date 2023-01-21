@@ -16,19 +16,3 @@ extension Mongo
         }
     }
 }
-extension Mongo.Transaction
-{
-    public mutating
-    func start(with readConcern:Mongo.ReadConcern?)
-    {
-        if case nil = self.phase
-        {
-            self.number += 1
-            self.phase = .starting(readConcern)
-        }
-        else
-        {
-            fatalError("MongoDB transaction misuse: cannot start a transaction from within another transaction!")
-        }
-    }
-}

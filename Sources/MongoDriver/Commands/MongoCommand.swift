@@ -68,21 +68,18 @@ extension MongoCommand
         bson["readConcern"] = labels.readConcern
         bson["lsid"] = labels.session
 
-        guard let phase:Mongo.TransactionPhase = labels.transaction.phase
-        else
+        switch labels.transaction
         {
-            return
+        case nil:
+            break
+        
+        case .starting(let number)?:
+            bson["startTransaction"] = true
+            fallthrough
+        
+        case .started(let number)?:
+            bson["autocommit"] = false
+            bson["txnNumber"] = number
         }
-
-        bson["txnNumber"] = labels.transaction.number
-        bson["autocommit"] = false
-
-        guard case .starting = phase
-        else
-        {
-            return
-        }
-
-        bson["startTransaction"] = true
     }
 }

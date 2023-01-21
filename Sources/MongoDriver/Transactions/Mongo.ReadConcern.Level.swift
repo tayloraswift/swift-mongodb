@@ -2,6 +2,9 @@ import BSONSchema
 
 extension Mongo.ReadConcern
 {
+    /// Models the same options as ``ReadLevel``, plus the ``snapshot`` option.
+    /// The snapshot level can be used with transactions and snapshot sessions.
+    @frozen public
     enum Level:String, Hashable, Sendable
     {
         case local

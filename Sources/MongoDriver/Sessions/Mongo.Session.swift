@@ -103,6 +103,22 @@ extension Mongo.Session:Sendable
 }
 extension Mongo.Session
 {
+    @usableFromInline static
+    let transactionUnpinnedErrorMessage:String =
+    """
+    MongoDB transaction misuse: \
+    cannot run commands on a session from outside of transaction \
+    context while a transaction is in progress!
+    """
+    @usableFromInline static
+    let transactionNestedErrorMessage:String =
+    """
+    MongoDB transaction misuse: \
+    cannot start a transaction from within another transaction!
+    """
+}
+extension Mongo.Session
+{
     /// Runs a command against the specified database, on a server selected according
     /// to the specified read preference.
     ///
@@ -123,6 +139,10 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
         where Command:MongoCommand
     {
+        if case _? = self.transaction.phase
+        {
+            fatalError(Self.transactionUnpinnedErrorMessage)
+        }
         let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now,
             clamping: deadline)
         let connections:Mongo.ConnectionPool = try await self.cluster.pool(
@@ -164,6 +184,10 @@ extension Mongo.Session
         async throws -> Success
         where Query:MongoQuery
     {
+        if case _? = self.transaction.phase
+        {
+            fatalError(Self.transactionUnpinnedErrorMessage)
+        }
         let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now,
             clamping: deadline)
         let connections:Mongo.ConnectionPool = try await self.cluster.pool(
@@ -177,17 +201,26 @@ extension Mongo.Session
             by: deadline ?? connect.instant,
             with: consumer)
     }
-
+}
+extension Mongo.Session
+{
     @inlinable public
     func withTransaction<Success>(
         writeConcern:Mongo.WriteConcern?,
-        readConcern:Mongo.ReadConcern?,
-        run body:() async throws -> Success) async throws -> Success
+        readConcern:Mongo.ReadConcern.Level?,
+        run body:(Mongo.TransactionContext) async throws -> Success) async throws -> Success
     {
+        let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now)
+        //  Transactions can only be performed on the primary/master, and moreover,
+        //  must be pinned to a specific server. (This means primary stepdown is not
+        //  allowed.)
+        let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+            preference: .primary,
+            by: deadline)
         self.startTransaction(with: readConcern)
         do
         {
-            let success:Success = try await body()
+            let success:Success = try await body(.init(session: self, pinned: connections))
             try await self.commitTransaction(with: writeConcern)
             return success
         }
@@ -197,11 +230,21 @@ extension Mongo.Session
             throw error
         }
     }
-
+    /// Transitions the transaction state into the starting phase, and stores
+    /// the supplied read concern (if any) for use by the next command run with
+    /// the owning session. Traps if a transaction is already in progress.
     @usableFromInline
-    func startTransaction(with readConcern:Mongo.ReadConcern?)
+    func startTransaction(with readConcern:Mongo.ReadConcern.Level?)
     {
-        self.transaction.start(with: readConcern)
+        if case nil = self.transaction.phase
+        {
+            self.transaction.number += 1
+            self.transaction.phase = .starting(readConcern)
+        }
+        else
+        {
+            fatalError(Self.transactionNestedErrorMessage)
+        }
     }
     @usableFromInline
     func abortTransaction(with writeConcern:Mongo.WriteConcern?) async throws
@@ -210,8 +253,12 @@ extension Mongo.Session
         {
             self.transaction.phase = nil
         }
-        try await self.run(command: Mongo.AbortTransaction.init(writeConcern: writeConcern),
-            against: .admin)
+        if case .started? = self.transaction.phase
+        {
+            try await self.run(
+                command: Mongo.AbortTransaction.init(writeConcern: writeConcern),
+                against: .admin)
+        }
     }
     @usableFromInline
     func commitTransaction(with writeConcern:Mongo.WriteConcern?) async throws
@@ -220,45 +267,13 @@ extension Mongo.Session
         {
             self.transaction.phase = nil
         }
-        try await self.run(command: Mongo.CommitTransaction.init(writeConcern: writeConcern),
-            against: .admin)
+        if case .started? = self.transaction.phase
+        {
+            try await self.run(
+                command: Mongo.CommitTransaction.init(writeConcern: writeConcern),
+                against: .admin)
+        }
     }
-    // @inlinable public
-    // func runWithSnapshotTransaction<Command, Success>(command:Command,
-    //     against database:Command.Database,
-    //     by deadline:ContinuousClock.Instant? = nil,
-    //     started:ContinuousClock.Instant = .now,
-    //     _ body:(Command.Response) async throws -> Success) async throws -> Success
-    //     where Command:MongoTransactableCommand
-    // {
-    //     let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: started,
-    //         clamping: deadline)
-    //     //  transactions are only supported on the primary
-    //     let connections:Mongo.ConnectionPool = try await self.cluster.pool(
-    //         preference: .primary,
-    //         by: connect)
-    //     let connection:Mongo.Connection = try await .init(from: connections, by: connect)
-
-    //     self.startTransaction()
-        
-    //     let initial:Command.Response = try await self.run(command: command,
-    //         against: database,
-    //         over: connection,
-    //         on: .primary,
-    //         by: deadline ?? connect.instant)
-        
-    //     do
-    //     {
-    //         let success:Success = try await consumer(batches)
-    //         await batches.destroy()
-    //         return success
-    //     }
-    //     catch let error
-    //     {
-    //         await batches.destroy()
-    //         throw error
-    //     }
-    // }
 }
 extension Mongo.Session
 {
@@ -274,7 +289,7 @@ extension Mongo.Session
     }
 }
 extension Mongo.Session
-{    
+{
     @inlinable public
     func run<Command>(command:Command, against database:Command.Database,
         over connection:Mongo.Connection,
@@ -282,14 +297,8 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant) async throws -> Command.Response
         where Command:MongoCommand
     {
-        let labels:Mongo.SessionLabels = .init(clusterTime: self.cluster.time,
-            readPreference: preference,
-            readConcern: (command as? any MongoReadCommand).map
-            {
-                .init(level: $0.readLevel, after: self.preconditionTime)
-            },
-            transaction: self.transaction,
-            session: self.id)
+        let labels:Mongo.SessionLabels = self.labels(readPreference: preference,
+            readLevel: (command as? any MongoReadCommand).map(\.readLevel))
         
         let sent:ContinuousClock.Instant = .now
         let reply:Mongo.Reply = try await connection.run(command: command,
@@ -341,6 +350,53 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
+    /// Generate command labels based on the current session state, transaction,
+    /// and supplied arguments. Advances the transaction phase, if a transaction
+    /// is in progress.
+    ///
+    /// -   Parameters:
+    ///     -   readPreference:
+    ///         The read preference to add to the returned command labels. It will
+    ///         always be encoded.
+    ///     -   readLevel:
+    ///         The read level to use when computing the read concern that will be
+    ///         added to the returned command labels. It will only be used if no
+    ///         transaction is in progress, otherwise the transaction’s read level
+    ///         takes precedence.
+    ///         If the outer optional is inhabited, the precondition time will be
+    ///         encoded even if the inner optional is [`nil`]().
+    ///
+    /// If the transaction state was in the starting phase, it will transition to
+    /// the started phase, and this transition will be sticky — it will not revert
+    /// if the next command fails with an error.
+    ///
+    /// See: https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#constructing-the-first-command-within-a-transaction
+    @usableFromInline
+    func labels(readPreference:Mongo.ReadPreference,
+        readLevel:Mongo.ReadLevel??) -> Mongo.SessionLabels
+    {
+        let readConcern:Mongo.ReadConcern?
+        let transaction:Mongo.TransactionLabels?
+        switch self.transaction.phase
+        {
+        case .starting(let readLevel)?:
+            readConcern = .level(readLevel, after: self.preconditionTime)
+            transaction = .starting(self.transaction.number)
+        
+        case .started?:
+            readConcern = nil
+            transaction = .started(self.transaction.number)
+        
+        case nil:
+            readConcern = readLevel.map { .level($0, after: self.preconditionTime) }
+            transaction = nil
+        }
+        return .init(clusterTime: self.cluster.time,
+            readPreference: readPreference,
+            readConcern: readConcern,
+            transaction: transaction,
+            session: self.id)
+    }
     /// Update the session’s state with an observed operation time, and the local
     /// time when the command it was obtained from was sent.
     ///

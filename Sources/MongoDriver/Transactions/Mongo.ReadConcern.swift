@@ -8,6 +8,7 @@ extension Mongo
         let ordering:Ordering?
         let level:Level?
 
+        private
         init(ordering:Ordering?, level:Level?)
         {
             self.ordering = ordering
@@ -17,11 +18,33 @@ extension Mongo
 }
 extension Mongo.ReadConcern
 {
-    public
-    init(level:Mongo.ReadLevel?, after clusterTime:Mongo.Instant?)
+    static
+    func level(_ level:Level?, after clusterTime:Mongo.Instant?) -> Self
     {
-        self.init(ordering: clusterTime.map(Ordering.after(_:)),
-            level: level.map(Level.init(_:)))
+        .init(ordering: clusterTime.map(Ordering.after(_:)), level: level)
+    }
+    static
+    func level(_ level:Level?, at clusterTime:Mongo.Instant?) -> Self
+    {
+        .init(ordering: clusterTime.map(Ordering.at(_:)), level: level)
+    }
+}
+extension Mongo.ReadConcern
+{
+    public static
+    func level(_ level:Mongo.ReadLevel?, after clusterTime:Mongo.Instant?) -> Self
+    {
+        .level(level.map(Level.init(_:)), after: clusterTime)
+    }
+    public static
+    func snapshot(at clusterTime:Mongo.Instant?) -> Self
+    {
+        .level(.snapshot, at: clusterTime)
+    }
+    public static
+    var snapshot:Self
+    {
+        .level(.snapshot, at: nil)
     }
 }
 extension Mongo.ReadConcern:BSONDocumentEncodable
@@ -42,24 +65,3 @@ extension Mongo.ReadConcern:BSONDocumentEncodable
         }
     }
 }
-// extension Mongo.ReadConcern:BSONDictionaryDecodable
-// {
-//     @inlinable public
-//     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
-//     {
-//         switch try bson["level"].decode(to: Level.self)
-//         {
-//         case .local:
-//             self = .local
-//         case .available:
-//             self = .available
-//         case .majority:
-//             self = .majority
-//         case .linearizable:
-//             self = .linearizable
-//         case .snapshot:
-//             self = .snapshot(at: bson[""])
-//         }
-//         self.init(level: )
-//     }
-// }
