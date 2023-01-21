@@ -3,12 +3,8 @@ import BSONEncoding
 extension Mongo
 {
     /// The MongoDB `abortTransaction` command.
-    ///
-    /// This command conforms to ``Error``, and can be used to abort
-    /// a transaction from within a transaction context with a specific
-    /// write concern.
-    public
-    struct AbortTransaction:Equatable, Sendable, Error
+    @usableFromInline
+    struct AbortTransaction:Equatable, Sendable
     {
         public
         let writeConcern:WriteConcern?

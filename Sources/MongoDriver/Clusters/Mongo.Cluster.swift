@@ -3,6 +3,25 @@ import Durations
 
 extension Mongo
 {
+    /// A type that models the state of a MongoDB deployment.
+    ///
+    /// Instances of this type are responsible for storing the following information:
+    ///
+    /// -   Whether or not the deployment supports logical sessions, and if so,
+    ///     what the logical session TTL is.
+    /// -   What the current largest-seen cluster time is, and proof that that
+    ///     cluster time came from a `mongod`/`mongos` server.
+    /// -   A snapshot of the current cluster topology, which contains references
+    ///     to the current ``ConnectionPool`` associated with each reachable server.
+    ///
+    /// Instances of this type are responsible for making this information available
+    /// to other tasks in a timely fashion. It is not responsible for computing or
+    /// sequencing topology updates.
+    ///
+    /// Having a separate actor loop for publishing the deployment model means
+    /// types like ``Session`` and ``SessionPool`` don’t need to interact with
+    /// the service monitor, and service monitoring computations don’t block requests
+    /// for information about deployment state.
     public final
     actor Cluster
     {
@@ -69,37 +88,58 @@ extension Mongo.Cluster
     }
     /// The current largest-seen cluster time, if any.
     public nonisolated
-    var time:Mongo.ClusterTime
+    var time:Mongo.ClusterTime?
     {
-        .init(self.atomic.time.load(ordering: .relaxed)?.notarized)
+        self.atomic.time.load(ordering: .relaxed)?.value
     }
 }
 extension Mongo.Cluster
 {
-    public nonisolated
-    func yield(clusterTime notarized:Mongo.NotarizedTime?)
+    /// Synchronously yield an observed cluster time to this deployment model.
+    /// The time sample will be integrated into the deployment state
+    /// asynchronously.
+    ///
+    /// It is expected that many concurrent tasks will yield non-monotinic
+    /// cluster time observations; the deployment model will sequence the
+    /// observations and publish a monotonically increasing global cluster time.
+    ///
+    /// This works differently from topology snapshot updates, which are pushed
+    /// by a single actor loop (the `Monitor`) in a blocking fashion.
+    @usableFromInline nonisolated
+    func yield(clusterTime:Mongo.ClusterTime?)
     {
-        guard let notarized:Mongo.NotarizedTime
+        guard let clusterTime:Mongo.ClusterTime
         else
         {
             return
         }
         let _:Task<Void, Never> = .init
         {
-            await self.combine(clusterTime: notarized)
+            await self.combine(clusterTime)
         }
     }
     /// Updates the stored cluster time if the given time is greater. This is
     /// actor-isolated even though it only uses non-isolated operations, to prevent
     /// races between the atomic load and the atomic store.
     private
-    func combine(clusterTime notarized:Mongo.NotarizedTime)
+    func combine(_ clusterTime:Mongo.ClusterTime)
     {
-        self.atomic.time.store(.init(self.time.combined(with: notarized)), ordering: .relaxed)
+        let current:Mongo.AtomicTime? = self.atomic.time.load(ordering: .relaxed)
+        self.atomic.time.store(clusterTime.combined(with: current), ordering: .relaxed)
     }
 }
 extension Mongo.Cluster
 {
+    /// Pushes a topology snapshot to the deployment model, along with information
+    /// about the deployment’s logical sessions support.
+    ///
+    /// Unlike the cluster time, topology updates are computationally intensive, and
+    /// so they are not calculated on the deployment model’s actor loop, to avoid
+    /// blocking tasks that need to read the deployment state.
+    ///
+    /// This method should only be called from a single task or actor context, and
+    /// the caller should always wait for the call to complete in order to ensure
+    /// sequential consistency.
     func push(snapshot:Mongo.Servers, sessions:Mongo.LogicalSessions? = nil)
     {
         self.snapshot = snapshot
@@ -188,16 +228,6 @@ extension Mongo.Cluster
 }
 extension Mongo.Cluster
 {
-    // @inlinable public nonisolated
-    // func withConnection<Success>(
-    //     to preference:Mongo.ReadPreference,
-    //     by deadline:ContinuousClock.Instant,
-    //     run body:(Mongo.Connection) async throws -> Success) async throws -> Success
-    // {
-    //     try await self.pool(preference: preference, by: deadline).withConnection(by: deadline,
-    //         run: body)
-    // }
-
     @usableFromInline
     func pool(preference:Mongo.ReadPreference,
         by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionPool

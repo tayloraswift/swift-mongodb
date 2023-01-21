@@ -23,36 +23,36 @@ func TestConnectionPool(_ tests:inout Tests,
 
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                let midpoint:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(500))
-                let deadline:Mongo.ConnectionDeadline = midpoint.advanced(by: .milliseconds(500))
-                try await $0.withDirectConnections(to: .primary, by: midpoint)
+                let midpoint:Mongo.ConnectionDeadline = .now.advanced(
+                    by: .milliseconds(500))
+                let deadline:Mongo.ConnectionDeadline = midpoint.advanced(
+                    by: .milliseconds(500))
+
+                let pool:Mongo.ConnectionPool = try await $0.connect(to: .primary,
+                    by: midpoint)
+                try await withThrowingTaskGroup(of: Void.self)
                 {
-                    (pool:Mongo.ConnectionPool) in
+                    (tasks:inout ThrowingTaskGroup<Void, any Error>) in
 
-                    try await withThrowingTaskGroup(of: Void.self)
+                    for _:Int in 0 ..< 500
                     {
-                        (tasks:inout ThrowingTaskGroup<Void, any Error>) in
-
-                        for _:Int in 0 ..< 500
+                        tasks.addTask
                         {
-                            tasks.addTask
+                            let connection:Mongo.Connection = try await .init(from: pool,
+                                by: deadline)
+                            try await Task.sleep(until: midpoint.instant,
+                                    clock: .continuous)
+                            withExtendedLifetime(connection)
                             {
-                                let connection:Mongo.Connection = try await .init(from: pool,
-                                    by: deadline)
-                                try await Task.sleep(until: midpoint.instant,
-                                        clock: .continuous)
-                                withExtendedLifetime(connection)
-                                {
-                                }
                             }
                         }
-                        for try await _:Void in tasks
-                        {
-                        }
                     }
-
-                    tests.assert(await pool.count ==? 100, name: "pool-count")
+                    for try await _:Void in tasks
+                    {
+                    }
                 }
+
+                tests.assert(await pool.count ==? 100, name: "pool-count")
             }
         }
         //  This test makes 500 connection requests to the primary/master’s connection
@@ -66,21 +66,18 @@ func TestConnectionPool(_ tests:inout Tests,
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(500))
-                try await $0.withDirectConnections(to: .primary, by: deadline)
+                let pool:Mongo.ConnectionPool = try await $0.connect(to: .primary,
+                    by: deadline)
+                for _:Int in 0 ..< 50
                 {
-                    (pool:Mongo.ConnectionPool) in
-
-                    for _:Int in 0 ..< 50
+                    var connections:[Mongo.Connection] = []
+                    for _:Int in 0 ..< 10
                     {
-                        var connections:[Mongo.Connection] = []
-                        for _:Int in 0 ..< 10
-                        {
-                            connections.append(try await .init(from: pool, by: deadline))
-                        }
+                        connections.append(try await .init(from: pool, by: deadline))
                     }
-
-                    tests.assert(await pool.count ==? 10, name: "pool-count")
                 }
+
+                tests.assert(await pool.count ==? 10, name: "pool-count")
             }
         }
         await $0.test(name: "perishment")
@@ -90,31 +87,28 @@ func TestConnectionPool(_ tests:inout Tests,
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(1000))
-                try await $0.withDirectConnections(to: .primary, by: deadline)
+                let pool:Mongo.ConnectionPool = try await $0.connect(to: .primary,
+                    by: deadline)
+                //  use up the pool’s entire capacity by hoarding connections.
+                var connections:[Mongo.Connection] = []
+                for _:Int in 0 ..< 100
                 {
-                    (pool:Mongo.ConnectionPool) in
+                    connections.append(try await .init(from: pool, by: deadline))
+                }
 
-                    //  use up the pool’s entire capacity by hoarding connections.
-                    var connections:[Mongo.Connection] = []
-                    for _:Int in 0 ..< 100
-                    {
-                        connections.append(try await .init(from: pool, by: deadline))
-                    }
+                tests.assert(await pool.count ==? 100, name: "pool-count")
 
-                    tests.assert(await pool.count ==? 100, name: "pool-count")
-
-                    //  interrupt ten of those connections.
-                    for connection:Mongo.Connection in connections.prefix(10)
-                    {
-                        connection.interrupt()
-                    }
-                    //  even though we haven’t returned the perished connections
-                    //  to the pool, it should still be able to re-create ten
-                    //  connections to replace them.
-                    for _:Int in 0 ..< 10
-                    {
-                        connections.append(try await .init(from: pool, by: deadline))
-                    }
+                //  interrupt ten of those connections.
+                for connection:Mongo.Connection in connections.prefix(10)
+                {
+                    connection.interrupt()
+                }
+                //  even though we haven’t returned the perished connections
+                //  to the pool, it should still be able to re-create ten
+                //  connections to replace them.
+                for _:Int in 0 ..< 10
+                {
+                    connections.append(try await .init(from: pool, by: deadline))
                 }
             }
         }

@@ -1,38 +1,58 @@
+import BSONSchema
+
 extension Mongo
 {
-    @frozen public
+    public
     struct ClusterTime:Sendable
     {
-        public
-        let max:NotarizedTime?
+        let signature:BSON.Fields
+        let time:Instant
 
-        init(_ notarized:NotarizedTime?)
+        @usableFromInline
+        init(signature:BSON.Fields, time:Instant)
         {
-            self.max = notarized
+            self.signature = signature
+            self.time = time
         }
     }
 }
 extension Mongo.ClusterTime
 {
-    func combined(with notarized:Mongo.NotarizedTime) -> Self
+    //  Writing this function in terms of ``AtomicTime`` prevents us
+    //  from allocating a new object in the common case where the
+    //  max cluster time has not changed.
+    func combined(with other:Mongo.AtomicTime?) -> Mongo.AtomicTime
     {
-        guard let max:Mongo.NotarizedTime = self.max
+        guard let other:Mongo.AtomicTime
         else
         {
-            return .init(notarized)
+            return .init(self)
         }
-        if  max.time < notarized.time
+        if  other.value.time < self.time
         {
-            return .init(notarized)
+            return .init(self)
         }
         else
         {
-            return self
+            return other
         }
     }
-    mutating
-    func combine(with notarized:Mongo.NotarizedTime)
+}
+extension Mongo.ClusterTime:BSONDocumentEncodable
+{
+    public
+    func encode(to bson:inout BSON.Fields)
     {
-        self = self.combined(with: notarized)
+        bson["signature", elide: false] = self.signature
+        bson["clusterTime"] = self.time
+    }
+}
+extension Mongo.ClusterTime:BSONDictionaryDecodable
+{
+    @inlinable public
+    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    {
+        self.init(signature: try bson["signature"].decode(to: BSON.Fields.self),
+            time: try bson["clusterTime"].decode(to: Mongo.Instant.self))
     }
 }
