@@ -113,6 +113,33 @@ func TestSessionPool(_ tests:inout Tests,
                 tests.assert(a.id != b.id, name: "identifiers-not-equal")
             }
         }
+        /// Two forked sessions should not re-use the same session.
+        await $0.test(name: "forked")
+        {
+            (tests:inout Tests) in
+
+            try await bootstrap.withSessionPool(seedlist: seedlist)
+            {
+                let a:Mongo.Session = try await .init(from: $0)
+
+                try await a.refresh()
+
+                let b:Mongo.Session = try await .init(from: $0, forking: a)
+
+                tests.assert(await $0.count ==? 2, name: "pool-count")
+
+                if seedlist.count > 1
+                {
+                    let _:Mongo.Instant? = tests.unwrap(b.preconditionTime,
+                        name: "precondition-time")
+                }
+
+                try await a.refresh()
+                try await b.refresh()
+                
+                tests.assert(a.id != b.id, name: "identifiers-not-equal")
+            }
+        }
         /// Two non-overlapping sessions should re-use the same session.
         await $0.test(name: "non-overlapping")
         {
