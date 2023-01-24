@@ -67,20 +67,6 @@ extension Mongo.Batches
     }
 }
 
-
-// extension Mongo.Batches
-// {
-//     @inlinable public
-//     var database:Mongo.Database
-//     {
-//         self.namespace.database
-//     }
-//     @inlinable public
-//     var collection:Mongo.Collection
-//     {
-//         self.namespace.collection
-//     }
-// }
 extension Mongo.Batches:AsyncSequence
 {
     public

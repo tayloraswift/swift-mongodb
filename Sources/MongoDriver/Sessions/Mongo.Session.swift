@@ -65,9 +65,9 @@ extension Mongo
         let pool:SessionPool
 
         private
-        init(metadata:SessionMetadata, pool:SessionPool)
+        init(metadata:SessionMetadata, pool:SessionPool, fork:Mongo.Instant? = nil)
         {
-            self.preconditionTime = nil
+            self.preconditionTime = fork
             self.transaction = metadata.transaction
             self.touched = metadata.touched
             self.reuse = true
@@ -95,6 +95,16 @@ extension Mongo.Session
     init(from pool:Mongo.SessionPool) async throws
     {
         self.init(metadata: try await pool.create(), pool: pool)
+    }
+    /// Creates a session from a session pool, which is causally-consistent
+    /// with another session. Operations on the newly-created session will
+    /// reflect writes performed using the original session at the time of
+    /// session creation, but the two sessions will be otherwise unrelated.
+    public convenience
+    init(from pool:Mongo.SessionPool, forking original:__shared Mongo.Session) async throws
+    {
+        self.init(metadata: try await pool.create(), pool: pool,
+            fork: original.preconditionTime)
     }
 }
 @available(*, unavailable, message: "sessions have reference semantics")
@@ -193,10 +203,13 @@ extension Mongo.Session
         let connections:Mongo.ConnectionPool = try await self.cluster.pool(
             preference: preference,
             by: connect)
-        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
-        
+        //  this must be an optional var, because the helper function needs to be able
+        //  to kill the parameter reference before passing it to `consumer`, so that
+        //  `connection` stays uniquely referenced.
+        var connection:Mongo.Connection? = try await .init(from: connections, by: connect)
+
         return try await self.run(query: query, against: database,
-            over: connection,
+            over: &connection,
             on: preference,
             by: deadline ?? connect.instant,
             with: consumer)
@@ -316,7 +329,7 @@ extension Mongo.Session
 
     @inlinable public
     func run<Query, Success>(query:Query, against database:Query.Database,
-        over connection:Mongo.Connection,
+        over connection:inout Mongo.Connection?,
         on preference:Mongo.ReadPreference,
         by deadline:ContinuousClock.Instant,
         with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
@@ -329,11 +342,13 @@ extension Mongo.Session
                 milliseconds: self.cluster.timeout.milliseconds),
             initial: try await self.run(command: query,
                 against: database,
-                over: connection,
+                over: connection!,
                 on: preference,
                 by: deadline),
             stride: query.stride,
-            pinned: (connection, self))
+            pinned: (connection!, self))
+        
+        connection = nil
         
         do
         {

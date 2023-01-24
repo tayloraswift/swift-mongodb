@@ -201,6 +201,21 @@ func TestCausalConsistency(_ tests:inout Tests,
             
             $0.assert(letters ..? [a], name: "letters")
         }
+        //  We should still receive a timeout error if we try to read from the
+        //  locked secondary/slave using a session that was forked from the
+        //  current session, however.
+        await tests.test(name: "timeout-forked",
+            expecting: MongoChannel.TimeoutError.init(sent: true))
+        {
+            _ in
+            let forked:Mongo.Session = try await .init(from: pool, forking: session)
+            let _:[Letter] = try await forked.run(
+                command: Mongo.Find<Letter>.SingleBatch.init(
+                    collection: collection,
+                    limit: 10),
+                against: database,
+                on: secondary)
+        }
 
         //  We should be able to unlock the secondary/slave.
         lock = try await session.run(command: Mongo.FsyncUnlock.init(),
