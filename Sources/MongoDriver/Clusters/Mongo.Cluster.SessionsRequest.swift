@@ -1,10 +1,15 @@
 extension Mongo.Cluster
 {
+    typealias SessionsResponse =
+        Result<Mongo.LogicalSessions, Mongo.ClusterError<Mongo.LogicalSessionsError>>
+}
+extension Mongo.Cluster
+{
     struct SessionsRequest
     {
-        let promise:CheckedContinuation<Mongo.LogicalSessions, any Error>
+        let promise:CheckedContinuation<SessionsResponse, Never>
 
-        init(promise:CheckedContinuation<Mongo.LogicalSessions, any Error>)
+        init(promise:CheckedContinuation<SessionsResponse, Never>)
         {
             self.promise = promise
         }
@@ -25,16 +30,16 @@ extension Mongo.Cluster.SessionsRequest?
             self = nil
         }
 
-        request.promise.resume(throwing: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
+        request.promise.resume(returning: .failure(.init(
             diagnostics: .init(unreachable: servers.unreachable),
-            failure: .init()))
+            failure: .init())))
     }
     mutating
     func fulfill(with sessions:Mongo.LogicalSessions)
     {
         if  let request:Mongo.Cluster.SessionsRequest = self
         {
-            request.promise.resume(returning: sessions)
+            request.promise.resume(returning: .success(sessions))
             self = nil
         }
     }

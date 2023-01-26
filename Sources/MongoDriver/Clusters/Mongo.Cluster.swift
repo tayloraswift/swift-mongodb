@@ -194,25 +194,30 @@ extension Mongo.Cluster
     public nonisolated
     func sessions(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.LogicalSessions
     {
+        try await self.sessions(by: deadline).get()
+    }
+    private nonisolated
+    func sessions(by deadline:Mongo.ConnectionDeadline) async -> SessionsResponse
+    {
         if  let sessions:Mongo.LogicalSessions = self.sessions
         {
-            return sessions
+            return .success(sessions)
         }
         else
         {
-            return try await self.sessionsAvailable(by: deadline)
+            return await self.sessionsAvailable(by: deadline)
         }
     }
     private
     func sessionsAvailable(
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.LogicalSessions
+        by deadline:Mongo.ConnectionDeadline) async -> SessionsResponse
     {
         let id:UInt = self.request()
 
         async
         let _:Void = self.sessionsUnavailable(for: id, once: deadline)
 
-        return try await withCheckedThrowingContinuation
+        return await withCheckedContinuation
         {
             self.sessionsRequests.updateValue(.init(promise: $0),
                 forKey: id)
@@ -232,32 +237,37 @@ extension Mongo.Cluster
     func pool(preference:Mongo.ReadPreference,
         by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionPool
     {
+        try await self.select(preference, by: deadline).get()
+    }
+    func select(_ preference:Mongo.ReadPreference,
+        by deadline:Mongo.ConnectionDeadline) async -> SelectionResponse
+    {
         if  let pool:Mongo.ConnectionPool = self.snapshot[preference]
         {
-            return pool
+            return .success(pool)
         }
         else
         {
-            return try await self.poolAvailable(preference: preference, by: deadline)
+            return await self.selectionAvailable(preference, by: deadline)
         }
     }
     private
-    func poolAvailable(preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionPool
+    func selectionAvailable(_ preference:Mongo.ReadPreference,
+        by deadline:Mongo.ConnectionDeadline) async -> SelectionResponse
     {
         let id:UInt = self.request()
 
         async
-        let _:Void = self.poolUnavailable(for: id, once: deadline)
+        let _:Void = self.selectionUnavailable(for: id, once: deadline)
 
-        return try await withCheckedThrowingContinuation
+        return await withCheckedContinuation
         {
             self.selectionRequests.updateValue(.init(preference: preference, promise: $0),
                 forKey: id)
         }
     }
     private
-    func poolUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
+    func selectionUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
         try await Task.sleep(until: deadline.instant, clock: .continuous)

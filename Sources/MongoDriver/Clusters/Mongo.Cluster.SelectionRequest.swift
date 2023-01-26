@@ -1,12 +1,17 @@
 extension Mongo.Cluster
 {
+    typealias SelectionResponse =
+        Result<Mongo.ConnectionPool, Mongo.ClusterError<Mongo.ReadPreferenceError>>
+}
+extension Mongo.Cluster
+{
     struct SelectionRequest
     {
         let preference:Mongo.ReadPreference
-        let promise:CheckedContinuation<Mongo.ConnectionPool, any Error>
+        let promise:CheckedContinuation<SelectionResponse, Never>
 
         init(preference:Mongo.ReadPreference,
-            promise:CheckedContinuation<Mongo.ConnectionPool, any Error>)
+            promise:CheckedContinuation<SelectionResponse, Never>)
         {
             self.preference = preference
             self.promise = promise
@@ -28,16 +33,16 @@ extension Mongo.Cluster.SelectionRequest?
             self = nil
         }
         
-        request.promise.resume(throwing: Mongo.ClusterError<Mongo.ReadPreferenceError>.init(
+        request.promise.resume(returning: .failure(.init(
             diagnostics: request.preference.diagnose(servers: servers),
-            failure: .init(preference: request.preference)))
+            failure: .init(preference: request.preference))))
     }
     mutating
     func fulfill(with pool:Mongo.ConnectionPool)
     {
         if  let request:Mongo.Cluster.SelectionRequest = self
         {
-            request.promise.resume(returning: pool)
+            request.promise.resume(returning: .success(pool))
             self = nil
         }
     }

@@ -39,8 +39,8 @@ extension Mongo
         public private(set)
         var preconditionTime:Mongo.Instant?
         /// The current transaction state of this session.
-        public internal(set)
-        var transaction:Transaction
+        public private(set)
+        var transaction:TransactionState
         /// The local time when the last (successful) command was sent on this
         /// session.
         private
@@ -100,11 +100,23 @@ extension Mongo.Session
     /// with another session. Operations on the newly-created session will
     /// reflect writes performed using the original session at the time of
     /// session creation, but the two sessions will be otherwise unrelated.
+    ///
+    /// Calling this initializer is roughly equivalent to creating a
+    /// unforked session and immediately calling ``synchronize(with:)``.
     public convenience
     init(from pool:Mongo.SessionPool, forking original:__shared Mongo.Session) async throws
     {
         self.init(metadata: try await pool.create(), pool: pool,
             fork: original.preconditionTime)
+    }
+    /// Fast-forwards this session’s precondition time to the other session’s
+    /// precondition time, if it is non-[`nil`]() and greater than this
+    /// session’s precondition time. The other session’s precondition time
+    /// is unaffected.
+    public
+    func synchronize(with other:Mongo.Session)
+    {
+        self.combine(operationTime: other.preconditionTime)
     }
 }
 @available(*, unavailable, message: "sessions have reference semantics")
@@ -221,37 +233,84 @@ extension Mongo.Session
     ///
     /// Do not run commands directly on the session object while a transaction is in
     /// progress.
-    @inlinable public
+    ///
+    /// This method will transition the transaction state of the given session into the
+    /// starting phase, and stores the supplied read concern (if any) for use by the
+    /// next command run with this session. Traps if a transaction is already in progress.
+    @discardableResult
+    public
     func withTransaction<Success>(
         writeConcern:Mongo.WriteConcern?,
         readConcern:Mongo.ReadConcern.Level?,
-        run body:(Mongo.TransactionContext) async throws -> Success) async throws -> Success
+        run body:(Mongo.Transaction) async throws -> Success)
+        async -> Mongo.TransactionResult<Success>
     {
         let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now)
+        let connections:Mongo.ConnectionPool
         //  Transactions can only be performed on the primary/master, and moreover,
         //  must be pinned to a specific server. (This means primary stepdown is not
         //  allowed.)
-        let connections:Mongo.ConnectionPool = try await self.cluster.pool(
-            preference: .primary,
-            by: deadline)
-        let transaction:Mongo.TransactionContext = .init(session: self,
-            pinned: connections,
-            with: readConcern)
+        switch await self.cluster.select(.primary, by: deadline)
+        {
+        case .failure(let error):
+            return .unavailable(error)
+        
+        case .success(let pool):
+            connections = pool
+        }
+
+        if case nil = self.transaction.phase
+        {
+            self.transaction.phase = .starting(readConcern)
+        }
+        else
+        {
+            fatalError(Self.transactionNestedErrorMessage)
+        }
+        defer
+        {
+            self.transaction.phase = nil
+        }
+
+        let transaction:Mongo.Transaction = .init(session: self, pinned: connections)
         
         do
         {
             let success:Success = try await body(transaction)
-            try await transaction.commit(with: writeConcern)
-            return success
+
+            guard case .started? = self.transaction.phase
+            else
+            {
+                return .commit(success, .cancelled)
+            }
+            do
+            {
+                try await transaction.commit(with: writeConcern)
+                return .commit(success, .committed)
+            }
+            catch let error
+            {
+                return .commit(success, .unknown(error))
+            }
         }
-        catch let error
+        catch let reason
         {
-            try? await transaction.abort(with: writeConcern)
-            throw error
+            guard case .started? = self.transaction.phase
+            else
+            {
+                return .abortion(reason, .cancelled)
+            }
+            do
+            {
+                try await transaction.abort(with: writeConcern)
+                return .abortion(reason, .aborted)
+            }
+            catch let error
+            {
+                return .abortion(reason, .failed(error))
+            }
         }
     }
-
-
 }
 extension Mongo.Session
 {
@@ -364,10 +423,12 @@ extension Mongo.Session
         switch self.transaction.phase
         {
         case .starting(let readLevel)?:
+            //  Increment the transaction number lazily.
+            self.transaction.number += 1
+            self.transaction.phase = .started
+
             readConcern = .level(readLevel, after: self.preconditionTime)
             transaction = .starting(self.transaction.number)
-
-            self.transaction.phase = .started
         
         case .started?:
             readConcern = nil
@@ -405,10 +466,18 @@ extension Mongo.Session
     {
         self.touched = sent
         self.reuse = self.reuse && reuse
-        //  observed operation times will not necessarily be monotonic, if
-        //  commands are being sent to different servers across the same
-        //  session. to enforce causal consistency, we must only update the
-        //  precondition time if it is greater than the stored precondition time.
+        self.combine(operationTime: operationTime)
+    }
+    /// Update the session’s precondition time with an observed operation time.
+    ///
+    /// Observed operation times will not necessarily be monotonic, if commands
+    /// are being sent to different servers across the same session. Therefore,
+    /// to enforce causal consistency, this method only updates the precondition
+    /// time if the operation time is non-[`nil`]() and greater than the current
+    /// precondition time.
+    private
+    func combine(operationTime:Mongo.Instant?)
+    {
         guard let operationTime:Mongo.Instant
         else
         {

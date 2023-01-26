@@ -6,11 +6,11 @@ extension Mongo
     /// re-used server sessions.
     struct SessionMetadata:Identifiable, Sendable
     {
-        var transaction:Transaction
+        var transaction:TransactionState
         var touched:ContinuousClock.Instant
         let id:SessionIdentifier
 
-        init(transaction:Transaction,
+        init(transaction:TransactionState,
             touched:ContinuousClock.Instant,
             id:SessionIdentifier)
         {
