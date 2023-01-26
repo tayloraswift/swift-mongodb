@@ -231,12 +231,27 @@ extension Mongo.Session
     /// as part of a transaction. If the closure parameter throws an error, the
     /// transaction will be aborted, otherwise it will be committed.
     ///
-    /// Do not run commands directly on the session object while a transaction is in
-    /// progress.
+    /// -   Parameters:
+    ///     -   writeConcern:
+    ///         The write concern that will be used when the transaction is either
+    ///         aborted or committed.
+    ///     -   readConcern:
+    ///         The read concern that will be added to the first command run with
+    ///         the transaction. This parameter is the only way to associate
+    ///         transaction commands with a read concern; command-level read
+    ///         concerns will be ignored for the duration of the transaction.
     ///
-    /// This method will transition the transaction state of the given session into the
-    /// starting phase, and stores the supplied read concern (if any) for use by the
-    /// next command run with this session. Traps if a transaction is already in progress.
+    /// Standalone `mongod` servers do not support transactions. To use transactions
+    /// with a single-node deployment, consider converting it into a single-node
+    /// replica set.
+    ///
+    /// Do not run commands directly on the session object while a transaction is in
+    /// progress; all such commands will trap.
+    ///
+    /// This method traps if a transaction is already in progress. Otherwise it
+    /// transitions this session’s transaction state to the starting phase, and stores
+    /// the supplied read concern (if any) for use by the next command run with this
+    /// session.
     @discardableResult
     public
     func withTransaction<Success>(
