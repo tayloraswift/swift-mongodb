@@ -22,6 +22,9 @@ func TestCausalConsistency(_ tests:TestGroup,
         let c:Letter = "c"
         let d:Letter = "d"
 
+        //  A new session should have no precondition time.
+        tests.expect(nil: session.preconditionTime)
+
         //  We should have a test deployment with six members, including one
         //  arbiter, one (non-voting) hidden replica, and four visible
         //  replicas.
@@ -41,6 +44,14 @@ func TestCausalConsistency(_ tests:TestGroup,
                 on: .primary)
             
             tests.expect(response ==? .init(inserted: 1))
+        }
+
+        //  We should be able to observe a precondition time after performing the
+        //  initialization.
+        guard var head:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        else
+        {
+            return
         }
 
         //  We should be able to choose this specific secondary/slave, which
@@ -99,6 +110,16 @@ func TestCausalConsistency(_ tests:TestGroup,
             
             tests.expect(response ==? .init(inserted: 1))
         }
+
+        //  We should still be able to observe a precondition time, and the
+        //  value of that time should be greater than it was before we inserted
+        //  the letter `b` into the collection.
+        if let time:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        {
+            tests.expect(true: head < time)
+            head = time
+        }
+
         //  We should be able to insert a letter `c` into the collection (on
         //  the primary/master), using an acknowledgement count write concern.
         //  We should succeed because three acknowledgements is currently the
@@ -114,6 +135,13 @@ func TestCausalConsistency(_ tests:TestGroup,
             
             tests.expect(response ==? .init(inserted: 1))
         }
+
+        if let time:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        {
+            tests.expect(true: head < time)
+            head = time
+        }
+
         //  We should be able to insert a letter `d` into the collection (on the
         //  primary/master), using an acknowledgement count write concern that
         //  is lower than the current majority threshold. We should succeed
@@ -129,6 +157,12 @@ func TestCausalConsistency(_ tests:TestGroup,
                 on: .primary)
             
             tests.expect(response ==? .init(inserted: 1))
+        }
+
+        if let time:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        {
+            tests.expect(true: head < time)
+            head = time
         }
 
         //  We should be able to capture a reference to a session and a command
@@ -192,13 +226,26 @@ func TestCausalConsistency(_ tests:TestGroup,
         //  succeed, and return the stale data from before the last three writes.
         await (tests / "non-causal").do
         {
-            let letters:[Letter] = try await pool.run(
+            let other:Mongo.Session = try await .init(from: pool)
+
+            tests.expect(nil: other.preconditionTime)
+
+            let letters:[Letter] = try await other.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
                     collection: collection,
                     limit: 10),
                 against: database,
                 on: secondary)
             
+            guard let time:Mongo.Instant = tests.expect(value: other.preconditionTime)
+            else
+            {
+                return
+            }
+            //  The data returned should be stale. We should be able to verify
+            //  this both from the parallel session’s precondition time, and
+            //  the returned data.
+            tests.expect(true: time < head)
             tests.expect(letters ..? [a])
         }
         //  We should still receive a timeout error if we try to read from the
@@ -208,6 +255,11 @@ func TestCausalConsistency(_ tests:TestGroup,
             catching: MongoChannel.TimeoutError.init(sent: true))
         {
             let forked:Mongo.Session = try await .init(from: pool, forking: session)
+
+            //  A forked session should initially share the same precondition
+            //  time as the session it was forked from.
+            tests.expect(forked.preconditionTime ==? head)
+
             let _:[Letter] = try await forked.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
                     collection: collection,
