@@ -7,7 +7,7 @@ func TestCursors(_ tests:TestGroup,
 {
     let tests:TestGroup = tests / "cursors"
 
-    await tests.withTemporaryDatabase(named: "cursors-test",
+    await tests.withTemporaryDatabase(named: "cursor-tests",
         bootstrap: bootstrap,
         hosts: hosts)
     {

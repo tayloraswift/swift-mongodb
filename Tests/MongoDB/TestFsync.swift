@@ -7,7 +7,7 @@ func TestFsync(_ tests:TestGroup,
 {
     let tests:TestGroup = tests / "fsync-locking"
     
-    await tests.withTemporaryDatabase(named: "fsync-test",
+    await tests.withTemporaryDatabase(named: "fsync-tests",
         bootstrap: bootstrap,
         hosts: hosts)
     {

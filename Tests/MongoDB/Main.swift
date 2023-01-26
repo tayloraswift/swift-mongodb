@@ -36,6 +36,7 @@ enum Main:AsyncTests
             await TestFind      (tests, bootstrap: bootstrap, hosts: members)
 
             await TestCausalConsistency(tests, bootstrap: bootstrap, hosts: members)
+            await TestTransactions(tests, bootstrap: bootstrap, hosts: members)
 
             await TestCursors(tests, bootstrap: bootstrap, hosts: members)
         }
@@ -58,7 +59,7 @@ enum Main:AsyncTests
             await TestDatabases(tests, bootstrap: bootstrap, hosts: [standalone])
             await TestInsert(tests, bootstrap: bootstrap, hosts: [standalone])
             await TestFind(tests, bootstrap: bootstrap, hosts: [standalone])
-            
+
             await TestCursors(tests, bootstrap: bootstrap, hosts: [standalone])
         }
     }

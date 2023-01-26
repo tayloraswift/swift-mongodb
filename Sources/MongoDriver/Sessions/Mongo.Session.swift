@@ -39,7 +39,7 @@ extension Mongo
         public private(set)
         var preconditionTime:Mongo.Instant?
         /// The current transaction state of this session.
-        public private(set)
+        public internal(set)
         var transaction:Transaction
         /// The local time when the last (successful) command was sent on this
         /// session.
@@ -198,25 +198,29 @@ extension Mongo.Session
         {
             fatalError(Self.transactionUnpinnedErrorMessage)
         }
+
         let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now,
             clamping: deadline)
-        let connections:Mongo.ConnectionPool = try await self.cluster.pool(
-            preference: preference,
-            by: connect)
-        //  this must be an optional var, because the helper function needs to be able
-        //  to kill the parameter reference before passing it to `consumer`, so that
-        //  `connection` stays uniquely referenced.
-        var connection:Mongo.Connection? = try await .init(from: connections, by: connect)
 
-        return try await self.run(query: query, against: database,
-            over: &connection,
-            on: preference,
+        return try await self.run(query: query, against: database, on: preference,
             by: deadline ?? connect.instant,
             with: consumer)
+        {
+            let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+                preference: preference,
+                by: connect)
+            return try await .init(from: connections, by: connect)
+        }
     }
 }
 extension Mongo.Session
 {
+    /// Yields a transaction context that can be used to run commands with this session
+    /// as part of a transaction. If the closure parameter throws an error, the
+    /// transaction will be aborted, otherwise it will be committed.
+    ///
+    /// Do not run commands directly on the session object while a transaction is in
+    /// progress.
     @inlinable public
     func withTransaction<Success>(
         writeConcern:Mongo.WriteConcern?,
@@ -230,63 +234,24 @@ extension Mongo.Session
         let connections:Mongo.ConnectionPool = try await self.cluster.pool(
             preference: .primary,
             by: deadline)
-        self.startTransaction(with: readConcern)
+        let transaction:Mongo.TransactionContext = .init(session: self,
+            pinned: connections,
+            with: readConcern)
+        
         do
         {
-            let success:Success = try await body(.init(session: self, pinned: connections))
-            try await self.commitTransaction(with: writeConcern)
+            let success:Success = try await body(transaction)
+            try await transaction.commit(with: writeConcern)
             return success
         }
         catch let error
         {
-            try? await self.abortTransaction(with: writeConcern)
+            try? await transaction.abort(with: writeConcern)
             throw error
         }
     }
-    /// Transitions the transaction state into the starting phase, and stores
-    /// the supplied read concern (if any) for use by the next command run with
-    /// the owning session. Traps if a transaction is already in progress.
-    @usableFromInline
-    func startTransaction(with readConcern:Mongo.ReadConcern.Level?)
-    {
-        if case nil = self.transaction.phase
-        {
-            self.transaction.number += 1
-            self.transaction.phase = .starting(readConcern)
-        }
-        else
-        {
-            fatalError(Self.transactionNestedErrorMessage)
-        }
-    }
-    @usableFromInline
-    func abortTransaction(with writeConcern:Mongo.WriteConcern?) async throws
-    {
-        defer
-        {
-            self.transaction.phase = nil
-        }
-        if case .started? = self.transaction.phase
-        {
-            try await self.run(
-                command: Mongo.AbortTransaction.init(writeConcern: writeConcern),
-                against: .admin)
-        }
-    }
-    @usableFromInline
-    func commitTransaction(with writeConcern:Mongo.WriteConcern?) async throws
-    {
-        defer
-        {
-            self.transaction.phase = nil
-        }
-        if case .started? = self.transaction.phase
-        {
-            try await self.run(
-                command: Mongo.CommitTransaction.init(writeConcern: writeConcern),
-                against: .admin)
-        }
-    }
+
+
 }
 extension Mongo.Session
 {
@@ -329,27 +294,31 @@ extension Mongo.Session
 
     @inlinable public
     func run<Query, Success>(query:Query, against database:Query.Database,
-        over connection:inout Mongo.Connection?,
         on preference:Mongo.ReadPreference,
         by deadline:ContinuousClock.Instant,
-        with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
-        async throws -> Success
+        with consumer:(Mongo.Batches<Query.Element>) async throws -> Success,
+        connection:() async throws -> Mongo.Connection) async throws -> Success
         where Query:MongoQuery
     {
-        let batches:Mongo.Batches<Query.Element> = .create(preference: preference,
-            lifecycle: query.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
-            timeout: .init(
-                milliseconds: self.cluster.timeout.milliseconds),
-            initial: try await self.run(command: query,
-                against: database,
-                over: connection!,
-                on: preference,
-                by: deadline),
-            stride: query.stride,
-            pinned: (connection!, self))
-        
-        connection = nil
-        
+        let batches:Mongo.Batches<Query.Element>
+        do
+        {
+            //  limit lifetime of this binding so that the connection stays uniquely
+            //  referenced.
+            let connection:Mongo.Connection = try await connection()
+
+            batches = .create(preference: preference,
+                lifecycle: query.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
+                timeout: .init(
+                    milliseconds: self.cluster.timeout.milliseconds),
+                initial: try await self.run(command: query,
+                    against: database,
+                    over: connection,
+                    on: preference,
+                    by: deadline),
+                stride: query.stride,
+                pinned: (connection, self))
+        }
         do
         {
             let success:Success = try await consumer(batches)
@@ -397,6 +366,8 @@ extension Mongo.Session
         case .starting(let readLevel)?:
             readConcern = .level(readLevel, after: self.preconditionTime)
             transaction = .starting(self.transaction.number)
+
+            self.transaction.phase = .started
         
         case .started?:
             readConcern = nil
