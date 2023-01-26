@@ -1,14 +1,13 @@
 import MongoDriver
 import Testing
 
-func TestReadPreference(_ tests:inout Tests,
+func TestReadPreference(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     members:[Mongo.Host]) async
 {
-    await tests.test(name: "read-preferences")
+    let tests:TestGroup = tests / "read-preferences"
+    await tests.do
     {
-        (tests:inout Tests) in
-
         try await bootstrap.withSessionPool(seedlist: .init(members),
             timeout: .init(milliseconds: 250))
         {
@@ -131,9 +130,9 @@ func TestReadPreference(_ tests:inout Tests,
                 ),
             ]
             {
-                await tests.test(name: name)
+                await (tests / name).do
                 {
-                    _ in try await session.run(
+                    try await session.run(
                         command: Mongo.RefreshSessions.init(session.id),
                         against: .admin,
                         on: preference)
@@ -158,8 +157,9 @@ func TestReadPreference(_ tests:inout Tests,
                 ),
             ]
             {
-                await tests.test(name: name,
-                    expecting: Mongo.ClusterError<Mongo.ReadPreferenceError>.init(
+                let tests:TestGroup = tests / name
+                await tests.do(
+                    catching: Mongo.ClusterError<Mongo.ReadPreferenceError>.init(
                         diagnostics: .init(
                             undesirable:
                             [
@@ -174,21 +174,16 @@ func TestReadPreference(_ tests:inout Tests,
                             ]),
                         failure: .init(preference: preference)))
                 {
-                    _ in try await session.refresh(on: preference)
+                    try await session.refresh(on: preference)
                 }
             }
             // We should never be able to select a secondary with zero staleness.
-            await tests.test(name: "secondary-staleness-zero")
+            do
             {
-                do
+                let tests:TestGroup = tests / "secondary-staleness-zero"
+                await tests.do(catching: Mongo.ClusterError<Mongo.ReadPreferenceError>.self)
                 {
                     try await session.refresh(on: .secondary(maxStaleness: 0))
-                    
-                    $0.assert(false, name: "error")
-                }
-                catch is Mongo.ClusterError<Mongo.ReadPreferenceError>
-                {
-                    return
                 }
             }
         }

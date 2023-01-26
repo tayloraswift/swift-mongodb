@@ -3,48 +3,43 @@ import MongoDriver
 import NIOPosix
 import Testing
 
-func TestAuthentication(_ tests:inout Tests,
+func TestAuthentication(_ tests:TestGroup,
     standalone:Mongo.Host,
     username:String,
     password:String,
     on executor:MultiThreadedEventLoopGroup) async
 {
-    await tests.group("authentication")
+    await (tests / "authentication" / "defaulted").do
     {
-        await $0.test(name: "defaulted")
+        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
+                authentication: nil,
+                username: username,
+                password: password),
+            executor: executor)
+        try await bootstrap.withSessionPool(seedlist: [standalone])
         {
-            _ in
-            let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
-                    authentication: nil,
-                    username: username,
-                    password: password),
-                executor: executor)
-            try await bootstrap.withSessionPool(seedlist: [standalone])
-            {
-                let session:Mongo.Session = try await .init(from: $0)
-                try await session.refresh()
-            }
-        }
-
-        await $0.test(name: "scram-sha256")
-        {
-            _ in
-            let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
-                    authentication: .sasl(.sha256),
-                    username: username,
-                    password: password),
-                executor: executor)
-            try await bootstrap.withSessionPool(seedlist: [standalone])
-            {
-                let session:Mongo.Session = try await .init(from: $0)
-                try await session.refresh()
-            }
+            let session:Mongo.Session = try await .init(from: $0)
+            try await session.refresh()
         }
     }
 
-    await tests.test(name: "authentication-unsupported")
+    await (tests / "authentication" / "scram-sha256").do
     {
-        (tests:inout Tests) in
+        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
+                authentication: .sasl(.sha256),
+                username: username,
+                password: password),
+            executor: executor)
+        try await bootstrap.withSessionPool(seedlist: [standalone])
+        {
+            let session:Mongo.Session = try await .init(from: $0)
+            try await session.refresh()
+        }
+    }
+
+    do
+    {
+        let tests:TestGroup = tests / "authentication-unsupported"
 
         let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
                 authentication: .x509,
@@ -52,17 +47,15 @@ func TestAuthentication(_ tests:inout Tests,
                 password: password),
             executor: executor)
 
-        await tests.test(name: "errors-equal",
-            expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
-                diagnostics: .init(unreachable:
-                [
-                    standalone: .errored(Mongo.AuthenticationError.init(
-                            Mongo.AuthenticationUnsupportedError.init(.x509),
-                        credentials: bootstrap.credentials!))
-                ]),
-                failure: .init()))
+        await tests.do(catching: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
+            diagnostics: .init(unreachable:
+            [
+                standalone: .errored(Mongo.AuthenticationError.init(
+                        Mongo.AuthenticationUnsupportedError.init(.x509),
+                    credentials: bootstrap.credentials!))
+            ]),
+            failure: .init()))
         {
-            _ in
             try await bootstrap.withSessionPool(seedlist: [standalone],
                 timeout: .init(milliseconds: 500))
             {
@@ -72,9 +65,9 @@ func TestAuthentication(_ tests:inout Tests,
         }
     }
 
-    await tests.test(name: "authentication-wrong-password")
+    do
     {
-        (tests:inout Tests) in
+        let tests:TestGroup = tests / "authentication-wrong-password"
 
         let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
                 authentication: .sasl(.sha256),
@@ -82,19 +75,17 @@ func TestAuthentication(_ tests:inout Tests,
                 password: "1234"),
             executor: executor)
 
-        await tests.test(name: "errors-equal",
-            expecting: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
-                diagnostics: .init(unreachable:
-                [
-                    standalone: .errored(Mongo.AuthenticationError.init(
-                            Mongo.ServerError.init(
-                                message: "Authentication failed.",
-                                code: 18),
-                        credentials: bootstrap.credentials!))
-                ]),
-                failure: .init()))
+        await tests.do(catching: Mongo.ClusterError<Mongo.LogicalSessionsError>.init(
+            diagnostics: .init(unreachable:
+            [
+                standalone: .errored(Mongo.AuthenticationError.init(
+                        Mongo.ServerError.init(
+                            message: "Authentication failed.",
+                            code: 18),
+                    credentials: bootstrap.credentials!))
+            ]),
+            failure: .init()))
         {
-            _ in
             try await bootstrap.withSessionPool(seedlist: [standalone],
                 timeout: .init(milliseconds: 500))
             {

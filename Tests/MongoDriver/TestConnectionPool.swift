@@ -2,7 +2,7 @@ import MongoDriver
 import NIOPosix
 import Testing
 
-func TestConnectionPool(_ tests:inout Tests,
+func TestConnectionPool(_ tests:TestGroup,
     credentials:Mongo.Credentials?,
     seedlist:Set<Mongo.Host>,
     on executor:MultiThreadedEventLoopGroup) async
@@ -11,16 +11,16 @@ func TestConnectionPool(_ tests:inout Tests,
         credentials: credentials,
         executor: executor)
     
-    await tests.group("connection-pools")
+    let tests:TestGroup = tests / "connection-pools"
+    //  This test makes 500 connection requests to the primary/master’s connection
+    //  pool, and holds the connections (preventing them from being reused) for
+    //  half the duration of the test, to force the pool to expand.
+    /// The pool should expand to its maximum size (100), and no further.
+    do
     {
-        //  This test makes 500 connection requests to the primary/master’s connection
-        //  pool, and holds the connections (preventing them from being reused) for
-        //  half the duration of the test, to force the pool to expand.
-        /// The pool should expand to its maximum size (100), and no further.
-        await $0.test(name: "oversubscription")
+        let tests:TestGroup = tests / "oversubscription"
+        await tests.do
         {
-            (tests:inout Tests) in
-
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 let midpoint:Mongo.ConnectionDeadline = .now.advanced(
@@ -52,17 +52,19 @@ func TestConnectionPool(_ tests:inout Tests,
                     }
                 }
 
-                tests.assert(await pool.count ==? 100, name: "pool-count")
+                tests.expect(await pool.count ==? 100)
             }
         }
-        //  This test makes 500 connection requests to the primary/master’s connection
-        //  pool in batches of 10 connections at a time. On each iteration, the old
-        //  batch should become available for reuse, so the pool should not continue
-        //  expanding.
-        await $0.test(name: "cohorts")
+    }
+    //  This test makes 500 connection requests to the primary/master’s connection
+    //  pool in batches of 10 connections at a time. On each iteration, the old
+    //  batch should become available for reuse, so the pool should not continue
+    //  expanding.
+    do
+    {
+        let tests:TestGroup = tests / "cohorts"
+        await tests.do
         {
-            (tests:inout Tests) in
-
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(500))
@@ -77,13 +79,15 @@ func TestConnectionPool(_ tests:inout Tests,
                     }
                 }
 
-                tests.assert(await pool.count ==? 10, name: "pool-count")
+                tests.expect(await pool.count ==? 10)
             }
         }
-        await $0.test(name: "perishment")
+    }
+    do
+    {
+        let tests:TestGroup = tests / "perishment"
+        await tests.do
         {
-            (tests:inout Tests) in
-
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
                 let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(1000))
@@ -96,7 +100,7 @@ func TestConnectionPool(_ tests:inout Tests,
                     connections.append(try await .init(from: pool, by: deadline))
                 }
 
-                tests.assert(await pool.count ==? 100, name: "pool-count")
+                tests.expect(await pool.count ==? 100)
 
                 //  interrupt ten of those connections.
                 for connection:Mongo.Connection in connections.prefix(10)
