@@ -5,9 +5,9 @@ import BSONDecoding
 enum Main:SyncTests
 {
     static
-    func run(tests:inout Tests)
+    func run(tests:Tests)
     {
-        tests.group("markers")
+        do
         {
             let bson:BSON.Document<[UInt8]> =
             [
@@ -16,26 +16,25 @@ enum Main:SyncTests
                 "min": .min,
             ]
 
-            $0.test(name: "null")
+            (tests / "null").do
             {
-                _ in
                 let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try .init(
                     fields: try bson.parse())
                 try dictionary["null"].decode(to: Void.self)
             }
-            $0.test(name: "max", decoding: bson,
-                expecting: .init())
+            TestDecoding(tests / "max", bson: bson, to: .init())
             {
                 try $0["max"].decode(to: BSON.Max.self)
             }
-            $0.test(name: "min", decoding: bson,
-                expecting: .init())
+            TestDecoding(tests / "min", bson: bson, to: .init())
             {
                 try $0["min"].decode(to: BSON.Min.self)
             }
         }
-        tests.group("numeric")
+        do
         {
+            let tests:TestGroup = tests / "numeric"
+
             let bson:BSON.Document<[UInt8]> =
             [
                 "int32": .int32(0x7fff_ffff),
@@ -43,40 +42,42 @@ enum Main:SyncTests
                 "uint64": .uint64(0x7fff_ffff_ffff_ffff),
             ]
 
-            $0.test(name: "int32-to-uint8", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "int32-to-uint8", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.IntegerOverflowError<UInt8>.int32(0x7fff_ffff),
                     in: "int32"))
             {
                 try $0["int32"].decode(to: UInt8.self)
             }
 
-            $0.test(name: "int32-to-int32", decoding: bson,
-                expecting: 0x7fff_ffff)
+            TestDecoding(tests / "int32-to-int32", bson: bson,
+                to: 0x7fff_ffff)
             {
                 try $0["int32"].decode(to: Int32.self)
             }
 
-            $0.test(name: "int32-to-int", decoding: bson,
-                expecting: 0x7fff_ffff)
+            TestDecoding(tests / "int32-to-int", bson: bson,
+                to: 0x7fff_ffff)
             {
                 try $0["int32"].decode(to: Int.self)
             }
 
-            $0.test(name: "int64-to-int", decoding: bson,
-                expecting: 0x7fff_ffff_ffff_ffff)
+            TestDecoding(tests / "int64-to-int", bson: bson,
+                to: 0x7fff_ffff_ffff_ffff)
             {
                 try $0["int64"].decode(to: Int.self)
             }
-            $0.test(name: "uint64-to-int", decoding: bson,
-                expecting: 0x7fff_ffff_ffff_ffff)
+            TestDecoding(tests / "uint64-to-int", bson: bson,
+                to: 0x7fff_ffff_ffff_ffff)
             {
                 try $0["uint64"].decode(to: Int.self)
             }
         }
 
-        tests.group("tuple")
+        do
         {
+            let tests:TestGroup = tests / "tuple"
+
             let bson:BSON.Document<[UInt8]> =
             [
                 "none":     [],
@@ -87,8 +88,8 @@ enum Main:SyncTests
                 "heterogenous": ["a", "b", 0, "d"],
             ]
 
-            $0.test(name: "none-to-two", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "none-to-two", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.ArrayShapeError.init(invalid: 0, expected: 2),
                     in: "none"))
             {
@@ -98,8 +99,8 @@ enum Main:SyncTests
                 }
             }
 
-            $0.test(name: "two-to-two", decoding: bson,
-                expecting: ["a", "b"])
+            TestDecoding(tests / "two-to-two", bson: bson,
+                to: ["a", "b"])
             {
                 try $0["two"].decode
                 {
@@ -107,8 +108,8 @@ enum Main:SyncTests
                 }
             }
 
-            $0.test(name: "three-to-two", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "three-to-two", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.ArrayShapeError.init(invalid: 3, expected: 2),
                     in: "three"))
             {
@@ -118,8 +119,8 @@ enum Main:SyncTests
                 }
             }
 
-            $0.test(name: "three-by-two", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "three-by-two", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.ArrayShapeError.init(invalid: 3, expected: nil),
                     in: "three"))
             {
@@ -129,8 +130,8 @@ enum Main:SyncTests
                 }
             }
 
-            $0.test(name: "four-by-two", decoding: bson,
-                expecting: ["a", "b", "c", "d"])
+            TestDecoding(tests / "four-by-two", bson: bson,
+                to: ["a", "b", "c", "d"])
             {
                 try $0["four"].decode
                 {
@@ -138,14 +139,14 @@ enum Main:SyncTests
                 }
             }
 
-            $0.test(name: "map", decoding: bson,
-                expecting: ["a", "b", "c", "d"])
+            TestDecoding(tests / "map", bson: bson,
+                to: ["a", "b", "c", "d"])
             {
                 try $0["four"].decode(to: [String].self)
             }
 
-            $0.test(name: "map-invalid", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "map-invalid", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .int64),
                         in: 2),
@@ -154,7 +155,7 @@ enum Main:SyncTests
                 try $0["heterogenous"].decode(to: [String].self)
             }
 
-            $0.test(name: "element", decoding: bson, expecting: "c")
+            TestDecoding(tests / "element", bson: bson, to: "c")
             {
                 try $0["four"].decode
                 {
@@ -162,8 +163,8 @@ enum Main:SyncTests
                 }
             }
 
-            $0.test(name: "element-invalid", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "element-invalid", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .int64),
                         in: 2),
@@ -176,8 +177,10 @@ enum Main:SyncTests
             }
         }
         
-        tests.group("document")
+        do
         {
+            let tests:TestGroup = tests / "document"
+
             let degenerate:BSON.Document<[UInt8]> =
             [
                 "present": .null,
@@ -189,73 +192,73 @@ enum Main:SyncTests
                 "inhabited": true,
             ]
 
-            $0.test(name: "key-not-unique", decoding: degenerate,
-                failure: BSON.DictionaryKeyError.duplicate("present"))
+            TestDecoding(tests / "key-not-unique", bson: degenerate,
+                catching: BSON.DictionaryKeyError.duplicate("present"))
             {
                 try $0["not-present"].decode(to: Bool.self)
             }
 
-            $0.test(name: "key-not-present", decoding: bson,
-                failure: BSON.DictionaryKeyError.undefined("not-present"))
+            TestDecoding(tests / "key-not-present", bson: bson,
+                catching: BSON.DictionaryKeyError.undefined("not-present"))
             {
                 try $0["not-present"].decode(to: Bool.self)
             }
 
-            $0.test(name: "key-matching", decoding: bson,
-                expecting: true)
+            TestDecoding(tests / "key-matching", bson: bson,
+                to: true)
             {
                 try $0["inhabited"].decode(to: Bool.self)
             }
 
-            $0.test(name: "key-not-matching", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "key-not-matching", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .bool),
                     in: "inhabited"))
             {
                 try $0["inhabited"].decode(to: String.self)
             }
 
-            $0.test(name: "key-not-matching-inhabited", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "key-not-matching-inhabited", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.TypecastError<Bool>.init(invalid: .null),
                     in: "present"))
             {
                 try $0["present"].decode(to: Bool.self)
             }
 
-            $0.test(name: "key-inhabited", decoding: bson,
-                expecting: .some(true))
+            TestDecoding(tests / "key-inhabited", bson: bson,
+                to: .some(true))
             {
                 try $0["inhabited"].decode(to: Bool?.self)
             }
 
-            $0.test(name: "key-null", decoding: bson,
-                expecting: nil)
+            TestDecoding(tests / "key-null", bson: bson,
+                to: nil)
             {
                 try $0["present"].decode(to: Bool?.self)
             }
 
-            $0.test(name: "key-optional", decoding: bson,
-                expecting: nil)
+            TestDecoding(tests / "key-optional", bson: bson,
+                to: nil)
             {
                 try $0["not-present"]?.decode(to: Bool.self)
             }
 
-            $0.test(name: "key-optional-null", decoding: bson,
-                expecting: .some(.none))
+            TestDecoding(tests / "key-optional-null", bson: bson,
+                to: .some(.none))
             {
                 try $0["present"]?.decode(to: Bool?.self)
             }
 
-            $0.test(name: "key-optional-inhabited", decoding: bson,
-                expecting: .some(.some(true)))
+            TestDecoding(tests / "key-optional-inhabited", bson: bson,
+                to: .some(.some(true)))
             {
                 try $0["inhabited"]?.decode(to: Bool?.self)
             }
 
             // should throw an error instead of returning [`nil`]().
-            $0.test(name: "key-optional-not-inhabited", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "key-optional-not-inhabited", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.TypecastError<Bool>.init(invalid: .null),
                     in: "present"))
             {
@@ -263,8 +266,10 @@ enum Main:SyncTests
             }
         }
 
-        tests.group("binary")
+        do
         {
+            let tests:TestGroup = tests / "binary" / "md5"
+
             let md5:BSON.Binary<[UInt8]> = .init(subtype: .md5,
                 bytes: [0xff, 0xfe, 0xfd])
             let bson:BSON.Document<[UInt8]> =
@@ -272,7 +277,7 @@ enum Main:SyncTests
                 "md5": .binary(md5),
             ]
 
-            $0.test(name: "md5")
+            tests.do
             {
                 let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try .init(
                     fields: try bson.parse())
@@ -281,12 +286,14 @@ enum Main:SyncTests
                 {
                     $0
                 }
-                $0.assert(md5 == decoded, name: "value")
+                tests.expect(true: md5 == decoded)
             }
         }
 
-        tests.group("losslessstringconvertible")
+        do
         {
+            let tests:TestGroup = tests / "losslessstringconvertible"
+
             let bson:BSON.Document<[UInt8]> =
             [
                 "string": "e\u{0301}e\u{0301}",
@@ -294,41 +301,41 @@ enum Main:SyncTests
                 "unicode-scalar": "e",
             ]
 
-            $0.test(name: "unicode-scalar-from-string", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "unicode-scalar-from-string", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.ValueError<String, Unicode.Scalar>.init(invalid: "e\u{0301}e\u{0301}"),
                     in: "string"))
             {
                 try $0["string"].decode(to: Unicode.Scalar.self)
             }
-            $0.test(name: "unicode-scalar-from-character", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "unicode-scalar-from-character", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.ValueError<String, Unicode.Scalar>.init(invalid: "e\u{0301}"),
                     in: "character"))
             {
                 try $0["character"].decode(to: Unicode.Scalar.self)
             }
-            $0.test(name: "unicode-scalar", decoding: bson,
-                expecting: "e")
+            TestDecoding(tests / "unicode-scalar", bson: bson,
+                to: "e")
             {
                 try $0["unicode-scalar"].decode(to: Unicode.Scalar.self)
             }
 
-            $0.test(name: "character-from-string", decoding: bson,
-                failure: BSON.DecodingError<String>.init(
+            TestDecoding(tests / "character-from-string", bson: bson,
+                catching: BSON.DecodingError<String>.init(
                     BSON.ValueError<String, Character>.init(invalid: "e\u{0301}e\u{0301}"),
                     in: "string"))
             {
                 try $0["string"].decode(to: Character.self)
             }
-            $0.test(name: "character", decoding: bson,
-                expecting: "e\u{0301}")
+            TestDecoding(tests / "character", bson: bson,
+                to: "e\u{0301}")
             {
                 try $0["character"].decode(to: Character.self)
             }
             
-            $0.test(name: "string", decoding: bson,
-                expecting: "e\u{0301}e\u{0301}")
+            TestDecoding(tests / "string", bson: bson,
+                to: "e\u{0301}e\u{0301}")
             {
                 try $0["string"].decode(to: String.self)
             }

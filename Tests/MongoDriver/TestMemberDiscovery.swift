@@ -1,17 +1,16 @@
 import MongoDriver
 import Testing
 
-func TestMemberDiscovery(_ tests:inout Tests,
+func TestMemberDiscovery(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     members:[Mongo.Host]) async
 {
     //  we should be able to connect to the primary using any seed
     for seed:Mongo.Host in members
     {
-        await tests.test(name: "discover-primary-from-\(seed.name)")
+        let tests:TestGroup = tests / "discover-primary-from-\(seed.name)"
+        await tests.do
         {
-            (tests:inout Tests) in
-
             try await bootstrap.withSessionPool(seedlist: [seed],
                 timeout: .init(milliseconds: 3000))
             {
@@ -25,13 +24,11 @@ func TestMemberDiscovery(_ tests:inout Tests,
 
                 //  we can’t assert the configuration as a whole, because the
                 //  term will increment on its own.
-                tests.assert(configuration.name ==? "test-set",
-                    name: "configuration-name")
+                tests.expect(configuration.name ==? "test-set")
                 
-                tests.assert(configuration.writeConcernMajorityJournalDefault ==? true,
-                    name: "configuration-journaling")
+                tests.expect(configuration.writeConcernMajorityJournalDefault ==? true)
                 
-                tests.assert(configuration.members ..?
+                tests.expect(configuration.members ..?
                     [
                         .init(id: 0, host: members[0], replica: .init(
                             rights: .init(priority: 2.0),
@@ -59,11 +56,9 @@ func TestMemberDiscovery(_ tests:inout Tests,
                             tags: ["priority": "zero", "name": "H"])),
                         
                         .init(id: 5, host: members[5], replica: nil),
-                    ],
-                    name: "configuration-members")
+                    ])
                 
-                tests.assert(configuration.version ==? 1,
-                    name: "configuration-version")
+                tests.expect(configuration.version ==? 1)
             }
         }
     }

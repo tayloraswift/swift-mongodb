@@ -6,12 +6,14 @@ import Testing
 enum Main:AsyncTests
 {
     static
-    func run(tests:inout Tests) async
+    func run(tests:Tests) async
     {
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        await tests.group("replicated-topology")
+        do
         {
+            let tests:TestGroup = tests / "replicated-topology"
+
             let members:Set<Mongo.Host> =
             [
                 .init(name: "mongo-0", port: 27017),
@@ -28,18 +30,20 @@ enum Main:AsyncTests
                 credentials: nil,
                 executor: executor)
 
-            await TestFsync(&$0, bootstrap: bootstrap, hosts: members)
-            await TestDatabases(&$0, bootstrap: bootstrap, hosts: members)
-            await TestInsert(&$0, bootstrap: bootstrap, hosts: members)
-            await TestFind(&$0, bootstrap: bootstrap, hosts: members)
+            await TestFsync     (tests, bootstrap: bootstrap, hosts: members)
+            await TestDatabases (tests, bootstrap: bootstrap, hosts: members)
+            await TestInsert    (tests, bootstrap: bootstrap, hosts: members)
+            await TestFind      (tests, bootstrap: bootstrap, hosts: members)
 
-            await TestCausalConsistency(&$0, bootstrap: bootstrap, hosts: members)
+            await TestCausalConsistency(tests, bootstrap: bootstrap, hosts: members)
 
-            await TestCursors(&$0, bootstrap: bootstrap, hosts: members)
+            await TestCursors(tests, bootstrap: bootstrap, hosts: members)
         }
 
-        await tests.group("single-topology")
+        do
         {
+            let tests:TestGroup = tests / "single"
+
             let standalone:Mongo.Host = .init(name: "mongo-single", port: 27017)
 
             print("running tests for single topology (host: \(standalone))")
@@ -50,11 +54,12 @@ enum Main:AsyncTests
                     password: "80085"),
                 executor: executor)
 
-            await TestFsync(&$0, bootstrap: bootstrap, hosts: [standalone])
-            await TestDatabases(&$0, bootstrap: bootstrap, hosts: [standalone])
-            await TestInsert(&$0, bootstrap: bootstrap, hosts: [standalone])
-            await TestFind(&$0, bootstrap: bootstrap, hosts: [standalone])
-            await TestCursors(&$0, bootstrap: bootstrap, hosts: [standalone])
+            await TestFsync(tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestDatabases(tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestInsert(tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestFind(tests, bootstrap: bootstrap, hosts: [standalone])
+            
+            await TestCursors(tests, bootstrap: bootstrap, hosts: [standalone])
         }
     }
 }

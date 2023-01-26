@@ -2,15 +2,17 @@ import MongoDB
 import MongoChannel
 import Testing
 
-func TestCausalConsistency(_ tests:inout Tests,
+func TestCausalConsistency(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    await tests.withTemporaryDatabase(name: "causal-consistency",
+    let tests:TestGroup = tests / "causal-consistency"
+
+    await tests.withTemporaryDatabase(named: "causal-consistency-tests",
         bootstrap: bootstrap,
         hosts: hosts)
     {
-        (tests:inout Tests, pool:Mongo.SessionPool, database:Mongo.Database) in
+        (pool:Mongo.SessionPool, database:Mongo.Database) in
 
         let session:Mongo.Session = try await .init(from: pool)
 
@@ -26,7 +28,7 @@ func TestCausalConsistency(_ tests:inout Tests,
         // 
         //  Therefore, writes must propogate to at least three replicas
         //  (besides the hidden replica) to pass a `majority` write concern.
-        await tests.test(name: "initialize")
+        await (tests / "initialize").do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert<[Letter]>.init(collection: collection,
@@ -38,7 +40,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                 against: database,
                 on: .primary)
             
-            $0.assert(response ==? .init(inserted: 1), name: "a")
+            tests.expect(response ==? .init(inserted: 1))
         }
 
         //  We should be able to choose this specific secondary/slave, which
@@ -56,7 +58,7 @@ func TestCausalConsistency(_ tests:inout Tests,
             against: .admin,
             on: secondary)
 
-        tests.assert(lock.count ==? 1, name: "lock-count-locked")
+        tests.expect(lock.count ==? 1)
 
         //  We should be able to fix the test deployment if a previous run
         //  of this test got interrupted.
@@ -66,13 +68,13 @@ func TestCausalConsistency(_ tests:inout Tests,
                 against: .admin,
                 on: secondary)
             
-            tests.assert(lock.count ==? count, name: "lock-count-cleanup")
+            tests.expect(lock.count ==? count)
         }
 
         //  We should be able to read the `a`, because this secondary/slave
         //  acknowledged the write that added it to the collection before we
         //  locked it.
-        await tests.test(name: "before")
+        await (tests / "before").do
         {
             let letters:[Letter] = try await session.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
@@ -80,13 +82,13 @@ func TestCausalConsistency(_ tests:inout Tests,
                     limit: 10),
                 against: database,
                 on: secondary)
-            $0.assert(letters ..? [a], name: "letters")
+            tests.expect(letters ..? [a])
         }
         //  We should be able to insert a letter `b` into the collection (on
         //  the primary/master), using a majority write concern. We should
         //  succeed because there are still three unlocked members able to
         //  acknowledge the write.
-        await tests.test(name: "insert")
+        await (tests / "insert-b").do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert<[Letter]>.init(collection: collection,
@@ -95,13 +97,13 @@ func TestCausalConsistency(_ tests:inout Tests,
                 against: database,
                 on: .primary)
             
-            $0.assert(response ==? .init(inserted: 1), name: "b")
+            tests.expect(response ==? .init(inserted: 1))
         }
         //  We should be able to insert a letter `c` into the collection (on
         //  the primary/master), using an acknowledgement count write concern.
         //  We should succeed because three acknowledgements is currently the
         //  threshold needed to pass a majority write concern.
-        await tests.test(name: "insert")
+        await (tests / "insert-c").do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert<[Letter]>.init(collection: collection,
@@ -110,14 +112,14 @@ func TestCausalConsistency(_ tests:inout Tests,
                 against: database,
                 on: .primary)
             
-            $0.assert(response ==? .init(inserted: 1), name: "c")
+            tests.expect(response ==? .init(inserted: 1))
         }
         //  We should be able to insert a letter `d` into the collection (on the
         //  primary/master), using an acknowledgement count write concern that
         //  is lower than the current majority threshold. We should succeed
         //  because this insertion should also have been able to pass a majority
         //  write concern.
-        await tests.test(name: "insert")
+        await (tests / "insert-d").do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert<[Letter]>.init(collection: collection,
@@ -126,7 +128,7 @@ func TestCausalConsistency(_ tests:inout Tests,
                 against: database,
                 on: .primary)
             
-            $0.assert(response ==? .init(inserted: 1), name: "d")
+            tests.expect(response ==? .init(inserted: 1))
         }
 
         //  We should be able to capture a reference to a session and a command
@@ -156,16 +158,15 @@ func TestCausalConsistency(_ tests:inout Tests,
         //  secondary, we should be asking it for data from a time in its future
         //  that it doesn’t have. We should have prevented it from getting the
         //  new data by locking it earlier.
-        await tests.test(name: "timeout",
-            expecting: MongoChannel.TimeoutError.init(sent: true))
+        await (tests / "timeout").do(
+            catching: MongoChannel.TimeoutError.init(sent: true))
         {
-            _ in
             let _:[Letter] = try await ReadLetters()
         }
 
         //  We should be able to read all four writes from a different,
         //  unlocked secondary/slave.
-        await tests.test(name: "bystander")
+        await (tests / "bystander").do
         {
             let letters:[Letter] = try await session.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
@@ -174,23 +175,22 @@ func TestCausalConsistency(_ tests:inout Tests,
                 against: database,
                 on: .secondary(tagSets: [["name": "D"]]))
             
-            $0.assert(letters ..? [a, b, c, d], name: "letters")
+            tests.expect(letters ..? [a, b, c, d])
         }
 
         //  We should still receive a timeout error if we try to read from the
         //  locked secondary from the current session, because running the last
         //  command didn’t lower the precondition time.
-        await tests.test(name: "timeout-again",
-            expecting: MongoChannel.TimeoutError.init(sent: true))
+        await (tests / "timeout-again").do(
+            catching: MongoChannel.TimeoutError.init(sent: true))
         {
-            _ in
             let _:[Letter] = try await ReadLetters()
         }
         //  We should still be able to read from the locked secondary/slave from
         //  a different session. Because that session’s timeline should have no
         //  relationship with the current session’s timeline, the read should
         //  succeed, and return the stale data from before the last three writes.
-        await tests.test(name: "non-causal")
+        await (tests / "non-causal").do
         {
             let letters:[Letter] = try await pool.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
@@ -199,15 +199,14 @@ func TestCausalConsistency(_ tests:inout Tests,
                 against: database,
                 on: secondary)
             
-            $0.assert(letters ..? [a], name: "letters")
+            tests.expect(letters ..? [a])
         }
         //  We should still receive a timeout error if we try to read from the
         //  locked secondary/slave using a session that was forked from the
         //  current session, however.
-        await tests.test(name: "timeout-forked",
-            expecting: MongoChannel.TimeoutError.init(sent: true))
+        await (tests / "timeout-forked").do(
+            catching: MongoChannel.TimeoutError.init(sent: true))
         {
-            _ in
             let forked:Mongo.Session = try await .init(from: pool, forking: session)
             let _:[Letter] = try await forked.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
@@ -222,11 +221,11 @@ func TestCausalConsistency(_ tests:inout Tests,
             against: .admin,
             on: secondary)
         //  We should have unlocked the secondary/slave all the way.
-        tests.assert(lock.count ==? 0, name: "lock-count-unlocked")
+        tests.expect(lock.count ==? 0)
 
         //  We should be able to read all four writes from the unlocked
         //  secondary/slave, because it has caught up to the session’s
         //  precondition time.
-        tests.assert(try await ReadLetters() ..? [a, b, c, d], name: "all-letters")
+        tests.expect(try await ReadLetters() ..? [a, b, c, d])
     }
 }

@@ -5,11 +5,13 @@ import Testing
 enum Main:SyncTests
 {
     static
-    func run(tests:inout Tests)
+    func run(tests:Tests)
     {
-        tests.group("literal-inference")
+        do
         {
-            $0.test(name: "integer",
+            let tests:TestGroup = tests / "literal-inference"
+
+            TestEncoding(tests / "integer",
                 encoded: .init
                 {
                     $0["default"] = 1
@@ -25,7 +27,7 @@ enum Main:SyncTests
                     "uint64": .uint64(1),
                 ])
             
-            $0.test(name: "floating-point",
+            TestEncoding(tests / "floating-point",
                 encoded: .init
                 {
                     $0["default"] = 1.0
@@ -37,7 +39,7 @@ enum Main:SyncTests
                     "a": .double(1.0),
                 ])
             
-            $0.test(name: "string",
+            TestEncoding(tests / "string",
                 encoded: .init
                 {
                     $0["a"] = "string"
@@ -53,7 +55,7 @@ enum Main:SyncTests
                     "d": .string(.init(from: "string")),
                 ])
             
-            $0.test(name: "optionals",
+            TestEncoding(tests / "optionals",
                 encoded: .init
                 {
                     $0["a"] = [1, nil, 3]
@@ -69,7 +71,7 @@ enum Main:SyncTests
                     "d": .tuple([1, .null, 3]),
                 ])
             
-            $0.test(name: "tuple",
+            TestEncoding(tests / "tuple",
                 encoded: .init
                 {
                     $0["a"] = [1, 2, 3]
@@ -85,7 +87,7 @@ enum Main:SyncTests
                     "d": .tuple([1, 2, 3]),
                 ])
             
-            $0.test(name: "document",
+            TestEncoding(tests / "document",
                 encoded: .init
                 {
                     $0["a"] = ["a": 1, "b": 2, "c": 3]
@@ -101,9 +103,11 @@ enum Main:SyncTests
                     "d": .document(["a": 1, "b": 2, "c": 3]),
                 ])
         }
-        tests.group("type-inference")
+        do
         {
-            $0.test(name: "binary",
+            let tests:TestGroup = tests / "type-inference"
+
+            TestEncoding(tests / "binary",
                 encoded: .init
                 {
                     $0["a"] = BSON.Binary<[UInt8]>.init(subtype: .generic,
@@ -115,7 +119,7 @@ enum Main:SyncTests
                         bytes: [0xff, 0xff, 0xff])),
                 ])
             
-            $0.test(name: "max",
+            TestEncoding(tests / "max",
                 encoded: .init
                 {
                     $0["max"] = BSON.Max.init()
@@ -125,7 +129,7 @@ enum Main:SyncTests
                     "max": .max,
                 ])
             
-            $0.test(name: "min",
+            TestEncoding(tests / "min",
                 encoded: .init
                 {
                     $0["min"] = BSON.Min.init()
@@ -135,7 +139,7 @@ enum Main:SyncTests
                     "min": .min,
                 ])
             
-            $0.test(name: "null",
+            TestEncoding(tests / "null",
                 encoded: .init
                 {
                     $0["null"] = ()
@@ -145,9 +149,11 @@ enum Main:SyncTests
                     "null": .null,
                 ])
         }
-        tests.group("elided-collections")
+        do
         {
-            $0.test(name: "string",
+            let tests:TestGroup = tests / "elided-collections"
+
+            TestEncoding(tests / "string",
                 encoded: .init
                 {
                     $0["a", elide: true] = ""
@@ -162,7 +168,7 @@ enum Main:SyncTests
                     "d": "",
                 ])
             
-            $0.test(name: "array",
+            TestEncoding(tests / "array",
                 encoded: .init
                 {
                     $0["a", elide: true] = [] as [Int]
@@ -177,7 +183,7 @@ enum Main:SyncTests
                     "d": [],
                 ])
             
-            $0.test(name: "document",
+            TestEncoding(tests / "document",
                 encoded: .init
                 {
                     $0["a", elide: true] = [:]
@@ -192,9 +198,11 @@ enum Main:SyncTests
                     "d": [:],
                 ])
         }
-        tests.group("elided-fields")
+        do
         {
-            $0.test(name: "null",
+            let tests:TestGroup = tests / "elided-fields"
+
+            TestEncoding(tests / "null",
                 encoded: .init
                 {
                     $0["elided"] = nil as ()?
@@ -205,7 +213,7 @@ enum Main:SyncTests
                     "inhabited": .null,
                 ])
             
-            $0.test(name: "integer",
+            TestEncoding(tests / "integer",
                 encoded: .init
                 {
                     $0["elided"] = nil as Int?
@@ -216,7 +224,7 @@ enum Main:SyncTests
                     "inhabited": 5,
                 ])
             
-            $0.test(name: "optional",
+            TestEncoding(tests / "optional",
                 encoded: .init
                 {
                     $0["elided"] = nil as Int??
@@ -229,9 +237,11 @@ enum Main:SyncTests
                     "uninhabited": .null,
                 ])
         }
-        tests.group("duplicate-fields")
+        do
         {
-            $0.test(name: "integer",
+            let tests:TestGroup = tests / "duplicate-fields"
+
+            TestEncoding(tests / "integer",
                 encoded: .init
                 {
                     $0["inhabited"] = 5

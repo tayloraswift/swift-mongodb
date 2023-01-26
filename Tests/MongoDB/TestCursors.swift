@@ -1,40 +1,46 @@
 import MongoDB
 import Testing
 
-func TestCursors(_ tests:inout Tests,
+func TestCursors(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    await tests.withTemporaryDatabase(name: "cursors",
+    let tests:TestGroup = tests / "cursors"
+
+    await tests.withTemporaryDatabase(named: "cursors-test",
         bootstrap: bootstrap,
         hosts: hosts)
     {
-        (tests:inout Tests, pool:Mongo.SessionPool, database:Mongo.Database) in
+        (pool:Mongo.SessionPool, database:Mongo.Database) in
 
         let collection:Mongo.Collection = "ordinals"
         let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
 
         let initializer:Mongo.Session = try await .init(from: pool)
 
-        await tests.test(name: "initialize")
+        do
         {
-            //  We should be able to initialize the test collection with 100 ordinals
-            //  of the form:
-            //
-            //  {_id: 0, ordinal: 0}
-            //  {_id: 1, ordinal: 1}
-            //
-            //   ...
-            //
-            //  {_id: 99, ordinal: 99}
-            let expected:Mongo.InsertResponse = .init(inserted: 100)
-            let response:Mongo.InsertResponse = try await initializer.run(
-                command: Mongo.Insert<Ordinals>.init(collection: collection,
-                    elements: ordinals),
-                against: database,
-                on: .primary)
-            
-            $0.assert(response ==? expected, name: "response")
+            let tests:TestGroup = tests / "initialize"
+            await tests.do
+            {
+                //  We should be able to initialize the test collection with 100 ordinals
+                //  of the form:
+                //
+                //  {_id: 0, ordinal: 0}
+                //  {_id: 1, ordinal: 1}
+                //
+                //   ...
+                //
+                //  {_id: 99, ordinal: 99}
+                let expected:Mongo.InsertResponse = .init(inserted: 100)
+                let response:Mongo.InsertResponse = try await initializer.run(
+                    command: Mongo.Insert<Ordinals>.init(collection: collection,
+                        elements: ordinals),
+                    against: database,
+                    on: .primary)
+                
+                tests.expect(response ==? expected)
+            }
         }
 
         let servers:[Mongo.ReadPreference] = hosts.count == 1 ?
@@ -53,15 +59,14 @@ func TestCursors(_ tests:inout Tests,
 
         for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
         {
-            await tests.test(name: "cursor-cleanup-normal-\(name)")
+            let tests:TestGroup = tests / name / "cursor-cleanup-normal"
+            await tests.do
             {
-                (tests:inout Tests) in
-
                 //  We should be using a session that is causally-consistent with the
                 //  insertion operation at the beginning of this test.
                 let session:Mongo.Session = try await .init(from: pool, forking: initializer)
                 //  We should be reusing session identifiers.
-                tests.assert(await pool.count ==? 2, name: "session-pool-count")
+                tests.expect(await pool.count ==? 2)
                 //  We should be able to query the collection for results in batches of
                 //  10.
                 try await session.run(query: Mongo.Find<Ordinal>.init(
@@ -78,19 +83,14 @@ func TestCursors(_ tests:inout Tests,
                     //  iterator’s connection is uniquely-referenced afterwards. This is
                     //  because a ``CursorIterator`` holds a strong reference to its
                     //  pinned connection.
-                    if  let iterator:Mongo.CursorIterator = tests.unwrap($0.cursor,
-                            name: "iterator")
+                    if  let iterator:Mongo.CursorIterator = tests.expect(value: $0.cursor)
                     {
                         //  The parameters of the cursor iterator should match the
                         //  parameters used to run the initial query.
-                        tests.assert(iterator.namespace.collection ==? collection,
-                            name: "collection")
-                        tests.assert(iterator.namespace.database ==? database,
-                            name: "database")
-                        tests.assert(iterator.preference ==? server,
-                            name: "preference")
-                        tests.assert(iterator.stride ==? 10,
-                            name: "batch-stride")
+                        tests.expect(iterator.namespace.collection ==? collection)
+                        tests.expect(iterator.namespace.database ==? database)
+                        tests.expect(iterator.preference ==? server)
+                        tests.expect(iterator.stride ==? 10)
                         
                         cursor = iterator.id
                     }
@@ -106,23 +106,22 @@ func TestCursors(_ tests:inout Tests,
                     {
                         //  We should never observe an empty batch, in fact, every batch
                         //  we receive should contain exactly ten elements.
-                        tests.assert(elements.count ==? 10, name: "batch-elements-count")
+                        tests.expect(elements.count ==? 10)
                         batch += 1
                     }
                     //  We should have encountered ten batches in total.
-                    tests.assert(batch ==? 10, name: "batch-count")
+                    tests.expect(batch ==? 10)
 
                     //  The iterator should be [`nil`]() after the last batch is queried,
                     //  and we have exited the loop. The iterator is not guaranteed to be
                     //  [`nil`]() in the last loop iteration, because empty trailing batches
                     //  are not provided to the caller.
-                    tests.assert($0.cursor == nil, name: "iterator-nil")
+                    tests.expect(nil: $0.cursor)
 
                     let connections:Mongo.ConnectionPool = try await pool.connect(to: server)
                     //  We should never have run more than one concurrent operation with
                     //  this server’s connection pool at a time.
-                    tests.assert(await connections.count ==? 1,
-                        name: "connection-pool-count-before")
+                    tests.expect(await connections.count ==? 1)
                     
                     //  We should be able to reuse the batch sequence’s connection after
                     //  finishing iteration, even though we are still inside the query
@@ -139,8 +138,7 @@ func TestCursors(_ tests:inout Tests,
                         let _:Mongo.Connection = connection
                     }
                     
-                    tests.assert(await connections.count ==? 1,
-                        name: "connection-pool-count-after")
+                    tests.expect(await connections.count ==? 1)
 
                     //  We should be able to verify that the server-side cursor is already
                     //  dead, by checking if a manual kill command would consider it
@@ -153,20 +151,22 @@ func TestCursors(_ tests:inout Tests,
                         against: database,
                         on: server)
                     
-                    tests.assert(cursors.alive **? [], name: "cursors-alive")
-                    tests.assert(cursors.killed **? [], name: "cursors-killed")
-                    tests.assert(cursors.unknown **? [], name: "cursors-unknown")
-                    tests.assert(cursors.notFound **? [cursor],
-                        name: "cursors-not-found")
+                    tests.expect(cursors.alive **? [])
+                    tests.expect(cursors.killed **? [])
+                    tests.expect(cursors.unknown **? [])
+                    tests.expect(cursors.notFound **? [cursor])
                 }
             }
+        }
+        for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
+        {
+            let tests:TestGroup = tests / name
             for iterations:Int in 0 ... 2
             {
-                await tests.test(
-                    name: "cursor-cleanup-interrupted-\(name)-\(iterations)-iterations")
+                let tests:TestGroup = tests / "cursor-cleanup-interrupted" /
+                    iterations.description
+                await tests.do
                 {
-                    (tests:inout Tests) in
-
                     //  We should be using a session that is causally-consistent with the
                     //  insertion operation at the beginning of this test.
                     let session:Mongo.Session = try await .init(from: pool,
@@ -190,19 +190,14 @@ func TestCursors(_ tests:inout Tests,
                                 }
                             }
                         }
-                        if  let iterator:Mongo.CursorIterator = tests.unwrap($0.cursor,
-                                name: "iterator")
+                        if  let iterator:Mongo.CursorIterator = tests.expect(value: $0.cursor)
                         {
                             //  The parameters of the cursor iterator should match the
                             //  parameters used to run the initial query.
-                            tests.assert(iterator.namespace.collection ==? collection,
-                                name: "collection")
-                            tests.assert(iterator.namespace.database ==? database,
-                                name: "database")
-                            tests.assert(iterator.preference ==? server,
-                                name: "preference")
-                            tests.assert(iterator.stride ==? 10,
-                                name: "batch-stride")
+                            tests.expect(iterator.namespace.collection ==? collection)
+                            tests.expect(iterator.namespace.database ==? database)
+                            tests.expect(iterator.preference ==? server)
+                            tests.expect(iterator.stride ==? 10)
                             return iterator.id
                         }
                         else
@@ -218,17 +213,19 @@ func TestCursors(_ tests:inout Tests,
                             against: database,
                             on: server)
                         // if the cursor is already dead, killing it manually will return 'notFound'.
-                        tests.assert(cursors.alive **? [], name: "cursors-alive")
-                        tests.assert(cursors.killed **? [], name: "cursors-killed")
-                        tests.assert(cursors.unknown **? [], name: "cursors-unknown")
-                        tests.assert(cursors.notFound **? [cursor], name: "cursors-not-found")
+                        tests.expect(cursors.alive **? [])
+                        tests.expect(cursors.killed **? [])
+                        tests.expect(cursors.unknown **? [])
+                        tests.expect(cursors.notFound **? [cursor])
                     }
                 }
             }
-            await tests.test(name: "cursor-connection-pooling")
+        }
+        for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
+        {
+            let tests:TestGroup = tests / name / "cursor-concurrent-commands"
+            await tests.do
             {
-                (tests:inout Tests) in
-
                 let session:Mongo.Session = try await .init(from: pool, forking: initializer)
                 try await session.run(
                     query: Mongo.Find<Ordinal>.init(collection: collection, stride: 10),
@@ -238,13 +235,14 @@ func TestCursors(_ tests:inout Tests,
                     var counter:Int = 0
                     for try await batch:[Ordinal] in $0
                     {
+                        let tests:TestGroup = tests / counter.description
                         let names:[Mongo.Database] = try await initializer.run(
                             command: Mongo.ListDatabases.NameOnly.init(),
                             against: .admin,
                             on: server)
                         
-                        tests.assert(!batch.isEmpty, name: "stream.\(counter)")
-                        tests.assert(!names.isEmpty, name: "list-databases.\(counter)")
+                        tests.expect(false: batch.isEmpty)
+                        tests.expect(false: names.isEmpty)
 
                         counter += 1
                     }
