@@ -6,7 +6,7 @@ extension Mongo
         public private(set)
         var snapshotTime:Mongo.Instant
         public private(set)
-        var transaction:Transaction
+        var transaction:TransactionState
         private
         var touched:ContinuousClock.Instant
 
