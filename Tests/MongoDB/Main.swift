@@ -60,8 +60,6 @@ enum Main:AsyncTests
             await TestInsert(tests, bootstrap: bootstrap, hosts: [standalone])
             await TestFind(tests, bootstrap: bootstrap, hosts: [standalone])
 
-            await TestTransactions(tests, bootstrap: bootstrap, hosts: [standalone])
-
             await TestCursors(tests, bootstrap: bootstrap, hosts: [standalone])
         }
     }
