@@ -12,7 +12,7 @@ enum Main:AsyncTests
 
         do
         {
-            let tests:TestGroup = tests / "replicated-topology"
+            let tests:TestGroup = tests / "replicated"
 
             let members:Set<Mongo.Host> =
             [
