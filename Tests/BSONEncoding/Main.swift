@@ -90,8 +90,18 @@ enum Main:SyncTests
             TestEncoding(tests / "document",
                 encoded: .init
                 {
-                    $0["a"] = ["a": 1, "b": 2, "c": 3]
-                    $0["b"] = ["a": 1, "b": 2, "c": 3]
+                    $0["a"] = .init
+                    {
+                        $0["a"] = 1
+                        $0["b"] = 2
+                        $0["c"] = 3
+                    }
+                    $0["b"] = .init
+                    {
+                        $0["a"] = 1
+                        $0["b"] = 2
+                        $0["c"] = 3
+                    }
                     $0["c"] = ["a": 1, "b": 2, "c": 3] as BSON.Document<[UInt8]>
                     $0["d"] = ["a": 1, "b": 2, "c": 3] as BSON.Document<[UInt8]>
                 },
@@ -186,10 +196,16 @@ enum Main:SyncTests
             TestEncoding(tests / "document",
                 encoded: .init
                 {
-                    $0["a", elide: true] = [:]
-                    $0["b", elide: true] = ["x": 1]
-                    $0["c", elide: false] = ["x": 1]
-                    $0["d", elide: false] = [:]
+                    $0["a", elide: true] = .init()
+                    $0["b", elide: true] = .init
+                    {
+                        $0["x"] = 1
+                    }
+                    $0["c", elide: false] = .init
+                    {
+                        $0["x"] = 1
+                    }
+                    $0["d", elide: false] = .init()
                 },
                 literal:
                 [

@@ -207,6 +207,14 @@ extension BSON.UTF8:BSONEncodable
         field.encode(string: self)
     }
 }
+extension BSON.Elements:BSONEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(tuple: .init(self))
+    }
+}
 extension BSON.Fields:BSONEncodable
 {
     @inlinable public
