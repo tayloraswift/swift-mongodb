@@ -13,7 +13,7 @@ func TestFsync(_ tests:TestGroup,
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
-        // ensure we are locking and unlocking the same node!
+        //  We should ensure we are locking and unlocking the same node!
         let node:Mongo.ReadPreference = .nearest(tagSets: [["name": "A"]])
 
         var lock:Mongo.FsyncLock
@@ -23,6 +23,15 @@ func TestFsync(_ tests:TestGroup,
             on: node)
         
         tests.expect(lock.count ==? 1)
+
+        //  We should always be able to run the ping command, even if the
+        //  node is write-locked.
+        await (tests / "ping").do
+        {
+            try await pool.run(command: Mongo.Ping.init(),
+                against: .admin,
+                on: node)
+        }
 
         lock = try await pool.run(command: Mongo.FsyncUnlock.init(),
             against: .admin,

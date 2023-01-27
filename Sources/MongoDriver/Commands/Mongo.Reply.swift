@@ -48,9 +48,8 @@ extension Mongo.Reply
         }
         else
         {
-            self.init(result: .failure(.init(
-                    message: try dictionary["errmsg"]?.decode(to: String.self) ?? "",
-                    code: try dictionary["code"]?.decode(to: Int32.self))),
+            self.init(result: .failure(.init(try dictionary["code"]?.decode(to: Int32.self),
+                    message: try dictionary["errmsg"]?.decode(to: String.self) ?? "")),
                 operationTime: operationTime,
                 clusterTime: clusterTime)
         }

@@ -27,15 +27,26 @@ extension Mongo
         }
     }
 }
+@available(*, unavailable, message: "RefreshSessions cannot be run during a transaction.")
+extension Mongo.RefreshSessions:MongoTransactableCommand
+{
+}
 extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
 {
     /// `RefreshSessions` must be sent to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 
+    /// The string [`"refreshSessions"`]().
+    @inlinable public static
+    var name:String
+    {
+        "refreshSessions"
+    }
+
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["refreshSessions"] = self.sessions
+        bson[Self.name] = self.sessions
     }
 }

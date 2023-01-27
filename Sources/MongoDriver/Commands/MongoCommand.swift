@@ -27,6 +27,12 @@ protocol MongoCommand<Response>:BSONDocumentEncodable, Sendable
     /// receive a default implementation for this requirement.
     static
     func decode(reply:BSON.Dictionary<ByteBufferView>) throws -> Response
+
+    /// The official name of this command, in the MongoDB specification. It
+    /// always begins with a lowercase letter, and usually resembles the name
+    /// of the command type.
+    static
+    var name:String { get }
 }
 extension MongoCommand<Void>
 {

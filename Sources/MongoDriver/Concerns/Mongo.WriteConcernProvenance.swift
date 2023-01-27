@@ -1,4 +1,4 @@
-import BSONDecoding
+import BSONSchema
 
 extension Mongo
 {
@@ -11,6 +11,6 @@ extension Mongo
         case implicitDefault
     }
 }
-extension Mongo.WriteConcernProvenance:BSONDecodable
+extension Mongo.WriteConcernProvenance:BSONScheme
 {
 }

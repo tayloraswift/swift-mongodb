@@ -22,10 +22,17 @@ extension Mongo.Fsync:MongoImplicitSessionCommand, MongoCommand
     public
     typealias Response = Mongo.FsyncLock
 
+    /// The string [`"fsync"`]().
+    @inlinable public static
+    var name:String
+    {
+        "fsync"
+    }
+
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["fsync"] = 1 as Int32
+        bson[Self.name] = 1 as Int32
         bson["lock"] = self.lock
     }
 }

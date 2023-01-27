@@ -20,10 +20,17 @@ extension Mongo
 }
 extension Mongo.KillCursors:MongoCommand
 {
+    /// The string [`"killCursors"`]().
+    @inlinable public static
+    var name:String
+    {
+        "killCursors"
+    }
+
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["killCursors"] = self.collection
+        bson[Self.name] = self.collection
         bson["cursors"] = self.cursors
     }
     

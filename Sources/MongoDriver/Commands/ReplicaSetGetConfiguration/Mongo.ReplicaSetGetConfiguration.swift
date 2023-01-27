@@ -42,15 +42,19 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
         return try bson["config"].decode(to: Mongo.ReplicaSetConfiguration.self)
     }
     
+    /// The string [`"replSetGetConfig"`]().
+    @inlinable public static
+    var name:String
+    {
+        "replSetGetConfig"
+    }
+
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["replSetGetConfig"] = 1 as Int32
+        bson[Self.name] = 1 as Int32
     }
 }
-// extension Mongo.ReplicaSetGetConfiguration:MongoReadOnlyCommand
-// {
-// }
 extension Mongo.ReplicaSetGetConfiguration:MongoImplicitSessionCommand
 {
 }

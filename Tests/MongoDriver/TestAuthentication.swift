@@ -79,9 +79,8 @@ func TestAuthentication(_ tests:TestGroup,
             diagnostics: .init(unreachable:
             [
                 standalone: .errored(Mongo.AuthenticationError.init(
-                        Mongo.ServerError.init(
-                            message: "Authentication failed.",
-                            code: 18),
+                        Mongo.ServerError.init(18,
+                            message: "Authentication failed."),
                     credentials: bootstrap.credentials!))
             ]),
             failure: .init()))
