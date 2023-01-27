@@ -36,10 +36,17 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
         databases:[Mongo.DatabaseMetadata]
     )
 
+    /// The string [`"listDatabases"`]().
+    @inlinable public static
+    var name:String
+    {
+        "listDatabases"
+    }
+    
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["listDatabases"] = 1 as Int32
+        bson[Self.name] = 1 as Int32
         bson["authorizedDatabases"] = self.authorizedDatabases
         bson["filter", elide: true] = self.filter
     }

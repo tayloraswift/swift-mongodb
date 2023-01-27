@@ -40,10 +40,17 @@ extension Mongo
 }
 extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
+    /// The string [`"insert"`]().
+    @inlinable public static
+    var name:String
+    {
+        "insert"
+    }
+    
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["insert"] = self.collection
+        bson[Self.name] = self.collection
         bson["bypassDocumentValidation"] = self.bypassDocumentValidation
         bson["documents"] = BSON.Tuple<[UInt8]>.init(.init(elements: self.elements))
         bson["ordered"] = self.ordered

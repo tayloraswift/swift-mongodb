@@ -20,10 +20,16 @@ extension Mongo
 }
 extension Mongo.DropDatabase:MongoImplicitSessionCommand, MongoCommand
 {
+    /// The string [`"dropDatabase"`]().
+    @inlinable public static
+    var name:String
+    {
+        "dropDatabase"
+    }
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["dropDatabase"] = 1 as Int32
+        bson[Self.name] = 1 as Int32
         bson["writeConcern"] = self.writeConcern
     }
 }

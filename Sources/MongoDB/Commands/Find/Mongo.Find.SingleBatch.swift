@@ -60,6 +60,13 @@ extension Mongo.Find.SingleBatch:MongoImplicitSessionCommand,
     MongoTransactableCommand,
     MongoCommand
 {
+    /// The string [`"find"`]().
+    @inlinable public static
+    var name:String
+    {
+        Mongo.Find<Element>.name
+    }
+
     public
     func encode(to bson:inout BSON.Fields)
     {

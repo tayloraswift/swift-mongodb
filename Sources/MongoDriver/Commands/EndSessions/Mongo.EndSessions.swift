@@ -29,8 +29,16 @@ extension Mongo.EndSessions:MongoCommand
     public
     typealias Database = Mongo.Database.Admin
 
+    /// The string [`"endSessions"`]().
+    @inlinable public static
+    var name:String
+    {
+        "endSessions"
+    }
+
+    public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["endSessions"] = self.sessions
+        bson[Self.name] = self.sessions
     }
 }

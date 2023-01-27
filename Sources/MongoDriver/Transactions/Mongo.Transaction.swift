@@ -56,7 +56,7 @@ extension Mongo.Transaction
     @inlinable public
     func run<Command>(command:Command, against database:Command.Database,
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
-        where Command:MongoCommand
+        where Command:MongoTransactableCommand
     {
         let connect:Mongo.ConnectionDeadline = self.session.cluster.timeout.deadline(from: .now,
             clamping: deadline)
@@ -74,7 +74,7 @@ extension Mongo.Transaction
         by deadline:ContinuousClock.Instant? = nil,
         with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
         async throws -> Success
-        where Query:MongoQuery
+        where Query:MongoTransactableCommand & MongoQuery
     {
         let connect:Mongo.ConnectionDeadline = self.session.cluster.timeout.deadline(from: .now,
             clamping: deadline)

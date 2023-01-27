@@ -42,10 +42,16 @@ extension Mongo
 }
 extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
+    /// The string [`"create"`]().
+    @inlinable public static
+    var name:String
+    {
+        "create"
+    }
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["create"] = self.collection
+        bson[Self.name] = self.collection
         bson["collation"] = self.collation
         bson["writeConcern"] = self.writeConcern
         bson["indexOptionDefaults", elide: true] = self.indexOptionDefaults

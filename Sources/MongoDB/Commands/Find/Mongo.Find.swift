@@ -126,12 +126,17 @@ extension Mongo.Find:MongoReadCommand
 }
 extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
+    /// The string [`"find"`]().
+    @inlinable public static
+    var name:String
+    {
+        "find"
+    }
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["find"] = self.collection
+        bson[Self.name] = self.collection
         bson["batchSize"] = self.stride
-        // bson["singleBatch"] = self.singleBatch ? true : nil
         bson["maxTimeMS"] = self.timeout
         bson["tailable"] = self.tailable ? true : nil
         bson["awaitData"] = self.awaitData ? true : nil

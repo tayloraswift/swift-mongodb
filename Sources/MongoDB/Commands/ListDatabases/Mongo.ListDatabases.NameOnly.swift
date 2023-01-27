@@ -37,6 +37,13 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
     public
     typealias Response = [Mongo.Database]
 
+    /// The string [`"listDatabases"`]().
+    @inlinable public static
+    var name:String
+    {
+        Mongo.ListDatabases.name
+    }
+
     public
     func encode(to bson:inout BSON.Fields)
     {

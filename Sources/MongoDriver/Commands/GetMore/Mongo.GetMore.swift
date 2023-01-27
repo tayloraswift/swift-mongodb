@@ -30,10 +30,17 @@ extension Mongo
 }
 extension Mongo.GetMore:MongoCommand
 {
+    /// The string [`"getMore"`]().
+    @inlinable public static
+    var name:String
+    {
+        "getMore"
+    }
+
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["getMore"] = self.cursor
+        bson[Self.name] = self.cursor
         bson["collection"] = self.collection
         bson["maxTimeMS"] = self.timeout?.milliseconds
         bson["batchSize"] = self.count

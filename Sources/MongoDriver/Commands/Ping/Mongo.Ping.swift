@@ -2,8 +2,9 @@ import BSONEncoding
 
 extension Mongo
 {
+    /// The MongoDB `ping` command.
     public
-    struct FsyncUnlock:Sendable
+    struct Ping:Equatable, Sendable
     {
         public
         init()
@@ -11,22 +12,19 @@ extension Mongo
         }
     }
 }
-extension Mongo.FsyncUnlock:MongoImplicitSessionCommand, MongoCommand
+extension Mongo.Ping:MongoCommand
 {
-    public
-    typealias Database = Mongo.Database.Admin
-    public
-    typealias Response = Mongo.FsyncLock
-
-    /// The string [`"fsyncUnlock"`]().
+    /// The string [`"ping"`]().
     @inlinable public static
     var name:String
     {
-        "fsyncUnlock"
+        "ping"
     }
+
     public
     func encode(to bson:inout BSON.Fields)
     {
         bson[Self.name] = 1 as Int32
     }
 }
+

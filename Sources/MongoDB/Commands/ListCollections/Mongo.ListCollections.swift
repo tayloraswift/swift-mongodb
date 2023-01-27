@@ -53,10 +53,17 @@ extension Mongo.ListCollections:MongoImplicitSessionCommand,
     MongoTransactableCommand,
     MongoCommand
 {
+    /// The string [`"listCollections"`]().
+    @inlinable public static
+    var name:String
+    {
+        "listCollections"
+    }
+    
     public
     func encode(to bson:inout BSON.Fields)
     {
-        bson["listCollections"] = 1 as Int32
+        bson[Self.name] = 1 as Int32
         bson["cursor"] = .init
         {
             $0["batchSize"] = self.stride

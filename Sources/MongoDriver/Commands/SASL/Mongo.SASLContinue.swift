@@ -16,9 +16,16 @@ extension Mongo.SASLContinue:MongoCommand
 {
     typealias Response = Mongo.SASLResponse
     
+    /// The string [`"saslContinue"`]().
+    static
+    var name:String
+    {
+        "saslContinue"
+    }
+
     func encode(to bson:inout BSON.Fields)
     {
-        bson["saslContinue"] = true
+        bson[Self.name] = true
         bson["conversationId"] = self.conversation
         bson["payload"] = self.message.base64
     }

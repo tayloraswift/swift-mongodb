@@ -22,9 +22,16 @@ extension Mongo.SASLStart:MongoCommand
 {
     typealias Response = Mongo.SASLResponse
     
+    /// The string [`"saslStart"`]().
+    static
+    var name:String
+    {
+        "saslStart"
+    }
+
     func encode(to bson:inout BSON.Fields)
     {
-        bson["saslStart"] = true
+        bson[Self.name] = true
         bson["mechanism"] = self.mechanism
         bson["payload"] = self.scram.message.base64
         bson["options"] = ["skipEmptyExchange": true]
