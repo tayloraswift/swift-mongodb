@@ -11,7 +11,7 @@ extension Mongo
         let code:Int32?
 
         public
-        init(message:String, code:Int32?)
+        init(_ code:Int32?, message:String)
         {
             self.message = message
             self.code = code

@@ -12,7 +12,15 @@ extension Mongo
         case off
     }
 }
-extension Mongo.ConfigureFailpoint:MongoCommand
+extension Mongo.ConfigureFailpoint
+{
+    @inlinable public static
+    func once(_ options:Options) -> Self
+    {
+        .times(options, count: 1)
+    }
+}
+extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
 {
     /// `ConfigureFailpoint` must be sent to the `admin` database.
     public

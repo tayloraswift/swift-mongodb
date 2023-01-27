@@ -48,10 +48,10 @@ extension Mongo.FailCommand:MongoFailpoint
             }
             switch mode
             {
-            case .code(let error):
-                bson["errorCode"] = error
+            case .error(let code):
+                bson["errorCode"] = code
             
-            case .writeConcern(let error):
+            case .writeConcernError(let error):
                 bson["writeConcernError"] = error
             }
         

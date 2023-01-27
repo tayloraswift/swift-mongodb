@@ -52,3 +52,7 @@ extension Mongo.GetMore:MongoCommand
 extension Mongo.GetMore:MongoTransactableCommand
 {
 }
+@available(*, unavailable, message: "GetMore cannot use implicit sessions.")
+extension Mongo.GetMore:MongoImplicitSessionCommand
+{
+}

@@ -29,6 +29,10 @@ enum Main:AsyncTests
 
             let seedlist:Set<Mongo.Host> = .init(members)
 
+            await TestFailpoints(tests, credentials: nil,
+                seedlist: seedlist,
+                on: executor)
+
             await TestSessionPool(tests, credentials: nil,
                 seedlist: seedlist,
                 on: executor)
@@ -57,6 +61,10 @@ enum Main:AsyncTests
             await TestAuthentication(tests, standalone: standalone,
                 username: credentials.username,
                 password: credentials.password,
+                on: executor)
+            
+            await TestFailpoints(tests, credentials: credentials,
+                seedlist: [standalone],
                 on: executor)
             
             await TestSessionPool(tests, credentials: credentials,

@@ -12,7 +12,11 @@ extension Mongo
         }
     }
 }
-extension Mongo.Ping:MongoCommand
+@available(*, unavailable, message: "Ping cannot be run during a transaction.")
+extension Mongo.Ping:MongoTransactableCommand
+{
+}
+extension Mongo.Ping:MongoImplicitSessionCommand, MongoCommand
 {
     /// The string [`"ping"`]().
     @inlinable public static
@@ -27,4 +31,3 @@ extension Mongo.Ping:MongoCommand
         bson[Self.name] = 1 as Int32
     }
 }
-

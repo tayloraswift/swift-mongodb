@@ -27,6 +27,10 @@ extension Mongo
         }
     }
 }
+@available(*, unavailable, message: "RefreshSessions cannot be run during a transaction.")
+extension Mongo.RefreshSessions:MongoTransactableCommand
+{
+}
 extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
 {
     /// `RefreshSessions` must be sent to the `admin` database.
