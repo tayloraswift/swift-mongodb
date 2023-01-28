@@ -87,22 +87,6 @@ extension Mongo
 }
 extension Mongo.Find
 {
-    // var batchSize:Int64
-    // {
-    //     switch self.batching
-    //     {
-    //     case .batch(of: let size), .batches(of: let size):
-    //         return .init(size)
-    //     }
-    // }
-    // var singleBatch:Bool
-    // {
-    //     switch self.batching
-    //     {
-    //     case .batch:    return true
-    //     case .batches:  return false
-    //     }
-    // }
     var tailable:Bool
     {
         switch self.tailing

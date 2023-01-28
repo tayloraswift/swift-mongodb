@@ -34,6 +34,9 @@ extension Mongo.SASLStart:MongoCommand
         bson[Self.name] = true
         bson["mechanism"] = self.mechanism
         bson["payload"] = self.scram.message.base64
-        bson["options"] = ["skipEmptyExchange": true]
+        bson["options"] = .init
+        {
+            $0["skipEmptyExchange"] = true
+        }
     }
 }

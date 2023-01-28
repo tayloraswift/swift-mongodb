@@ -39,4 +39,34 @@ extension BSON.Elements
         self.init()
         try populate(&self)
     }
+    /// Creates an encoding view around the given [`[UInt8]`]()-backed
+    /// tuple-document.
+    ///
+    /// >   Complexity: O(1).
+    @inlinable public
+    init(_ bson:BSON.Tuple<[UInt8]>)
+    {
+        self.init(bytes: bson.bytes)
+    }
+    /// Creates an encoding view around the given generic tuple-document,
+    /// copying its backing storage if it is not already backed by
+    /// a native Swift array.
+    ///
+    /// If the tuple-document is statically known to be backed by a Swift array,
+    /// prefer calling the non-generic ``init(_:)``.
+    ///
+    /// >   Complexity:
+    ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
+    ///     where *n* is the encoded size of the document.
+    @inlinable public
+    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>)
+    {
+        switch bson
+        {
+        case let bson as BSON.Tuple<[UInt8]>:
+            self.init(bson)
+        case let bson:
+            self.init(.init(bytes: .init(bson.bytes)))
+        }
+    }
 }
