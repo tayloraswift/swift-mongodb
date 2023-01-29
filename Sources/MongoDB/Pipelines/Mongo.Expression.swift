@@ -471,12 +471,6 @@ extension Mongo.Expression
     {
         .first(count, of: array)
     }
-    @available(*, unavailable, renamed: "contains(_:in:)")
-    public static
-    func `in`(_ expression:Self, array:Self) -> Self
-    {
-        .contains(expression, in: array)
-    }
     @available(*, unavailable, renamed: "index(of:in:range:)")
     public static
     func indexOfArray(_ array:Self, expression:Self, start:Self?, end:Self?) -> Self
@@ -489,23 +483,11 @@ extension Mongo.Expression
     {
         .max(count, of: array)
     }
-    @available(*, unavailable, renamed: "stride(from:to:by:)")
-    public static
-    func range(from start:Self, to end:Self, by step:Self?) -> Self
-    {
-        .stride(from: start, to: end, by: step)
-    }
     @available(*, unavailable, renamed: "reverse(array:)")
     public static
     func reverseArray(_ array:Self) -> Self
     {
         .reverse(array: array)
-    }
-    @available(*, unavailable, renamed: "count(of:)")
-    public static
-    func size(of array:Self) -> Self
-    {
-        .count(of: array)
     }
     @available(*, unavailable, renamed: "sort(array:by:)")
     public static
@@ -558,15 +540,6 @@ extension Mongo.Expression
     }
 
     @inlinable public static
-    func count(of array:Self) -> Self
-    {
-        .document
-        {
-            $0["$count"] = array
-        }
-    }
-
-    @inlinable public static
     func first(of array:Self) -> Self
     {
         .document
@@ -589,7 +562,7 @@ extension Mongo.Expression
     }
     
     @inlinable public static
-    func contains(_ expression:Self, in array:Self) -> Self
+    func `in`(_ expression:Self, in array:Self) -> Self
     {
         .document
         {
@@ -674,17 +647,8 @@ extension Mongo.Expression
         }
     }
 
-    @inlinable public static
-    func reverse(array:Self) -> Self
-    {
-        .document
-        {
-            $0["$reverseArray"] = array
-        }
-    }
-
     public static
-    func stride(from start:Self, to end:Self, by step:Self? = nil) -> Self
+    func range(from start:Self, to end:Self, by step:Self? = nil) -> Self
     {
         .document
         {
@@ -696,6 +660,24 @@ extension Mongo.Expression
             {
                 $0["$range"] = [start, end]
             }
+        }
+    }
+
+    @inlinable public static
+    func reverse(array:Self) -> Self
+    {
+        .document
+        {
+            $0["$reverseArray"] = array
+        }
+    }
+
+    @inlinable public static
+    func size(of array:Self) -> Self
+    {
+        .document
+        {
+            $0["$size"] = array
         }
     }
     
