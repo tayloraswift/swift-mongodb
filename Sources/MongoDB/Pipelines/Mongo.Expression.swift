@@ -798,3 +798,47 @@ extension Mongo.Expression
         }
     }
 }
+
+extension Mongo.Expression
+{
+    @inlinable public static
+    func and(_ expressions:Self...) -> Self
+    {
+        .and(expressions)
+    }
+    @inlinable public static
+    func and(_ expressions:[Self]) -> Self
+    {
+        .document
+        {
+            $0["$and"] = expressions
+        }
+    }
+
+    /// Creates a `$not` expression. This method already brackets the expression
+    /// when passing it in an argument tuple; doing so manually will create an
+    /// expression that always evaluates to false. (Because an empty array
+    /// evaluates to true.)
+    @inlinable public static
+    func not(_ expression:Self) -> Self
+    {
+        .document
+        {
+            $0["$not"] = [expression]
+        }
+    }
+
+    @inlinable public static
+    func or(_ expressions:Self...) -> Self
+    {
+        .or(expressions)
+    }
+    @inlinable public static
+    func or(_ expressions:[Self]) -> Self
+    {
+        .document
+        {
+            $0["$or"] = expressions
+        }
+    }
+}
