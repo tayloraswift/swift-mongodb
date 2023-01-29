@@ -18,8 +18,7 @@ enum Main:SyncTests
 
             (tests / "null").do
             {
-                let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try .init(
-                    fields: try bson.parse())
+                let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try bson.dictionary()
                 try dictionary["null"].decode(to: Void.self)
             }
             TestDecoding(tests / "max", bson: bson, to: .init())
@@ -279,8 +278,7 @@ enum Main:SyncTests
 
             tests.do
             {
-                let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try .init(
-                    fields: try bson.parse())
+                let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try bson.dictionary()
                 let decoded:BSON.Binary<ArraySlice<UInt8>> = try dictionary["md5"].decode(
                     as: BSON.Binary<ArraySlice<UInt8>>.self)
                 {

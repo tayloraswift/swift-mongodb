@@ -10,25 +10,54 @@ extension BSON.Tuple
 }
 extension BSON.Tuple
 {
+    /// Parses this tuple into key-value pairs in order, yielding each value to the
+    /// provided closure. Parsing a tuple is slightly faster than parsing a general 
+    /// ``Document``, because this method ignores the document keys.
+    ///
+    /// This method does *not* perform any key validation.
+    ///
+    /// Unlike ``parse``, this method does not allocate storage for the parsed
+    /// elements.
+    ///
+    /// >   Complexity:
+    ///     O(*n*), where *n* is the size of this tuple’s backing storage.
+    @inlinable public
+    func parse(to decode:(_ element:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
+    {
+        var input:BSON.Input<Bytes> = .init(self.bytes)
+        while let code:UInt8 = input.next()
+        {
+            let type:BSON = try .init(code: code)
+            try input.parse(through: 0x00)
+            try decode(try input.parse(variant: type))
+        }
+    }
+    @inlinable public
+    func parse<T>(
+        _ transform:(_ element:AnyBSON<Bytes.SubSequence>) throws -> T) throws -> [T]
+    {
+        var elements:[T] = []
+        try self.parse
+        {
+            elements.append(try transform($0))
+        }
+        return elements
+    }
     /// Splits this tuple’s inline key-value pairs into an array containing the
     /// values only. Parsing a tuple is slightly faster than parsing a general 
     /// ``Document``, because this method ignores the document keys.
     ///
     /// This method does *not* perform any key validation.
     ///
-    /// >   Complexity: O(*n*), where *n* is the size of this tuple’s backing storage.
+    /// Calling this convenience method is the same as calling ``parse(to:)`` and
+    /// collecting the yielded elements in an array.
+    ///
+    /// >   Complexity:
+    ///     O(*n*), where *n* is the size of this tuple’s backing storage.
     @inlinable public
     func parse() throws -> [AnyBSON<Bytes.SubSequence>]
     {
-        var input:BSON.Input<Bytes> = .init(self.bytes)
-        var elements:[AnyBSON<Bytes.SubSequence>] = []
-        while let code:UInt8 = input.next()
-        {
-            let type:BSON = try .init(code: code)
-            try input.parse(through: 0x00)
-            elements.append(try input.parse(variant: type))
-        }
-        return elements
+        try self.parse { $0 }
     }
 }
 extension BSON.Tuple:ExpressibleByArrayLiteral
@@ -58,12 +87,12 @@ extension BSON.Tuple:ExpressibleByArrayLiteral
     @inlinable public
     func canonicalized() throws -> Self
     {
-        .init(elements: try self.parse().map { try $0.canonicalized() })
+        .init(elements: try self.parse { try $0.canonicalized() })
     }
 }
 extension BSON.Tuple
 {
-    /// Performs a type-aware equivalence  comparison by parsing each operand and recursively
+    /// Performs a type-aware equivalence comparison by parsing each operand and recursively
     /// comparing the elements, ignoring tuple key names. Returns [`false`]() if either
     /// operand fails to parse.
     ///

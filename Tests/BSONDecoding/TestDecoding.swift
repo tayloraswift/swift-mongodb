@@ -8,7 +8,7 @@ func TestDecoding<Failure, Unexpected>(_ tests:TestGroup, bson:BSON.Document<[UI
 {
     tests.do(catching: error)
     {
-        _ = try decode(try .init(fields: try bson.parse()))
+        _ = try decode(try bson.dictionary())
     }
 }
 func TestDecoding<Decoded>(_ tests:TestGroup, bson:BSON.Document<[UInt8]>,
@@ -18,7 +18,7 @@ func TestDecoding<Decoded>(_ tests:TestGroup, bson:BSON.Document<[UInt8]>,
 {
     tests.do
     {
-        let decoded:Decoded = try decode(try .init(fields: try bson.parse()))
+        let decoded:Decoded = try decode(try bson.dictionary())
         tests.expect(expected ==? decoded)
     }
 }

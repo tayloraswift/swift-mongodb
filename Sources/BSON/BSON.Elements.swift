@@ -9,10 +9,15 @@ extension BSON
         var counter:Int
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init()
+        {
+            self.init(bytes: [], count: 0)
+        }
+        @inlinable public
+        init(bytes:[UInt8], count:Int)
         {
             self.output = .init(preallocated: bytes)
-            self.counter = 0
+            self.counter = count
         }
     }
 }
@@ -44,9 +49,9 @@ extension BSON.Elements
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ bson:BSON.Tuple<[UInt8]>)
+    init(_ bson:BSON.Tuple<[UInt8]>, count:Int)
     {
-        self.init(bytes: bson.bytes)
+        self.init(bytes: bson.bytes, count: count)
     }
     /// Creates an encoding view around the given generic tuple-document,
     /// copying its backing storage if it is not already backed by
@@ -59,14 +64,14 @@ extension BSON.Elements
     ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
     ///     where *n* is the encoded size of the document.
     @inlinable public
-    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>)
+    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>, count:Int)
     {
         switch bson
         {
         case let bson as BSON.Tuple<[UInt8]>:
-            self.init(bson)
+            self.init(bson, count: count)
         case let bson:
-            self.init(.init(bytes: .init(bson.bytes)))
+            self.init(.init(bytes: .init(bson.bytes)), count: count)
         }
     }
 }

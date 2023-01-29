@@ -11,9 +11,9 @@ func TestEncoding(_ tests:TestGroup,
     tests.expect(encoded ==? literal)
 
     guard   let encoded:[(key:String, value:AnyBSON<ArraySlice<UInt8>>)] =
-                tests.do({ try encoded.parse() }),
+                tests.do({ try encoded.parse { ($0, $1) } }),
             let literal:[(key:String, value:AnyBSON<ArraySlice<UInt8>>)] =
-                tests.do({ try literal.parse() })
+                tests.do({ try literal.parse { ($0, $1) } })
     else
     {
         return

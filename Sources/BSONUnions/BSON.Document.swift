@@ -10,21 +10,43 @@ extension BSON.Document
 }
 extension BSON.Document
 {
-    /// Splits this document’s inline key-value pairs into an array.
+    /// Parses this document into key-value pairs in order, yielding each key-value
+    /// pair to the provided closure.
     ///
-    /// >   Complexity: O(*n*), where *n* is the size of this document’s backing storage.
+    /// Unlike ``parse``, this method does not allocate storage for the parsed key-value
+    /// pairs. (But it does allocate storage to provide a ``String`` representation for
+    /// each visited key.)
+    ///
+    /// >   Complexity:
+    ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
-    func parse() throws -> [(key:String, value:AnyBSON<Bytes.SubSequence>)]
+    func parse(to decode:(_ key:String, _ value:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
     {
         var input:BSON.Input<Bytes> = .init(self.bytes)
-        var items:[(key:String, value:AnyBSON<Bytes.SubSequence>)] = []
         while let code:UInt8 = input.next()
         {
             let type:BSON = try .init(code: code)
             let key:String = try input.parse(as: String.self)
-            items.append((key, try input.parse(variant: type)))
+            try decode(key, try input.parse(variant: type))
         }
-        return items
+    }
+    /// Splits this document’s inline key-value pairs into an array.
+    ///
+    /// Calling this convenience method is the same as calling ``parse(to:)`` and
+    /// collecting the yielded key-value pairs in an array.
+    ///
+    /// >   Complexity:
+    ///     O(*n*), where *n* is the size of this document’s backing storage.
+    @inlinable public
+    func parse<T>(
+        _ transform:(_ key:String, _ value:AnyBSON<Bytes.SubSequence>) throws -> T) throws -> [T]
+    {
+        var elements:[T] = []
+        try self.parse
+        {
+            elements.append(try transform($0, $1))
+        }
+        return elements
     }
 }
 extension BSON.Document:ExpressibleByDictionaryLiteral 
@@ -64,7 +86,7 @@ extension BSON.Document:ExpressibleByDictionaryLiteral
     @inlinable public
     func canonicalized() throws -> Self
     {
-        .init(fields: try self.parse().map { ($0.key, try $0.value.canonicalized()) })
+        .init(fields: try self.parse { ($0, try $1.canonicalized()) })
     }
 }
 extension BSON.Document
@@ -79,8 +101,10 @@ extension BSON.Document
     @inlinable public static
     func ~~ <Other>(lhs:Self, rhs:BSON.Document<Other>) -> Bool
     {
-        if  let lhs:[(key:String, value:AnyBSON<Bytes.SubSequence>)] = try? lhs.parse(),
-            let rhs:[(key:String, value:AnyBSON<Other.SubSequence>)] = try? rhs.parse(),
+        if  let lhs:[(key:String, value:AnyBSON<Bytes.SubSequence>)] =
+                try? lhs.parse({ ($0, $1) }),
+            let rhs:[(key:String, value:AnyBSON<Other.SubSequence>)] =
+                try? rhs.parse({ ($0, $1) }),
                 rhs.count == lhs.count
         {
             for (lhs, rhs):

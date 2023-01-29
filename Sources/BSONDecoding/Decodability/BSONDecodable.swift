@@ -141,12 +141,3 @@ extension Optional:BSONDecodable where Wrapped:BSONDecodable
         }
     }
 }
-
-extension BSON.Elements:BSONDecodable
-{
-    @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
-    {
-        self.init(bson: try .init(bson))
-    }
-}

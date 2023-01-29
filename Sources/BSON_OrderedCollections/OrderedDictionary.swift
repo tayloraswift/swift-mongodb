@@ -8,13 +8,12 @@ extension OrderedDictionary:BSONDocumentDecodable, BSONDecodable
     @inlinable public
     init<Bytes>(bson:BSON.Document<Bytes>) throws
     {
-        let fields:[(key:String, value:AnyBSON<Bytes.SubSequence>)] = try bson.parse()
-        self.init(minimumCapacity: fields.count)
-        for (key, value):(String, AnyBSON<Bytes.SubSequence>) in fields
+        self.init()
+        try bson.parse
         {
-            if case _? = self.updateValue(try .init(bson: value), forKey: key)
+            if case _? = self.updateValue(try $0.decode(to: Value.self), forKey: $0.key)
             {
-                throw BSON.DictionaryKeyError.duplicate(key)
+                throw BSON.DictionaryKeyError.duplicate($0.key)
             }
         }
     }

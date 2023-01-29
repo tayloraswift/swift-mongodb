@@ -489,8 +489,8 @@ enum Main:SyncTests
             
             TestInvalidBSON(tests / "invalid-length-under",
                 invalid: "15000000_03_666F6F00_0A000000_08_62617200_01_00_00",
-                //                                                     ^~
-                catching: BSON.TypeError.init(invalid: 0))
+                //                                                           ^~
+                catching: BSON.InputError.init(expected: .bytes(1)))
             
             TestInvalidBSON(tests / "invalid-value",
                 invalid: "1C000000_03_666F6F00_12000000_02_62617200_05000000_62617A000000",
@@ -537,8 +537,8 @@ enum Main:SyncTests
             
             TestInvalidBSON(tests / "invalid-length-under",
                 invalid: "14000000_04_6100_0B000000_10_30000A00_00_000000",
-                //                                              ^~
-                catching: BSON.TypeError.init(invalid: 0))
+                //                         ^~~~~~~~
+                catching: BSON.InputError.init(expected: .bytes(4), encountered: 3))
             
             TestInvalidBSON(tests / "invalid-element",
                 invalid: "1A000000_04_666F6F00_100000000230000500000062617A000000",

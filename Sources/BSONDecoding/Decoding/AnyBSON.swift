@@ -11,16 +11,14 @@ extension AnyBSON
     ///     The payload of this variant, parsed to an array-decoder, if it matches
     ///     ``case tuple(_:)`` and could be successfully parsed, [`nil`]() otherwise.
     ///
-    /// To get a plain array with no decoding interface, cast this variant to
-    /// a ``BSON/Tuple`` and call its ``BSON/Tuple/.parse()`` method. Alternatively,
-    /// you can use this method and access the ``BSON//Array.elements`` property.
+    /// This method dispatches to ``BSON/Tuple.array``.
     ///
     /// >   Complexity: 
     //      O(*n*), where *n* is the number of elements in the source tuple.
     @inlinable public 
     func array() throws -> BSON.Array<Bytes.SubSequence>
     {
-        .init(try BSON.Tuple<Bytes>.init(self).parse())
+        try BSON.Tuple<Bytes>.init(self).array()
     }
     /// Attempts to unwrap and parse a fixed-length array-decoder from this variant.
     /// 
@@ -78,32 +76,10 @@ extension AnyBSON
     /// - Returns: A dictionary-decoder derived from the payload of this variant if it 
     ///     matches ``case document(_:)`` or ``case tuple(_:)``, [`nil`]() otherwise.
     ///
-    /// This method will throw a ``BSON//DictionaryKeyError`` more than one document
-    /// field contains a key with the same name.
-    ///
-    /// Key duplication can interact with unicode normalization in unexpected 
-    /// ways. Because BSON is defined in UTF-8, other BSON encoders may not align 
-    /// with the behavior of ``String.==(_:_:)``, since that operator 
-    /// compares grapheme clusters and not UTF-8 code units. 
-    /// 
-    /// For example, if a document vends separate keys for [`"\u{E9}"`]() ([`"é"`]()) and 
-    /// [`"\u{65}\u{301}"`]() (also [`"é"`](), perhaps, because the document is 
-    /// being used to bootstrap a unicode table), uniquing them by ``String`` 
-    /// comparison would drop one of the values.
-    ///
-    /// To get a plain array of key-value pairs with no decoding interface, cast this
-    /// variant to a ``BSON/Document`` and call its ``BSON/Document/.parse()`` method.
-    /// 
-    /// >   Complexity: 
-    ///     O(*n*), where *n* is the number of fields in the source document.
-    ///
-    /// >   Warning: 
-    ///     When you convert an object to a dictionary representation, you lose the ordering 
-    ///     information for the object items. Reencoding it may produce a BSON 
-    ///     document that contains the same data, but does not compare equal.
+    /// This method dispatches to ``BSON/Document.dictionary``.
     @inlinable public 
     func dictionary() throws -> BSON.Dictionary<Bytes.SubSequence>
     {
-        try .init(fields: try BSON.Document<Bytes>.init(self).parse())
+        try BSON.Document<Bytes>.init(self).dictionary()
     }
 }
