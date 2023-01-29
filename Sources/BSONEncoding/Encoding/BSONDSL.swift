@@ -78,6 +78,24 @@ extension BSONDSL
         }
     }
 }
+extension BSONDSL
+{
+    @inlinable public
+    subscript(key:String, elide elide:Bool = false) -> BSON.Elements<Self>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            if let value:BSON.Elements<Self>, !(elide && value.isEmpty)
+            {
+                self.append(key: key, with: value.encode(to:))
+            }
+        }
+    }
+}
 extension BSONDSL where Self:BSONEncodable
 {
     @inlinable public

@@ -477,11 +477,23 @@ extension Mongo.Expression
     {
         .index(of: expression, in: array, range: start.map { ($0, end) })
     }
+    @available(*, unavailable, renamed: "last(_:of:)")
+    public static
+    func lastN(_ count:Self, array:Self) -> Self
+    {
+        .last(count, of: array)
+    }
     @available(*, unavailable, renamed: "max(_:of:)")
     public static
     func maxN(_ count:Self, array:Self) -> Self
     {
         .max(count, of: array)
+    }
+    @available(*, unavailable, renamed: "min(_:of:)")
+    public static
+    func minN(_ count:Self, array:Self) -> Self
+    {
+        .min(count, of: array)
     }
     @available(*, unavailable, renamed: "reverse(array:)")
     public static
@@ -575,14 +587,20 @@ extension Mongo.Expression
     {
         .document
         {
-            switch range
+            $0["$indexOfArray"] = .init
             {
-            case nil:
-                $0["$indexOfArray"] = [array, expression]
-            case (let start, nil)?:
-                $0["$indexOfArray"] = [array, expression, start]
-            case (let start, let end?)?:
-                $0["$indexOfArray"] = [array, expression, start, end]
+                $0.append(array)
+                $0.append(expression)
+
+                if let range:(start:Self, end:Self?)
+                {
+                    $0.append(range.start)
+
+                    if let end:Self = range.end
+                    {
+                        $0.append(end)
+                    }
+                }
             }
         }
     }
@@ -839,6 +857,131 @@ extension Mongo.Expression
         .document
         {
             $0["$or"] = expressions
+        }
+    }
+}
+//  We consider `$cmp`, `$gt`, etc. to be terms of art.
+//  So unlike things like `$lastN`, we do not rename them to
+//  `compare`, `greaterThan`, etc.
+extension Mongo.Expression
+{
+    @inlinable public static
+    func cmp(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$cmp"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func eq(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$eq"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func gt(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$gt"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func gte(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$gte"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func lt(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$lt"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func lte(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$lte"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func ne(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$ne"] = [lhs, rhs]
+        }
+    }
+}
+
+extension Mongo.Expression
+{
+    @available(*, unavailable, renamed: "coalesce(_:)")
+    public static
+    func ifNull(_ expressions:[Self]) -> Self
+    {
+        .coalesce(expressions)
+    }
+}
+extension Mongo.Expression
+{
+    @inlinable public static
+    func cond(if condition:Self, then first:Self, else second:Self) -> Self
+    {
+        .document
+        {
+            $0["$cond"] = [condition, first, second]
+        }
+    }
+
+    @inlinable public static
+    func coalesce(_ expressions:Self...) -> Self
+    {
+        .coalesce(expressions)
+    }
+    @inlinable public static
+    func coalesce(_ expressions:[Self]) -> Self
+    {
+        .document
+        {
+            $0["$coalesce"] = expressions
+        }
+    }
+
+    @inlinable public static
+    func `switch`(cases:(pattern:Self, block:Self)..., `default`:Self? = nil) -> Self
+    {
+        .switch(cases: cases, default: `default`)
+    }
+    @inlinable public static
+    func `switch`(cases:[(pattern:Self, block:Self)], `default`:Self? = nil) -> Self
+    {
+        .document
+        {
+            $0["$switch"] = .init
+            {
+                $0["branches"] = .init
+                {
+                    for (pattern, block):(Self, Self) in cases
+                    {
+                        $0.append
+                        {
+                            $0["case"] = pattern
+                            $0["then"] = block
+                        }
+                    }
+                }
+                $0["default"] = `default`
+            }
         }
     }
 }

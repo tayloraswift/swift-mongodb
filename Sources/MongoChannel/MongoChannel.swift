@@ -1,5 +1,5 @@
 import BSON
-//import BSONUnions
+import BSONDSL
 import MongoWire
 import NIOCore
 

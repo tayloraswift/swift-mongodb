@@ -1,7 +1,9 @@
+import BSON
+
 extension BSON
 {
     @frozen public
-    struct Elements:Sendable
+    struct Elements<DSL>:Sendable
     {
         public
         var output:BSON.Output<[UInt8]>
@@ -23,16 +25,21 @@ extension BSON
 }
 extension BSON.Elements
 {
+    @inlinable public
+    var bytes:[UInt8]
+    {
+        self.output.destination
+    }
+    @inlinable public
+    var isEmpty:Bool
+    {
+        self.bytes.isEmpty
+    }
     @inlinable public mutating
     func append(with serialize:(inout BSON.Field) -> ())
     {
         self.output.with(key: self.counter.description, do: serialize)
         self.counter += 1
-    }
-    @inlinable public
-    var isEmpty:Bool
-    {
-        self.output.destination.isEmpty
     }
 }
 extension BSON.Elements
@@ -71,7 +78,7 @@ extension BSON.Elements
         case let bson as BSON.Tuple<[UInt8]>:
             self.init(bson, count: count)
         case let bson:
-            self.init(.init(bytes: .init(bson.bytes)), count: count)
+            self.init(bytes: .init(bson.bytes), count: count)
         }
     }
 }

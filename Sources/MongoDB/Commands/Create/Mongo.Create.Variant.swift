@@ -1,4 +1,5 @@
 import BSON
+import BSONDSL
 
 extension Mongo.Create
 {

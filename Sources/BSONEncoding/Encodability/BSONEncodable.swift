@@ -147,14 +147,6 @@ extension Optional:BSONEncodable where Wrapped:BSONEncodable
     }
 }
 
-extension BSON.Elements:BSONEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(tuple: .init(self))
-    }
-}
 extension BSONEncodable where Self:BSONDSL
 {
     @inlinable public
@@ -179,7 +171,7 @@ extension BSONEncodable where Self:Sequence, Element:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(tuple: .init(.init(elements: self)))
+        field.encode(tuple: .init(BSON.Elements<Never>.init(elements: self)))
     }
 }
 extension Array:BSONEncodable where Element:BSONEncodable
