@@ -93,6 +93,20 @@ extension Float:BSONDecodable {}
 extension Double:BSONDecodable {}
 extension Float80:BSONDecodable {}
 
+//  This is very similar to the default witness provided by `BSONDocumentDecodable`,
+//  except the outer `init(bson:)` call is non-throwing.
+//
+//  We could achieve the same result by explicitly conforming all of our ``BSONDSL``
+//  types to ``BSONDocumentDecodable`` instead of just ``BSONDecodable``. But we
+//  would rather keep these concepts separate from ``BSONDSL``.
+extension BSONDecodable where Self:BSONDSL
+{
+    @inlinable public
+    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    {
+        self.init(bson: try .init(bson))
+    }
+}
 extension BSONDecodable where Self:FixedWidthInteger
 {
     @inlinable public
@@ -124,6 +138,10 @@ extension BSONDecodable where Self:RawRepresentable, RawValue:BSONDecodable
             throw BSON.ValueError<RawValue, Self>.init(invalid: rawValue)
         }
     }
+}
+
+extension BSON.Fields:BSONDecodable
+{
 }
 
 extension Optional:BSONDecodable where Wrapped:BSONDecodable

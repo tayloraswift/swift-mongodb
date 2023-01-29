@@ -147,6 +147,22 @@ extension Optional:BSONEncodable where Wrapped:BSONEncodable
     }
 }
 
+extension BSON.Elements:BSONEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(tuple: .init(self))
+    }
+}
+extension BSONEncodable where Self:BSONDSL
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(document: .init(self))
+    }
+}
 extension BSONEncodable where Self:RawRepresentable, RawValue:BSONEncodable
 {
     /// Returns the ``bson`` witness of this type’s ``RawRepresentable.rawValue``.
@@ -173,6 +189,9 @@ extension Set:BSONEncodable where Element:BSONEncodable
 {
 }
 
+extension BSON.Fields:BSONEncodable
+{
+}
 
 extension BSON.Binary:BSONEncodable
 {
@@ -205,21 +224,5 @@ extension BSON.UTF8:BSONEncodable
     func encode(to field:inout BSON.Field)
     {
         field.encode(string: self)
-    }
-}
-extension BSON.Elements:BSONEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(tuple: .init(self))
-    }
-}
-extension BSON.Fields:BSONEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(document: .init(self))
     }
 }

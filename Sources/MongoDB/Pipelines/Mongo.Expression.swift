@@ -15,7 +15,7 @@ extension Mongo
     enum Expression:Sendable
     {
         /// A general embedded document.
-        case document(BSON.Fields)
+        case document(ExpressionDocument)
         /// An embedded tuple-document.
         case tuple([Self])
         /// A boolean.
@@ -61,7 +61,7 @@ extension Mongo
 extension Mongo.Expression
 {
     @inlinable public static
-    func document(_ populate:(inout BSON.Fields) throws -> ()) rethrows -> Self
+    func document(_ populate:(inout Mongo.ExpressionDocument) throws -> ()) rethrows -> Self
     {
         .document(try .init(with: populate))
     }
@@ -699,7 +699,8 @@ extension Mongo.Expression
     }
 
     @inlinable public static
-    func sort(_ array:Self, by populate:(inout BSON.Fields) throws -> ()) rethrows -> Self
+    func sort(_ array:Self,
+        by populate:(inout Mongo.ExpressionDocument) throws -> ()) rethrows -> Self
     {
         .sort(array, by: try .document(populate))
     }

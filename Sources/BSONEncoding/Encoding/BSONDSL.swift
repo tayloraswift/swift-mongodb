@@ -1,4 +1,4 @@
-extension BSON.Fields
+extension BSONDSL
 {
     @inlinable public
     init<Encodable>(fields:some Sequence<(key:String, value:Encodable)>)
@@ -13,8 +13,32 @@ extension BSON.Fields
         }
     }
 }
-extension BSON.Fields
+extension BSONDSL
 {
+    /// Appends the given key-value pair to this document builder as a field
+    /// by accessing the value’s ``BSONEncodable.bson`` property witness, if
+    /// it is not [`nil`]() and is not empty (or `elide` is [`false`]()), does
+    /// nothing otherwise. The getter always returns [`nil`]().
+    ///
+    /// Every non-[`nil`]() assignment to this subscript (including mutations
+    /// that leave the value in a non-[`nil`]() state after returning) will add
+    /// a new field to the document intermediate, even if the key is the same.
+    @inlinable public
+    subscript<Encodable>(key:String, elide elide:Bool) -> Encodable?
+        where Encodable:BSONEncodable & Collection
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            if let value:Encodable, !(elide && value.isEmpty)
+            {
+                self.append(key: key, with: value.encode(to:))
+            }
+        }
+    }
     /// Appends the given key-value pair to this list of fields by delegating
     /// to the value’s ``BSONEncodable.encode(to:)`` witness, if it is not
     /// [`nil`](); does nothing otherwise. The getter always returns [`nil`]().
@@ -54,32 +78,8 @@ extension BSON.Fields
         }
     }
 }
-extension BSON.Fields
+extension BSONDSL where Self:BSONEncodable
 {
-    /// Appends the given key-value pair to this document builder as a field
-    /// by accessing the value’s ``BSONEncodable.bson`` property witness, if
-    /// it is not [`nil`]() and is not empty (or `elide` is [`false`]()), does
-    /// nothing otherwise. The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() assignment to this subscript (including mutations
-    /// that leave the value in a non-[`nil`]() state after returning) will add
-    /// a new field to the document intermediate, even if the key is the same.
-    @inlinable public
-    subscript<Encodable>(key:String, elide elide:Bool) -> Encodable?
-        where Encodable:BSONEncodable & Collection
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let value:Encodable, !(elide && value.isEmpty)
-            {
-                self.append(key: key, with: value.encode(to:))
-            }
-        }
-    }
     @inlinable public
     subscript(key:String, elide elide:Bool = false) -> Self?
     {

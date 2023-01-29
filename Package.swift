@@ -5,6 +5,7 @@ let package:Package = .init(name: "swift-mongodb",
     products: 
     [
         .library(name: "BSON", targets: ["BSON"]),
+        .library(name: "BSONDSL", targets: ["BSONDSL"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
         .library(name: "BSONSchema", targets: ["BSONSchema"]),
@@ -54,16 +55,22 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONTraversal"),
             ]),
+        .target(name: "BSONDSL",
+            dependencies:
+            [
+                .target(name: "BSON"),
+            ]),
         .target(name: "BSONDecoding",
             dependencies:
             [
+                .target(name: "BSONDSL"),
                 .target(name: "BSONUnions"),
                 .target(name: "TraceableErrors"),
             ]),
         .target(name: "BSONEncoding",
             dependencies:
             [
-                .target(name: "BSON"),
+                .target(name: "BSONDSL"),
             ]),
         .target(name: "BSONSchema",
             dependencies:

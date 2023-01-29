@@ -5,32 +5,32 @@ extension Mongo
     public
     enum Stage:Sendable
     {
-        case bucket         (BSON.Fields)
-        case bucketAuto     (BSON.Fields)
-        case changeStream   (BSON.Fields)
-        case collectionStats(BSON.Fields)
+        case bucket         (ExpressionDocument)
+        case bucketAuto     (ExpressionDocument)
+        case changeStream   (ExpressionDocument)
+        case collectionStats(ExpressionDocument)
         case count          (String)
-        case densify        (BSON.Fields)
+        case densify        (ExpressionDocument)
         case documents      (Expression)
-        case facet          (BSON.Fields)
-        case fill           (BSON.Fields)
-        case geoNear        (BSON.Fields)
-        case graphLookup    (BSON.Fields)
-        case group          (BSON.Fields)
+        case facet          (ExpressionDocument)
+        case fill           (ExpressionDocument)
+        case geoNear        (ExpressionDocument)
+        case graphLookup    (ExpressionDocument)
+        case group          (ExpressionDocument)
         case indexStats
         case limit          (Int)
-        case listSessions   (BSON.Fields)
-        case lookup         (BSON.Fields)
+        case listSessions   (ExpressionDocument)
+        case lookup         (ExpressionDocument)
         case match          (BSON.Fields)
         case planCacheStats
         case project        (BSON.Fields)
         case redact         (Expression)
-        case replaceRoot    (BSON.Fields)
-        case sample         (BSON.Fields)
-        case set            (BSON.Fields)
-        case setWindowFields(BSON.Fields)
+        case replaceRoot    (ExpressionDocument)
+        case sample         (ExpressionDocument)
+        case set            (ExpressionDocument)
+        case setWindowFields(ExpressionDocument)
         case skip           (Int)
-        case sort           (BSON.Fields)
+        case sort           (ExpressionDocument)
         case sortByCount    (Expression)
         case union     (with:Collection, [Stage] = [])
         case unset          ([String])
@@ -40,13 +40,13 @@ extension Mongo.Stage
 {
     @available(*, unavailable, renamed: "set(_:)")
     public static
-    func addFields(_ fields:BSON.Fields) -> Self
+    func addFields(_ fields:Mongo.ExpressionDocument) -> Self
     {
         .set(fields)
     }
     @available(*, unavailable, renamed: "collectionStats(_:)")
     public static
-    func collStats(_ fields:BSON.Fields) -> Self
+    func collStats(_ fields:Mongo.ExpressionDocument) -> Self
     {
         .collectionStats(fields)
     }
