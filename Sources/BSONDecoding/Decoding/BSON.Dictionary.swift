@@ -11,27 +11,9 @@ extension BSON
         var items:[String: AnyBSON<Bytes>]
         
         @inlinable public
-        init(_ items:[String: AnyBSON<Bytes>])
+        init(_ items:[String: AnyBSON<Bytes>] = [:])
         {
             self.items = items
-        }
-    }
-}
-extension BSON.Dictionary
-{
-    /// Creates a dictionary-decoder from a list of document fields, throwing a
-    /// ``DictionaryKeyError`` if more than one document field contains a key with
-    /// the same name.
-    @inlinable public
-    init(fields:[(key:String, value:AnyBSON<Bytes>)]) throws
-    {
-        self.items = .init(minimumCapacity: fields.count)
-        for (key, value):(String, AnyBSON<Bytes>) in fields
-        {
-            if case _? = self.items.updateValue(value, forKey: key)
-            {
-                throw BSON.DictionaryKeyError.duplicate(key)
-            }
         }
     }
 }

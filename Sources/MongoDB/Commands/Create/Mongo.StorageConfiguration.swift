@@ -32,11 +32,11 @@ extension Mongo.StorageConfiguration:BSONDocumentDecodable
     @inlinable public
     init<Bytes>(bson:BSON.Document<Bytes>) throws
     {
-        self.init(try bson.parse().map
+        self.init(try bson.parse
         {
-            let field:BSON.ExplicitField<String, Bytes.SubSequence> = .init(key: $0.0,
-                value: $0.1)
-            return ($0.0, try field.decode(to: BSON.Fields.self))
+            let field:BSON.ExplicitField<String, Bytes.SubSequence> = .init(key: $0,
+                value: $1)
+            return ($0, try field.decode(to: BSON.Fields.self))
         })
     }
 }

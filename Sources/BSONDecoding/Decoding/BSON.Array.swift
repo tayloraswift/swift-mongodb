@@ -17,7 +17,6 @@ extension BSON
         }
     }
 }
-
 extension BSON.Array:RandomAccessCollection
 {
     @inlinable public
