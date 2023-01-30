@@ -454,7 +454,7 @@ extension MongoExpression
     public static
     func concatArrays(_ arrays:[Self]) -> Self
     {
-        .concatenate(arrays: arrays)
+        .concat(arrays: arrays)
     }
     @available(*, unavailable, renamed: "filter(_:where:limit:as:)")
     public static
@@ -542,12 +542,12 @@ extension MongoExpression
     }
 
     @inlinable public static
-    func concatenate(arrays:Self...) -> Self
+    func concat(arrays:Self...) -> Self
     {
-        .concatenate(arrays: arrays)
+        .concat(arrays: arrays)
     }
     @inlinable public static
-    func concatenate(arrays:[Self]) -> Self
+    func concat(arrays:[Self]) -> Self
     {
         .document
         {
