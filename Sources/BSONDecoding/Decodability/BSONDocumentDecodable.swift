@@ -15,9 +15,6 @@ extension BSONDocumentDecodable
         try self.init(bson: try .init(bson))
     }
 }
-extension BSON.Fields:BSONDocumentDecodable
-{
-}
 extension Dictionary:BSONDocumentDecodable, BSONDecodable
     where Key == String, Value:BSONDecodable
 {

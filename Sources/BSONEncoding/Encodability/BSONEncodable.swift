@@ -14,6 +14,16 @@ extension BSONEncodable where Self:BinaryFloatingPoint
     }
 }
 
+extension BSON:BSONEncodable
+{
+    /// Encodes this metatype as a value of type ``BSON.int32``.
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(int32: .init(self.rawValue))
+    }
+}
+
 extension Double:BSONEncodable {}
 
 extension UInt64:BSONEncodable
@@ -147,6 +157,14 @@ extension Optional:BSONEncodable where Wrapped:BSONEncodable
     }
 }
 
+extension BSONEncodable where Self:BSONDSL
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(document: .init(self))
+    }
+}
 extension BSONEncodable where Self:RawRepresentable, RawValue:BSONEncodable
 {
     /// Returns the ``bson`` witness of this type’s ``RawRepresentable.rawValue``.
@@ -163,7 +181,7 @@ extension BSONEncodable where Self:Sequence, Element:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(tuple: .init(.init(elements: self)))
+        field.encode(tuple: .init(BSON.Elements<Never>.init(elements: self)))
     }
 }
 extension Array:BSONEncodable where Element:BSONEncodable
@@ -173,6 +191,9 @@ extension Set:BSONEncodable where Element:BSONEncodable
 {
 }
 
+extension BSON.Fields:BSONEncodable
+{
+}
 
 extension BSON.Binary:BSONEncodable
 {
@@ -205,21 +226,5 @@ extension BSON.UTF8:BSONEncodable
     func encode(to field:inout BSON.Field)
     {
         field.encode(string: self)
-    }
-}
-extension BSON.Elements:BSONEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(tuple: .init(self))
-    }
-}
-extension BSON.Fields:BSONEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(document: .init(self))
     }
 }

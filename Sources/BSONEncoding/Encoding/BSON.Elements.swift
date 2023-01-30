@@ -16,4 +16,30 @@ extension BSON.Elements
     {
         self.append(with: element.encode(to:))
     }
+    @inlinable public mutating
+    func append(_ populate:(inout Self) throws -> ()) rethrows
+    {
+        let nested:Self = try .init(with: populate)
+        self.append(with: nested.encode(to:))
+    }
+}
+extension BSON.Elements where DSL:BSONDSL & BSONEncodable
+{
+    @inlinable public mutating
+    func append(_ populate:(inout DSL) throws -> ()) rethrows
+    {
+        self.append(try DSL.init(with: populate))
+    }
+}
+extension BSON.Elements
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(tuple: .init(self))
+    }
+}
+@available(*, unavailable)
+extension BSON.Elements:BSONEncodable
+{
 }

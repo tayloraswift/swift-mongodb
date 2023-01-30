@@ -1,38 +1,32 @@
-extension BSON
-{
-    @frozen public
-    struct Fields:Sendable
-    {
-        public
-        var output:BSON.Output<[UInt8]>
+import BSON
 
-        @inlinable public
-        init(bytes:[UInt8] = [])
-        {
-            self.output = .init(preallocated: bytes)
-        }
-    }
-}
-extension BSON.Fields
+public
+protocol BSONDSL
 {
-    @inlinable public mutating
+    associatedtype Subdocument:BSONDSL = Self
+    
+    init(bytes:[UInt8])
+
+    var bytes:[UInt8] { get }
+
+    mutating
     func append(key:String, with serialize:(inout BSON.Field) -> ())
-    {
-        self.output.with(key: key, do: serialize)
-    }
+}
+extension BSONDSL
+{
     @inlinable public
     var isEmpty:Bool
     {
-        self.output.destination.isEmpty
+        self.bytes.isEmpty
     }
 }
-extension BSON.Fields
+extension BSONDSL
 {
     /// Creates an empty encoding view and initializes it with the given closure.
     @inlinable public
     init(with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init()
+        self.init(bytes: [])
         try populate(&self)
     }
     /// Creates an encoding view around the given [`[UInt8]`]()-backed
@@ -62,7 +56,11 @@ extension BSON.Fields
         case let bson as BSON.Document<[UInt8]>:
             self.init(bson)
         case let bson:
-            self.init(.init(bytes: .init(bson.bytes)))
+            self.init(bytes: .init(bson.bytes))
         }
     }
+}
+
+extension BSON.Fields:BSONDSL
+{
 }

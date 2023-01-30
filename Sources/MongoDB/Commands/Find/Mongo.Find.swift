@@ -100,7 +100,7 @@ extension Mongo.Find
         self.tailing?.awaits ?? false
     }
 }
-extension Mongo.Find:MongoQuery
+extension Mongo.Find:MongoIterableCommand
 {
     public
     typealias Response = Mongo.Cursor<Element>

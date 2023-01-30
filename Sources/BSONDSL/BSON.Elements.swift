@@ -1,12 +1,14 @@
+import BSON
+
 extension BSON
 {
     @frozen public
-    struct Elements:Sendable
+    struct Elements<DSL>:Sendable
     {
         public
         var output:BSON.Output<[UInt8]>
         public
-        var counter:Int
+        var count:Int
 
         @inlinable public
         init()
@@ -17,22 +19,27 @@ extension BSON
         init(bytes:[UInt8], count:Int)
         {
             self.output = .init(preallocated: bytes)
-            self.counter = count
+            self.count = count
         }
     }
 }
 extension BSON.Elements
 {
-    @inlinable public mutating
-    func append(with serialize:(inout BSON.Field) -> ())
+    @inlinable public
+    var bytes:[UInt8]
     {
-        self.output.with(key: self.counter.description, do: serialize)
-        self.counter += 1
+        self.output.destination
     }
     @inlinable public
     var isEmpty:Bool
     {
-        self.output.destination.isEmpty
+        self.bytes.isEmpty
+    }
+    @inlinable public mutating
+    func append(with serialize:(inout BSON.Field) -> ())
+    {
+        self.output.with(key: self.count.description, do: serialize)
+        self.count += 1
     }
 }
 extension BSON.Elements
@@ -43,6 +50,12 @@ extension BSON.Elements
     {
         self.init()
         try populate(&self)
+    }
+
+    @inlinable public
+    init(_ other:BSON.Elements<some Any>)
+    {
+        self.init(bytes: other.bytes, count: other.count)
     }
     /// Creates an encoding view around the given [`[UInt8]`]()-backed
     /// tuple-document.
@@ -71,7 +84,7 @@ extension BSON.Elements
         case let bson as BSON.Tuple<[UInt8]>:
             self.init(bson, count: count)
         case let bson:
-            self.init(.init(bytes: .init(bson.bytes)), count: count)
+            self.init(bytes: .init(bson.bytes), count: count)
         }
     }
 }

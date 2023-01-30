@@ -1,67 +1,64 @@
 import BSONSchema
 import BSONUnions
 
-extension Mongo
+/// @import(BSONUnions)
+/// An **aggregation expression** is the most general type that an aggregation
+/// pipeline stage can take as a value.
+///
+/// Aggregation expressions are closely related to ``AnyBSON``, in a sense they
+/// can be thought of as ``AnyBSON`` with backing storage constrained to
+/// [`[UInt8]`]() (for container values), and API that is optimized for encoding
+/// rather than decoding.
+@frozen public
+enum MongoExpression:Sendable
 {
-    /// @import(BSONUnions)
-    /// An **aggregation expression** is the most general type that an aggregation
-    /// pipeline stage can take as a value.
+    /// A general embedded document.
+    case document(Document)
+    /// An embedded tuple-document.
+    case tuple([Self])
+    /// A boolean.
+    case bool(Bool)
+    /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
+    case decimal128(BSON.Decimal128)
+    /// A double-precision float.
+    case double(Double)
+    /// A MongoDB object reference.
+    case id(BSON.Identifier)
+    /// A 32-bit signed integer.
+    case int32(Int32)
+    /// A 64-bit signed integer.
+    case int64(Int64)
+    /// The MongoDB max-key.
+    case max
+    /// UTC milliseconds since the Unix epoch.
+    case millisecond(BSON.Millisecond)
+    /// The MongoDB min-key.
+    case min
+    /// An explicit null.
+    case null
+    /// A regex.
+    case regex(BSON.Regex)
+    /// A native swift string, which may encode a field path or a system
+    /// variable.
     ///
-    /// Aggregation expressions are closely related to ``AnyBSON``, in a sense they
-    /// can be thought of as ``AnyBSON`` with backing storage constrained to
-    /// [`[UInt8]`]() (for container values), and API that is optimized for encoding
-    /// rather than decoding.
-    public
-    enum Expression:Sendable
-    {
-        /// A general embedded document.
-        case document(BSON.Fields)
-        /// An embedded tuple-document.
-        case tuple([Self])
-        /// A boolean.
-        case bool(Bool)
-        /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
-        case decimal128(BSON.Decimal128)
-        /// A double-precision float.
-        case double(Double)
-        /// A MongoDB object reference.
-        case id(BSON.Identifier)
-        /// A 32-bit signed integer.
-        case int32(Int32)
-        /// A 64-bit signed integer.
-        case int64(Int64)
-        /// The MongoDB max-key.
-        case max
-        /// UTC milliseconds since the Unix epoch.
-        case millisecond(BSON.Millisecond)
-        /// The MongoDB min-key.
-        case min
-        /// An explicit null.
-        case null
-        /// A regex.
-        case regex(BSON.Regex)
-        /// A native swift string, which may encode a field path or a system
-        /// variable.
-        ///
-        /// Do not use this case-constructor to encode arbitrary strings,
-        /// because it will not escape strings with leading dollar signs (`$`).
-        //
-        /// To specify an absolute field path, use the `$$ROOT` system variable.
-        ///
-        /// ```swift
-        /// let absolute:Expression = "$$ROOT.example"
-        /// ```
-        ///
-        /// The `$$CURRENT` system variable can also be used this way, but there
-        /// is rarely reason to, because field path expressions are relative to
-        /// `$$CURRENT` by default.
-        case string(String)
-    }
+    /// Do not use this case-constructor to encode arbitrary strings,
+    /// because it will not escape strings with leading dollar signs (`$`).
+    //
+    /// To specify an absolute field path, use the `$$ROOT` system variable.
+    ///
+    /// ```swift
+    /// let absolute:Expression = "$$ROOT.example"
+    /// ```
+    ///
+    /// The `$$CURRENT` system variable can also be used this way, but there
+    /// is rarely reason to, because field path expressions are relative to
+    /// `$$CURRENT` by default.
+    case string(String)
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
-    func document(_ populate:(inout BSON.Fields) throws -> ()) rethrows -> Self
+    func document(_ populate:(inout Document) throws -> ()) rethrows -> Self
     {
         .document(try .init(with: populate))
     }
@@ -95,7 +92,7 @@ extension Mongo.Expression
         }
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     /// The string [`"$$CLUSTER_TIME"`]().
     @inlinable public static
@@ -134,7 +131,7 @@ extension Mongo.Expression
         .string("$$REMOVE")
     }
 }
-extension Mongo.Expression:ExpressibleByBooleanLiteral
+extension MongoExpression:ExpressibleByBooleanLiteral
 {
     @inlinable public
     init(booleanLiteral:Bool)
@@ -142,7 +139,7 @@ extension Mongo.Expression:ExpressibleByBooleanLiteral
         self = .bool(booleanLiteral)
     }
 }
-extension Mongo.Expression:ExpressibleByFloatLiteral
+extension MongoExpression:ExpressibleByFloatLiteral
 {
     @inlinable public
     init(floatLiteral:Double)
@@ -150,7 +147,7 @@ extension Mongo.Expression:ExpressibleByFloatLiteral
         self = .double(floatLiteral)
     }
 }
-extension Mongo.Expression:ExpressibleByIntegerLiteral
+extension MongoExpression:ExpressibleByIntegerLiteral
 {
     @inlinable public
     init(integerLiteral:Int64)
@@ -158,7 +155,7 @@ extension Mongo.Expression:ExpressibleByIntegerLiteral
         self = .int64(integerLiteral)
     }
 }
-extension Mongo.Expression:ExpressibleByStringLiteral
+extension MongoExpression:ExpressibleByStringLiteral
 {
     @inlinable public
     init(stringLiteral:String)
@@ -166,7 +163,7 @@ extension Mongo.Expression:ExpressibleByStringLiteral
         self = .string(stringLiteral)
     }
 }
-extension Mongo.Expression:BSONDecodable
+extension MongoExpression:BSONDecodable
 {
     @inlinable public
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
@@ -224,7 +221,7 @@ extension Mongo.Expression:BSONDecodable
         }
     }
 }
-extension Mongo.Expression:BSONEncodable
+extension MongoExpression:BSONEncodable
 {
     public
     func encode(to field:inout BSON.Field)
@@ -275,7 +272,7 @@ extension Mongo.Expression:BSONEncodable
         }
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func abs(_ expression:Self) -> Self
@@ -433,7 +430,7 @@ extension Mongo.Expression
     }
 }
 
-extension Mongo.Expression
+extension MongoExpression
 {
     @available(*, unavailable, renamed: "element(of:at:)")
     public static
@@ -441,17 +438,17 @@ extension Mongo.Expression
     {
         .element(of: array, at: index)
     }
-    @available(*, unavailable, renamed: "toObject(array:)")
+    @available(*, unavailable, renamed: "toDocument(array:)")
     public static
     func arrayToObject(_ array:Self) -> Self
     {
-        .toObject(array: array)
+        .toDocument(array: array)
     }
-    @available(*, unavailable, renamed: "toArray(object:)")
+    @available(*, unavailable, renamed: "toArray(document:)")
     public static
-    func objectToArray(_ object:Self) -> Self
+    func objectToArray(_ document:Self) -> Self
     {
-        .toArray(object: object)
+        .toArray(document: document)
     }
     @available(*, unavailable, renamed: "concatenate(arrays:)")
     public static
@@ -477,17 +474,36 @@ extension Mongo.Expression
     {
         .index(of: expression, in: array, range: start.map { ($0, end) })
     }
+    @available(*, unavailable, renamed: "last(_:of:)")
+    public static
+    func lastN(_ count:Self, array:Self) -> Self
+    {
+        .last(count, of: array)
+    }
     @available(*, unavailable, renamed: "max(_:of:)")
     public static
     func maxN(_ count:Self, array:Self) -> Self
     {
         .max(count, of: array)
     }
+    @available(*, unavailable, renamed: "min(_:of:)")
+    public static
+    func minN(_ count:Self, array:Self) -> Self
+    {
+        .min(count, of: array)
+    }
     @available(*, unavailable, renamed: "reverse(array:)")
     public static
     func reverseArray(_ array:Self) -> Self
     {
         .reverse(array: array)
+    }
+    @available(*, unavailable,
+        message: "use one of count(of:), size(binary:), or size(document:).")
+    public static
+    func size(of array:Self) -> Self
+    {
+        .count(of: array)
     }
     @available(*, unavailable, renamed: "sort(array:by:)")
     public static
@@ -496,7 +512,7 @@ extension Mongo.Expression
         .sort(array, by: ordering)
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func element(of array:Self, at index:Self) -> Self
@@ -508,16 +524,16 @@ extension Mongo.Expression
     }
     
     @inlinable public static
-    func toArray(object:Self) -> Self
+    func toArray(document:Self) -> Self
     {
         .document
         {
-            $0["$objectToArray"] = object
+            $0["$objectToArray"] = document
         }
     }
     
     @inlinable public static
-    func toObject(array:Self) -> Self
+    func toDocument(array:Self) -> Self
     {
         .document
         {
@@ -575,14 +591,20 @@ extension Mongo.Expression
     {
         .document
         {
-            switch range
+            $0["$indexOfArray"] = .init
             {
-            case nil:
-                $0["$indexOfArray"] = [array, expression]
-            case (let start, nil)?:
-                $0["$indexOfArray"] = [array, expression, start]
-            case (let start, let end?)?:
-                $0["$indexOfArray"] = [array, expression, start, end]
+                $0.append(array)
+                $0.append(expression)
+
+                if let range:(start:Self, end:Self?)
+                {
+                    $0.append(range.start)
+
+                    if let end:Self = range.end
+                    {
+                        $0.append(end)
+                    }
+                }
             }
         }
     }
@@ -672,8 +694,11 @@ extension Mongo.Expression
         }
     }
 
+    /// Creates a `$size` expression. This method is named `count` to avoid
+    /// confusion with ``size(binary:)`` and ``size(document:)``, which evaluate
+    /// to sizes in units of bytes.
     @inlinable public static
-    func size(of array:Self) -> Self
+    func count(of array:Self) -> Self
     {
         .document
         {
@@ -699,7 +724,7 @@ extension Mongo.Expression
     }
 
     @inlinable public static
-    func sort(_ array:Self, by populate:(inout BSON.Fields) throws -> ()) rethrows -> Self
+    func sort(_ array:Self, by populate:(inout Document) throws -> ()) rethrows -> Self
     {
         .sort(array, by: try .document(populate))
     }
@@ -752,7 +777,7 @@ extension Mongo.Expression
         }
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func filter(_ array:Self, where predicate:Self, limit:Self, as binding:String?) -> Self
@@ -794,6 +819,212 @@ extension Mongo.Expression
                 $0["initialValue"] = initialValue
                 $0["in"] = combine
             }
+        }
+    }
+}
+
+extension MongoExpression
+{
+    @inlinable public static
+    func and(_ expressions:Self...) -> Self
+    {
+        .and(expressions)
+    }
+    @inlinable public static
+    func and(_ expressions:[Self]) -> Self
+    {
+        .document
+        {
+            $0["$and"] = expressions
+        }
+    }
+
+    /// Creates a `$not` expression. This method already brackets the expression
+    /// when passing it in an argument tuple; doing so manually will create an
+    /// expression that always evaluates to false. (Because an empty array
+    /// evaluates to true.)
+    @inlinable public static
+    func not(_ expression:Self) -> Self
+    {
+        .document
+        {
+            $0["$not"] = [expression]
+        }
+    }
+
+    @inlinable public static
+    func or(_ expressions:Self...) -> Self
+    {
+        .or(expressions)
+    }
+    @inlinable public static
+    func or(_ expressions:[Self]) -> Self
+    {
+        .document
+        {
+            $0["$or"] = expressions
+        }
+    }
+}
+//  We consider `$cmp`, `$gt`, etc. to be terms of art.
+//  So unlike things like `$lastN`, we do not rename them to
+//  `compare`, `greaterThan`, etc.
+extension MongoExpression
+{
+    @inlinable public static
+    func cmp(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$cmp"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func eq(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$eq"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func gt(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$gt"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func gte(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$gte"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func lt(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$lt"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func lte(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$lte"] = [lhs, rhs]
+        }
+    }
+    @inlinable public static
+    func ne(_ lhs:Self, _ rhs:Self) -> Self
+    {
+        .document
+        {
+            $0["$ne"] = [lhs, rhs]
+        }
+    }
+}
+
+extension MongoExpression
+{
+    @available(*, unavailable, renamed: "coalesce(_:)")
+    public static
+    func ifNull(_ expressions:[Self]) -> Self
+    {
+        .coalesce(expressions)
+    }
+}
+extension MongoExpression
+{
+    @inlinable public static
+    func cond(if condition:Self, then first:Self, else second:Self) -> Self
+    {
+        .document
+        {
+            $0["$cond"] = [condition, first, second]
+        }
+    }
+
+    @inlinable public static
+    func coalesce(_ expressions:Self...) -> Self
+    {
+        .coalesce(expressions)
+    }
+    @inlinable public static
+    func coalesce(_ expressions:[Self]) -> Self
+    {
+        .document
+        {
+            $0["$coalesce"] = expressions
+        }
+    }
+
+    @inlinable public static
+    func `switch`(cases:(pattern:Self, block:Self)..., `default`:Self? = nil) -> Self
+    {
+        .switch(cases: cases, default: `default`)
+    }
+    @inlinable public static
+    func `switch`(cases:[(pattern:Self, block:Self)], `default`:Self? = nil) -> Self
+    {
+        .document
+        {
+            $0["$switch"] = .init
+            {
+                $0["branches"] = .init
+                {
+                    for (pattern, block):(Self, Self) in cases
+                    {
+                        $0.append
+                        {
+                            $0["case"] = pattern
+                            $0["then"] = block
+                        }
+                    }
+                }
+                $0["default"] = `default`
+            }
+        }
+    }
+}
+
+extension MongoExpression
+{
+    @available(*, unavailable, renamed: "size(binary:)")
+    public static
+    func binarySize(_ binary:Self) -> Self
+    {
+        .size(binary: binary)
+    }
+    @available(*, unavailable, renamed: "size(document:)")
+    public static
+    func bsonSize(_ document:Self) -> Self
+    {
+        .size(document: document)
+    }
+}
+extension MongoExpression
+{
+    /// Creates a `$binarySize` expression. The operand can be an expression
+    /// that resolves to either binary data or a BSON UTF-8 string.
+    @inlinable public static
+    func size(binary:Self) -> Self
+    {
+        .document
+        {
+            $0["$binarySize"] = binary
+        }
+    }
+    @inlinable public static
+    func size(document:Self) -> Self
+    {
+        .document
+        {
+            $0["$bsonSize"] = document
         }
     }
 }

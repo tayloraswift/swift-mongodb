@@ -5,6 +5,7 @@ let package:Package = .init(name: "swift-mongodb",
     products: 
     [
         .library(name: "BSON", targets: ["BSON"]),
+        .library(name: "BSONDSL", targets: ["BSONDSL"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
         .library(name: "BSONSchema", targets: ["BSONSchema"]),
@@ -15,6 +16,7 @@ let package:Package = .init(name: "swift-mongodb",
 
         .library(name: "Mongo", targets: ["Mongo"]),
         .library(name: "MongoDB", targets: ["MongoDB"]),
+        .library(name: "MongoDSL", targets: ["MongoDSL"]),
         .library(name: "MongoChannel", targets: ["MongoChannel"]),
         .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
@@ -54,16 +56,22 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONTraversal"),
             ]),
+        .target(name: "BSONDSL",
+            dependencies:
+            [
+                .target(name: "BSON"),
+            ]),
         .target(name: "BSONDecoding",
             dependencies:
             [
+                .target(name: "BSONDSL"),
                 .target(name: "BSONUnions"),
                 .target(name: "TraceableErrors"),
             ]),
         .target(name: "BSONEncoding",
             dependencies:
             [
-                .target(name: "BSON"),
+                .target(name: "BSONDSL"),
             ]),
         .target(name: "BSONSchema",
             dependencies:
@@ -123,6 +131,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "NIOCore",               package: "swift-nio"),
             ]),
 
+        .target(name: "MongoDSL",
+            dependencies:
+            [
+                .target(name: "BSONSchema"),
+            ]),
+
         .target(name: "MongoMonitoring",
             dependencies:
             [
@@ -164,6 +178,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDriver"),
+                .target(name: "MongoDSL"),
             ]),
 
         .target(name: "MongoConnectionString",
