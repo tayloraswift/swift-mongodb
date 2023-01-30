@@ -8,7 +8,7 @@ extension BSON
         public
         var output:BSON.Output<[UInt8]>
         public
-        var counter:Int
+        var count:Int
 
         @inlinable public
         init()
@@ -19,7 +19,7 @@ extension BSON
         init(bytes:[UInt8], count:Int)
         {
             self.output = .init(preallocated: bytes)
-            self.counter = count
+            self.count = count
         }
     }
 }
@@ -38,8 +38,8 @@ extension BSON.Elements
     @inlinable public mutating
     func append(with serialize:(inout BSON.Field) -> ())
     {
-        self.output.with(key: self.counter.description, do: serialize)
-        self.counter += 1
+        self.output.with(key: self.count.description, do: serialize)
+        self.count += 1
     }
 }
 extension BSON.Elements
@@ -50,6 +50,12 @@ extension BSON.Elements
     {
         self.init()
         try populate(&self)
+    }
+
+    @inlinable public
+    init(_ other:BSON.Elements<some Any>)
+    {
+        self.init(bytes: other.bytes, count: other.count)
     }
     /// Creates an encoding view around the given [`[UInt8]`]()-backed
     /// tuple-document.

@@ -1,9 +1,9 @@
 import BSONSchema
 
-extension Mongo
+extension MongoExpression
 {
     @frozen public
-    struct ExpressionDocument
+    struct Document:Sendable
     {
         public
         var fields:BSON.Fields
@@ -15,7 +15,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ExpressionDocument:BSONDSL
+extension MongoExpression.Document:BSONDSL
 {
     @inlinable public mutating
     func append(key:String, with serialize:(inout BSON.Field) -> ())
@@ -28,19 +28,19 @@ extension Mongo.ExpressionDocument:BSONDSL
         self.fields.bytes
     }
 }
-extension Mongo.ExpressionDocument:BSONEncodable
+extension MongoExpression.Document:BSONEncodable
 {
 }
-extension Mongo.ExpressionDocument:BSONDecodable
+extension MongoExpression.Document:BSONDecodable
 {
 }
-extension Mongo.ExpressionDocument
+extension MongoExpression.Document
 {
     //  We need this because swift cannot use leading dot syntax if the
     //  type context is both optional and generic. (It can use leading-dot
     //  syntax if the type context is generic but non-optional.)
     @inlinable public
-    subscript(key:String) -> Mongo.Expression?
+    subscript(key:String) -> MongoExpression?
     {
         get
         {
@@ -48,7 +48,7 @@ extension Mongo.ExpressionDocument
         }
         set(value)
         {
-            if let value:Mongo.Expression
+            if let value:MongoExpression
             {
                 self.append(key: key, with: value.encode(to:))
             }

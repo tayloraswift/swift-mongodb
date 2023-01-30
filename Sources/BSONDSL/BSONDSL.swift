@@ -3,6 +3,8 @@ import BSON
 public
 protocol BSONDSL
 {
+    associatedtype Subdocument:BSONDSL = Self
+    
     init(bytes:[UInt8])
 
     var bytes:[UInt8] { get }

@@ -16,6 +16,7 @@ let package:Package = .init(name: "swift-mongodb",
 
         .library(name: "Mongo", targets: ["Mongo"]),
         .library(name: "MongoDB", targets: ["MongoDB"]),
+        .library(name: "MongoDSL", targets: ["MongoDSL"]),
         .library(name: "MongoChannel", targets: ["MongoChannel"]),
         .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
@@ -130,6 +131,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "NIOCore",               package: "swift-nio"),
             ]),
 
+        .target(name: "MongoDSL",
+            dependencies:
+            [
+                .target(name: "BSONSchema"),
+            ]),
+
         .target(name: "MongoMonitoring",
             dependencies:
             [
@@ -171,6 +178,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDriver"),
+                .target(name: "MongoDSL"),
             ]),
 
         .target(name: "MongoConnectionString",

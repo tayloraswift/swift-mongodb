@@ -1,67 +1,64 @@
 import BSONSchema
 import BSONUnions
 
-extension Mongo
+/// @import(BSONUnions)
+/// An **aggregation expression** is the most general type that an aggregation
+/// pipeline stage can take as a value.
+///
+/// Aggregation expressions are closely related to ``AnyBSON``, in a sense they
+/// can be thought of as ``AnyBSON`` with backing storage constrained to
+/// [`[UInt8]`]() (for container values), and API that is optimized for encoding
+/// rather than decoding.
+@frozen public
+enum MongoExpression:Sendable
 {
-    /// @import(BSONUnions)
-    /// An **aggregation expression** is the most general type that an aggregation
-    /// pipeline stage can take as a value.
+    /// A general embedded document.
+    case document(Document)
+    /// An embedded tuple-document.
+    case tuple([Self])
+    /// A boolean.
+    case bool(Bool)
+    /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
+    case decimal128(BSON.Decimal128)
+    /// A double-precision float.
+    case double(Double)
+    /// A MongoDB object reference.
+    case id(BSON.Identifier)
+    /// A 32-bit signed integer.
+    case int32(Int32)
+    /// A 64-bit signed integer.
+    case int64(Int64)
+    /// The MongoDB max-key.
+    case max
+    /// UTC milliseconds since the Unix epoch.
+    case millisecond(BSON.Millisecond)
+    /// The MongoDB min-key.
+    case min
+    /// An explicit null.
+    case null
+    /// A regex.
+    case regex(BSON.Regex)
+    /// A native swift string, which may encode a field path or a system
+    /// variable.
     ///
-    /// Aggregation expressions are closely related to ``AnyBSON``, in a sense they
-    /// can be thought of as ``AnyBSON`` with backing storage constrained to
-    /// [`[UInt8]`]() (for container values), and API that is optimized for encoding
-    /// rather than decoding.
-    public
-    enum Expression:Sendable
-    {
-        /// A general embedded document.
-        case document(ExpressionDocument)
-        /// An embedded tuple-document.
-        case tuple([Self])
-        /// A boolean.
-        case bool(Bool)
-        /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
-        case decimal128(BSON.Decimal128)
-        /// A double-precision float.
-        case double(Double)
-        /// A MongoDB object reference.
-        case id(BSON.Identifier)
-        /// A 32-bit signed integer.
-        case int32(Int32)
-        /// A 64-bit signed integer.
-        case int64(Int64)
-        /// The MongoDB max-key.
-        case max
-        /// UTC milliseconds since the Unix epoch.
-        case millisecond(BSON.Millisecond)
-        /// The MongoDB min-key.
-        case min
-        /// An explicit null.
-        case null
-        /// A regex.
-        case regex(BSON.Regex)
-        /// A native swift string, which may encode a field path or a system
-        /// variable.
-        ///
-        /// Do not use this case-constructor to encode arbitrary strings,
-        /// because it will not escape strings with leading dollar signs (`$`).
-        //
-        /// To specify an absolute field path, use the `$$ROOT` system variable.
-        ///
-        /// ```swift
-        /// let absolute:Expression = "$$ROOT.example"
-        /// ```
-        ///
-        /// The `$$CURRENT` system variable can also be used this way, but there
-        /// is rarely reason to, because field path expressions are relative to
-        /// `$$CURRENT` by default.
-        case string(String)
-    }
+    /// Do not use this case-constructor to encode arbitrary strings,
+    /// because it will not escape strings with leading dollar signs (`$`).
+    //
+    /// To specify an absolute field path, use the `$$ROOT` system variable.
+    ///
+    /// ```swift
+    /// let absolute:Expression = "$$ROOT.example"
+    /// ```
+    ///
+    /// The `$$CURRENT` system variable can also be used this way, but there
+    /// is rarely reason to, because field path expressions are relative to
+    /// `$$CURRENT` by default.
+    case string(String)
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
-    func document(_ populate:(inout Mongo.ExpressionDocument) throws -> ()) rethrows -> Self
+    func document(_ populate:(inout Document) throws -> ()) rethrows -> Self
     {
         .document(try .init(with: populate))
     }
@@ -95,7 +92,7 @@ extension Mongo.Expression
         }
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     /// The string [`"$$CLUSTER_TIME"`]().
     @inlinable public static
@@ -134,7 +131,7 @@ extension Mongo.Expression
         .string("$$REMOVE")
     }
 }
-extension Mongo.Expression:ExpressibleByBooleanLiteral
+extension MongoExpression:ExpressibleByBooleanLiteral
 {
     @inlinable public
     init(booleanLiteral:Bool)
@@ -142,7 +139,7 @@ extension Mongo.Expression:ExpressibleByBooleanLiteral
         self = .bool(booleanLiteral)
     }
 }
-extension Mongo.Expression:ExpressibleByFloatLiteral
+extension MongoExpression:ExpressibleByFloatLiteral
 {
     @inlinable public
     init(floatLiteral:Double)
@@ -150,7 +147,7 @@ extension Mongo.Expression:ExpressibleByFloatLiteral
         self = .double(floatLiteral)
     }
 }
-extension Mongo.Expression:ExpressibleByIntegerLiteral
+extension MongoExpression:ExpressibleByIntegerLiteral
 {
     @inlinable public
     init(integerLiteral:Int64)
@@ -158,7 +155,7 @@ extension Mongo.Expression:ExpressibleByIntegerLiteral
         self = .int64(integerLiteral)
     }
 }
-extension Mongo.Expression:ExpressibleByStringLiteral
+extension MongoExpression:ExpressibleByStringLiteral
 {
     @inlinable public
     init(stringLiteral:String)
@@ -166,7 +163,7 @@ extension Mongo.Expression:ExpressibleByStringLiteral
         self = .string(stringLiteral)
     }
 }
-extension Mongo.Expression:BSONDecodable
+extension MongoExpression:BSONDecodable
 {
     @inlinable public
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
@@ -224,7 +221,7 @@ extension Mongo.Expression:BSONDecodable
         }
     }
 }
-extension Mongo.Expression:BSONEncodable
+extension MongoExpression:BSONEncodable
 {
     public
     func encode(to field:inout BSON.Field)
@@ -275,7 +272,7 @@ extension Mongo.Expression:BSONEncodable
         }
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func abs(_ expression:Self) -> Self
@@ -433,7 +430,7 @@ extension Mongo.Expression
     }
 }
 
-extension Mongo.Expression
+extension MongoExpression
 {
     @available(*, unavailable, renamed: "element(of:at:)")
     public static
@@ -515,7 +512,7 @@ extension Mongo.Expression
         .sort(array, by: ordering)
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func element(of array:Self, at index:Self) -> Self
@@ -727,8 +724,7 @@ extension Mongo.Expression
     }
 
     @inlinable public static
-    func sort(_ array:Self,
-        by populate:(inout Mongo.ExpressionDocument) throws -> ()) rethrows -> Self
+    func sort(_ array:Self, by populate:(inout Document) throws -> ()) rethrows -> Self
     {
         .sort(array, by: try .document(populate))
     }
@@ -781,7 +777,7 @@ extension Mongo.Expression
         }
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func filter(_ array:Self, where predicate:Self, limit:Self, as binding:String?) -> Self
@@ -827,7 +823,7 @@ extension Mongo.Expression
     }
 }
 
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func and(_ expressions:Self...) -> Self
@@ -873,7 +869,7 @@ extension Mongo.Expression
 //  We consider `$cmp`, `$gt`, etc. to be terms of art.
 //  So unlike things like `$lastN`, we do not rename them to
 //  `compare`, `greaterThan`, etc.
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func cmp(_ lhs:Self, _ rhs:Self) -> Self
@@ -933,7 +929,7 @@ extension Mongo.Expression
     }
 }
 
-extension Mongo.Expression
+extension MongoExpression
 {
     @available(*, unavailable, renamed: "coalesce(_:)")
     public static
@@ -942,7 +938,7 @@ extension Mongo.Expression
         .coalesce(expressions)
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     @inlinable public static
     func cond(if condition:Self, then first:Self, else second:Self) -> Self
@@ -996,7 +992,7 @@ extension Mongo.Expression
     }
 }
 
-extension Mongo.Expression
+extension MongoExpression
 {
     @available(*, unavailable, renamed: "size(binary:)")
     public static
@@ -1011,7 +1007,7 @@ extension Mongo.Expression
         .size(document: document)
     }
 }
-extension Mongo.Expression
+extension MongoExpression
 {
     /// Creates a `$binarySize` expression. The operand can be an expression
     /// that resolves to either binary data or a BSON UTF-8 string.

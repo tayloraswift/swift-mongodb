@@ -204,7 +204,7 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant? = nil,
         with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
         async throws -> Success
-        where Query:MongoQuery
+        where Query:MongoIterableCommand
     {
         if case _? = self.transaction.phase
         {
@@ -372,7 +372,7 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant,
         with consumer:(Mongo.Batches<Query.Element>) async throws -> Success,
         connection:() async throws -> Mongo.Connection) async throws -> Success
-        where Query:MongoQuery
+        where Query:MongoIterableCommand
     {
         let batches:Mongo.Batches<Query.Element>
         do

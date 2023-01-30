@@ -36,7 +36,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ListCollections:MongoQuery
+extension Mongo.ListCollections:MongoIterableCommand
 {
     public
     typealias Response = Mongo.Cursor<Mongo.CollectionMetadata>

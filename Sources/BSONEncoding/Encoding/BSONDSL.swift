@@ -96,10 +96,10 @@ extension BSONDSL
         }
     }
 }
-extension BSONDSL where Self:BSONEncodable
+extension BSONDSL where Subdocument:BSONEncodable
 {
     @inlinable public
-    subscript(key:String, elide elide:Bool = false) -> Self?
+    subscript(key:String, elide elide:Bool = false) -> Subdocument?
     {
         get
         {
@@ -107,7 +107,7 @@ extension BSONDSL where Self:BSONEncodable
         }
         set(value)
         {
-            if let value:Self, !(elide && value.isEmpty)
+            if let value:Subdocument, !(elide && value.isEmpty)
             {
                 self.append(key: key, with: value.encode(to:))
             }
