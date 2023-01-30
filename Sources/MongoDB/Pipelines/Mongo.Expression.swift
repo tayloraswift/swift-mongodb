@@ -441,17 +441,17 @@ extension Mongo.Expression
     {
         .element(of: array, at: index)
     }
-    @available(*, unavailable, renamed: "toObject(array:)")
+    @available(*, unavailable, renamed: "toDocument(array:)")
     public static
     func arrayToObject(_ array:Self) -> Self
     {
-        .toObject(array: array)
+        .toDocument(array: array)
     }
-    @available(*, unavailable, renamed: "toArray(object:)")
+    @available(*, unavailable, renamed: "toArray(document:)")
     public static
-    func objectToArray(_ object:Self) -> Self
+    func objectToArray(_ document:Self) -> Self
     {
-        .toArray(object: object)
+        .toArray(document: document)
     }
     @available(*, unavailable, renamed: "concatenate(arrays:)")
     public static
@@ -501,6 +501,13 @@ extension Mongo.Expression
     {
         .reverse(array: array)
     }
+    @available(*, unavailable,
+        message: "use one of count(of:), size(binary:), or size(document:).")
+    public static
+    func size(of array:Self) -> Self
+    {
+        .count(of: array)
+    }
     @available(*, unavailable, renamed: "sort(array:by:)")
     public static
     func sortArray(_ array:Self, by ordering:Self) -> Self
@@ -520,16 +527,16 @@ extension Mongo.Expression
     }
     
     @inlinable public static
-    func toArray(object:Self) -> Self
+    func toArray(document:Self) -> Self
     {
         .document
         {
-            $0["$objectToArray"] = object
+            $0["$objectToArray"] = document
         }
     }
     
     @inlinable public static
-    func toObject(array:Self) -> Self
+    func toDocument(array:Self) -> Self
     {
         .document
         {
@@ -690,8 +697,11 @@ extension Mongo.Expression
         }
     }
 
+    /// Creates a `$size` expression. This method is named `count` to avoid
+    /// confusion with ``size(binary:)`` and ``size(document:)``, which evaluate
+    /// to sizes in units of bytes.
     @inlinable public static
-    func size(of array:Self) -> Self
+    func count(of array:Self) -> Self
     {
         .document
         {
@@ -982,6 +992,43 @@ extension Mongo.Expression
                 }
                 $0["default"] = `default`
             }
+        }
+    }
+}
+
+extension Mongo.Expression
+{
+    @available(*, unavailable, renamed: "size(binary:)")
+    public static
+    func binarySize(_ binary:Self) -> Self
+    {
+        .size(binary: binary)
+    }
+    @available(*, unavailable, renamed: "size(document:)")
+    public static
+    func bsonSize(_ document:Self) -> Self
+    {
+        .size(document: document)
+    }
+}
+extension Mongo.Expression
+{
+    /// Creates a `$binarySize` expression. The operand can be an expression
+    /// that resolves to either binary data or a BSON UTF-8 string.
+    @inlinable public static
+    func size(binary:Self) -> Self
+    {
+        .document
+        {
+            $0["$binarySize"] = binary
+        }
+    }
+    @inlinable public static
+    func size(document:Self) -> Self
+    {
+        .document
+        {
+            $0["$bsonSize"] = document
         }
     }
 }
