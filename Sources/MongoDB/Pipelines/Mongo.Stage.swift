@@ -23,7 +23,7 @@ extension Mongo
         case lookup         (MongoExpression.Document)
         case match          (MongoQuery.Document)
         case planCacheStats
-        case project        (BSON.Fields)
+        case project        (MongoProjection.Document)
         case redact         (MongoExpression)
         case replaceRoot    (MongoExpression.Document)
         case sample         (MongoExpression.Document)

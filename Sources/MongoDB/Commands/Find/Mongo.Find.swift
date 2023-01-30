@@ -19,11 +19,11 @@ extension Mongo
         public
         let `let`:BSON.Fields
         public
-        let filter:BSON.Fields
+        let filter:MongoQuery.Document
+        public
+        let projection:MongoProjection.Document
         public
         let sort:BSON.Fields
-        public
-        let projection:BSON.Fields
 
         public
         let skip:Int?
@@ -54,9 +54,9 @@ extension Mongo
             limit:Int? = nil,
             skip:Int? = nil,
             `let`:BSON.Fields = .init(),
-            filter:BSON.Fields = .init(),
+            filter:MongoQuery.Document = .init(),
+            projection:MongoProjection.Document = .init(),
             sort:BSON.Fields = .init(),
-            projection:BSON.Fields = .init(),
             collation:Collation? = nil,
             readLevel:ReadLevel? = nil,
             hint:IndexHint? = nil,

@@ -86,6 +86,47 @@ extension MongoQuery
 extension MongoQuery
 {
     @inlinable public
+    subscript(key:Operator) -> Self?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self[key.rawValue, elide: false] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:MongoQuery.TupleOperator) -> BSON.Elements<BSON.Fields>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self[key.rawValue, elide: false] = value.map(BSON.Elements<Self>.init(_:))
+        }
+    }
+    @inlinable public
+    subscript<Encodable>(key:MongoQuery.TupleOperator) -> Encodable?
+        where Encodable:BSONEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self[key.rawValue] = value
+        }
+    }
+}
+extension MongoQuery
+{
+    @inlinable public
     subscript<Encodable>(key:BinaryOperator) -> Encodable?
         where Encodable:BSONEncodable
     {
@@ -118,36 +159,6 @@ extension MongoQuery
                 $0.append(divisor)
                 $0.append(value)
             }
-        }
-    }
-}
-extension MongoQuery
-{
-    @inlinable public
-    subscript(key:Operator) -> Self?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self[key.rawValue, elide: false] = value
-        }
-    }
-}
-extension MongoQuery
-{
-    @inlinable public
-    subscript(key:MongoQuery.TupleOperator) -> BSON.Elements<BSON.Fields>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self[key.rawValue, elide: false] = value.map(BSON.Elements<Self>.init(_:))
         }
     }
 }
