@@ -450,7 +450,7 @@ extension MongoExpression
     {
         .toArray(document: document)
     }
-    @available(*, unavailable, renamed: "concatenate(arrays:)")
+    @available(*, unavailable, renamed: "concat(arrays:)")
     public static
     func concatArrays(_ arrays:[Self]) -> Self
     {

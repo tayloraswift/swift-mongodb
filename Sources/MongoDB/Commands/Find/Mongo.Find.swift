@@ -4,7 +4,7 @@ import MongoSchema
 
 extension Mongo
 {
-    @frozen public
+    public
     struct Find<Element>:Sendable where Element:MongoDecodable
     {
         public
@@ -17,13 +17,13 @@ extension Mongo
         let stride:Int
 
         public
-        let `let`:BSON.Fields
-        public
         let filter:MongoQuery.Document
         public
         let projection:MongoProjection.Document
         public
         let sort:BSON.Fields
+        public
+        let `let`:BSON.Fields
 
         public
         let skip:Int?
@@ -48,18 +48,18 @@ extension Mongo
 
         public
         init(collection:Collection,
-            timeout:Milliseconds? = nil,
             tailing:Tailing? = nil,
             stride:Int,
             limit:Int? = nil,
             skip:Int? = nil,
-            `let`:BSON.Fields = .init(),
             filter:MongoQuery.Document = .init(),
             projection:MongoProjection.Document = .init(),
+            hint:IndexHint? = nil,
             sort:BSON.Fields = .init(),
+            `let`:BSON.Fields = .init(),
             collation:Collation? = nil,
             readLevel:ReadLevel? = nil,
-            hint:IndexHint? = nil,
+            timeout:Milliseconds? = nil,
             min:BSON.Fields = .init(),
             max:BSON.Fields = .init(),
             returnKey:Bool? = nil,

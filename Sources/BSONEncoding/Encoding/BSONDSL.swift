@@ -155,7 +155,7 @@ extension BSONDSL
         }
     }
 }
-extension BSONDSL where Subdocument:BSONEncodable
+extension BSONDSL where Subdocument:BSONDSL & BSONEncodable
 {
     /// Appends the given key-value pair to this document builder, encoding the
     /// given subdocument as the field value, so long as it is not empty (or

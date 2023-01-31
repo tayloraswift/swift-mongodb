@@ -3,7 +3,7 @@ import BSON
 public
 protocol BSONDSL
 {
-    associatedtype Subdocument:BSONDSL = Self
+    associatedtype Subdocument = Self
     
     init(bytes:[UInt8])
 
