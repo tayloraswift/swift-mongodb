@@ -1,12 +1,13 @@
-extension MongoProjection.Document
+extension MongoPredicate.Operator
 {
     @frozen public
-    enum Operator:String, Hashable, Sendable
+    enum Recursive:String, Hashable, Sendable
     {
+        case not = "$not"
         case any = "$elemMatch"
     }
 }
-extension MongoProjection.Document.Operator
+extension MongoPredicate.Operator.Recursive
 {
     @available(*, unavailable, renamed: "any")
     public static

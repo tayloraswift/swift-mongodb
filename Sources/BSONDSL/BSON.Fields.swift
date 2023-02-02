@@ -2,6 +2,10 @@ import BSON
 
 extension BSON
 {
+    /// The `Fields` type models the “universal” BSON DSL.
+    ///
+    /// It is expected that more-specialized BSON DSLs will wrap an
+    /// instance of `Fields`.
     @frozen public
     struct Fields:Sendable
     {
@@ -15,7 +19,7 @@ extension BSON
         }
     }
 }
-extension BSON.Fields
+extension BSON.Fields:BSONDSL
 {
     @inlinable public mutating
     func append(key:String, with serialize:(inout BSON.Field) -> ())

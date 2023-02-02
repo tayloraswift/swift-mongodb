@@ -1,7 +1,7 @@
-extension MongoQuery.Document
+extension MongoPredicate
 {
     @frozen public
-    enum LogicalOperator:String, Hashable, Sendable
+    enum Branch:String, Hashable, Sendable
     {
         case and    = "$and"
         case nor    = "$nor"

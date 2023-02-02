@@ -169,7 +169,10 @@ func TestFind(_ tests:TestGroup,
                         projection: .init
                         {
                             $0["_id"] = 1 as Int32
-                            $0["ordinal"] = .add("$ordinal", 5)
+                            $0["ordinal"] = .init
+                            {
+                                $0[.add] = ("$ordinal", 5)
+                            }
                         }),
                     against: database)
                 {

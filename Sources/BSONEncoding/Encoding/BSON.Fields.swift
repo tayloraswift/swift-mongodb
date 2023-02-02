@@ -1,4 +1,4 @@
-extension BSONDSL
+extension BSON.Fields
 {
     @inlinable public
     init<Encodable>(fields:some Sequence<(key:String, value:Encodable)>)
@@ -13,7 +13,7 @@ extension BSONDSL
         }
     }
 }
-extension BSONDSL
+extension BSON.Fields
 {
     /// Appends a key-value pair to this document builder, encoding an
     /// explicit null as the field value.
@@ -38,6 +38,65 @@ extension BSONDSL
             }
         }
     }
+
+    /// Appends the given key-value pair to this document builder, encoding the
+    /// given tuple elements as the field value, so long as it is not empty (or
+    /// `elide` is [`false`]()).
+    ///
+    /// Type inference will always infer this subscript as long as any
+    /// ``BSON.Elements`` API is used within its builder closure.
+    ///
+    /// The getter always returns [`nil`]().
+    ///
+    /// Every non-[`nil`]() and non-elided assignment to this subscript
+    /// (including mutations that leave the value in a non-[`nil`]() and
+    /// non-elided state after returning) will add a new field to the document,
+    /// even if the key is the same.
+    @inlinable public
+    subscript(key:String, elide elide:Bool) -> BSON.Elements<Self>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            if let value:BSON.Elements<Self>, !(elide && value.isEmpty)
+            {
+                self.append(key: key, with: value.encode(to:))
+            }
+        }
+    }
+
+    /// Appends the given key-value pair to this document builder, encoding the
+    /// given subdocument as the field value, so long as it is not empty (or
+    /// `elide` is [`false`]()).
+    ///
+    /// Type inference will always infer this subscript as long as any
+    /// ``Subdocument`` DSL API is used within its builder closure.
+    ///
+    /// The getter always returns [`nil`]().
+    ///
+    /// Every non-[`nil`]() and non-elided assignment to this subscript
+    /// (including mutations that leave the value in a non-[`nil`]() and
+    /// non-elided state after returning) will add a new field to the document,
+    /// even if the key is the same.
+    @inlinable public
+    subscript(key:String, elide elide:Bool) -> Self?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            if let value:Self, !(elide && value.isEmpty)
+            {
+                self.append(key: key, with: value.encode(to:))
+            }
+        }
+    }
+
     /// Appends a key-value pair to this document builder, encoding a
     /// subdocument of a foreign DSL type as the field value.
     ///
@@ -124,65 +183,19 @@ extension BSONDSL
         }
     }
 }
-extension BSONDSL
+extension BSON.Fields?
 {
-    /// Appends the given key-value pair to this document builder, encoding the
-    /// given tuple elements as the field value, so long as it is not empty (or
-    /// `elide` is [`false`]()).
-    ///
-    /// Type inference will always infer this subscript as long as any
-    /// ``BSON.Elements`` API is used within its builder closure.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() and non-elided assignment to this subscript
-    /// (including mutations that leave the value in a non-[`nil`]() and
-    /// non-elided state after returning) will add a new field to the document,
-    /// even if the key is the same.
     @inlinable public
-    subscript(key:String, elide elide:Bool = false) -> BSON.Elements<Self>?
+    init(with populate:(inout BSON.Fields) throws -> ()) rethrows
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let value:BSON.Elements<Self>, !(elide && value.isEmpty)
-            {
-                self.append(key: key, with: value.encode(to:))
-            }
-        }
+        self = .some(try .init(with: populate))
     }
 }
-extension BSONDSL where Subdocument:BSONDSL & BSONEncodable
+extension BSON.Elements<BSON.Fields>?
 {
-    /// Appends the given key-value pair to this document builder, encoding the
-    /// given subdocument as the field value, so long as it is not empty (or
-    /// `elide` is [`false`]()).
-    ///
-    /// Type inference will always infer this subscript as long as any
-    /// ``Subdocument`` DSL API is used within its builder closure.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() and non-elided assignment to this subscript
-    /// (including mutations that leave the value in a non-[`nil`]() and
-    /// non-elided state after returning) will add a new field to the document,
-    /// even if the key is the same.
     @inlinable public
-    subscript(key:String, elide elide:Bool = false) -> Subdocument?
+    init(with populate:(inout BSON.Elements<BSON.Fields>) throws -> ()) rethrows
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let value:Subdocument, !(elide && value.isEmpty)
-            {
-                self.append(key: key, with: value.encode(to:))
-            }
-        }
+        self = .some(try .init(with: populate))
     }
 }

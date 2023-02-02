@@ -8,32 +8,32 @@ extension Mongo
     {
         public
         let encoded:BSON.Fields
-        // case bucket         (MongoExpression.Document)
-        // case bucketAuto     (MongoExpression.Document)
-        // case changeStream   (MongoExpression.Document)
-        // case collectionStats(MongoExpression.Document)
+        // case bucket         (MongoExpressionDSL)
+        // case bucketAuto     (MongoExpressionDSL)
+        // case changeStream   (MongoExpressionDSL)
+        // case collectionStats(MongoExpressionDSL)
         // case count          (String)
-        // case densify        (MongoExpression.Document)
+        // case densify        (MongoExpressionDSL)
         // case documents      (MongoExpression)
-        // case facet          (MongoExpression.Document)
-        // case fill           (MongoExpression.Document)
-        // case geoNear        (MongoExpression.Document)
-        // case graphLookup    (MongoExpression.Document)
-        // case group          (MongoExpression.Document)
+        // case facet          (MongoExpressionDSL)
+        // case fill           (MongoExpressionDSL)
+        // case geoNear        (MongoExpressionDSL)
+        // case graphLookup    (MongoExpressionDSL)
+        // case group          (MongoExpressionDSL)
         // case indexStats
         // case limit          (Int)
-        // case listSessions   (MongoExpression.Document)
-        // case lookup         (MongoExpression.Document)
-        // case match          (MongoQuery.Document)
+        // case listSessions   (MongoExpressionDSL)
+        // case lookup         (MongoExpressionDSL)
+        // case match          (MongoPredicate)
         // case planCacheStats
         // case project        (MongoProjection.Document)
         // case redact         (MongoExpression)
-        // case replaceRoot    (MongoExpression.Document)
-        // case sample         (MongoExpression.Document)
-        // case set            (MongoExpression.Document)
-        // case setWindowFields(MongoExpression.Document)
+        // case replaceRoot    (MongoExpressionDSL)
+        // case sample         (MongoExpressionDSL)
+        // case set            (MongoExpressionDSL)
+        // case setWindowFields(MongoExpressionDSL)
         // case skip           (Int)
-        // case sort           (MongoExpression.Document)
+        // case sort           (MongoExpressionDSL)
         // case sortByCount    (MongoExpression)
         // case union     (with:Collection, [Stage] = [])
         // case unset          ([String])
@@ -74,14 +74,14 @@ extension Mongo.Stage
     @available(*, unavailable, renamed: "set(_:)")
     public static
     func addFields(
-        _ populate:(inout MongoExpression.Document) throws -> ()) rethrows -> Self
+        _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
     {
         try .set(populate)
     }
     @available(*, unavailable, renamed: "collectionStats(_:)")
     public static
     func collStats(
-        _ populate:(inout MongoExpression.Document) throws -> ()) rethrows -> Self
+        _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
     {
         try .collectionStats(populate)
     }
@@ -95,33 +95,48 @@ extension Mongo.Stage
 extension Mongo.Stage
 {
     @inlinable public static
-    func bucket(_ populate:(inout MongoQuery.Document) throws -> ()) rethrows -> Self
+    func bucket(_ document:__owned MongoPredicate) -> Self
     {
-        try .init("$match", with: populate)
+        .init("$bucket", value: document)
+    }
+    @inlinable public static
+    func bucket(_ populate:(inout MongoPredicate) throws -> ()) rethrows -> Self
+    {
+        .bucket(try .init(with: populate))
     }
 
     @inlinable public static
-    func match(_ populate:(inout MongoQuery.Document) throws -> ()) rethrows -> Self
+    func match(_ document:__owned MongoPredicate) -> Self
     {
-        try .init("$match", with: populate)
+        .init("$match", value: document)
+    }
+    @inlinable public static
+    func match(_ populate:(inout MongoPredicate) throws -> ()) rethrows -> Self
+    {
+        .match(try .init(with: populate))
     }
 
     @inlinable public static
-    func project(_ populate:(inout MongoProjection.Document) throws -> ()) rethrows -> Self
+    func project(_ document:__owned MongoProjection) -> Self
     {
-        try .init("$project", with: populate)
+        .init("$project", value: document)
+    }
+    @inlinable public static
+    func project(_ populate:(inout MongoProjection) throws -> ()) rethrows -> Self
+    {
+        .project(try .init(with: populate))
     }
 
     @inlinable public static
     func collectionStats(
-        _ populate:(inout MongoExpression.Document) throws -> ()) rethrows -> Self
+        _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
     {
         try .init("$collStats", with: populate)
     }
 
     @inlinable public static
     func set(
-        _ populate:(inout MongoExpression.Document) throws -> ()) rethrows -> Self
+        _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
     {
         try .init("$set", with: populate)
     }

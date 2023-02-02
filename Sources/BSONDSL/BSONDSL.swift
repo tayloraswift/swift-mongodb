@@ -1,16 +1,21 @@
 import BSON
 
+/// A `BSONDSL` is nothing more than a wrapper around some raw BSON document
+/// storage that supports an ``init(with:)`` builder API. Conforming to this
+/// protocol enables automatic `BSONDecodable` and `BSONEncodable`
+/// conformances, if the corresponding modules have been imported.
+///
+/// A `BSONDSL`-conforming type is only required to ensure that it generates
+/// a document, and not some other kind of BSON value, such as an array.
+///
+/// The specific encoding API vended and encodability protocol used is up to
+/// the conforming type.
 public
 protocol BSONDSL
 {
-    associatedtype Subdocument = Self
-    
     init(bytes:[UInt8])
 
     var bytes:[UInt8] { get }
-
-    mutating
-    func append(key:String, with serialize:(inout BSON.Field) -> ())
 }
 extension BSONDSL
 {
@@ -59,8 +64,4 @@ extension BSONDSL
             self.init(bytes: .init(bson.bytes))
         }
     }
-}
-
-extension BSON.Fields:BSONDSL
-{
 }

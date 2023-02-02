@@ -39,7 +39,6 @@ extension BSON.Elements
         field.encode(tuple: .init(self))
     }
 }
-@available(*, unavailable)
 extension BSON.Elements:BSONEncodable
 {
 }

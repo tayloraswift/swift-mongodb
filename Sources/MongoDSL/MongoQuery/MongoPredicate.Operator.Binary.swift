@@ -1,7 +1,7 @@
-extension MongoQuery
+extension MongoPredicate.Operator
 {
     @frozen public
-    enum BinaryOperator:String, Hashable, Sendable
+    enum Binary:String, Hashable, Sendable
     {
         case bitsAllClear   = "$bitsAllClear"
         case bitsAllSet     = "$bitsAllSet"

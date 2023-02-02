@@ -52,7 +52,7 @@ extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     {
         bson[Self.name] = self.collection
         bson["bypassDocumentValidation"] = self.bypassDocumentValidation
-        bson["documents"] = .init(elements: self.elements)
+        bson["documents"] = BSON.Elements<BSON.Fields>.init(elements: self.elements)
         bson["ordered"] = self.ordered
         bson["writeConcern"] = self.writeConcern
     }

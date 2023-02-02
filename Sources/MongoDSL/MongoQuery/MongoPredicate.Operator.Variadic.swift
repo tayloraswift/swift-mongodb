@@ -1,7 +1,7 @@
-extension MongoQuery
+extension MongoPredicate.Operator
 {
     @frozen public
-    enum TupleOperator:String, Hashable, Sendable
+    enum Variadic:String, Hashable, Sendable
     {
         case all    = "$all"
         case `in`   = "$in"

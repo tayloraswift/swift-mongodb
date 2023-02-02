@@ -89,7 +89,7 @@ extension Mongo.WriteConcernError:BSONDocumentEncodable
                 Mongo.WriteConcernProvenance,
                 Mongo.WriteConcern
             ) = $0
-            return .init
+            return BSON.Fields.init
             {
                 $0["writeConcern"] = .init
                 {

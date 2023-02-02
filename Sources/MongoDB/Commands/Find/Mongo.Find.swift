@@ -17,9 +17,9 @@ extension Mongo
         let stride:Int
 
         public
-        let filter:MongoQuery.Document
+        let filter:MongoPredicate
         public
-        let projection:MongoProjection.Document
+        let projection:MongoProjection
         public
         let sort:BSON.Fields
         public
@@ -52,8 +52,8 @@ extension Mongo
             stride:Int,
             limit:Int? = nil,
             skip:Int? = nil,
-            filter:MongoQuery.Document = .init(),
-            projection:MongoProjection.Document = .init(),
+            filter:MongoPredicate = .init(),
+            projection:MongoProjection = .init(),
             hint:IndexHint? = nil,
             sort:BSON.Fields = .init(),
             `let`:BSON.Fields = .init(),
