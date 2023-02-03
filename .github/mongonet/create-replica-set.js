@@ -1,7 +1,7 @@
 db = connect('mongodb://mongo-0:27017/admin');
 db.runCommand({'replSetInitiate': {
     "_id": "test-set",
-    "version": 1,
+    "version": 2,
     "members": [
         {
             "_id": 0,
@@ -56,6 +56,16 @@ db.runCommand({'replSetInitiate': {
             "host": "mongo-5:27017",
             "priority": 0,
             "arbiterOnly": true
+        },
+        {
+            "_id": 6,
+            "host": "mongo-6:27017",
+            "tags": {
+                "priority": "zero",
+                "name": "E",
+            },
+            "priority": 0,
+            "votes": 0
         }
     ]
 }});

@@ -90,7 +90,7 @@ func TestFind(_ tests:TestGroup,
                         skip: 10,
                         sort: .init
                         {
-                            $0["ordinal"] = -1 as Int32
+                            $0["ordinal"] = (-)
                         }),
                     against: database)
 

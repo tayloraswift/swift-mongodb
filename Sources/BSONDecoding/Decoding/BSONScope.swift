@@ -43,9 +43,4 @@ extension BSONScope
     {
         try self.decode(with: Decodable.init(bson:))
     }
-    @inlinable public
-    func decode(to _:Void.Type = Void.self) throws
-    {
-        try self.decode { try $0.cast(with: \.null) }
-    }
 }

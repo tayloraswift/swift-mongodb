@@ -14,6 +14,15 @@ extension BSONEncodable where Self:BinaryFloatingPoint
     }
 }
 
+extension Never:BSONEncodable
+{
+    /// Never encodes anything.
+    @inlinable public
+    func encode(to _:inout BSON.Field)
+    {
+    }
+}
+
 extension BSON:BSONEncodable
 {
     /// Encodes this metatype as a value of type ``BSON.int32``.
@@ -24,7 +33,9 @@ extension BSON:BSONEncodable
     }
 }
 
-extension Double:BSONEncodable {}
+extension Double:BSONEncodable
+{
+}
 
 extension UInt64:BSONEncodable
 {
@@ -182,6 +193,16 @@ extension BSONEncodable where Self:Sequence, Element:BSONEncodable
     func encode(to field:inout BSON.Field)
     {
         field.encode(tuple: .init(BSON.Elements<Never>.init(elements: self)))
+    }
+}
+//  We generally do *not* want dictionaries to be encodable, and dictionary
+//  literal generate dictionaries by default.
+extension [String: Never]:BSONEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(document: .init(bytes: []))
     }
 }
 extension Array:BSONEncodable where Element:BSONEncodable

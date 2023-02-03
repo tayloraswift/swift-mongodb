@@ -11,7 +11,7 @@ import BSON
 /// The specific encoding API vended and encodability protocol used is up to
 /// the conforming type.
 public
-protocol BSONDSL
+protocol BSONDSL:ExpressibleByDictionaryLiteral where Key == String, Value == Never
 {
     init(bytes:[UInt8])
 
@@ -23,6 +23,14 @@ extension BSONDSL
     var isEmpty:Bool
     {
         self.bytes.isEmpty
+    }
+}
+extension BSONDSL
+{
+    @inlinable public
+    init(dictionaryLiteral:(String, Never)...)
+    {
+        self.init(bytes: [])
     }
 }
 extension BSONDSL

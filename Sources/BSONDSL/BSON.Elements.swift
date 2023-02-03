@@ -42,6 +42,14 @@ extension BSON.Elements
         self.count += 1
     }
 }
+extension BSON.Elements:ExpressibleByArrayLiteral
+{
+    @inlinable public
+    init(arrayLiteral:Never...)
+    {
+        self.init()
+    }
+}
 extension BSON.Elements
 {
     /// Creates an empty encoding view and initializes it with the given closure.

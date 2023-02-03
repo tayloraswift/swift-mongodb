@@ -24,6 +24,9 @@ extension BSONStringEncodable
         self.description.encode(to: &field)
     }
 }
+extension String:BSONStringEncodable
+{
+}
 extension Substring:BSONStringEncodable
 {
 }

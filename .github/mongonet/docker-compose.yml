@@ -91,6 +91,18 @@ services:
             - ./test-set.conf:/etc/mongod.conf
             - ./data-5/db:/data/db
         command: mongod --config /etc/mongod.conf
+    mongo-6:
+        image: mongo:latest
+        hostname: mongo-6
+        networks:
+            - mongonet
+        ports:
+            - 30006:27017
+        restart: always
+        volumes:
+            - ./test-set.conf:/etc/mongod.conf
+            - ./data-6/db:/data/db
+        command: mongod --config /etc/mongod.conf
 
 networks: 
     mongonet:

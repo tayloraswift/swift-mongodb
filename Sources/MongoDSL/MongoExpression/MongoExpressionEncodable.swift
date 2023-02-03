@@ -5,6 +5,9 @@ protocol MongoExpressionEncodable:BSONEncodable
 {
 }
 
+extension Never:MongoExpressionEncodable
+{
+}
 extension Bool:MongoExpressionEncodable
 {
 }
@@ -60,5 +63,8 @@ extension Array:MongoExpressionEncodable where Element:MongoExpressionEncodable
 {
 }
 extension Optional:MongoExpressionEncodable where Wrapped:MongoExpressionEncodable
+{
+}
+extension [String: Never]:MongoExpressionEncodable
 {
 }

@@ -56,9 +56,14 @@ func TestMemberDiscovery(_ tests:TestGroup,
                             tags: ["priority": "zero", "name": "H"])),
                         
                         .init(id: 5, host: members[5], replica: nil),
+                        
+                        .init(id: 6, host: members[6], replica: .init(
+                            rights: .resident,
+                            votes: 0,
+                            tags: ["priority": "zero", "name": "E"])),
                     ])
                 
-                tests.expect(configuration.version ==? 1)
+                tests.expect(configuration.version ==? 2)
             }
         }
     }

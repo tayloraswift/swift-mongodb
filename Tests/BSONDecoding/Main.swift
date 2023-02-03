@@ -19,7 +19,7 @@ enum Main:SyncTests
             (tests / "null").do
             {
                 let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try bson.dictionary()
-                try dictionary["null"].decode(to: Void.self)
+                let _:Never? = try dictionary["null"].decode(to: Never?.self)
             }
             TestDecoding(tests / "max", bson: bson, to: .init())
             {

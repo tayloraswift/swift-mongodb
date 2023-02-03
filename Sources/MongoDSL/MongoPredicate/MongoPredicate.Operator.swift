@@ -23,10 +23,14 @@ extension MongoPredicate.Operator:BSONDSL
         self.fields.bytes
     }
 }
+extension MongoPredicate.Operator:BSONDecodable
+{
+}
 extension MongoPredicate.Operator:BSONEncodable
 {
 }
-extension MongoPredicate.Operator:BSONDecodable
+@available(*, unavailable)
+extension MongoPredicate.Operator:MongoPredicateEncodable
 {
 }
 
@@ -98,7 +102,7 @@ extension MongoPredicate.Operator
 
     @inlinable public
     subscript<Encodable>(key:Variadic) -> Encodable?
-        where Encodable:BSONEncodable
+        where Encodable:MongoPredicateEncodable
     {
         get
         {
@@ -112,7 +116,7 @@ extension MongoPredicate.Operator
 
     @inlinable public
     subscript<Encodable>(key:Binary) -> Encodable?
-        where Encodable:BSONEncodable
+        where Encodable:MongoPredicateEncodable
     {
         get
         {
@@ -125,7 +129,7 @@ extension MongoPredicate.Operator
     }
     @inlinable public
     subscript<Divisor, Remainder>(key:Mod) -> (by:Divisor?, is:Remainder?)
-        where Divisor:BSONEncodable, Remainder:BSONEncodable
+        where Divisor:MongoPredicateEncodable, Remainder:MongoPredicateEncodable
     {
         get
         {

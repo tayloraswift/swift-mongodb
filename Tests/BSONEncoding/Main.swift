@@ -1,7 +1,7 @@
 import BSONEncoding
 import Testing
 
-@main 
+@main
 enum Main:SyncTests
 {
     static
@@ -152,7 +152,7 @@ enum Main:SyncTests
             TestEncoding(tests / "null",
                 encoded: .init
                 {
-                    $0["null"] = ()
+                    $0["null"] = (nil as Never?) as Never??
                 },
                 literal:
                 [
@@ -181,10 +181,10 @@ enum Main:SyncTests
             TestEncoding(tests / "array",
                 encoded: .init
                 {
-                    $0["a", elide: true] = [] as [Int]
-                    $0["b", elide: true] = [1] as [Int]
-                    $0["c", elide: false] = [1] as [Int]
-                    $0["d", elide: false] = [] as [Int]
+                    $0["a", elide: true] = []
+                    $0["b", elide: true] = [1]
+                    $0["c", elide: false] = [1]
+                    $0["d", elide: false] = []
                 },
                 literal:
                 [
@@ -196,7 +196,7 @@ enum Main:SyncTests
             TestEncoding(tests / "document",
                 encoded: .init
                 {
-                    $0["a", elide: true] = .init()
+                    $0["a", elide: true] = [:]
                     $0["b", elide: true] = .init
                     {
                         $0["x"] = 1
@@ -205,7 +205,7 @@ enum Main:SyncTests
                     {
                         $0["x"] = 1
                     }
-                    $0["d", elide: false] = .init()
+                    $0["d", elide: false] = [:]
                 },
                 literal:
                 [
@@ -216,13 +216,14 @@ enum Main:SyncTests
         }
         do
         {
+            let _:BSON.Fields = [:]
             let tests:TestGroup = tests / "elided-fields"
 
             TestEncoding(tests / "null",
                 encoded: .init
                 {
-                    $0["elided"] = nil as ()?
-                    $0["inhabited"] = ()
+                    $0["elided"] = nil as Never??
+                    $0["inhabited"] = (nil as Never?) as Never??
                 },
                 literal:
                 [
@@ -261,9 +262,9 @@ enum Main:SyncTests
                 encoded: .init
                 {
                     $0["inhabited"] = 5
-                    $0["uninhabited"] = nil as ()?
+                    $0["uninhabited"] = nil as Never??
                     $0["inhabited"] = 7
-                    $0["uninhabited"] = nil as ()?
+                    $0["uninhabited"] = nil as Never??
                 },
                 literal:
                 [

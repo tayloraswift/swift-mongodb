@@ -30,6 +30,8 @@ extension BSON.Elements<MongoExpressionDSL>:MongoExpressionEncodable
 {
 }
 
+//  These overloads are unique to ``MongoExpressionDSL``, because it has
+//  operators that take multiple arguments. The other DSLs don't need these.
 extension MongoExpressionDSL?
 {
     @_disfavoredOverload

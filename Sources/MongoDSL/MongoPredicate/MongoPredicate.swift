@@ -21,12 +21,22 @@ extension MongoPredicate:BSONDSL
         self.fields.bytes
     }
 }
-extension MongoPredicate:BSONEncodable
-{
-}
 extension MongoPredicate:BSONDecodable
 {
 }
+extension MongoPredicate:BSONEncodable
+{
+}
+@available(*, unavailable)
+extension MongoPredicate:MongoPredicateEncodable
+{
+}
+@available(*, unavailable)
+extension BSON.Elements<MongoPredicate>:MongoPredicateEncodable
+{
+}
+
+
 extension MongoPredicate
 {
     /// @import(BSONDSL)
@@ -48,7 +58,19 @@ extension MongoPredicate
         }
     }
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
+    subscript(key:String) -> Self?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[key] = value
+        }
+    }
+    @inlinable public
+    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoPredicateEncodable
     {
         get
         {
@@ -87,7 +109,7 @@ extension MongoPredicate
         }
     }
     @inlinable public
-    subscript<Encodable>(key:Comment) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(key:Comment) -> Encodable? where Encodable:MongoPredicateEncodable
     {
         get
         {

@@ -15,30 +15,6 @@ extension BSON.Fields
 }
 extension BSON.Fields
 {
-    /// Appends a key-value pair to this document builder, encoding an
-    /// explicit null as the field value.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() assignment to this subscript (including mutations
-    /// that leave the value in a non-[`nil`]() state after returning) will add
-    /// a new field to the document, even if the key is the same.
-    @inlinable public
-    subscript(key:String) -> Void?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let _:Void = value
-            {
-                self.append(key: key) { $0.encode(null: ()) }
-            }
-        }
-    }
-
     /// Appends the given key-value pair to this document builder, encoding the
     /// given tuple elements as the field value, so long as it is not empty (or
     /// `elide` is [`false`]()).

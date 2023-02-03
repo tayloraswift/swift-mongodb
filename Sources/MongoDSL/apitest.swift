@@ -28,15 +28,15 @@ func _test()
     let _:MongoPredicate = .init
     {
         $0["a"] = 0
-        $0["b"] = .init
-        {
-            $0["key"] = "value"
-        }
-        $0["c"] = .init
-        {
-            $0[.gt] = 5
-            $0[.mod] = (by: 5, is: 2)
-        }
+        // $0["b"] = .init
+        // {
+        //     $0["key"] = "value"
+        // }
+        // $0["c"] = .init
+        // {
+        //     $0[.gt] = 5
+        //     $0[.mod] = (by: 5, is: 2)
+        // }
         $0[.and] = .init
         {
             $0.append

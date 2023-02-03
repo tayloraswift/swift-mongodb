@@ -12,6 +12,14 @@ extension BSON.Elements
         }
     }
     @inlinable public mutating
+    func push(_ element:(some BSONEncodable)?)
+    {
+        element.map
+        {
+            self.append(with: $0.encode(to:))
+        }
+    }
+    @inlinable public mutating
     func append(_ element:some BSONEncodable)
     {
         self.append(with: element.encode(to:))

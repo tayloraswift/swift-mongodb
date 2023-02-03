@@ -46,6 +46,8 @@ func TestCausalConsistency(_ tests:TestGroup,
             tests.expect(response ==? .init(inserted: 1))
         }
 
+        let other:Mongo.Session = try await .init(from: pool, forking: session)
+
         //  We should be able to observe a precondition time after performing the
         //  initialization.
         guard var head:Mongo.Instant = tests.expect(value: session.preconditionTime)
@@ -56,9 +58,10 @@ func TestCausalConsistency(_ tests:TestGroup,
 
         //  We should be able to choose this specific secondary/slave, which
         //  we know will always be a secondary/slave, because it is not a
-        //  citizen.
+        //  citizen. It was configured with zero votes, so no other secondaries
+        //  should be replicating from it.
         let secondary:Mongo.ReadPreference = .secondary(
-            tagSets: [["priority": "zero", "name": "C"]])
+            tagSets: [["priority": "zero", "name": "E"]])
 
         //  We should be able to lock this secondary/slave, without removing
         //  it from quorum. Until this secondary is unlocked, writes must
@@ -176,7 +179,11 @@ func TestCausalConsistency(_ tests:TestGroup,
             try await session.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
                     collection: collection,
-                    limit: 10),
+                    limit: 10,
+                    sort: .init
+                    {
+                        $0["_id"] = (+)
+                    }),
                 against: database,
                 on: secondary,
                 by: .now.advanced(by: .milliseconds(500)))
@@ -205,7 +212,11 @@ func TestCausalConsistency(_ tests:TestGroup,
             let letters:[Letter] = try await session.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
                     collection: collection,
-                    limit: 10),
+                    limit: 10,
+                    sort: .init
+                    {
+                        $0["_id"] = (+)
+                    }),
                 against: database,
                 on: .secondary(tagSets: [["name": "D"]]))
             
@@ -226,10 +237,6 @@ func TestCausalConsistency(_ tests:TestGroup,
         //  succeed, and return the stale data from before the last three writes.
         await (tests / "non-causal").do
         {
-            let other:Mongo.Session = try await .init(from: pool)
-
-            tests.expect(nil: other.preconditionTime)
-
             let letters:[Letter] = try await other.run(
                 command: Mongo.Find<Letter>.SingleBatch.init(
                     collection: collection,

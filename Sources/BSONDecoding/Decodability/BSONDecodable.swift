@@ -15,6 +15,15 @@ protocol BSONDecodable
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
 }
 
+extension Never:BSONDecodable
+{
+    /// Always throws a ``BSON.TypecastError``.
+    @inlinable public
+    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    {
+        throw BSON.TypecastError<Never>.init(invalid: bson.type)
+    }
+}
 extension Bool:BSONDecodable
 {
     @inlinable public

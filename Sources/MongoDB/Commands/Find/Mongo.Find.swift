@@ -21,7 +21,7 @@ extension Mongo
         public
         let projection:MongoProjection
         public
-        let sort:BSON.Fields
+        let sort:MongoSortOrdering
         public
         let `let`:BSON.Fields
 
@@ -52,16 +52,16 @@ extension Mongo
             stride:Int,
             limit:Int? = nil,
             skip:Int? = nil,
-            filter:MongoPredicate = .init(),
-            projection:MongoProjection = .init(),
+            filter:MongoPredicate = [:],
+            projection:MongoProjection = [:],
             hint:IndexHint? = nil,
-            sort:BSON.Fields = .init(),
-            `let`:BSON.Fields = .init(),
+            sort:MongoSortOrdering = [:],
+            `let`:BSON.Fields = [:],
             collation:Collation? = nil,
             readLevel:ReadLevel? = nil,
             timeout:Milliseconds? = nil,
-            min:BSON.Fields = .init(),
-            max:BSON.Fields = .init(),
+            min:BSON.Fields = [:],
+            max:BSON.Fields = [:],
             returnKey:Bool? = nil,
             showRecordIdentifier:Bool? = nil)
         {

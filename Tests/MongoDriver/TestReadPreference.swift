@@ -171,6 +171,7 @@ func TestReadPreference(_ tests:TestGroup,
                                 members[1]: .tags(["name": "B", "priority": "low"]),
                                 members[2]: .tags(["name": "C", "priority": "zero"]),
                                 members[3]: .tags(["name": "D", "priority": "zero"]),
+                                members[6]: .tags(["name": "E", "priority": "zero"]),
                             ]),
                         failure: .init(preference: preference)))
                 {
