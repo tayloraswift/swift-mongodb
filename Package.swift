@@ -8,7 +8,6 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONDSL", targets: ["BSONDSL"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
-        .library(name: "BSONSchema", targets: ["BSONSchema"]),
         .library(name: "BSONUnions", targets: ["BSONUnions"]),
         .library(name: "BSON_UUID", targets: ["BSON_UUID"]),
 
@@ -73,12 +72,6 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONDSL"),
             ]),
-        .target(name: "BSONSchema",
-            dependencies:
-            [
-                .target(name: "BSONDecoding"),
-                .target(name: "BSONEncoding"),
-            ]),
         .target(name: "BSONUnions",
             dependencies:
             [
@@ -87,19 +80,22 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "BSON_UUID",
             dependencies:
             [
-                .target(name: "BSONSchema"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
                 .target(name: "UUID"),
             ]),
         .target(name: "BSON_Durations",
             dependencies:
             [
-                .target(name: "BSONSchema"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
                 .target(name: "Durations"),
             ]),
         .target(name: "BSON_OrderedCollections",
             dependencies:
             [
-                .target(name: "BSONSchema"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
                 .product(name: "OrderedCollections",    package: "swift-collections"),
             ]),
         
@@ -126,7 +122,8 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoChannel",
             dependencies: 
             [
-                .target(name: "BSONSchema"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore",               package: "swift-nio"),
             ]),
@@ -134,7 +131,8 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoDSL",
             dependencies:
             [
-                .target(name: "BSONSchema"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
             ]),
 
         .target(name: "MongoMonitoring",
@@ -145,7 +143,8 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "Mongo",
             dependencies:
             [
-                .target(name: "BSONSchema"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
                 .target(name: "Durations"),
                 .target(name: "MongoMonitoring"),
                 .target(name: "TraceableErrors"),
@@ -154,7 +153,8 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoSchema",
             dependencies:
             [
-                .target(name: "BSONSchema"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
             ]),
         
         .target(name: "MongoDriver",
