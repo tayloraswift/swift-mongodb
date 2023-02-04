@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -49,7 +50,10 @@ extension Mongo.Namespaced:LosslessStringConvertible
         "\(self.database).\(self.name)"
     }
 }
-extension Mongo.Namespaced:BSONStringScheme
+extension Mongo.Namespaced:BSONDecodable, BSONStringDecodable
+{
+}
+extension Mongo.Namespaced:BSONEncodable, BSONStringEncodable
 {
 }
 

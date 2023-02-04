@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import MongoSchema
 
 struct Letter:Hashable, Sendable

@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo.Collation
 {
@@ -9,6 +10,6 @@ extension Mongo.Collation
         case upper
     }
 }
-extension Mongo.Collation.CaseFirst:BSONScheme
+extension Mongo.Collation.CaseFirst:BSONDecodable, BSONEncodable
 {
 }

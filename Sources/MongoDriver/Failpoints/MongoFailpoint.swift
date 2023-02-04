@@ -1,7 +1,7 @@
 import BSONEncoding
 
 public
-protocol MongoFailpoint:BSONDocumentEncodable, Sendable
+protocol MongoFailpoint:BSONEncodable, Sendable
 {
     static
     var name:String { get }

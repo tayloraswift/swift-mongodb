@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -38,7 +39,7 @@ extension Mongo.ClusterTime
         }
     }
 }
-extension Mongo.ClusterTime:BSONDocumentEncodable
+extension Mongo.ClusterTime:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -47,7 +48,7 @@ extension Mongo.ClusterTime:BSONDocumentEncodable
         bson["clusterTime"] = self.time
     }
 }
-extension Mongo.ClusterTime:BSONDictionaryDecodable
+extension Mongo.ClusterTime:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws

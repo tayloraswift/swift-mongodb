@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -18,7 +19,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.WriteConcern:BSONDocumentEncodable
+extension Mongo.WriteConcern:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -29,7 +30,7 @@ extension Mongo.WriteConcern:BSONDocumentEncodable
         // bson["wtimeout"] = self.timeout
     }
 }
-extension Mongo.WriteConcern:BSONDictionaryDecodable
+extension Mongo.WriteConcern:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws

@@ -42,7 +42,7 @@ extension MongoProjection.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue, elide: false] = value
+            self.fields[pushing: key] = value
         }
     }
 }
@@ -57,7 +57,7 @@ extension MongoProjection.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 }
@@ -73,7 +73,7 @@ extension MongoProjection.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -91,7 +91,7 @@ extension MongoProjection.Operator
             {
                 return
             }
-            self.fields[key.rawValue] = .init
+            self.fields[pushing: key] = .init
             {
                 if let index:Index = value.at
                 {

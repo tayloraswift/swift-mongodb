@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo.ReadConcern
 {
@@ -27,6 +28,6 @@ extension Mongo.ReadConcern.Level
         }
     }
 }
-extension Mongo.ReadConcern.Level:BSONScheme
+extension Mongo.ReadConcern.Level:BSONDecodable, BSONEncodable
 {
 }

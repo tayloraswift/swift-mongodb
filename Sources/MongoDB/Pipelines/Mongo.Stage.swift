@@ -47,16 +47,16 @@ extension Mongo
 extension Mongo.Stage
 {
     @inlinable public
-    init(_ name:String, value:some BSONEncodable)
+    init(_ name:String, value:some BSONDSLEncodable)
     {
         self.init(encoded: .init
         {
-            $0[name] = value
+            $0[pushing: name] = value
         })
     }
     @inlinable public
     init<DSL>(_ name:String,
-        with populate:(inout DSL) throws -> ()) rethrows where DSL:BSONDSL & BSONEncodable
+        with populate:(inout DSL) throws -> ()) rethrows where DSL:BSONDSL & BSONDSLEncodable
     {
         self.init(name, value: try DSL.init(with: populate))
     }
@@ -128,17 +128,27 @@ extension Mongo.Stage
     }
 
     @inlinable public static
+    func collectionStats(_ document:__owned MongoExpressionDSL) -> Self
+    {
+        .init("$collStats", value: document)
+    }
+    @inlinable public static
     func collectionStats(
         _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
     {
-        try .init("$collStats", with: populate)
+        .collectionStats(try .init(with: populate))
     }
 
+    @inlinable public static
+    func set(_ document:__owned MongoExpressionDSL) -> Self
+    {
+        .init("$set", value: document)
+    }
     @inlinable public static
     func set(
         _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
     {
-        try .init("$set", with: populate)
+        .set(try .init(with: populate))
     }
 }
 extension Mongo.Stage

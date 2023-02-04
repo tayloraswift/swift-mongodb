@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo.Authentication
 {
@@ -21,6 +22,6 @@ extension Mongo.Authentication.SASL:CustomStringConvertible
         self.rawValue
     }
 }
-extension Mongo.Authentication.SASL:BSONScheme
+extension Mongo.Authentication.SASL:BSONDecodable, BSONEncodable
 {
 }

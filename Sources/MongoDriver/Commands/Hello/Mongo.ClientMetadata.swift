@@ -12,7 +12,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ClientMetadata:BSONDocumentEncodable
+extension Mongo.ClientMetadata
 {
     private static
     var os:String
@@ -27,7 +27,9 @@ extension Mongo.ClientMetadata:BSONDocumentEncodable
         "unknown"
         #endif
     }
-
+}
+extension Mongo.ClientMetadata:BSONEncodable, BSONDocumentEncodable
+{
     func encode(to bson:inout BSON.Fields)
     {
         if let application:String = self.application

@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 // public
 // protocol MongoAccumulatorDSL:BSONDSL where Subdocument == Never

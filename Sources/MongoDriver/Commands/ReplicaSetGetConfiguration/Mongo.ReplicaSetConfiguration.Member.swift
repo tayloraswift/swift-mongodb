@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import BSON_Durations
 import BSON_OrderedCollections
 import Durations
@@ -31,7 +32,7 @@ extension Mongo.ReplicaSetConfiguration
         }
     }
 }
-extension Mongo.ReplicaSetConfiguration.Member:BSONDictionaryDecodable
+extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
@@ -65,7 +66,7 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDictionaryDecodable
             tags: try bson["tags"].decode(to: OrderedDictionary<String, String>.self)))
     }
 }
-extension Mongo.ReplicaSetConfiguration.Member:BSONDocumentEncodable
+extension Mongo.ReplicaSetConfiguration.Member:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

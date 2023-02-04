@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension MongoPredicate
 {
@@ -29,10 +30,6 @@ extension MongoPredicate.Operator:BSONDecodable
 extension MongoPredicate.Operator:BSONEncodable
 {
 }
-@available(*, unavailable)
-extension MongoPredicate.Operator:MongoPredicateEncodable
-{
-}
 
 extension MongoPredicate.Operator
 {
@@ -45,7 +42,7 @@ extension MongoPredicate.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -57,7 +54,7 @@ extension MongoPredicate.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -69,7 +66,7 @@ extension MongoPredicate.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue, elide: false] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -81,7 +78,7 @@ extension MongoPredicate.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 }
@@ -96,13 +93,13 @@ extension MongoPredicate.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue, elide: false] = value
+            self.fields[pushing: key] = value
         }
     }
 
     @inlinable public
     subscript<Encodable>(key:Variadic) -> Encodable?
-        where Encodable:MongoPredicateEncodable
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -110,13 +107,13 @@ extension MongoPredicate.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 
     @inlinable public
     subscript<Encodable>(key:Binary) -> Encodable?
-        where Encodable:MongoPredicateEncodable
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -124,12 +121,12 @@ extension MongoPredicate.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
     subscript<Divisor, Remainder>(key:Mod) -> (by:Divisor?, is:Remainder?)
-        where Divisor:MongoPredicateEncodable, Remainder:MongoPredicateEncodable
+        where Divisor:BSONEncodable, Remainder:BSONEncodable
     {
         get
         {
@@ -143,7 +140,7 @@ extension MongoPredicate.Operator
             {
                 return
             }
-            self.fields[key.rawValue] = .init
+            self.fields[pushing: key] = .init
             {
                 $0.append(divisor)
                 $0.append(remainder)

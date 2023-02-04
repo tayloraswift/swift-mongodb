@@ -20,13 +20,7 @@ extension MongoExpressionDSL:BSONDSL
         self.fields.bytes
     }
 }
-extension MongoExpressionDSL:BSONEncodable
-{
-}
 extension MongoExpressionDSL:MongoExpressionEncodable
-{
-}
-extension BSON.Elements<MongoExpressionDSL>:MongoExpressionEncodable
 {
 }
 
@@ -41,15 +35,7 @@ extension MongoExpressionDSL?
         self = .some(try .init(with: populate))
     }
 }
-extension BSON.Elements<MongoExpressionDSL>?
-{
-    @_disfavoredOverload
-    @inlinable public
-    init(with populate:(inout BSON.Elements<MongoExpressionDSL>) throws -> ()) rethrows
-    {
-        self = .some(try .init(with: populate))
-    }
-}
+
 extension MongoExpressionDSL
 {
     @inlinable public
@@ -61,7 +47,7 @@ extension MongoExpressionDSL
         }
         set(value)
         {
-            self.fields[key] = value
+            self.fields[pushing: key] = value
         }
     }
 }

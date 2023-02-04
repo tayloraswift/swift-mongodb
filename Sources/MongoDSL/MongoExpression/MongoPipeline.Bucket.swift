@@ -73,7 +73,7 @@ extension MongoPipeline.Bucket
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -85,7 +85,7 @@ extension MongoPipeline.Bucket
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -97,7 +97,7 @@ extension MongoPipeline.Bucket
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 }

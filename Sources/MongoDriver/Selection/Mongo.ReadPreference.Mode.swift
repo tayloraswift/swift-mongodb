@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo.ReadPreference
 {
@@ -12,6 +13,6 @@ extension Mongo.ReadPreference
         case nearest
     }
 }
-extension Mongo.ReadPreference.Mode:BSONScheme
+extension Mongo.ReadPreference.Mode:BSONDecodable, BSONEncodable
 {
 }

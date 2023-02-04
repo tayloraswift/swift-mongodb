@@ -38,12 +38,12 @@ extension MongoExpressionDSL.Map
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
     subscript<Encodable>(key:For) -> Encodable?
-        where Encodable:MongoExpressionEncodable & BSONStringEncodable
+        where Encodable:MongoExpressionEncodable & StringProtocol
     {
         get
         {
@@ -51,7 +51,7 @@ extension MongoExpressionDSL.Map
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 }

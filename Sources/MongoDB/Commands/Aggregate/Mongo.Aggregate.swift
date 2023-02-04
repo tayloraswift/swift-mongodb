@@ -24,7 +24,7 @@ extension Mongo.CursorOptions
         }
     }
 }
-extension Mongo.CursorOptions:BSONDocumentEncodable
+extension Mongo.CursorOptions:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

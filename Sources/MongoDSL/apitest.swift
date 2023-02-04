@@ -9,7 +9,7 @@ func _test()
         {
             $0["ccc"] = 56
         }
-        $0["baz"] = .init
+        $0[pushing: "baz"] = .init
         {
             $0[.abs] = 56
         }

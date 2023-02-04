@@ -1,17 +1,24 @@
 /// A type that can be encoded to a BSON variant value.
 public
-protocol BSONEncodable
+protocol BSONEncodable:BSONDSLEncodable
 {
     func encode(to field:inout BSON.Field)
 }
 
-extension BSONEncodable where Self:BinaryFloatingPoint
+extension Optional:BSONEncodable where Wrapped:BSONEncodable
 {
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(double: .init(self))
-    }
+}
+
+//  We generally do *not* want dictionaries to be encodable, and dictionary
+//  literal generate dictionaries by default.
+extension [String: Never]:BSONEncodable
+{
+}
+extension Array:BSONEncodable where Element:BSONEncodable
+{
+}
+extension Set:BSONEncodable where Element:BSONEncodable
+{
 }
 
 extension Never:BSONEncodable
@@ -141,6 +148,34 @@ extension BSON.Regex:BSONEncodable
         field.encode(regex: self)
     }
 }
+extension Unicode.Scalar:BSONEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        self.description.encode(to: &field)
+    }
+}
+extension Character:BSONEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        self.description.encode(to: &field)
+    }
+}
+//  ``Substring`` and ``String`` are ``Sequence``s of ``Character``s,
+//  and if we did not provide concrete implementations, they would
+//  be caught between default implementations.
+extension Substring:BSONEncodable
+{
+    /// Encodes this substring as a value of type ``BSON.string``.
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(string: .init(self))
+    }
+}
 extension String:BSONEncodable
 {
     /// Encodes this string as a value of type ``BSON.string``.
@@ -150,70 +185,14 @@ extension String:BSONEncodable
         field.encode(string: .init(self))
     }
 }
-extension Optional:BSONEncodable where Wrapped:BSONEncodable
+extension StaticString:BSONEncodable
 {
-    /// Encodes this optional as an explicit ``BSON.null``, if
-    /// [`nil`]().
+    /// Encodes this string as a value of type ``BSON.string``.
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        if let self:Wrapped
-        {
-            self.encode(to: &field)
-        }
-        else
-        {
-            field.encode(null: ())
-        }
+        field.encode(string: .init(self))
     }
-}
-
-extension BSONEncodable where Self:BSONDSL
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(document: .init(self))
-    }
-}
-extension BSONEncodable where Self:RawRepresentable, RawValue:BSONEncodable
-{
-    /// Returns the ``bson`` witness of this type’s ``RawRepresentable.rawValue``.
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        self.rawValue.encode(to: &field)
-    }
-}
-
-extension BSONEncodable where Self:Sequence, Element:BSONEncodable
-{
-    /// Encodes this sequence as a value of type ``BSON.tuple``.
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(tuple: .init(BSON.Elements<Never>.init(elements: self)))
-    }
-}
-//  We generally do *not* want dictionaries to be encodable, and dictionary
-//  literal generate dictionaries by default.
-extension [String: Never]:BSONEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(document: .init(bytes: []))
-    }
-}
-extension Array:BSONEncodable where Element:BSONEncodable
-{
-}
-extension Set:BSONEncodable where Element:BSONEncodable
-{
-}
-
-extension BSON.Fields:BSONEncodable
-{
 }
 
 extension BSON.Binary:BSONEncodable

@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -54,7 +55,7 @@ extension Mongo.WriteConcernError:Equatable
         }
     }
 }
-extension Mongo.WriteConcernError:BSONDictionaryDecodable
+extension Mongo.WriteConcernError:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
@@ -75,7 +76,7 @@ extension Mongo.WriteConcernError:BSONDictionaryDecodable
             details: details)
     }
 }
-extension Mongo.WriteConcernError:BSONDocumentEncodable
+extension Mongo.WriteConcernError:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

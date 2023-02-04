@@ -1,7 +1,8 @@
 import UUID
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
-extension UUID:BSONBinaryDecodable
+extension UUID:BSONDecodable, BSONBinaryDecodable
 {
     @inlinable public
     init(bson:BSON.Binary<some RandomAccessCollection<UInt8>>) throws

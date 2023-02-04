@@ -47,7 +47,7 @@ extension Mongo.ReadConcern
         .level(.snapshot, at: nil)
     }
 }
-extension Mongo.ReadConcern:BSONDocumentEncodable
+extension Mongo.ReadConcern:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

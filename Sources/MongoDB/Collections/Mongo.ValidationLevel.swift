@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -9,6 +10,6 @@ extension Mongo
         case strict
     }
 }
-extension Mongo.ValidationLevel:BSONScheme
+extension Mongo.ValidationLevel:BSONDecodable, BSONEncodable
 {
 }

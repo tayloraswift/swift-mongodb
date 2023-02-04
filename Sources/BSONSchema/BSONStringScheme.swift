@@ -1,2 +1,3 @@
+@available(*, unavailable)
 public
-typealias BSONStringScheme = BSONStringDecodable & BSONStringEncodable
+typealias BSONStringScheme = BSONStringDecodable & BSONEncodable

@@ -1,7 +1,7 @@
 extension BSON.Elements
 {
     @inlinable public
-    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONEncodable
+    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONDSLEncodable
     {
         self.init
         {
@@ -12,15 +12,7 @@ extension BSON.Elements
         }
     }
     @inlinable public mutating
-    func push(_ element:(some BSONEncodable)?)
-    {
-        element.map
-        {
-            self.append(with: $0.encode(to:))
-        }
-    }
-    @inlinable public mutating
-    func append(_ element:some BSONEncodable)
+    func append(_ element:some BSONDSLEncodable)
     {
         self.append(with: element.encode(to:))
     }
@@ -28,15 +20,7 @@ extension BSON.Elements
     func append(_ populate:(inout Self) throws -> ()) rethrows
     {
         let nested:Self = try .init(with: populate)
-        self.append(with: nested.encode(to:))
-    }
-}
-extension BSON.Elements where DSL:BSONDSL & BSONEncodable
-{
-    @inlinable public mutating
-    func append(_ populate:(inout DSL) throws -> ()) rethrows
-    {
-        self.append(try DSL.init(with: populate))
+        self.append(nested)
     }
 }
 extension BSON.Elements
@@ -47,6 +31,34 @@ extension BSON.Elements
         field.encode(tuple: .init(self))
     }
 }
-extension BSON.Elements:BSONEncodable
+extension BSON.Elements:BSONDSLEncodable
 {
 }
+extension BSON.Elements where DSL:BSONDSL & BSONDSLEncodable
+{
+    @inlinable public mutating
+    func append(_ populate:(inout DSL) throws -> ()) rethrows
+    {
+        self.append(try DSL.init(with: populate))
+    }
+}
+
+extension BSON.Elements<BSON.Fields>:BSONEncodable
+{
+    @inlinable public mutating
+    func push(_ element:(some BSONEncodable)?)
+    {
+        element.map
+        {
+            self.append($0)
+        }
+    }
+}
+// extension BSON.Elements<BSON.Fields>?
+// {
+//     @inlinable public
+//     init(with populate:(inout BSON.Elements<BSON.Fields>) throws -> ()) rethrows
+//     {
+//         self = .some(try .init(with: populate))
+//     }
+// }

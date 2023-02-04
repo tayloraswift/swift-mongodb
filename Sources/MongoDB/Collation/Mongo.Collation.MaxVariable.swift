@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo.Collation
 {
@@ -12,6 +13,6 @@ extension Mongo.Collation
         case space
     }
 }
-extension Mongo.Collation.MaxVariable:BSONScheme
+extension Mongo.Collation.MaxVariable:BSONDecodable, BSONEncodable
 {
 }

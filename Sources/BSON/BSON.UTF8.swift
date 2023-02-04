@@ -95,6 +95,19 @@ extension BSON.UTF8<Substring.UTF8View>
         self.init(bytes: string.utf8)
     }
 }
+extension BSON.UTF8<[UInt8]>
+{
+    /// Creates a BSON UTF-8 string backed by a `[UInt8]` array, by copying
+    /// the UTF-8 code units stored in the given static string.
+    ///
+    /// >   Complexity:
+    ///     O(*n*), where *n* is the length of the string.
+    @inlinable public
+    init(_ string:StaticString)
+    {
+        self.init(bytes: string.withUTF8Buffer([UInt8].init(_:)))
+    }
+}
 extension BSON.UTF8:Equatable
 {
     /// Performs a unicode-aware string comparison on two UTF-8 strings.

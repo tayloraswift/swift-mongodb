@@ -31,7 +31,9 @@ extension Mongo.FailCommand:MongoFailpoint
     {
         "failCommand"
     }
-
+}
+extension Mongo.FailCommand:BSONEncodable, BSONDocumentEncodable
+{
     public
     func encode(to bson:inout BSON.Fields)
     {

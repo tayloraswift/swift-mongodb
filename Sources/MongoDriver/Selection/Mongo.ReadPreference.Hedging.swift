@@ -9,7 +9,7 @@ extension Mongo.ReadPreference
         case disabled
     }
 }
-extension Mongo.ReadPreference.Hedging:BSONDocumentEncodable
+extension Mongo.ReadPreference.Hedging:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

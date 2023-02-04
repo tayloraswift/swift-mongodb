@@ -23,9 +23,6 @@ extension MongoExpressionDSL.Operator:BSONDSL
         self.fields.bytes
     }
 }
-extension MongoExpressionDSL.Operator:BSONEncodable
-{
-}
 extension MongoExpressionDSL.Operator:MongoExpressionEncodable
 {
 }
@@ -51,7 +48,7 @@ extension MongoExpressionDSL.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 
@@ -70,7 +67,7 @@ extension MongoExpressionDSL.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = .init
+            self.fields[pushing: key] = .init
             {
                 $0.append(value)
             }
@@ -90,7 +87,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (let first?, let second?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(first)
                     $0.append(second)
@@ -112,7 +109,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (of: let array?, at: let index?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(array)
                     $0.append(index)
@@ -134,7 +131,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (let dividend?, by: let divisor?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(dividend)
                     $0.append(divisor)
@@ -156,7 +153,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (let element?, in: let array?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(element)
                     $0.append(array)
@@ -178,7 +175,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (base: let base?, of: let exponential?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(base)
                     $0.append(exponential)
@@ -200,7 +197,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (base: let base?, to: let exponent?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(base)
                     $0.append(exponent)
@@ -235,7 +232,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (let fraction?, let places) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(fraction)
                     $0.push(places)
@@ -258,7 +255,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (from: let start?, to: let end?, by: let step) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(start)
                     $0.append(end)
@@ -296,7 +293,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (let array?, at: let index, distance: let distance?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(array)
                     $0.push(index)
@@ -333,7 +330,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (let minuend?, minus: let difference?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(minuend)
                     $0.append(difference)
@@ -355,7 +352,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (let count?, of: let array?) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(count)
                     $0.append(array)
@@ -374,7 +371,7 @@ extension MongoExpressionDSL.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -449,7 +446,7 @@ extension MongoExpressionDSL.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -461,7 +458,7 @@ extension MongoExpressionDSL.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -473,7 +470,7 @@ extension MongoExpressionDSL.Operator
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 }
@@ -495,7 +492,7 @@ extension MongoExpressionDSL.Operator
         {
             if case (in: let sequence?, of: let element?, let start, let end) = value
             {
-                self.fields[key.rawValue] = .init
+                self.fields[pushing: key] = .init
                 {
                     $0.append(sequence)
                     $0.append(element)

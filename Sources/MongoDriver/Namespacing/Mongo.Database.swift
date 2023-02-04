@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -34,6 +35,9 @@ extension Mongo.Database:LosslessStringConvertible
         self.name
     }
 }
-extension Mongo.Database:BSONStringScheme
+extension Mongo.Database:BSONDecodable, BSONStringDecodable
+{
+}
+extension Mongo.Database:BSONEncodable, BSONStringEncodable
 {
 }

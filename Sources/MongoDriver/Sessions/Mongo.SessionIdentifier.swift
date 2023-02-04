@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import BSON_UUID
 import UUID
 
@@ -26,13 +27,16 @@ extension Mongo.SessionIdentifier
     }
 }
 
-extension Mongo.SessionIdentifier:BSONDictionaryDecodable, BSONDocumentEncodable
+extension Mongo.SessionIdentifier:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {
         self.init(try bson["id"].decode(to: UUID.self))
     }
+}
+extension Mongo.SessionIdentifier:BSONEncodable, BSONDocumentEncodable
+{
     public
     func encode(to bson:inout BSON.Fields)
     {

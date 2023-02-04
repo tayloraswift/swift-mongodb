@@ -51,7 +51,7 @@ extension Mongo.ReadPreference.TagSet
         return true
     }
 }
-extension Mongo.ReadPreference.TagSet:BSONDocumentEncodable
+extension Mongo.ReadPreference.TagSet:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

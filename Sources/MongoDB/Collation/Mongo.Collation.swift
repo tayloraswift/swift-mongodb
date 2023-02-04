@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -54,7 +55,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Collation:BSONDictionaryDecodable
+extension Mongo.Collation:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
@@ -70,7 +71,7 @@ extension Mongo.Collation:BSONDictionaryDecodable
             strength: try bson["strength"]?.decode(to: Strength.self) ?? .tertiary)
     }
 }
-extension Mongo.Collation:BSONDocumentEncodable
+extension Mongo.Collation:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

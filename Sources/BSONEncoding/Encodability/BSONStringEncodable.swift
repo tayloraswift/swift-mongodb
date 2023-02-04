@@ -2,9 +2,9 @@
 /// exists to allow types that also conform to ``LosslessStringConvertible``
 /// to opt-in to automatic ``BSONEncodable`` conformance as well.
 public
-protocol BSONStringEncodable:BSONEncodable
+protocol BSONStringEncodable:BSONDSLEncodable
 {
-    /// Initializes an instance of this type from a string. This requirement
+    /// Converts an instance of this type to a string. This requirement
     /// restates its counterpart in ``LosslessStringConvertible`` if
     /// [`Self`]() also conforms to it.
     var description:String { get }
@@ -23,16 +23,4 @@ extension BSONStringEncodable
     {
         self.description.encode(to: &field)
     }
-}
-extension String:BSONStringEncodable
-{
-}
-extension Substring:BSONStringEncodable
-{
-}
-extension Character:BSONStringEncodable
-{
-}
-extension Unicode.Scalar:BSONStringEncodable
-{
 }

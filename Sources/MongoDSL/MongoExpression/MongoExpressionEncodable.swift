@@ -1,7 +1,7 @@
 import BSONEncoding
 
 public
-protocol MongoExpressionEncodable:BSONEncodable
+protocol MongoExpressionEncodable:BSONDSLEncodable
 {
 }
 
@@ -31,10 +31,13 @@ extension Unicode.Scalar:MongoExpressionEncodable
 extension Character:MongoExpressionEncodable
 {
 }
+extension Substring:MongoExpressionEncodable
+{
+}
 extension String:MongoExpressionEncodable
 {
 }
-extension Substring:MongoExpressionEncodable
+extension StaticString:MongoExpressionEncodable
 {
 }
 extension BSON.Decimal128:MongoExpressionEncodable

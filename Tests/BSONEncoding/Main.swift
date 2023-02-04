@@ -181,10 +181,10 @@ enum Main:SyncTests
             TestEncoding(tests / "array",
                 encoded: .init
                 {
-                    $0["a", elide: true] = []
+                    $0["a", elide: true] = [] as [Never]
                     $0["b", elide: true] = [1]
                     $0["c", elide: false] = [1]
-                    $0["d", elide: false] = []
+                    $0["d", elide: false] = [] as [Never]
                 },
                 literal:
                 [

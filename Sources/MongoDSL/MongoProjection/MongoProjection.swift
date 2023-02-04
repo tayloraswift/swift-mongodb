@@ -56,7 +56,7 @@ extension MongoProjection
         }
         set(value)
         {
-            self.fields[key] = value
+            self.fields[pushing: key] = value
         }
     }
 }

@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -10,6 +11,6 @@ extension Mongo
         case view
     }
 }
-extension Mongo.CollectionType:BSONScheme
+extension Mongo.CollectionType:BSONDecodable, BSONEncodable
 {
 }

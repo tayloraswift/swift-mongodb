@@ -38,7 +38,7 @@ extension MongoExpressionDSL.Reduce
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 }

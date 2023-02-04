@@ -29,7 +29,7 @@ extension BSON.Fields
     /// non-elided state after returning) will add a new field to the document,
     /// even if the key is the same.
     @inlinable public
-    subscript(key:String, elide elide:Bool) -> BSON.Elements<Self>?
+    subscript(key:String, elide elide:Bool = false) -> BSON.Elements<Self>?
     {
         get
         {
@@ -58,7 +58,7 @@ extension BSON.Fields
     /// non-elided state after returning) will add a new field to the document,
     /// even if the key is the same.
     @inlinable public
-    subscript(key:String, elide elide:Bool) -> Self?
+    subscript(key:String, elide elide:Bool = false) -> Self?
     {
         get
         {
@@ -87,7 +87,7 @@ extension BSON.Fields
     /// non-elided state after returning) will add a new field to the document,
     /// even if the key is the same.
     @inlinable public
-    subscript<Encodable>(key:String, elide elide:Bool) -> Encodable?
+    subscript<Encodable>(key:String, elide elide:Bool = false) -> Encodable?
         where Encodable:BSONEncodable & BSONDSL
     {
         get
@@ -143,8 +143,8 @@ extension BSON.Fields
     /// that leave the value in a non-[`nil`]() state after returning) will add
     /// a new field to the document, even if the key is the same.
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable?
-        where Encodable:BSONEncodable
+    subscript<Value>(key:String) -> Value?
+        where Value:BSONEncodable
     {
         get
         {
@@ -152,26 +152,46 @@ extension BSON.Fields
         }
         set(value)
         {
-            if let value:Encodable
+            self[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript<Value>(pushing key:some RawRepresentable<String>) -> Value?
+            where Value:BSONDSLEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self[pushing: key.rawValue] = value
+        }
+    }
+    @inlinable public
+    subscript<Value>(pushing key:String) -> Value? where Value:BSONDSLEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            if let value:Value
             {
                 self.append(key: key, with: value.encode(to:))
             }
         }
     }
 }
-extension BSON.Fields?
+extension BSON.Fields:BSONEncodable
 {
-    @inlinable public
-    init(with populate:(inout BSON.Fields) throws -> ()) rethrows
-    {
-        self = .some(try .init(with: populate))
-    }
 }
-extension BSON.Elements<BSON.Fields>?
-{
-    @inlinable public
-    init(with populate:(inout BSON.Elements<BSON.Fields>) throws -> ()) rethrows
-    {
-        self = .some(try .init(with: populate))
-    }
-}
+// extension BSON.Fields?
+// {
+//     @inlinable public
+//     init(with populate:(inout BSON.Fields) throws -> ()) rethrows
+//     {
+//         self = .some(try .init(with: populate))
+//     }
+// }

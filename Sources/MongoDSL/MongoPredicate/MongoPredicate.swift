@@ -27,15 +27,6 @@ extension MongoPredicate:BSONDecodable
 extension MongoPredicate:BSONEncodable
 {
 }
-@available(*, unavailable)
-extension MongoPredicate:MongoPredicateEncodable
-{
-}
-@available(*, unavailable)
-extension BSON.Elements<MongoPredicate>:MongoPredicateEncodable
-{
-}
-
 
 extension MongoPredicate
 {
@@ -70,7 +61,7 @@ extension MongoPredicate
         }
     }
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoPredicateEncodable
+    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -93,7 +84,7 @@ extension MongoPredicate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -105,11 +96,11 @@ extension MongoPredicate
         }
         set(value)
         {
-            self.fields[key.rawValue, elide: false] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
-    subscript<Encodable>(key:Comment) -> Encodable? where Encodable:MongoPredicateEncodable
+    subscript<Encodable>(key:Comment) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -117,7 +108,7 @@ extension MongoPredicate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
     @inlinable public
@@ -129,7 +120,7 @@ extension MongoPredicate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields[pushing: key] = value
         }
     }
 }

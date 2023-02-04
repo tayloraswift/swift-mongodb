@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo.Collation
 {
@@ -15,6 +16,6 @@ extension Mongo.Collation
         case shifted
     }
 }
-extension Mongo.Collation.Alternate:BSONScheme
+extension Mongo.Collation.Alternate:BSONDecodable, BSONEncodable
 {
 }
