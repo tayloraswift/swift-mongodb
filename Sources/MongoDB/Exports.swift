@@ -1,2 +1,2 @@
 @_exported import MongoDriver
-@_exported import MongoDSL
+@_exported import MongoPipeline

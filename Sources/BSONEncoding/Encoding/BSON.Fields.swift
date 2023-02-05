@@ -187,11 +187,3 @@ extension BSON.Fields
 extension BSON.Fields:BSONEncodable
 {
 }
-// extension BSON.Fields?
-// {
-//     @inlinable public
-//     init(with populate:(inout BSON.Fields) throws -> ()) rethrows
-//     {
-//         self = .some(try .init(with: populate))
-//     }
-// }

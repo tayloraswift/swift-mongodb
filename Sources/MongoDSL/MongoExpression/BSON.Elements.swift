@@ -1,6 +1,6 @@
 import BSONEncoding
 
-extension BSON.Elements<MongoExpressionDSL>:MongoExpressionEncodable
+extension BSON.Elements<MongoExpression>:MongoExpressionEncodable
 {
     @inlinable public mutating
     func push(_ element:(some MongoExpressionEncodable)?)
@@ -11,11 +11,11 @@ extension BSON.Elements<MongoExpressionDSL>:MongoExpressionEncodable
         }
     }
 }
-extension BSON.Elements<MongoExpressionDSL>?
+extension BSON.Elements<MongoExpression>?
 {
     @_disfavoredOverload
     @inlinable public
-    init(with populate:(inout BSON.Elements<MongoExpressionDSL>) throws -> ()) rethrows
+    init(with populate:(inout Wrapped) throws -> ()) rethrows
     {
         self = .some(try .init(with: populate))
     }

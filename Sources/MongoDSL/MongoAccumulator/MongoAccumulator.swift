@@ -1,116 +1,108 @@
-// import BSONEncoding
+import BSONDecoding
+import BSONEncoding
 
-// @frozen public
-// struct MongoAccumulator
-// {
-//     public
-//     let encoded:BSON.Fields
+@frozen public
+struct MongoAccumulator:Sendable
+{
+    public
+    var fields:BSON.Fields
 
-//     @inlinable public
-//     init(encoded:BSON.Fields)
-//     {
-//         self.encoded = encoded
-//     }
-// }
-// extension MongoAccumulator
-// {
-//     @inlinable public
-//     init(_ name:String, value:some BSONEncodable)
-//     {
-//         self.init(encoded: .init
-//         {
-//             $0[name] = value
-//         })
-//     }
-//     @inlinable public
-//     init<DSL>(_ name:String,
-//         with populate:(inout DSL) throws -> ()) rethrows where DSL:BSONDSL & BSONEncodable
-//     {
-//         self.init(name, value: try DSL.init(with: populate))
-//     }
-// }
-// extension MongoAccumulator:BSONEncodable
-// {
-//     public
-//     func encode(to field:inout BSON.Field)
-//     {
-//         self.encoded.encode(to: &field)
-//     }
-// }
-// extension MongoAccumulator
-// {
-//     @inlinable public static
-//     func addToSet(_ expression:MongoExpression) -> Self
-//     {
-//         .init("$addToSet", value: expression)
-//     }
+    @inlinable public
+    init(bytes:[UInt8] = [])
+    {
+        self.fields = .init(bytes: bytes)
+    }
+}
+extension MongoAccumulator:BSONDSL
+{
+    @inlinable public
+    var bytes:[UInt8]
+    {
+        self.fields.bytes
+    }
+}
+extension MongoAccumulator:BSONDecodable
+{
+}
+extension MongoAccumulator:BSONEncodable
+{
+}
 
-//     @inlinable public static
-//     func avg(_ expression:MongoExpression) -> Self
-//     {
-//         .init("$avg", value: expression)
-//     }
-
-//     @inlinable public static
-//     func bottom(of expression:MongoExpression,
-//         by populate:(inout BSON.Fields) throws -> ()) rethrows -> Self
-//     {
-//         .bottom(of: expression, by: try .init(with: populate))
-//     }
-//     @inlinable public static
-//     func bottom(of expression:MongoExpression, by ordering:BSON.Fields) -> Self
-//     {
-//         .init("$bottom")
-//         {
-//             (bson:inout BSON.Fields) in
-
-//             bson["output"] = expression
-//             bson["sortBy"] = ordering
-//         }
-//     }
-
-//     @inlinable public static
-//     func bottom(_ count:MongoExpression, of expression:MongoExpression,
-//         by populate:(inout BSON.Fields) throws -> ()) rethrows -> Self
-//     {
-//         .bottom(count, of: expression, by: try .init(with: populate))
-//     }
-//     @inlinable public static
-//     func bottom(_ count:MongoExpression, of expression:MongoExpression,
-//         by ordering:BSON.Fields) -> Self
-//     {
-//         .init("$bottomN")
-//         {
-//             (bson:inout BSON.Fields) in
-
-//             bson["output"] = expression
-//             bson["sortBy"] = ordering
-//             bson["n"] = count
-//         }
-//     }
-// }
-// extension MongoAccumulator
-// {
-//     func example()
-//     {
-//         [
-//             .group
-//             {
-//                 $0[.id] = "$field"
-//                 $0[.id] = .init
-//                 {
-//                     $0[.concat] = .tuple
-//                     {
-//                         "$flag"
-//                         ".value"
-//                     }
-//                 }
-//             },
-//         ]
-//     }
-//     public
-//     enum BottomN
-//     {
-
-//     }
-// }
+extension MongoAccumulator
+{
+    @inlinable public
+    subscript(key:Count) -> [String: Never]?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript<Encodable>(key:Unary) -> Encodable?
+        where Encodable:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript<Encodable>(key:Superlative) -> Encodable?
+        where Encodable:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Superlative) -> SuperlativeDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key.n] = value
+        }
+    }
+    @inlinable public
+    subscript(key:SuperlativeSort) -> SuperlativeSortDocument<Never>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @_disfavoredOverload
+    @inlinable public
+    subscript(key:SuperlativeSort) -> SuperlativeSortDocument<MongoSortOrdering.Count>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key.n] = value
+        }
+    }
+}

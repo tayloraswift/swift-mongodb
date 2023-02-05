@@ -32,3 +32,14 @@ extension BSON.Fields:BSONDSL
         self.output.destination
     }
 }
+//  When adding overloads to any ``Optional`` whose ``Wrapped`` value
+//  conforms to ``BSONDSLEncodable``, mark them as `@_disfavoredOverload`
+//  to prevent them from shadowing the ``subscript(pushing)`` interface.
+extension BSON.Fields?
+{
+    @inlinable public
+    init(with populate:(inout Wrapped) throws -> ()) rethrows
+    {
+        self = .some(try .init(with: populate))
+    }
+}

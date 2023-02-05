@@ -96,3 +96,12 @@ extension BSON.Elements
         }
     }
 }
+//  See note about ``BSON.Fields``.
+extension BSON.Elements<BSON.Fields>?
+{
+    @inlinable public
+    init(with populate:(inout Wrapped) throws -> ()) rethrows
+    {
+        self = .some(try .init(with: populate))
+    }
+}

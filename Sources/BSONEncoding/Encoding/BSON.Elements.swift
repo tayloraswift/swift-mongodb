@@ -54,11 +54,3 @@ extension BSON.Elements<BSON.Fields>:BSONEncodable
         }
     }
 }
-// extension BSON.Elements<BSON.Fields>?
-// {
-//     @inlinable public
-//     init(with populate:(inout BSON.Elements<BSON.Fields>) throws -> ()) rethrows
-//     {
-//         self = .some(try .init(with: populate))
-//     }
-// }

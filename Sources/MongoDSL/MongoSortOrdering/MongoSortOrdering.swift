@@ -30,6 +30,22 @@ extension MongoSortOrdering:BSONDecodable
 
 extension MongoSortOrdering
 {
+    @available(*, unavailable,
+        message: "pass the `(+)` or `(-)` operator functions to specify sort direction.")
+    @inlinable public
+    subscript(key:String) -> Int?
+    {
+        get
+        {
+            nil
+        }
+        set
+        {
+        }
+    }
+}
+extension MongoSortOrdering
+{
     @inlinable public
     subscript(key:String) -> ((Ascending) -> Never)?
     {

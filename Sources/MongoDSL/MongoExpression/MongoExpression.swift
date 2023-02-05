@@ -1,598 +1,562 @@
-// extension MongoExpression
-// {
-//     @available(*, unavailable, renamed: "element(of:at:)")
-//     public static
-//     func arrayElemAt(_ array:Self, _ index:Self) -> Self
-//     {
-//         .element(of: array, at: index)
-//     }
-//     @available(*, unavailable, renamed: "toDocument(array:)")
-//     public static
-//     func arrayToObject(_ array:Self) -> Self
-//     {
-//         .toDocument(array: array)
-//     }
-//     @available(*, unavailable, renamed: "toArray(document:)")
-//     public static
-//     func objectToArray(_ document:Self) -> Self
-//     {
-//         .toArray(document: document)
-//     }
-//     @available(*, unavailable, renamed: "concat(arrays:)")
-//     public static
-//     func concatArrays(_ arrays:[Self]) -> Self
-//     {
-//         .concat(arrays: arrays)
-//     }
-//     @available(*, unavailable, renamed: "filter(_:where:limit:as:)")
-//     public static
-//     func filter(input array:Self, cond predicate:Self, as binding:String?, limit:Self) -> Self
-//     {
-//         .filter(array, where: predicate, limit: limit, as: binding)
-//     }
-//     @available(*, unavailable, renamed: "first(_:of:)")
-//     public static
-//     func firstN(_ count:Self, array:Self) -> Self
-//     {
-//         .first(count, of: array)
-//     }
-//     @available(*, unavailable, renamed: "index(of:in:range:)")
-//     public static
-//     func indexOfArray(_ array:Self, expression:Self, start:Self?, end:Self?) -> Self
-//     {
-//         .index(of: expression, in: array, range: start.map { ($0, end) })
-//     }
-//     @available(*, unavailable, renamed: "last(_:of:)")
-//     public static
-//     func lastN(_ count:Self, array:Self) -> Self
-//     {
-//         .last(count, of: array)
-//     }
-//     @available(*, unavailable, renamed: "max(_:of:)")
-//     public static
-//     func maxN(_ count:Self, array:Self) -> Self
-//     {
-//         .max(count, of: array)
-//     }
-//     @available(*, unavailable, renamed: "min(_:of:)")
-//     public static
-//     func minN(_ count:Self, array:Self) -> Self
-//     {
-//         .min(count, of: array)
-//     }
-//     @available(*, unavailable, renamed: "reverse(array:)")
-//     public static
-//     func reverseArray(_ array:Self) -> Self
-//     {
-//         .reverse(array: array)
-//     }
-//     @available(*, unavailable,
-//         message: "use one of count(of:), size(binary:), or size(document:).")
-//     public static
-//     func size(of array:Self) -> Self
-//     {
-//         .count(of: array)
-//     }
-//     @available(*, unavailable, renamed: "sort(array:by:)")
-//     public static
-//     func sortArray(_ array:Self, by ordering:Self) -> Self
-//     {
-//         .sort(array, by: ordering)
-//     }
-// }
-// extension MongoExpression
-// {
-//     @inlinable public static
-//     func element(of array:Self, at index:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$arrayElemAt"] = [array, index]
-//         }
-//     }
-    
-//     @inlinable public static
-//     func toArray(document:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$objectToArray"] = document
-//         }
-//     }
-    
-//     @inlinable public static
-//     func toDocument(array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$arrayToObject"] = array
-//         }
-//     }
+import BSONEncoding
 
-//     @inlinable public static
-//     func concat(arrays:Self...) -> Self
-//     {
-//         .concat(arrays: arrays)
-//     }
-//     @inlinable public static
-//     func concat(arrays:[Self]) -> Self
-//     {
-//         .document
-//         {
-//             $0["$concatArrays"] = arrays
-//         }
-//     }
+@frozen public
+struct MongoExpression
+{
+    public
+    var fields:BSON.Fields
 
-//     @inlinable public static
-//     func first(of array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$first"] = array
-//         }
-//     }
+    @inlinable public
+    init(bytes:[UInt8] = [])
+    {
+        self.fields = .init(bytes: bytes)
+    }
+}
+extension MongoExpression:BSONDSL
+{
+    @inlinable public
+    var bytes:[UInt8]
+    {
+        self.fields.bytes
+    }
+}
+extension MongoExpression:MongoExpressionEncodable
+{
+}
 
-//     @inlinable public static
-//     func first(_ count:Self, of array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$firstN"] = .init
-//             {
-//                 $0["n"] = count
-//                 $0["input"] = array
-//             }
-//         }
-//     }
-    
-//     @inlinable public static
-//     func `in`(_ expression:Self, in array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$in"] = [expression, array]
-//         }
-//     }
+//  These overloads are unique to ``MongoExpression``, because it has
+//  operators that take multiple arguments. The other DSLs don't need these.
+extension MongoExpression?
+{
+    @_disfavoredOverload
+    @inlinable public
+    init(with populate:(inout Wrapped) throws -> ()) rethrows
+    {
+        self = .some(try .init(with: populate))
+    }
+}
 
-//     @inlinable public static
-//     func index(of expression:Self, in array:Self, range:(start:Self, end:Self?)? = nil) -> Self
-//     {
-//         .document
-//         {
-//             $0["$indexOfArray"] = .init
-//             {
-//                 $0.append(array)
-//                 $0.append(expression)
+extension MongoExpression
+{
+    @inlinable public
+    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+}
+extension MongoExpression
+{
+    @inlinable public
+    subscript<Encodable>(key:Unary) -> Encodable?
+        where Encodable:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
 
-//                 if let range:(start:Self, end:Self?)
-//                 {
-//                     $0.append(range.start)
+    /// Creates a `$not` or `$isArray` expression. This subscript already
+    /// brackets the expression when passing it in an argument tuple;
+    /// doing so manually will create an expression that always evaluates
+    /// to false for `$not` (because an array evaluates to true),
+    /// or true for `$isArray` (because an array is an array).
+    @inlinable public
+    subscript<Encodable>(key:UnaryParenthesized) -> Encodable?
+        where Encodable:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = .init
+            {
+                $0.append(value)
+            }
+        }
+    }
 
-//                     if let end:Self = range.end
-//                     {
-//                         $0.append(end)
-//                     }
-//                 }
-//             }
-//         }
-//     }
+    @inlinable public
+    subscript<First, Second>(key:Binary) -> (_:First?, _:Second?)
+        where   First:MongoExpressionEncodable,
+                Second:MongoExpressionEncodable
+    {
+        get
+        {
+            (of: nil, at: nil)
+        }
+        set(value)
+        {
+            if case (let first?, let second?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(first)
+                    $0.append(second)
+                }
+            }
+        }
+    }
 
-//     /// Creates an `$isArray` expression. This method already brackets the expression
-//     /// when passing it in an argument tuple; doing so manually will create an
-//     /// expression that always evaluates to true.
-//     @inlinable public static
-//     func isArray(_ expression:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$isArray"] = [expression]
-//         }
-//     }
+    @inlinable public
+    subscript<Array, Index>(key:Element) -> (of:Array?, at:Index?)
+        where   Array:MongoExpressionEncodable,
+                Index:MongoExpressionEncodable
+    {
+        get
+        {
+            (of: nil, at: nil)
+        }
+        set(value)
+        {
+            if case (of: let array?, at: let index?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(array)
+                    $0.append(index)
+                }
+            }
+        }
+    }
 
-//     @inlinable public static
-//     func last(of array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$last"] = array
-//         }
-//     }
+    @inlinable public
+    subscript<Dividend, Divisor>(key:Division) -> (_:Dividend?, by:Divisor?)
+        where   Dividend:MongoExpressionEncodable,
+                Divisor:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, by: nil)
+        }
+        set(value)
+        {
+            if case (let dividend?, by: let divisor?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(dividend)
+                    $0.append(divisor)
+                }
+            }
+        }
+    }
 
-//     @inlinable public static
-//     func last(_ count:Self, of array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$lastN"] = .init
-//             {
-//                 $0["n"] = count
-//                 $0["input"] = array
-//             }
-//         }
-//     }
+    @inlinable public
+    subscript<Encodable, Array>(key:In) -> (_:Encodable?, in:Array?)
+        where   Encodable:MongoExpressionEncodable,
+                Array:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, in: nil)
+        }
+        set(value)
+        {
+            if case (let element?, in: let array?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(element)
+                    $0.append(array)
+                }
+            }
+        }
+    }
 
-//     @inlinable public static
-//     func max(_ count:Self, of array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$maxN"] = .init
-//             {
-//                 $0["n"] = count
-//                 $0["input"] = array
-//             }
-//         }
-//     }
+    @inlinable public
+    subscript<Base, Exponential>(key:Log) -> (base:Base?, of:Exponential?)
+        where   Base:MongoExpressionEncodable,
+                Exponential:MongoExpressionEncodable
+    {
+        get
+        {
+            (base: nil, of: nil)
+        }
+        set(value)
+        {
+            if case (base: let base?, of: let exponential?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(base)
+                    $0.append(exponential)
+                }
+            }
+        }
+    }
 
-//     @inlinable public static
-//     func min(_ count:Self, of array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$minN"] = .init
-//             {
-//                 $0["n"] = count
-//                 $0["input"] = array
-//             }
-//         }
-//     }
+    @inlinable public
+    subscript<Base, Exponent>(key:Pow) -> (base:Base?, to:Exponent?)
+        where   Base:MongoExpressionEncodable,
+                Exponent:MongoExpressionEncodable
+    {
+        get
+        {
+            (base: nil, to: nil)
+        }
+        set(value)
+        {
+            if case (base: let base?, to: let exponent?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(base)
+                    $0.append(exponent)
+                }
+            }
+        }
+    }
 
-//     public static
-//     func range(from start:Self, to end:Self, by step:Self? = nil) -> Self
-//     {
-//         .document
-//         {
-//             if let step:Self
-//             {
-//                 $0["$range"] = [start, end, step]
-//             }
-//             else
-//             {
-//                 $0["$range"] = [start, end]
-//             }
-//         }
-//     }
+    @inlinable public
+    subscript<Fraction>(key:Quantization) -> Fraction?
+        where Fraction:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self[key] = (value, nil as Int32?)
+        }
+    }
+    @inlinable public
+    subscript<Fraction, Places>(key:Quantization) -> (_:Fraction?, places:Places?)
+        where   Fraction:MongoExpressionEncodable,
+                Places:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, places: nil)
+        }
+        set(value)
+        {
+            if case (let fraction?, let places) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(fraction)
+                    $0.push(places)
+                }
+            }
+        }
+    }
 
-//     @inlinable public static
-//     func reverse(array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$reverseArray"] = array
-//         }
-//     }
+    @inlinable public
+    subscript<Start, End, Step>(key:Range) -> (from:Start?, to:End?, by:Step?)
+        where   Start:MongoExpressionEncodable,
+                End:MongoExpressionEncodable,
+                Step:MongoExpressionEncodable
+    {
+        get
+        {
+            (from: nil, to: nil, by: nil)
+        }
+        set(value)
+        {
+            if case (from: let start?, to: let end?, by: let step) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(start)
+                    $0.append(end)
+                    $0.push(step)
+                }
+            }
+        }
+    }
+    @inlinable public
+    subscript<Start, End>(key:Range) -> (from:Start?, to:End?)
+        where   Start:MongoExpressionEncodable,
+                End:MongoExpressionEncodable
+    {
+        get
+        {
+            (from: nil, to: nil)
+        }
+        set(value)
+        {
+            self[key] = (from: value.from, to: value.to, by: nil as Never?)
+        }
+    }
 
-//     /// Creates a `$size` expression. This method is named `count` to avoid
-//     /// confusion with ``size(binary:)`` and ``size(document:)``, which evaluate
-//     /// to sizes in units of bytes.
-//     @inlinable public static
-//     func count(of array:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$size"] = array
-//         }
-//     }
-    
-//     @inlinable public static
-//     func slice(_ array:Self, distance:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$slice"] = [array, distance]
-//         }
-//     }
-//     @inlinable public static
-//     func slice(_ array:Self, at index:Self, count:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$slice"] = [array, index, count]
-//         }
-//     }
+    @inlinable public
+    subscript<Array, Index, Distance>(key:Slice) -> (_:Array?, at:Index?, distance:Distance?)
+        where   Array:MongoExpressionEncodable,
+                Index:MongoExpressionEncodable,
+                Distance:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, at: nil, distance: nil)
+        }
+        set(value)
+        {
+            if case (let array?, at: let index, distance: let distance?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(array)
+                    $0.push(index)
+                    $0.append(distance)
+                }
+            }
+        }
+    }
+    @inlinable public
+    subscript<Array, Distance>(key:Slice) -> (_:Array?, distance:Distance?)
+        where   Array:MongoExpressionEncodable,
+                Distance:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, distance: nil)
+        }
+        set(value)
+        {
+            self[key] = (value.0, at: nil as Never?, distance: value.distance)
+        }
+    }
 
-//     @inlinable public static
-//     func sort(_ array:Self, by populate:(inout Document) throws -> ()) rethrows -> Self
-//     {
-//         .sort(array, by: try .document(populate))
-//     }
-//     @inlinable public static
-//     func sort(_ array:Self, by ordering:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$sortArray"] = .init
-//             {
-//                 $0["input"] = array
-//                 $0["sortBy"] = ordering
-//             }
-//         }
-//     }
+    @inlinable public
+    subscript<Minuend, Difference>(key:Subtract) -> (_:Minuend?, minus:Difference?)
+        where   Minuend:MongoExpressionEncodable,
+                Difference:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, minus: nil)
+        }
+        set(value)
+        {
+            if case (let minuend?, minus: let difference?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(minuend)
+                    $0.append(difference)
+                }
+            }
+        }
+    }
 
-//     @inlinable public static
-//     func zip(arrays:Self...) -> Self
-//     {
-//         .zip(arrays: arrays)
-//     }
-//     @inlinable public static
-//     func zip(arrays:[Self]) -> Self
-//     {
-//         .document
-//         {
-//             $0["$zip"] = .init
-//             {
-//                 $0["inputs"] = arrays
-//             }
-//         }
-//     }
+    @inlinable public
+    subscript<Count, Array>(key:Superlative) -> (_:Count?, of:Array?)
+        where   Count:MongoExpressionEncodable,
+                Array:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, of: nil)
+        }
+        set(value)
+        {
+            if case (let count?, of: let array?) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(count)
+                    $0.append(array)
+                }
+            }
+        }
+    }
 
-//     @inlinable public static
-//     func zip(padding arrays:Self..., with values:Self) -> Self
-//     {
-//         .zip(padding: arrays, with: values)
-//     }
-//     @inlinable public static
-//     func zip(padding arrays:[Self], with values:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$zip"] = .init
-//             {
-//                 $0["inputs"] = arrays
-//                 $0["useLongestLength"] = true
-//                 $0["defaults"] = values
-//             }
-//         }
-//     }
-// }
-// extension MongoExpression
-// {
-//     @inlinable public static
-//     func filter(_ array:Self, where predicate:Self, limit:Self, as binding:String?) -> Self
-//     {
-//         .document
-//         {
-//             $0["$filter"] = .init
-//             {
-//                 $0["input"] = array
-//                 $0["limit"] = limit
-//                 $0["cond"] = predicate
-//                 $0["as"] = binding
-//             }
-//         }
-//     }
-
-//     @inlinable public static
-//     func map(_ array:Self, as binding:String?, in transform:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$map"] = .init
-//             {
-//                 $0["input"] = array
-//                 $0["as"] = binding
-//                 $0["in"] = transform
-//             }
-//         }
-//     }
-
-//     @inlinable public static
-//     func reduce(_ array:Self, from initialValue:Self, combine:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$reduce"] = .init
-//             {
-//                 $0["input"] = array
-//                 $0["initialValue"] = initialValue
-//                 $0["in"] = combine
-//             }
-//         }
-//     }
-// }
-
-// extension MongoExpression
-// {
-//     @inlinable public static
-//     func and(_ expressions:Self...) -> Self
-//     {
-//         .and(expressions)
-//     }
-//     @inlinable public static
-//     func and(_ expressions:[Self]) -> Self
-//     {
-//         .document
-//         {
-//             $0["$and"] = expressions
-//         }
-//     }
-
-//     /// Creates a `$not` expression. This method already brackets the expression
-//     /// when passing it in an argument tuple; doing so manually will create an
-//     /// expression that always evaluates to false. (Because an empty array
-//     /// evaluates to true.)
-//     @inlinable public static
-//     func not(_ expression:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$not"] = [expression]
-//         }
-//     }
-
-//     @inlinable public static
-//     func or(_ expressions:Self...) -> Self
-//     {
-//         .or(expressions)
-//     }
-//     @inlinable public static
-//     func or(_ expressions:[Self]) -> Self
-//     {
-//         .document
-//         {
-//             $0["$or"] = expressions
-//         }
-//     }
-// }
-// //  We consider `$cmp`, `$gt`, etc. to be terms of art.
-// //  So unlike things like `$lastN`, we do not rename them to
-// //  `compare`, `greaterThan`, etc.
-// extension MongoExpression
-// {
-//     @inlinable public static
-//     func cmp(_ lhs:Self, _ rhs:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$cmp"] = [lhs, rhs]
-//         }
-//     }
-//     @inlinable public static
-//     func eq(_ lhs:Self, _ rhs:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$eq"] = [lhs, rhs]
-//         }
-//     }
-//     @inlinable public static
-//     func gt(_ lhs:Self, _ rhs:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$gt"] = [lhs, rhs]
-//         }
-//     }
-//     @inlinable public static
-//     func gte(_ lhs:Self, _ rhs:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$gte"] = [lhs, rhs]
-//         }
-//     }
-//     @inlinable public static
-//     func lt(_ lhs:Self, _ rhs:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$lt"] = [lhs, rhs]
-//         }
-//     }
-//     @inlinable public static
-//     func lte(_ lhs:Self, _ rhs:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$lte"] = [lhs, rhs]
-//         }
-//     }
-//     @inlinable public static
-//     func ne(_ lhs:Self, _ rhs:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$ne"] = [lhs, rhs]
-//         }
-//     }
-// }
-
-// extension MongoExpression
-// {
-//     @available(*, unavailable, renamed: "coalesce(_:)")
-//     public static
-//     func ifNull(_ expressions:[Self]) -> Self
-//     {
-//         .coalesce(expressions)
-//     }
-// }
-// extension MongoExpression
-// {
-//     @inlinable public static
-//     func cond(if condition:Self, then first:Self, else second:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$cond"] = [condition, first, second]
-//         }
-//     }
-
-//     @inlinable public static
-//     func coalesce(_ expressions:Self...) -> Self
-//     {
-//         .coalesce(expressions)
-//     }
-//     @inlinable public static
-//     func coalesce(_ expressions:[Self]) -> Self
-//     {
-//         .document
-//         {
-//             $0["$ifNull"] = .init(elements: expressions)
-//         }
-//     }
-
-//     @inlinable public static
-//     func `switch`(cases:(pattern:Self, block:Self)..., `default`:Self? = nil) -> Self
-//     {
-//         .switch(cases: cases, default: `default`)
-//     }
-//     @inlinable public static
-//     func `switch`(cases:[(pattern:Self, block:Self)], `default`:Self? = nil) -> Self
-//     {
-//         .document
-//         {
-//             $0["$switch"] = .init
-//             {
-//                 $0["branches"] = .init
-//                 {
-//                     for (pattern, block):(Self, Self) in cases
-//                     {
-//                         $0.append
-//                         {
-//                             $0["case"] = pattern
-//                             $0["then"] = block
-//                         }
-//                     }
-//                 }
-//                 $0["default"] = `default`
-//             }
-//         }
-//     }
-// }
-
-// extension MongoExpression
-// {
-//     @available(*, unavailable, renamed: "size(binary:)")
-//     public static
-//     func binarySize(_ binary:Self) -> Self
-//     {
-//         .size(binary: binary)
-//     }
-//     @available(*, unavailable, renamed: "size(document:)")
-//     public static
-//     func bsonSize(_ document:Self) -> Self
-//     {
-//         .size(document: document)
-//     }
-// }
-// extension MongoExpression
-// {
-//     /// Creates a `$binarySize` expression. The operand can be an expression
-//     /// that resolves to either binary data or a BSON UTF-8 string.
-//     @inlinable public static
-//     func size(binary:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$binarySize"] = binary
-//         }
-//     }
-//     @inlinable public static
-//     func size(document:Self) -> Self
-//     {
-//         .document
-//         {
-//             $0["$bsonSize"] = document
-//         }
-//     }
-// }
+    @inlinable public
+    subscript<Encodable>(key:Variadic) -> Encodable?
+        where Encodable:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript<T0, T1>(key:Variadic) -> (T0?, T1?)
+        where   T0:MongoExpressionEncodable,
+                T1:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, nil)
+        }
+        set(value)
+        {
+            self[key] = .init
+            {
+                $0.push(value.0)
+                $0.push(value.1)
+            }
+        }
+    }
+    @inlinable public
+    subscript<T0, T1, T2>(key:Variadic) -> (T0?, T1?, T2?)
+        where   T0:MongoExpressionEncodable,
+                T1:MongoExpressionEncodable,
+                T2:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, nil, nil)
+        }
+        set(value)
+        {
+            self[key] = .init
+            {
+                $0.push(value.0)
+                $0.push(value.1)
+                $0.push(value.2)
+            }
+        }
+    }
+    @inlinable public
+    subscript<T0, T1, T2, T3>(key:Variadic) -> (T0?, T1?, T2?, T3?)
+        where   T0:MongoExpressionEncodable,
+                T1:MongoExpressionEncodable,
+                T2:MongoExpressionEncodable,
+                T3:MongoExpressionEncodable
+    {
+        get
+        {
+            (nil, nil, nil, nil)
+        }
+        set(value)
+        {
+            self[key] = .init
+            {
+                $0.push(value.0)
+                $0.push(value.1)
+                $0.push(value.2)
+                $0.push(value.3)
+            }
+        }
+    }
+}
+extension MongoExpression
+{
+    @inlinable public
+    subscript(key:Filter) -> FilterDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Map) -> MapDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Reduce) -> ReduceDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:SortArray) -> SortArrayDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Zip) -> ZipDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+}
+extension MongoExpression
+{
+    @inlinable public
+    subscript<Sequence, Element, Start, End>(
+        key:Index) -> (in:Sequence?, of:Element?, from:Start?, to:End?)
+        where   Sequence:MongoExpressionEncodable,
+                Element:MongoExpressionEncodable,
+                Start:MongoExpressionEncodable,
+                End:MongoExpressionEncodable
+    {
+        get
+        {
+            (in: nil, of: nil, from: nil, to: nil)
+        }
+        set(value)
+        {
+            if case (in: let sequence?, of: let element?, let start, let end) = value
+            {
+                self.fields[pushing: key] = .init
+                {
+                    $0.append(sequence)
+                    $0.append(element)
+                    
+                    if let start:Start
+                    {
+                        $0.append(start)
+                        $0.push(end)
+                    }
+                }
+            }
+        }
+    }
+    @inlinable public
+    subscript<Sequence, Element>(key:Index) -> (in:Sequence?, of:Element?)
+        where   Sequence:MongoExpressionEncodable,
+                Element:MongoExpressionEncodable
+    {
+        get
+        {
+            (in: nil, of: nil)
+        }
+        set(value)
+        {
+            self[key] = (value.0, value.1, nil as Never?, nil as Never?)
+        }
+    }
+}
