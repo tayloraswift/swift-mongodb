@@ -25,7 +25,7 @@ func _test()
             $0[.abs] = "$field"
         }
     }
-    let _:MongoPredicate = .init
+    let _:Mongo.PredicateDocument = .init
     {
         $0["a"] = 0
         // $0["b"] = .init
@@ -67,7 +67,7 @@ func _test()
             }
         }
     }
-    let _:MongoProjection = .init
+    let _:Mongo.ProjectionDocument = .init
     {
         $0["expression"] = .init
         {
@@ -111,7 +111,7 @@ func _test()
             }
         }
     }
-    let _:MongoPipeline.Bucket = .init
+    let _:Mongo.BucketDocument = .init
     {
         $0[.by] = .init
         {

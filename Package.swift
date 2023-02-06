@@ -14,12 +14,12 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "Heartbeats", targets: ["Heartbeats"]),
 
         .library(name: "Mongo", targets: ["Mongo"]),
+        .library(name: "MongoBuiltins", targets: ["MongoBuiltins"]),
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoDSL", targets: ["MongoDSL"]),
         .library(name: "MongoChannel", targets: ["MongoChannel"]),
         .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
-        .library(name: "MongoPipeline", targets: ["MongoPipeline"]),
         .library(name: "MongoSchema", targets: ["MongoSchema"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
@@ -136,12 +136,6 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONEncoding"),
             ]),
 
-        .target(name: "MongoPipeline",
-            dependencies:
-            [
-                .target(name: "MongoDSL"),
-            ]),
-
         .target(name: "MongoMonitoring",
             dependencies:
             [
@@ -155,6 +149,13 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "Durations"),
                 .target(name: "MongoMonitoring"),
                 .target(name: "TraceableErrors"),
+            ]),
+
+        .target(name: "MongoBuiltins",
+            dependencies:
+            [
+                .target(name: "Mongo"),
+                .target(name: "MongoDSL"),
             ]),
 
         .target(name: "MongoSchema",
@@ -185,7 +186,6 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDriver"),
-                .target(name: "MongoPipeline"),
             ]),
 
         .target(name: "MongoConnectionString",

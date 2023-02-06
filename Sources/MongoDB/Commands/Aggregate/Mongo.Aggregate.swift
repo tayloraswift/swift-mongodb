@@ -53,7 +53,7 @@ extension Mongo
         let cursor:CursorOptions
 
         public
-        let pipeline:MongoPipeline
+        let pipeline:Mongo.Pipeline
         public
         let hint:IndexHint?
         public
@@ -67,7 +67,7 @@ extension Mongo
         public
         init(collection:Collection,
             _cursor:CursorOptions,
-            pipeline:MongoPipeline,
+            pipeline:Mongo.Pipeline,
             hint:IndexHint? = nil,
             `let`:BSON.Fields,
             collation:Collation? = nil,

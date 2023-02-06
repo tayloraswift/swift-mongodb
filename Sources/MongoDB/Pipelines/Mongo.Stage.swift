@@ -24,7 +24,7 @@
 //         // case limit          (Int)
 //         // case listSessions   (MongoExpressionDSL)
 //         // case lookup         (MongoExpressionDSL)
-//         // case match          (MongoPredicate)
+//         // case match          (Mongo.PredicateDocument)
 //         // case planCacheStats
 //         // case project        (MongoProjection.Document)
 //         // case redact         (MongoExpression)
@@ -95,23 +95,23 @@
 // extension Mongo.Stage
 // {
 //     @inlinable public static
-//     func bucket(_ document:__owned MongoPredicate) -> Self
+//     func bucket(_ document:__owned Mongo.PredicateDocument) -> Self
 //     {
 //         .init("$bucket", value: document)
 //     }
 //     @inlinable public static
-//     func bucket(_ populate:(inout MongoPredicate) throws -> ()) rethrows -> Self
+//     func bucket(_ populate:(inout Mongo.PredicateDocument) throws -> ()) rethrows -> Self
 //     {
 //         .bucket(try .init(with: populate))
 //     }
 
 //     @inlinable public static
-//     func match(_ document:__owned MongoPredicate) -> Self
+//     func match(_ document:__owned Mongo.PredicateDocument) -> Self
 //     {
 //         .init("$match", value: document)
 //     }
 //     @inlinable public static
-//     func match(_ populate:(inout MongoPredicate) throws -> ()) rethrows -> Self
+//     func match(_ populate:(inout Mongo.PredicateDocument) throws -> ()) rethrows -> Self
 //     {
 //         .match(try .init(with: populate))
 //     }
