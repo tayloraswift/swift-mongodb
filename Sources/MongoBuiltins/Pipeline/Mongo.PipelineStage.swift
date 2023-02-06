@@ -33,54 +33,6 @@ extension Mongo.PipelineStage:BSONDecodable
 
 extension Mongo.PipelineStage
 {
-    @frozen public
-    enum Bucket:String, Hashable, Sendable
-    {
-        case bucket = "$bucket"
-    }
-}
-extension Mongo.PipelineStage
-{
-    @frozen public
-    enum BucketAuto:String, Hashable, Sendable
-    {
-        case bucketAuto = "$bucketAuto"
-    }
-}
-extension Mongo.PipelineStage
-{
-    @frozen public
-    enum Group:String, Hashable, Sendable
-    {
-        case group = "$group"
-    }
-}
-extension Mongo.PipelineStage
-{
-    @frozen public
-    enum Match:String, Hashable, Sendable
-    {
-        case match = "$match"
-    }
-}
-extension Mongo.PipelineStage
-{
-    @frozen public
-    enum Project:String, Hashable, Sendable
-    {
-        case project = "$project"
-    }
-}
-extension Mongo.PipelineStage
-{
-    @frozen public
-    enum Sort:String, Hashable, Sendable
-    {
-        case sort = "$sort"
-    }
-}
-extension Mongo.PipelineStage
-{
     @inlinable public
     subscript(key:Bucket) -> Mongo.BucketDocument?
     {
@@ -93,6 +45,7 @@ extension Mongo.PipelineStage
             self.fields[pushing: key] = value
         }
     }
+
     @inlinable public
     subscript(key:BucketAuto) -> Mongo.BucketAutoDocument?
     {
@@ -105,6 +58,101 @@ extension Mongo.PipelineStage
             self.fields[pushing: key] = value
         }
     }
+
+    @inlinable public
+    subscript(key:Count) -> String?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:ChangeStream) -> Never?
+    {
+        nil
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:CollectionStats) -> Never?
+    {
+        nil
+    }
+
+    @inlinable public
+    subscript(key:CurrentOperation) -> Mongo.CurrentOperationDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:Densify) -> Never?
+    {
+        nil
+    }
+
+    @inlinable public
+    subscript<Array>(key:Documents) -> Array? where Array:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Facet) -> Mongo.FacetDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:Fill) -> Never?
+    {
+        nil
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:GeoNear) -> Never?
+    {
+        nil
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:GraphLookup) -> Never?
+    {
+        nil
+    }
+
     @inlinable public
     subscript(key:Group) -> Mongo.GroupDocument?
     {
@@ -117,6 +165,59 @@ extension Mongo.PipelineStage
             self.fields[pushing: key] = value
         }
     }
+
+    @inlinable public
+    subscript(key:IndexStats) -> [String: Never]?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Limit) -> Int?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:ListLocalSessions) -> Never?
+    {
+        nil
+    }
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:ListSessions) -> Never?
+    {
+        nil
+    }
+
+    @inlinable public
+    subscript(key:Lookup) -> Mongo.LookupDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
     @inlinable public
     subscript(key:Match) -> Mongo.PredicateDocument?
     {
@@ -129,6 +230,20 @@ extension Mongo.PipelineStage
             self.fields[pushing: key] = value
         }
     }
+
+    @inlinable public
+    subscript(key:PlanCacheStats) -> [String: Never]?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
     @inlinable public
     subscript(key:Project) -> Mongo.ProjectionDocument?
     {
@@ -141,8 +256,182 @@ extension Mongo.PipelineStage
             self.fields[pushing: key] = value
         }
     }
+
+    @inlinable public
+    subscript<RedactMode>(key:Redact) -> RedactMode? where RedactMode:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript<Document>(key:ReplaceWith) -> Document? where Document:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Sample) -> Mongo.SampleDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Set) -> Mongo.SetDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @available(*, unavailable, message: "unimplemented")
+    @inlinable public
+    subscript(key:SetWindowFields) -> Never?
+    {
+        nil
+    }
+
+    @inlinable public
+    subscript(key:ShardedDataDistribution) -> [String: Never]?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Skip) -> Int?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
     @inlinable public
     subscript(key:Sort) -> Mongo.SortDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript<GroupKey>(key:SortByCount) -> GroupKey? where GroupKey:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:UnionWith) -> Mongo.Collection?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:UnionWith) -> Mongo.UnionWithDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Unset) -> String?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Unset) -> [String]?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+
+    @inlinable public
+    subscript<FieldPath>(key:Unwind) -> FieldPath? where FieldPath:MongoExpressionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Unwind) -> Mongo.UnwindDocument?
     {
         get
         {

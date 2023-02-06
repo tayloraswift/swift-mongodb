@@ -63,7 +63,7 @@ func TestMemberDiscovery(_ tests:TestGroup,
                             tags: ["priority": "zero", "name": "E"])),
                     ])
                 
-                tests.expect(configuration.version ==? 2)
+                tests.expect(configuration.version ==? 1)
             }
         }
     }

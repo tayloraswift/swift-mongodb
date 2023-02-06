@@ -41,17 +41,4 @@ extension Mongo.MapDocument
             self.fields[pushing: key] = value
         }
     }
-    @inlinable public
-    subscript<Encodable>(key:For) -> Encodable?
-        where Encodable:MongoExpressionEncodable & StringProtocol
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.fields[pushing: key] = value
-        }
-    }
 }

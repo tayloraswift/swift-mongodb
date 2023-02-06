@@ -19,7 +19,7 @@ extension Mongo.Find
             projection:Mongo.ProjectionDocument = [:],
             hint:Mongo.IndexHint? = nil,
             sort:Mongo.SortDocument = [:],
-            `let`:BSON.Fields = [:],
+            `let`:Mongo.LetDocument = [:],
             collation:Mongo.Collation? = nil,
             readLevel:Mongo.ReadLevel? = nil,
             timeout:Milliseconds? = nil,

@@ -1,9 +1,10 @@
+import BSONDecoding
 import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct FilterDocument:Sendable
+    struct SampleDocument:Sendable
     {
         public
         var fields:BSON.Fields
@@ -13,9 +14,9 @@ extension Mongo
         {
             self.fields = .init(bytes: bytes)
         }
-    }    
+    }
 }
-extension Mongo.FilterDocument:BSONDSL
+extension Mongo.SampleDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -23,14 +24,17 @@ extension Mongo.FilterDocument:BSONDSL
         self.fields.bytes
     }
 }
-extension Mongo.FilterDocument:BSONEncodable
+extension Mongo.SampleDocument:BSONEncodable
 {
 }
-extension Mongo.FilterDocument
+extension Mongo.SampleDocument:BSONDecodable
+{
+}
+
+extension Mongo.SampleDocument
 {
     @inlinable public
-    subscript<Encodable>(key:Argument) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+    subscript(key:Size) -> Int?
     {
         get
         {

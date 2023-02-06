@@ -185,6 +185,7 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoDB",
             dependencies:
             [
+                .target(name: "MongoBuiltins"),
                 .target(name: "MongoDriver"),
             ]),
 

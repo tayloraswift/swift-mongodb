@@ -17,13 +17,13 @@ extension Mongo
         let stride:Int
 
         public
-        let filter:Mongo.PredicateDocument
+        let filter:PredicateDocument
         public
-        let projection:Mongo.ProjectionDocument
+        let projection:ProjectionDocument
         public
-        let sort:Mongo.SortDocument
+        let sort:SortDocument
         public
-        let `let`:BSON.Fields
+        let `let`:LetDocument
 
         public
         let skip:Int?
@@ -52,11 +52,11 @@ extension Mongo
             stride:Int,
             limit:Int? = nil,
             skip:Int? = nil,
-            filter:Mongo.PredicateDocument = [:],
-            projection:Mongo.ProjectionDocument = [:],
+            filter:PredicateDocument = [:],
+            projection:ProjectionDocument = [:],
             hint:IndexHint? = nil,
-            sort:Mongo.SortDocument = [:],
-            `let`:BSON.Fields = [:],
+            sort:SortDocument = [:],
+            `let`:LetDocument = [:],
             collation:Collation? = nil,
             readLevel:ReadLevel? = nil,
             timeout:Milliseconds? = nil,
