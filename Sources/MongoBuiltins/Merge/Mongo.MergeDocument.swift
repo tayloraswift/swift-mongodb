@@ -4,7 +4,7 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct UnwindDocument:Sendable
+    struct MergeDocument:Sendable
     {
         public
         var fields:BSON.Fields
@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.UnwindDocument:BSONDSL
+extension Mongo.MergeDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -24,18 +24,16 @@ extension Mongo.UnwindDocument:BSONDSL
         self.fields.bytes
     }
 }
-extension Mongo.UnwindDocument:BSONEncodable
+extension Mongo.MergeDocument:BSONEncodable
 {
 }
-extension Mongo.UnwindDocument:BSONDecodable
+extension Mongo.MergeDocument:BSONDecodable
 {
 }
-
-extension Mongo.UnwindDocument
+extension Mongo.MergeDocument
 {
     @inlinable public
-    subscript<FieldPath>(key:Path) -> FieldPath?
-        where FieldPath:MongoFieldPathEncodable
+    subscript(key:Into) -> Mongo.Collection?
     {
         get
         {
@@ -47,7 +45,7 @@ extension Mongo.UnwindDocument
         }
     }
     @inlinable public
-    subscript(key:ArrayIndexAs) -> String?
+    subscript(key:Into) -> Mongo.Namespaced<Mongo.Collection>?
     {
         get
         {
@@ -55,19 +53,7 @@ extension Mongo.UnwindDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
-        }
-    }
-    @inlinable public
-    subscript(key:PreserveNullAndEmptyArrays) -> Bool?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.fields[pushing: key] = value
+            self.fields[pushing: key] = value?.document
         }
     }
 }

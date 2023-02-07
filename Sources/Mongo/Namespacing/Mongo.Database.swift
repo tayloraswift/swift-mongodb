@@ -4,7 +4,7 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct Database:MongoCommandDatabase, Hashable, Sendable
+    struct Database:Hashable, Sendable
     {
         public
         let name:String

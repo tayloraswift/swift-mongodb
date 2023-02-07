@@ -4,7 +4,7 @@ import BSONUnions
 
 extension Mongo
 {
-    @frozen public
+    @frozen public 
     struct Pipeline:Sendable
     {
         @usableFromInline

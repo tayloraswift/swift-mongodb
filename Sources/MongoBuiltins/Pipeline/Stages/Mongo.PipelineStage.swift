@@ -34,6 +34,45 @@ extension Mongo.PipelineStage:BSONDecodable
 extension Mongo.PipelineStage
 {
     @inlinable public
+    subscript(key:Out) -> Mongo.Collection?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Out) -> Mongo.Namespaced<Mongo.Collection>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value?.document
+        }
+    }
+    @inlinable public
+    subscript(key:Merge) -> Mongo.MergeDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+}
+extension Mongo.PipelineStage
+{
+    @inlinable public
     subscript(key:Bucket) -> Mongo.BucketDocument?
     {
         get
@@ -419,7 +458,8 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript<FieldPath>(key:Unwind) -> FieldPath? where FieldPath:MongoExpressionEncodable
+    subscript<FieldPath>(key:Unwind) -> FieldPath?
+        where FieldPath:MongoFieldPathEncodable
     {
         get
         {
