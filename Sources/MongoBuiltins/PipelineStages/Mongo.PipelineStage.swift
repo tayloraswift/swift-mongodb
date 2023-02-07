@@ -118,11 +118,17 @@ extension Mongo.PipelineStage
         nil
     }
 
-    @available(*, unavailable, message: "unimplemented")
     @inlinable public
-    subscript(key:CollectionStats) -> Never?
+    subscript(key:CollectionStats) -> Mongo.CollectionStatsDocument?
     {
-        nil
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
     }
 
     @inlinable public

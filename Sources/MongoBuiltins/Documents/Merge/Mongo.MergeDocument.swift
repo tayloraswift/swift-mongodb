@@ -4,7 +4,7 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct PredicateOperator:Sendable
+    struct MergeDocument:Sendable
     {
         public
         var fields:BSON.Fields
@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateOperator:BSONDSL
+extension Mongo.MergeDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -24,17 +24,41 @@ extension Mongo.PredicateOperator:BSONDSL
         self.fields.bytes
     }
 }
-extension Mongo.PredicateOperator:BSONDecodable
+extension Mongo.MergeDocument:BSONEncodable
 {
 }
-extension Mongo.PredicateOperator:BSONEncodable
+extension Mongo.MergeDocument:BSONDecodable
 {
 }
+extension Mongo.MergeDocument
+{
+    @inlinable public
+    subscript(key:Into) -> Mongo.Collection?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:Into) -> Mongo.Namespaced<Mongo.Collection>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value?.document
+        }
+    }
 
-extension Mongo.PredicateOperator
-{
     @inlinable public
-    subscript(key:Exists) -> Bool?
+    subscript(key:On) -> String?
     {
         get
         {
@@ -46,46 +70,7 @@ extension Mongo.PredicateOperator
         }
     }
     @inlinable public
-    subscript(key:Metatype) -> BSON?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.fields[pushing: key] = value
-        }
-    }
-    @inlinable public
-    subscript(key:Metatype) -> [BSON]
-    {
-        get
-        {
-            []
-        }
-        set(value)
-        {
-            self.fields[pushing: key] = value
-        }
-    }
-    @inlinable public
-    subscript(key:Regex) -> BSON.Regex?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.fields[pushing: key] = value
-        }
-    }
-}
-extension Mongo.PredicateOperator
-{
-    @inlinable public
-    subscript(key:Recursive) -> Self?
+    subscript(key:On) -> [String]?
     {
         get
         {
@@ -98,8 +83,7 @@ extension Mongo.PredicateOperator
     }
 
     @inlinable public
-    subscript<Encodable>(key:Variadic) -> Encodable?
-        where Encodable:BSONEncodable
+    subscript(key:Let) -> Mongo.LetDocument?
     {
         get
         {
@@ -112,8 +96,7 @@ extension Mongo.PredicateOperator
     }
 
     @inlinable public
-    subscript<Encodable>(key:Binary) -> Encodable?
-        where Encodable:BSONEncodable
+    subscript(key:WhenMatched) -> Mongo.Pipeline?
     {
         get
         {
@@ -125,26 +108,27 @@ extension Mongo.PredicateOperator
         }
     }
     @inlinable public
-    subscript<Divisor, Remainder>(key:Mod) -> (by:Divisor?, is:Remainder?)
-        where Divisor:BSONEncodable, Remainder:BSONEncodable
+    subscript(key:WhenMatched) -> Mongo.MergeUpdateMode?
     {
         get
         {
-            (nil, nil)
+            nil
         }
         set(value)
         {
-            guard   let divisor:Divisor = value.by,
-                    let remainder:Remainder = value.is
-            else
-            {
-                return
-            }
-            self.fields[pushing: key] = .init
-            {
-                $0.append(divisor)
-                $0.append(remainder)
-            }
+            self.fields[pushing: key] = value
+        }
+    }
+    @inlinable public
+    subscript(key:WhenNotMatched) -> Mongo.MergeInsertMode?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[pushing: key] = value
         }
     }
 }

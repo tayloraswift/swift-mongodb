@@ -4,7 +4,7 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct MergeDocument:Sendable
+    struct LatencyStatsDocument:Sendable
     {
         public
         var fields:BSON.Fields
@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.MergeDocument:BSONDSL
+extension Mongo.LatencyStatsDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -24,16 +24,17 @@ extension Mongo.MergeDocument:BSONDSL
         self.fields.bytes
     }
 }
-extension Mongo.MergeDocument:BSONEncodable
+extension Mongo.LatencyStatsDocument:BSONEncodable
 {
 }
-extension Mongo.MergeDocument:BSONDecodable
+extension Mongo.LatencyStatsDocument:BSONDecodable
 {
 }
-extension Mongo.MergeDocument
+
+extension Mongo.LatencyStatsDocument
 {
     @inlinable public
-    subscript(key:Into) -> Mongo.Collection?
+    subscript(key:Histograms) -> Bool?
     {
         get
         {
@@ -42,18 +43,6 @@ extension Mongo.MergeDocument
         set(value)
         {
             self.fields[pushing: key] = value
-        }
-    }
-    @inlinable public
-    subscript(key:Into) -> Mongo.Namespaced<Mongo.Collection>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.fields[pushing: key] = value?.document
         }
     }
 }
