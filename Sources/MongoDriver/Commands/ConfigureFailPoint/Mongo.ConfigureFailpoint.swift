@@ -35,33 +35,35 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        //  note: capitalization
-        bson[Self.name] = Options.name
-
-        switch self
+        .init
         {
-        case .always(let options):
-            bson["data"] = options
-            bson["mode"] = "alwaysOn"
-        
-        case .random(let options, probability: let probability):
-            bson["data"] = options
-            bson["mode"] = .init
+            $0[Self.name] = Options.name
+
+            switch self
             {
-                $0["activationProbability"] = probability
+            case .always(let options):
+                $0["data"] = options
+                $0["mode"] = "alwaysOn"
+            
+            case .random(let options, probability: let probability):
+                $0["data"] = options
+                $0["mode"] = .init
+                {
+                    $0["activationProbability"] = probability
+                }
+            
+            case .times(let options, count: let count):
+                $0["data"] = options
+                $0["mode"] = .init
+                {
+                    $0["times"] = count
+                }
+            
+            case .off:
+                $0["mode"] = "off"
             }
-        
-        case .times(let options, count: let count):
-            bson["data"] = options
-            bson["mode"] = .init
-            {
-                $0["times"] = count
-            }
-        
-        case .off:
-            bson["mode"] = "off"
         }
     }
 }

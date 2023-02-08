@@ -31,11 +31,14 @@ extension Mongo.Hello:MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        bson[Self.name] = true
-        bson["client"] = self.client
-        bson["saslSupportedMechs"] = self.user
+        .init
+        {
+            $0[Self.name] = true
+            $0["client"] = self.client
+            $0["saslSupportedMechs"] = self.user
+        }
     }
 
     public

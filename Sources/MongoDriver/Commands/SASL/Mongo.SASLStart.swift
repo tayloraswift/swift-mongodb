@@ -29,14 +29,18 @@ extension Mongo.SASLStart:MongoCommand
         "saslStart"
     }
 
-    func encode(to bson:inout BSON.Fields)
+    public
+    var fields:BSON.Fields
     {
-        bson[Self.name] = true
-        bson["mechanism"] = self.mechanism
-        bson["payload"] = self.scram.message.base64
-        bson["options"] = .init
+        .init
         {
-            $0["skipEmptyExchange"] = true
+            $0[Self.name] = true
+            $0["mechanism"] = self.mechanism
+            $0["payload"] = self.scram.message.base64
+            $0["options"] = .init
+            {
+                $0["skipEmptyExchange"] = true
+            }
         }
     }
 }

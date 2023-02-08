@@ -9,6 +9,6 @@ extension BSON.Tuple<[UInt8]>
     @inlinable public
     init(_ elements:BSON.Elements<some Any>)
     {
-        self.init(bytes: elements.bytes)
+        self.init(slice: elements.bytes)
     }
 }

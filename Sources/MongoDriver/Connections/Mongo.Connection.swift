@@ -94,25 +94,27 @@ extension Mongo.Connection
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
         where Command:MongoCommand
     {
-        let message:MongoWire.Message<ByteBufferView>?
+        guard   let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
+                    database: database,
+                    labels: labels,
+                    by: deadline)
+        else
+        {
+            throw MongoChannel.TimeoutError.init()
+        }
+
+        let message:MongoWire.Message<ByteBufferView>
+        
         do
         {
-            message = try await self.channel.run(
-                command: .init { command.encode(to: &$0, database: database, labels: labels) },
-                by: deadline)
+            message = try await self.channel.run(command: command, by: deadline)
         }
         catch let error
         {
             self.reuse = false
             throw error
         }
-        if  let message:MongoWire.Message<ByteBufferView>
-        {
-            return try .init(message: message)
-        }
-        else
-        {
-            throw MongoChannel.TimeoutError.init()
-        }
+
+        return try .init(message: message)
     }
 }

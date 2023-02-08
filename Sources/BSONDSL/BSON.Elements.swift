@@ -72,7 +72,7 @@ extension BSON.Elements
     @inlinable public
     init(_ bson:BSON.Tuple<[UInt8]>, count:Int)
     {
-        self.init(bytes: bson.bytes, count: count)
+        self.init(bytes: bson.slice, count: count)
     }
     /// Creates an encoding view around the given generic tuple-document,
     /// copying its backing storage if it is not already backed by
@@ -92,7 +92,7 @@ extension BSON.Elements
         case let bson as BSON.Tuple<[UInt8]>:
             self.init(bson, count: count)
         case let bson:
-            self.init(bytes: .init(bson.bytes), count: count)
+            self.init(bytes: .init(bson.slice), count: count)
         }
     }
 }

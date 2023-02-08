@@ -28,10 +28,13 @@ extension Mongo.KillCursors:MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        bson[Self.name] = self.collection
-        bson["cursors"] = self.cursors
+        .init
+        {
+            $0[Self.name] = self.collection
+            $0["cursors"] = self.cursors
+        }
     }
     
     public

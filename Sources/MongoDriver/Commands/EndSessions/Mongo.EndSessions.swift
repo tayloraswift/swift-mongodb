@@ -37,8 +37,11 @@ extension Mongo.EndSessions:MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        bson[Self.name] = self.sessions
+        .init
+        {
+            $0[Self.name] = self.sessions
+        }
     }
 }

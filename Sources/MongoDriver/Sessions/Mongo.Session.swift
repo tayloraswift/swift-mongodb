@@ -227,6 +227,18 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
+    @discardableResult
+    public
+    func withSnapshotTransaction<Success>(
+        writeConcern:Mongo.WriteConcern?,
+        run body:(Mongo.Transaction) async throws -> Success)
+        async -> Mongo.TransactionResult<Success>
+    {
+        await self.withTransaction(writeConcern: writeConcern,
+            readConcern: .snapshot,
+            run: body)
+    }
+
     /// Yields a transaction context that can be used to run commands with this session
     /// as part of a transaction. If the closure parameter throws an error, the
     /// transaction will be aborted, otherwise it will be committed.
@@ -254,6 +266,18 @@ extension Mongo.Session
     /// session.
     @discardableResult
     public
+    func withTransaction<Success>(
+        writeConcern:Mongo.WriteConcern?,
+        readConcern:Mongo.ReadConcern?,
+        run body:(Mongo.Transaction) async throws -> Success)
+        async -> Mongo.TransactionResult<Success>
+    {
+        await self.withTransaction(writeConcern: writeConcern,
+            readConcern: readConcern.map(Mongo.ReadConcern.Level.ratification(_:)),
+            run: body)
+    }
+
+    private
     func withTransaction<Success>(
         writeConcern:Mongo.WriteConcern?,
         readConcern:Mongo.ReadConcern.Level?,
@@ -349,8 +373,10 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant) async throws -> Command.Response
         where Command:MongoCommand
     {
-        let labels:Mongo.SessionLabels = self.labels(readPreference: preference,
-            readLevel: (command as? any MongoReadCommand).map(\.readLevel))
+        let labels:Mongo.SessionLabels = self.labels(
+            writeConcern: (command as? any MongoWriteCommand)?.writeConcern,
+            readConcern: (command as? any MongoReadCommand).map(\.readConcern),
+            preference: preference)
         
         let sent:ContinuousClock.Instant = .now
         let reply:Mongo.Reply = try await connection.run(command: command,
@@ -416,7 +442,7 @@ extension Mongo.Session
     ///     -   readPreference:
     ///         The read preference to add to the returned command labels. It will
     ///         always be encoded.
-    ///     -   readLevel:
+    ///     -   readConcern:
     ///         The read level to use when computing the read concern that will be
     ///         added to the returned command labels. It will only be used if no
     ///         transaction is in progress, otherwise the transaction’s read level
@@ -430,33 +456,39 @@ extension Mongo.Session
     ///
     /// See: https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#constructing-the-first-command-within-a-transaction
     @usableFromInline
-    func labels(readPreference:Mongo.ReadPreference,
-        readLevel:Mongo.ReadLevel??) -> Mongo.SessionLabels
+    func labels(writeConcern:Mongo.WriteConcern?, readConcern:Mongo.ReadConcern??,
+        preference:Mongo.ReadPreference) -> Mongo.SessionLabels
     {
-        let readConcern:Mongo.ReadConcern?
+        let writeOptions:Mongo.WriteConcern.Options? =
+            writeConcern.map(Mongo.WriteConcern.Options.init(_:))
+        let readOptions:Mongo.ReadConcern.Options?
         let transaction:Mongo.TransactionLabels?
         switch self.transaction.phase
         {
-        case .starting(let readLevel)?:
+        case .starting(let level)?:
             //  Increment the transaction number lazily.
             self.transaction.number += 1
             self.transaction.phase = .started
 
-            readConcern = .level(readLevel, after: self.preconditionTime)
+            readOptions = .init(level: level, after: self.preconditionTime)
             transaction = .starting(self.transaction.number)
         
         case .started?:
-            readConcern = nil
+            readOptions = nil
             transaction = .started(self.transaction.number)
         
         case nil:
-            readConcern = readLevel.map { .level($0, after: self.preconditionTime) }
+            readOptions = readConcern.map
+            {
+                .init(level: $0?.level, after: self.preconditionTime)
+            }
             transaction = nil
         }
         return .init(clusterTime: self.cluster.time,
-            readPreference: readPreference,
-            readConcern: readConcern,
+            writeConcern: writeOptions,
+            readConcern: readOptions,
             transaction: transaction,
+            preference: preference,
             session: self.id)
     }
     /// Update the session’s state with an observed operation time, and the local

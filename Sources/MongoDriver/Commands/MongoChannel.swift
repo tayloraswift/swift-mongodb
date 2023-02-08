@@ -8,6 +8,10 @@ extension MongoChannel
 {
     /// Encodes the given command to a document, sends it over this channel and
     /// awaits its reply.
+    ///
+    /// If the deadline has already passed before the command can be encoded, this
+    /// method will throw a ``TimeoutError``, but the channel will not be closed.
+    /// In all other scenarios, the channel will be closed on timeout.
     @inlinable public
     func run<Command>(command:__owned Command,
         against database:Command.Database,
@@ -15,11 +19,14 @@ extension MongoChannel
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
         where Command:MongoCommand
     {
-        if  let message:MongoWire.Message<ByteBufferView> = try await self.run(
-                command: .init { command.encode(to: &$0, database: database, labels: labels) },
+        //  Never append `maxTimeMS` to commands run directly on a channel.
+        if  let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
+                database: database,
+                labels: labels,
+                timed: false,
                 by: deadline)
         {
-            return try .init(message: message)
+            return try .init(message: try await self.run(command: command, by: deadline))
         }
         else
         {

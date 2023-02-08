@@ -5,7 +5,7 @@ import MongoSchema
 extension Mongo
 {
     @frozen public
-    struct GetMore<Element>:Sendable where Element:MongoDecodable
+    struct GetMore<Element>:MongoGetMoreCommand, Sendable where Element:MongoDecodable
     {
         public
         let cursor:CursorIdentifier
@@ -38,12 +38,14 @@ extension Mongo.GetMore:MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        bson[Self.name] = self.cursor
-        bson["collection"] = self.collection
-        bson["maxTimeMS"] = self.timeout?.milliseconds
-        bson["batchSize"] = self.count
+        .init
+        {
+            $0[Self.name] = self.cursor
+            $0["collection"] = self.collection
+            $0["batchSize"] = self.count
+        }
     }
 
     public

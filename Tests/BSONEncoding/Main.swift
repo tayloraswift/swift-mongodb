@@ -121,12 +121,12 @@ enum Main:SyncTests
                 encoded: .init
                 {
                     $0["a"] = BSON.Binary<[UInt8]>.init(subtype: .generic,
-                        bytes: [0xff, 0xff, 0xff])
+                        slice: [0xff, 0xff, 0xff])
                 },
                 literal:
                 [
                     "a": .binary(.init(subtype: .generic,
-                        bytes: [0xff, 0xff, 0xff])),
+                        slice: [0xff, 0xff, 0xff])),
                 ])
             
             TestEncoding(tests / "max",

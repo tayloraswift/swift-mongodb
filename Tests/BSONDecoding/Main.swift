@@ -270,7 +270,7 @@ enum Main:SyncTests
             let tests:TestGroup = tests / "binary" / "md5"
 
             let md5:BSON.Binary<[UInt8]> = .init(subtype: .md5,
-                bytes: [0xff, 0xfe, 0xfd])
+                slice: [0xff, 0xfe, 0xfd])
             let bson:BSON.Document<[UInt8]> =
             [
                 "md5": .binary(md5),

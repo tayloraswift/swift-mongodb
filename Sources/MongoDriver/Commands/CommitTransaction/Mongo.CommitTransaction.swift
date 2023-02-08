@@ -16,23 +16,28 @@ extension Mongo
         }
     }
 }
+extension Mongo.CommitTransaction:MongoWriteCommand
+{
+}
 extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
 {
     /// `CommitTransaction` must be sent to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 
+    public
+    var fields:BSON.Fields
+    {
+        .init
+        {
+            $0[Self.name] = 1 as Int32
+        }
+    }
+
     /// The string [`"commitTransaction"`]().
     @inlinable public static
     var name:String
     {
         "commitTransaction"
-    }
-
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = 1 as Int32
-        bson["writeConcern"] = self.writeConcern
     }
 }

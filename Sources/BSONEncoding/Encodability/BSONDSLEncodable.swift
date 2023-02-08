@@ -63,7 +63,7 @@ extension [String: Never]:BSONDSLEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(document: .init(bytes: []))
+        field.encode(document: .init(slice: []))
     }
 }
 extension Array:BSONDSLEncodable where Element:BSONDSLEncodable

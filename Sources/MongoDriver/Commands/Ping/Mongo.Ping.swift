@@ -26,8 +26,11 @@ extension Mongo.Ping:MongoImplicitSessionCommand, MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        bson[Self.name] = 1 as Int32
+        .init
+        {
+            $0[Self.name] = 1 as Int32
+        }
     }
 }

@@ -4,14 +4,6 @@ infix operator ~~ : ComparisonPrecedence
 
 extension BSON
 {
-    @frozen public
-    enum DocumentFrame:VariableLengthBSONFrame
-    {
-        public static
-        let prefix:Int = 4
-        public static
-        let suffix:Int = 1
-    }
     /// A BSON document. The backing storage of this type is opaque,
     /// permitting lazy parsing of its inline content.
     @frozen public
@@ -21,15 +13,15 @@ extension BSON
         /// include the trailing null byte that typically appears after its
         /// inline fields list.
         public 
-        let bytes:Bytes
+        let slice:Bytes
 
-        /// Stores the argument in ``bytes`` unchanged.
+        /// Stores the argument in ``slice`` unchanged.
         ///
         /// >   Complexity: O(1)
         @inlinable public
-        init(bytes:Bytes)
+        init(slice:Bytes)
         {
-            self.bytes = bytes
+            self.slice = slice
         }
     }
 }
@@ -40,7 +32,7 @@ extension BSON.Document:Equatable
     @inlinable public static
     func == (lhs:Self, rhs:BSON.Document<some RandomAccessCollection<UInt8>>) -> Bool
     {
-        lhs.bytes.elementsEqual(rhs.bytes)
+        lhs.slice.elementsEqual(rhs.slice)
     }
 }
 extension BSON.Document:Sendable where Bytes:Sendable
@@ -51,13 +43,13 @@ extension BSON.Document:VariableLengthBSON
     public
     typealias Frame = BSON.DocumentFrame
     
-    /// Stores the argument in ``bytes`` unchanged. Equivalent to ``init(bytes:)``.
+    /// Stores the argument in ``slice`` unchanged. Equivalent to ``init(slice:)``.
     ///
     /// >   Complexity: O(1)
     @inlinable public
     init(slicing bytes:Bytes)
     {
-        self.init(bytes: bytes)
+        self.init(slice: bytes)
     }
 }
 
@@ -76,7 +68,7 @@ extension BSON.Document
     @inlinable public
     var size:Int
     {
-        5 + self.bytes.count
+        5 + self.slice.count
     }
 }
 
@@ -86,7 +78,7 @@ extension BSON.Document:CustomStringConvertible
     var description:String
     {
         """
-        (\(self.header), \(self.bytes.lazy.map 
+        (\(self.header), \(self.slice.lazy.map 
         {
             """
             \(String.init($0 >> 4,   radix: 16, uppercase: true))\

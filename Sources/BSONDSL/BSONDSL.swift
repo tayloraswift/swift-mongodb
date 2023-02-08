@@ -49,7 +49,7 @@ extension BSONDSL
     @inlinable public
     init(_ bson:BSON.Document<[UInt8]>)
     {
-        self.init(bytes: bson.bytes)
+        self.init(bytes: bson.slice)
     }
     /// Creates an encoding view around the given generic document,
     /// copying its backing storage if it is not already backed by
@@ -69,7 +69,7 @@ extension BSONDSL
         case let bson as BSON.Document<[UInt8]>:
             self.init(bson)
         case let bson:
-            self.init(bytes: .init(bson.bytes))
+            self.init(bytes: .init(bson.slice))
         }
     }
 }

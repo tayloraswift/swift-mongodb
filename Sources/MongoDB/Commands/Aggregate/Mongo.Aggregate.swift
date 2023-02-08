@@ -46,23 +46,14 @@ extension Mongo
     struct Aggregate<Element>:Sendable
     {
         public
-        let collection:Collection
-        public
-        let timeout:Milliseconds?
-
-        let cursor:CursorOptions
+        var fields:BSON.Fields
 
         public
-        let pipeline:Pipeline
+        let writeConcern:WriteConcern?
         public
-        let hint:IndexHint?
+        let readConcern:ReadConcern?
         public
-        let `let`:LetDocument
-
-        public
-        let collation:Collation?
-        public
-        let readLevel:ReadLevel?
+        let stride:Int
 
         public
         init(collection:Collection,
@@ -71,21 +62,34 @@ extension Mongo
             hint:IndexHint? = nil,
             `let`:LetDocument,
             collation:Collation? = nil,
-            readLevel:ReadLevel? = nil,
-            timeout:Milliseconds? = nil)
+            writeConcern:WriteConcern? = nil,
+            readConcern:ReadConcern? = nil)
         {
-            self.collection = collection
-            self.timeout = timeout
-            self.cursor = _cursor
-            self.pipeline = pipeline
-            self.hint = hint
-            self.let = `let`
-            self.collation = collation
-            self.readLevel = readLevel
+            self.writeConcern = writeConcern
+            self.readConcern = readConcern
+            self.stride = _cursor.stride
+            self.fields = .init
+            {
+                $0[Self.name] = collection
+                
+                $0["cursor"] = _cursor
+                //$0["maxTimeMS"] = self.timeout
+
+                $0["pipeline", elide: false] = pipeline
+                $0["hint"] = hint
+                $0["let", elide: true] = `let`
+                    
+                $0["collation"] = collation
+            }
         }
     }
 }
-extension Mongo.Aggregate:MongoIterableCommand where Element:MongoDecodable
+extension Mongo.Aggregate:MongoReadCommand, MongoWriteCommand
+    where Element:MongoDecodable
+{
+}
+extension Mongo.Aggregate:MongoIterableCommand
+    where Element:MongoDecodable
 {
     public
     typealias Response = Mongo.Cursor<Element>
@@ -94,11 +98,6 @@ extension Mongo.Aggregate:MongoIterableCommand where Element:MongoDecodable
     var tailing:Mongo.Tailing?
     {
         nil
-    }
-    public
-    var stride:Int
-    {
-        self.cursor.stride
     }
 }
 extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
@@ -112,22 +111,5 @@ extension Mongo.Aggregate
     var name:String
     {
         "aggregate"
-    }
-}
-extension Mongo.Aggregate:BSONDocumentEncodable
-{
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = self.collection
-        
-        bson["cursor"] = self.cursor
-        bson["maxTimeMS"] = self.timeout
-
-        bson["pipeline", elide: false] = self.pipeline
-        bson["hint"] = self.hint
-        bson["let", elide: true] = self.let
-            
-        bson["collation"] = self.collation
     }
 }

@@ -154,31 +154,47 @@ extension BSON.Input
             throw self.expected(.bytes(MemoryLayout<LittleEndian>.size))
         }
     }
-    /// Parses a traversable BSON element. The output is typically opaque,
-    /// which allows decoders to skip over regions of a BSON document.
+
     @inlinable public mutating
-    func parse<View>(as _:View.Type = View.self) throws -> View
-        where View:VariableLengthBSON<Source.SubSequence>
+    func parse<Frame>(_:Frame.Type) throws -> Source.SubSequence
+        where Frame:VariableLengthBSONFrame
     {
         let header:Int = .init(try self.parse(as: Int32.self))
-        let stride:Int = header - View.Frame.prefix
-        let count:Int = stride - View.Frame.suffix
+        let stride:Int = header - Frame.prefix
+        let count:Int = stride - Frame.suffix
         if  count < 0
         {
-            throw BSON.HeaderError<View.Frame>.init(length: header)
+            throw BSON.HeaderError<Frame>.init(length: header)
         }
         let start:Source.Index = self.index
         if  let end:Source.Index = self.source.index(start, offsetBy: stride, 
                 limitedBy: self.source.endIndex)
         {
             self.index = end
-            return try .init(
-                slicing: self.source[start ..< self.source.index(start, offsetBy: count)])
+            return self.source[start ..< self.source.index(start, offsetBy: count)]
         }
         else
         {
             throw self.expected(.bytes(stride))
         }
+    }
+
+    /// Parses a traversable BSON element. The output is typically opaque,
+    /// which allows decoders to skip over regions of a BSON document.
+    @inlinable public mutating
+    func parse<View>(as _:View.Type = View.self) throws -> View
+        where View:VariableLengthBSON<Source.SubSequence>
+    {
+        try .init(slicing: try self.parse(View.Frame.self))
+    }
+    
+    /// Returns a slice of the input from the current ``index`` to the end
+    /// of the input. Accessing this property does not affect the current
+    /// ``index``.
+    @inlinable public
+    var remaining:Source.SubSequence
+    {
+        self.source.suffix(from: self.index)
     }
     
     /// Asserts that there is no input remaining.

@@ -23,10 +23,14 @@ extension Mongo.SASLContinue:MongoCommand
         "saslContinue"
     }
 
-    func encode(to bson:inout BSON.Fields)
+    public
+    var fields:BSON.Fields
     {
-        bson[Self.name] = true
-        bson["conversationId"] = self.conversation
-        bson["payload"] = self.message.base64
+        .init
+        {
+            $0[Self.name] = true
+            $0["conversationId"] = self.conversation
+            $0["payload"] = self.message.base64
+        }
     }
 }

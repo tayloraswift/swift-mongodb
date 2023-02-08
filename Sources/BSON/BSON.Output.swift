@@ -84,7 +84,7 @@ extension BSON.Output
     func serialize(utf8:BSON.UTF8<some BidirectionalCollection<UInt8>>)
     {
         self.serialize(integer: utf8.header)
-        self.append(utf8.bytes)
+        self.append(utf8.slice)
         self.append(0x00)
     }
     @inlinable public mutating
@@ -92,20 +92,20 @@ extension BSON.Output
     {
         self.serialize(integer: binary.header)
         self.append(binary.subtype.rawValue)
-        self.append(binary.bytes)
+        self.append(binary.slice)
     }
     @inlinable public mutating
     func serialize(document:BSON.Document<some RandomAccessCollection<UInt8>>)
     {
         self.serialize(integer: document.header)
-        self.append(document.bytes)
+        self.append(document.slice)
         self.append(0x00)
     }
     @inlinable public mutating
     func serialize(tuple:BSON.Tuple<some RandomAccessCollection<UInt8>>)
     {
         self.serialize(integer: tuple.header)
-        self.append(tuple.bytes)
+        self.append(tuple.slice)
         self.append(0x00)
     }
 }
