@@ -1,3 +1,7 @@
+//  Based on a C++ implementation from Facebook’s Folly library.
+//
+//  https://github.com/facebook/folly/blob/main/folly/stats/TDigest.h
+
 public
 struct DigestHistogram:Sendable
 {
