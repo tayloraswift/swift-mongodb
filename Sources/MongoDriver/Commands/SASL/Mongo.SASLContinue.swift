@@ -12,10 +12,8 @@ extension Mongo
         let message:SCRAM.Message
     }
 }
-extension Mongo.SASLContinue:MongoCommand
+extension Mongo.SASLContinue:MongoChannelCommand
 {
-    typealias Response = Mongo.SASLResponse
-    
     /// The string [`"saslContinue"`]().
     static
     var name:String

@@ -79,17 +79,13 @@ extension MongoChannel
     /// awaits its message-response.
     ///
     /// If the deadline passes without a reply from the server, the channel
-    /// will be closed. However, if the deadline has already passed before the
-    /// command can be sent, the channel will not be closed.
+    /// will be closed. This will happen even if the deadline has already passed;
+    /// therefore it is the responsibility of the calling code to check if the
+    /// deadline is sensible.
     @inlinable public
-    func run(command:__owned BSON.Fields,
-        by deadline:ContinuousClock.Instant) async throws -> MongoWire.Message<ByteBufferView>?
+    func run(command:__owned MongoWire.Message<[UInt8]>.Sections,
+        by deadline:ContinuousClock.Instant) async throws -> MongoWire.Message<ByteBufferView>
     {
-        guard .now <= deadline
-        else
-        {
-            return nil
-        }
         async
         let _:Void = self.timeout(by: deadline)
 

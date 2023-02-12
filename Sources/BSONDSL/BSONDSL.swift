@@ -1,16 +1,21 @@
 import BSON
 
+/// A `BSONDSL` is nothing more than a wrapper around some raw BSON document
+/// storage that supports an ``init(with:)`` builder API. Conforming to this
+/// protocol enables automatic `BSONDecodable` and `BSONEncodable`
+/// conformances, if the corresponding modules have been imported.
+///
+/// A `BSONDSL`-conforming type is only required to ensure that it generates
+/// a document, and not some other kind of BSON value, such as an array.
+///
+/// The specific encoding API vended and encodability protocol used is up to
+/// the conforming type.
 public
-protocol BSONDSL
+protocol BSONDSL:ExpressibleByDictionaryLiteral where Key == String, Value == Never
 {
-    associatedtype Subdocument:BSONDSL = Self
-    
     init(bytes:[UInt8])
 
     var bytes:[UInt8] { get }
-
-    mutating
-    func append(key:String, with serialize:(inout BSON.Field) -> ())
 }
 extension BSONDSL
 {
@@ -18,6 +23,14 @@ extension BSONDSL
     var isEmpty:Bool
     {
         self.bytes.isEmpty
+    }
+}
+extension BSONDSL
+{
+    @inlinable public
+    init(dictionaryLiteral:(String, Never)...)
+    {
+        self.init(bytes: [])
     }
 }
 extension BSONDSL
@@ -36,7 +49,7 @@ extension BSONDSL
     @inlinable public
     init(_ bson:BSON.Document<[UInt8]>)
     {
-        self.init(bytes: bson.bytes)
+        self.init(bytes: bson.slice)
     }
     /// Creates an encoding view around the given generic document,
     /// copying its backing storage if it is not already backed by
@@ -56,11 +69,7 @@ extension BSONDSL
         case let bson as BSON.Document<[UInt8]>:
             self.init(bson)
         case let bson:
-            self.init(bytes: .init(bson.bytes))
+            self.init(bytes: .init(bson.slice))
         }
     }
-}
-
-extension BSON.Fields:BSONDSL
-{
 }

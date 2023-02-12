@@ -42,33 +42,6 @@ extension Mongo.ConnectionPool
 }
 extension Mongo.ConnectionPool.Bootstrap
 {
-    /// Sets up a TCP channel to the given host that will stop the given
-    /// heartbeat if the channel is closed (for any reason). The heart
-    /// will not be stopped if the channel cannot be created in the first
-    /// place; the caller is responsible for disposing of the heartbeat
-    /// if this constructor throws an error.
-    func channel(to host:Mongo.Host, attaching heart:Heart) async throws -> MongoChannel
-    {
-        let channel:MongoChannel = .init(try await self.bootstrap(for: host).connect(
-            host: host.name,
-            port: host.port).get())
-        
-        channel.whenClosed
-        {
-            //  when the checker task is cancelled, it will also close the
-            //  connection again, which will be a no-op.
-            switch $0
-            {
-            case .success(()):
-                heart.stop()
-            case .failure(let error):
-                heart.stop(throwing: error)
-            }
-        }
-
-        return channel
-    }
-
     func bootstrap(for host:Mongo.Host) -> ClientBootstrap
     {
         .init(group: self.executor)

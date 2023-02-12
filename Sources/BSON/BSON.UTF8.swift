@@ -2,17 +2,6 @@ import BSONTraversal
 
 extension BSON
 {
-    @frozen public
-    enum UTF8Frame:VariableLengthBSONFrame
-    {
-        public static
-        let prefix:Int = 0
-        public static
-        let suffix:Int = 1
-    }
-}
-extension BSON
-{
     /// A BSON UTF-8 string. This string is allowed to contain null bytes.
     ///
     /// This type can wrap potentially-invalid UTF-8 data, therefore it
@@ -29,12 +18,12 @@ extension BSON
         /// include the trailing null byte that typically appears when this value
         /// occurs inline in a document.
         public 
-        let bytes:Bytes
+        let slice:Bytes
 
         @inlinable public
-        init(bytes:Bytes)
+        init(slice:Bytes)
         {
-            self.bytes = bytes
+            self.slice = slice
         }
     }
 }
@@ -52,7 +41,7 @@ extension BSON.UTF8 where Bytes:RangeReplaceableCollection
     @inlinable public
     init(from string:some StringProtocol)
     {
-        self.init(bytes: .init(string.utf8))
+        self.init(slice: .init(string.utf8))
     }
 }
 extension BSON.UTF8<String.UTF8View>:ExpressibleByStringLiteral,
@@ -76,7 +65,7 @@ extension BSON.UTF8<String.UTF8View>:ExpressibleByStringLiteral,
     {
         var string:String = string
             string.makeContiguousUTF8()
-        self.init(bytes: string.utf8)
+        self.init(slice: string.utf8)
     }
 }
 extension BSON.UTF8<Substring.UTF8View>
@@ -92,7 +81,20 @@ extension BSON.UTF8<Substring.UTF8View>
     {
         var string:Substring = string
             string.makeContiguousUTF8()
-        self.init(bytes: string.utf8)
+        self.init(slice: string.utf8)
+    }
+}
+extension BSON.UTF8<[UInt8]>
+{
+    /// Creates a BSON UTF-8 string backed by a `[UInt8]` array, by copying
+    /// the UTF-8 code units stored in the given static string.
+    ///
+    /// >   Complexity:
+    ///     O(*n*), where *n* is the length of the string.
+    @inlinable public
+    init(_ string:StaticString)
+    {
+        self.init(slice: string.withUTF8Buffer([UInt8].init(_:)))
     }
 }
 extension BSON.UTF8:Equatable
@@ -122,13 +124,13 @@ extension BSON.UTF8:VariableLengthBSON where Bytes:RandomAccessCollection<UInt8>
     public
     typealias Frame = BSON.UTF8Frame
 
-    /// Stores the argument in ``bytes`` unchanged. Equivalent to ``init(bytes:)``.
+    /// Stores the argument in ``slice`` unchanged. Equivalent to ``init(slice:)``.
     ///
     /// >   Complexity: O(1)
     @inlinable public
     init(slicing bytes:Bytes) throws
     {
-        self.init(bytes: bytes)
+        self.init(slice: bytes)
     }
 }
 
@@ -139,14 +141,14 @@ extension BSON.UTF8
     @inlinable public
     var header:Int32
     {
-        Int32.init(self.bytes.count) + 1
+        Int32.init(self.slice.count) + 1
     }
     /// The size of this string when encoded with its header and trailing null byte.
     /// This is *not* the length encoded in the header itself.
     @inlinable public
     var size:Int
     {
-        5 + self.bytes.count
+        5 + self.slice.count
     }
 }
 
@@ -161,6 +163,6 @@ extension String
     @inlinable public
     init(bson:BSON.UTF8<some BidirectionalCollection<UInt8>>)
     {
-        self.init(decoding: bson.bytes, as: Unicode.UTF8.self)
+        self.init(decoding: bson.slice, as: Unicode.UTF8.self)
     }
 }

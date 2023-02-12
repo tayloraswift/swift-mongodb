@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -21,7 +22,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Timeseries:BSONDictionaryDecodable
+extension Mongo.Timeseries:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
@@ -32,7 +33,7 @@ extension Mongo.Timeseries:BSONDictionaryDecodable
             granularity: try bson["granularity"].decode(to: Granularity.self))
     }
 }
-extension Mongo.Timeseries:BSONDocumentEncodable
+extension Mongo.Timeseries:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

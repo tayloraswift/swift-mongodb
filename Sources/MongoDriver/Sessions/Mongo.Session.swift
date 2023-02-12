@@ -53,12 +53,12 @@ extension Mongo
         public
         let id:SessionIdentifier
 
-        /// The server cluster associated with this session’s ``pool``.
+        /// The deployment associated with this session’s ``pool``.
         ///
-        /// This can also be obtained by accessing `pool.cluster`, but is
+        /// This can also be obtained by accessing `pool.deployment`, but is
         /// stored inline to speed up access.
         @usableFromInline
-        let cluster:Cluster
+        let deployment:Deployment
         /// The pool this session came from. The pool cannot be drained until
         /// this session object is deinitialized.
         private
@@ -73,7 +73,7 @@ extension Mongo
             self.reuse = true
             self.id = metadata.id
 
-            self.cluster = pool.cluster
+            self.deployment = pool.deployment
             self.pool = pool
         }
         deinit
@@ -165,9 +165,9 @@ extension Mongo.Session
         {
             fatalError(Self.transactionUnpinnedErrorMessage)
         }
-        let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now,
+        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
-        let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+        let connections:Mongo.ConnectionPool = try await self.deployment.pool(
             preference: preference,
             by: connect)
         let connection:Mongo.Connection = try await .init(from: connections, by: connect)
@@ -211,14 +211,14 @@ extension Mongo.Session
             fatalError(Self.transactionUnpinnedErrorMessage)
         }
 
-        let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now,
+        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
 
         return try await self.run(query: query, against: database, on: preference,
             by: deadline ?? connect.instant,
             with: consumer)
         {
-            let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+            let connections:Mongo.ConnectionPool = try await self.deployment.pool(
                 preference: preference,
                 by: connect)
             return try await .init(from: connections, by: connect)
@@ -227,6 +227,18 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
+    @discardableResult
+    public
+    func withSnapshotTransaction<Success>(
+        writeConcern:Mongo.WriteConcern?,
+        run body:(Mongo.Transaction) async throws -> Success)
+        async -> Mongo.TransactionResult<Success>
+    {
+        await self.withTransaction(writeConcern: writeConcern,
+            readConcern: .snapshot,
+            run: body)
+    }
+
     /// Yields a transaction context that can be used to run commands with this session
     /// as part of a transaction. If the closure parameter throws an error, the
     /// transaction will be aborted, otherwise it will be committed.
@@ -256,16 +268,28 @@ extension Mongo.Session
     public
     func withTransaction<Success>(
         writeConcern:Mongo.WriteConcern?,
+        readConcern:Mongo.ReadConcern?,
+        run body:(Mongo.Transaction) async throws -> Success)
+        async -> Mongo.TransactionResult<Success>
+    {
+        await self.withTransaction(writeConcern: writeConcern,
+            readConcern: readConcern.map(Mongo.ReadConcern.Level.ratification(_:)),
+            run: body)
+    }
+
+    private
+    func withTransaction<Success>(
+        writeConcern:Mongo.WriteConcern?,
         readConcern:Mongo.ReadConcern.Level?,
         run body:(Mongo.Transaction) async throws -> Success)
         async -> Mongo.TransactionResult<Success>
     {
-        let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now)
+        let deadline:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now)
         let connections:Mongo.ConnectionPool
         //  Transactions can only be performed on the primary/master, and moreover,
         //  must be pinned to a specific server. (This means primary stepdown is not
         //  allowed.)
-        switch await self.cluster.select(.primary, by: deadline)
+        switch await self.deployment.select(.primary, by: deadline)
         {
         case .failure(let error):
             return .unavailable(error)
@@ -349,8 +373,10 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant) async throws -> Command.Response
         where Command:MongoCommand
     {
-        let labels:Mongo.SessionLabels = self.labels(readPreference: preference,
-            readLevel: (command as? any MongoReadCommand).map(\.readLevel))
+        let labels:Mongo.SessionLabels = self.labels(
+            writeConcern: command.writeConcernLabel,
+            readConcern: command.readConcernLabel,
+            preference: preference)
         
         let sent:ContinuousClock.Instant = .now
         let reply:Mongo.Reply = try await connection.run(command: command,
@@ -361,7 +387,7 @@ extension Mongo.Session
         self.combine(operationTime: reply.operationTime,
             reuse: connection.reusable,
             sent: sent)
-        self.cluster.yield(clusterTime: reply.clusterTime)
+        self.deployment.yield(clusterTime: reply.clusterTime)
 
         return try Command.decode(reply: try reply.result.get())
     }
@@ -384,7 +410,7 @@ extension Mongo.Session
             batches = .create(preference: preference,
                 lifecycle: query.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
                 timeout: .init(
-                    milliseconds: self.cluster.timeout.milliseconds),
+                    milliseconds: self.deployment.timeout.milliseconds),
                 initial: try await self.run(command: query,
                     against: database,
                     over: connection,
@@ -416,7 +442,7 @@ extension Mongo.Session
     ///     -   readPreference:
     ///         The read preference to add to the returned command labels. It will
     ///         always be encoded.
-    ///     -   readLevel:
+    ///     -   readConcern:
     ///         The read level to use when computing the read concern that will be
     ///         added to the returned command labels. It will only be used if no
     ///         transaction is in progress, otherwise the transaction’s read level
@@ -430,33 +456,39 @@ extension Mongo.Session
     ///
     /// See: https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#constructing-the-first-command-within-a-transaction
     @usableFromInline
-    func labels(readPreference:Mongo.ReadPreference,
-        readLevel:Mongo.ReadLevel??) -> Mongo.SessionLabels
+    func labels(writeConcern:Mongo.WriteConcern?, readConcern:Mongo.ReadConcern??,
+        preference:Mongo.ReadPreference) -> Mongo.SessionLabels
     {
-        let readConcern:Mongo.ReadConcern?
+        let writeOptions:Mongo.WriteConcern.Options? =
+            writeConcern.map(Mongo.WriteConcern.Options.init(_:))
+        let readOptions:Mongo.ReadConcern.Options?
         let transaction:Mongo.TransactionLabels?
         switch self.transaction.phase
         {
-        case .starting(let readLevel)?:
+        case .starting(let level)?:
             //  Increment the transaction number lazily.
             self.transaction.number += 1
             self.transaction.phase = .started
 
-            readConcern = .level(readLevel, after: self.preconditionTime)
+            readOptions = .init(level: level, after: self.preconditionTime)
             transaction = .starting(self.transaction.number)
         
         case .started?:
-            readConcern = nil
+            readOptions = nil
             transaction = .started(self.transaction.number)
         
         case nil:
-            readConcern = readLevel.map { .level($0, after: self.preconditionTime) }
+            readOptions = readConcern.map
+            {
+                .init(level: $0?.level, after: self.preconditionTime)
+            }
             transaction = nil
         }
-        return .init(clusterTime: self.cluster.time,
-            readPreference: readPreference,
-            readConcern: readConcern,
+        return .init(clusterTime: self.deployment.clusterTime,
+            writeConcern: writeOptions,
+            readConcern: readOptions,
             transaction: transaction,
+            preference: preference,
             session: self.id)
     }
     /// Update the session’s state with an observed operation time, and the local

@@ -1,5 +1,5 @@
 public
-protocol BSONDocumentEncodable:BSONEncodable
+protocol BSONDocumentEncodable:BSONDSLEncodable
 {
     /// Creates a document from this instance by writing its
     /// fields to the encoding view parameter. The implementation

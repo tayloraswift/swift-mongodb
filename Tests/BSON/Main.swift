@@ -406,37 +406,37 @@ enum Main:SyncTests
 
             TestValidBSON(tests / "generic-empty",
                 canonical: "0D000000057800000000000000",
-                expected: ["x": .binary(.init(subtype: .generic, bytes: []))])
+                expected: ["x": .binary(.init(subtype: .generic, slice: []))])
             
             TestValidBSON(tests / "generic",
                 canonical: "0F0000000578000200000000FFFF00",
                 expected: ["x": .binary(.init(subtype: .generic,
-                    bytes: Base16.decode("ffff")))])
+                    slice: Base16.decode("ffff")))])
             
             TestValidBSON(tests / "function",
                 canonical: "0F0000000578000200000001FFFF00",
                 expected: ["x": .binary(.init(subtype: .function,
-                    bytes: Base16.decode("ffff")))])
+                    slice: Base16.decode("ffff")))])
             
             TestValidBSON(tests / "uuid",
                 canonical: "1D000000057800100000000473FFD26444B34C6990E8E7D1DFC035D400", 
                 expected: ["x": .binary(.init(subtype: .uuid,
-                    bytes: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
+                    slice: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
             
             TestValidBSON(tests / "md5",
                 canonical: "1D000000057800100000000573FFD26444B34C6990E8E7D1DFC035D400", 
                 expected: ["x": .binary(.init(subtype: .md5,
-                    bytes: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
+                    slice: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
             
             TestValidBSON(tests / "compressed",
                 canonical: "1D000000057800100000000773FFD26444B34C6990E8E7D1DFC035D400", 
                 expected: ["x": .binary(.init(subtype: .compressed,
-                    bytes: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
+                    slice: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
             
             TestValidBSON(tests / "custom",
                 canonical: "0F0000000578000200000080FFFF00",
                 expected: ["x": .binary(.init(subtype: .custom(code: 0x80),
-                    bytes: Base16.decode("ffff")))])
+                    slice: Base16.decode("ffff")))])
             
             TestInvalidBSON(tests / "invalid-length-over",
                 invalid: "1D000000_05_7800_FF000000_05_73FFD26444B34C6990E8E7D1DFC035D400",
@@ -660,7 +660,7 @@ enum Main:SyncTests
             
             TestValidBSON(tests / "invalid-utf-8",
                 canonical: "0E00000002610002000000E90000",
-                expected: ["a": .string(.init(bytes: [0xe9]))])
+                expected: ["a": .string(.init(slice: [0xe9]))])
         }
         
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/symbol.json

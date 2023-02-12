@@ -22,7 +22,7 @@ extension BSON.Document
     @inlinable public
     func parse(to decode:(_ key:String, _ value:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
     {
-        var input:BSON.Input<Bytes> = .init(self.bytes)
+        var input:BSON.Input<Bytes> = .init(self.slice)
         while let code:UInt8 = input.next()
         {
             let type:BSON = try .init(code: code)
@@ -65,7 +65,7 @@ extension BSON.Document:ExpressibleByDictionaryLiteral
         assert(output.destination.count == size,
             "precomputed size (\(size)) does not match output size (\(output.destination.count))")
 
-        self.init(bytes: output.destination)
+        self.init(slice: output.destination)
     }
 
     /// Creates a document containing a single key-value pair.

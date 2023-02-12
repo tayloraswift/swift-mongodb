@@ -23,12 +23,12 @@ extension Error
 }
 extension Error
 {
-    private static
+    static
     func bold(_ string:String) -> String
     {
         "\u{1B}[1m\(string)\u{1B}[0m"
     }
-    private static
+    static
     func color(_ string:String) -> String 
     {
         let color:(r:UInt8, g:UInt8, b:UInt8) = (r: 255, g:  51, b:  51)
@@ -38,17 +38,19 @@ extension Error
     fileprivate
     func description(notes:[String]) -> String
     {
-        let type:String = (self as? NamedError).map(\.name) ?? .init(describing: Self.self)
-
         var description:String
-        if  let  error:any CustomStringConvertible = self as? any CustomStringConvertible,
-                !error.description.isEmpty
+        if      let error:any NamedError = self as? any NamedError
         {
-            description = "\(Self.bold(Self.color("\(type):"))) \(error.description)"
+            description = error.description
+        }
+        else if let error:any CustomStringConvertible = self as? any CustomStringConvertible,
+                   !error.description.isEmpty
+        {
+            description = "\(Self.bold(Self.color("\(Self.self):"))) \(error.description)"
         }
         else
         {
-            description = "\(Self.bold(Self.color("\(type):"))) (no description available)"
+            description = "\(Self.bold(Self.color("\(Self.self):"))) (no description available)"
         }
         for note:String in notes.reversed()
         {

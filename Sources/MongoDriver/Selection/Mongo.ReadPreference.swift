@@ -123,7 +123,7 @@ extension Mongo.ReadPreference
         }
     }
 }
-extension Mongo.ReadPreference:BSONDocumentEncodable
+extension Mongo.ReadPreference:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)

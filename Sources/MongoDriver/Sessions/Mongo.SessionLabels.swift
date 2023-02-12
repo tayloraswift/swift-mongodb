@@ -10,31 +10,33 @@ extension Mongo
         /// command.
         public
         let clusterTime:ClusterTime?
-        /// The read preference that will be appended to the relevant command.
-        public
-        let readPreference:ReadPreference?
         /// The read concern that will be appended to the relevant command.
-        public
-        let readConcern:ReadConcern?
+        let writeConcern:WriteConcern.Options?
+        /// The read concern that will be appended to the relevant command.
+        let readConcern:ReadConcern.Options?
         /// The transaction number and phase that will be appended to the
         /// relevant command.
         public
         let transaction:TransactionLabels?
+        /// The read preference that will be appended to the relevant command.
+        public
+        let preference:ReadPreference?
         /// The session identifier that will be appended to the relevant command.
         public
         let session:SessionIdentifier
 
-        public
         init(clusterTime:ClusterTime?,
-            readPreference:ReadPreference?,
-            readConcern:ReadConcern?,
+            writeConcern:WriteConcern.Options?,
+            readConcern:ReadConcern.Options?,
             transaction:TransactionLabels?,
+            preference:ReadPreference?,
             session:SessionIdentifier)
         {
             self.clusterTime = clusterTime
-            self.readPreference = readPreference
+            self.writeConcern = writeConcern
             self.readConcern = readConcern
             self.transaction = transaction
+            self.preference = preference
             self.session = session
         }
     }

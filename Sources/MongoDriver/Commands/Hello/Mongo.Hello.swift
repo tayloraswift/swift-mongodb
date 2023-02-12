@@ -17,18 +17,18 @@ extension Mongo
         }
     }
 }
-extension Mongo.Hello:MongoCommand
+extension Mongo.Hello:MongoChannelCommand
 {
-    /// `Hello` must be sent to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
-
     /// The string [`"hello"`]().
     @inlinable public static
     var name:String
     {
         "hello"
     }
+
+    /// `Hello` must be sent to the `admin` database.
+    public
+    typealias Database = Mongo.Database.Admin
 
     public
     func encode(to bson:inout BSON.Fields)
@@ -37,7 +37,4 @@ extension Mongo.Hello:MongoCommand
         bson["client"] = self.client
         bson["saslSupportedMechs"] = self.user
     }
-
-    public
-    typealias Response = Mongo.HelloResponse
 }

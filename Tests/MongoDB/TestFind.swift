@@ -23,7 +23,7 @@ func TestFind(_ tests:TestGroup,
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 100)
                 let response:Mongo.InsertResponse = try await pool.run(
-                    command: Mongo.Insert<Ordinals>.init(collection: collection,
+                    command: Mongo.Insert.init(collection: collection,
                         elements: ordinals),
                     against: database)
                 
@@ -90,7 +90,7 @@ func TestFind(_ tests:TestGroup,
                         skip: 10,
                         sort: .init
                         {
-                            $0["ordinal"] = -1 as Int32
+                            $0["ordinal"] = (-)
                         }),
                     against: database)
 
@@ -136,13 +136,49 @@ func TestFind(_ tests:TestGroup,
                         {
                             $0["ordinal"] = .init
                             {
-                                $0["$mod"] = [3, 0]
+                                $0[.mod] = (by: 3, is: 0)
                             }
                         }),
                     against: database)
                 {
                     var expected:Array<Ordinal>.Iterator = 
                         ordinals.filter { $0.value % 3 == 0 }.makeIterator()
+                    for try await batch:[Ordinal] in $0
+                    {
+                        for returned:Ordinal in batch
+                        {
+                            if  let expected:Ordinal = tests.expect(value: expected.next())
+                            {
+                                tests.expect(returned ==? expected)
+                            }
+                        }
+                    }
+                    tests.expect(nil: expected.next())
+                }
+            }
+        }
+        do
+        {
+            let tests:TestGroup = tests / "projection"
+            await tests.do
+            {
+                let session:Mongo.Session = try await .init(from: pool)
+                try await session.run(query: Mongo.Find<Ordinal>.init(
+                        collection: collection,
+                        stride: 10,
+                        projection: .init
+                        {
+                            $0["_id"] = 1 as Int32
+                            $0["ordinal"] = .init
+                            {
+                                $0[.add] = ("$ordinal", 5)
+                            }
+                        }),
+                    against: database)
+                {
+                    var expected:Ordinals.Iterator = Ordinals.init(
+                        identifiers: 0 ..< 100,
+                        start: 5).makeIterator()
                     for try await batch:[Ordinal] in $0
                     {
                         for returned:Ordinal in batch

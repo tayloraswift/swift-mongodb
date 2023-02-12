@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -23,7 +24,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.CursorIdentifier:BSONScheme
+extension Mongo.CursorIdentifier:BSONDecodable, BSONEncodable
 {
 }
 extension Mongo.CursorIdentifier:CustomStringConvertible

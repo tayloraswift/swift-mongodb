@@ -7,34 +7,34 @@ extension Mongo
     /// status of all inserts.
     ///
     /// > See:  https://www.mongodb.com/docs/manual/reference/command/insert/
-    @frozen public
-    struct Insert<Elements>:Sendable
-        where Elements:Sequence & Sendable, Elements.Element:MongoEncodable
+    public
+    struct Insert:Sendable
     {
-        public
-        let collection:Collection
-        public
-        let elements:Elements
-
-        public
-        let bypassDocumentValidation:Bool?
-        public
-        let ordered:Bool?
         public
         let writeConcern:WriteConcern?
 
+        public
+        let documents:Mongo.Payload.Documents?
+
+        public
+        var fields:BSON.Fields
+
         @inlinable public
-        init(collection:Collection, elements:Elements,
+        init<Elements>(collection:Collection, elements:Elements,
             bypassDocumentValidation:Bool? = nil,
             ordered:Bool? = nil,
             writeConcern:WriteConcern? = nil)
+            where Elements:Sequence, Elements.Element:MongoEncodable
         {
-            self.collection = collection
-            self.elements = elements
-
-            self.bypassDocumentValidation = bypassDocumentValidation
-            self.ordered = ordered
             self.writeConcern = writeConcern
+            self.documents = .init(elements)
+
+            self.fields = .init
+            {
+                $0[Self.name] = collection
+                $0["bypassDocumentValidation"] = bypassDocumentValidation
+                $0["ordered"] = ordered
+            }
         }
     }
 }
@@ -46,17 +46,13 @@ extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     {
         "insert"
     }
-    
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = self.collection
-        bson["bypassDocumentValidation"] = self.bypassDocumentValidation
-        bson["documents"] = .init(elements: self.elements)
-        bson["ordered"] = self.ordered
-        bson["writeConcern"] = self.writeConcern
-    }
 
     public
     typealias Response = Mongo.InsertResponse
+
+    @inlinable public
+    var payload:Mongo.Payload?
+    {
+        self.documents.map { .init(id: .documents, documents: $0) }
+    }
 }

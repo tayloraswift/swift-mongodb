@@ -1,59 +1,167 @@
-import BSONEncoding
+// import BSONEncoding
+// import BSONDecoding
 
-extension Mongo
-{
-    public
-    enum Stage:Sendable
-    {
-        case bucket         (MongoExpression.Document)
-        case bucketAuto     (MongoExpression.Document)
-        case changeStream   (MongoExpression.Document)
-        case collectionStats(MongoExpression.Document)
-        case count          (String)
-        case densify        (MongoExpression.Document)
-        case documents      (MongoExpression)
-        case facet          (MongoExpression.Document)
-        case fill           (MongoExpression.Document)
-        case geoNear        (MongoExpression.Document)
-        case graphLookup    (MongoExpression.Document)
-        case group          (MongoExpression.Document)
-        case indexStats
-        case limit          (Int)
-        case listSessions   (MongoExpression.Document)
-        case lookup         (MongoExpression.Document)
-        case match          (MongoQuery.Document)
-        case planCacheStats
-        case project        (BSON.Fields)
-        case redact         (MongoExpression)
-        case replaceRoot    (MongoExpression.Document)
-        case sample         (MongoExpression.Document)
-        case set            (MongoExpression.Document)
-        case setWindowFields(MongoExpression.Document)
-        case skip           (Int)
-        case sort           (MongoExpression.Document)
-        case sortByCount    (MongoExpression)
-        case union     (with:Collection, [Stage] = [])
-        case unset          ([String])
-    }
-}
-extension Mongo.Stage
-{
-    @available(*, unavailable, renamed: "set(_:)")
-    public static
-    func addFields(_ fields:MongoExpression.Document) -> Self
-    {
-        .set(fields)
-    }
-    @available(*, unavailable, renamed: "collectionStats(_:)")
-    public static
-    func collStats(_ fields:MongoExpression.Document) -> Self
-    {
-        .collectionStats(fields)
-    }
-    @available(*, unavailable, renamed: "union(with:_:)")
-    public static
-    func unionWith(_ collection:Mongo.Collection, _ pipeline:[Mongo.Stage] = []) -> Self
-    {
-        .union(with: collection, pipeline)
-    }
-}
+// extension Mongo
+// {
+//     @frozen public
+//     struct Stage:Sendable
+//     {
+//         public
+//         let encoded:BSON.Fields
+//         // case bucket         (MongoExpressionDSL)
+//         // case bucketAuto     (MongoExpressionDSL)
+//         // case changeStream   (MongoExpressionDSL)
+//         // case collectionStats(MongoExpressionDSL)
+//         // case count          (String)
+//         // case densify        (MongoExpressionDSL)
+//         // case documents      (MongoExpression)
+//         // case facet          (MongoExpressionDSL)
+//         // case fill           (MongoExpressionDSL)
+//         // case geoNear        (MongoExpressionDSL)
+//         // case graphLookup    (MongoExpressionDSL)
+//         // case group          (MongoExpressionDSL)
+//         // case indexStats
+//         // case limit          (Int)
+//         // case listSessions   (MongoExpressionDSL)
+//         // case lookup         (MongoExpressionDSL)
+//         // case match          (Mongo.PredicateDocument)
+//         // case planCacheStats
+//         // case project        (MongoProjection.Document)
+//         // case redact         (MongoExpression)
+//         // case replaceRoot    (MongoExpressionDSL)
+//         // case sample         (MongoExpressionDSL)
+//         // case set            (MongoExpressionDSL)
+//         // case setWindowFields(MongoExpressionDSL)
+//         // case skip           (Int)
+//         // case sort           (MongoExpressionDSL)
+//         // case sortByCount    (MongoExpression)
+//         // case union     (with:Collection, [Stage] = [])
+//         // case unset          ([String])
+//         @inlinable public
+//         init(encoded:BSON.Fields)
+//         {
+//             self.encoded = encoded
+//         }
+//     }
+// }
+// extension Mongo.Stage
+// {
+//     @inlinable public
+//     init(_ name:String, value:some BSONDSLEncodable)
+//     {
+//         self.init(encoded: .init
+//         {
+//             $0[pushing: name] = value
+//         })
+//     }
+//     @inlinable public
+//     init<DSL>(_ name:String,
+//         with populate:(inout DSL) throws -> ()) rethrows where DSL:BSONDSL & BSONDSLEncodable
+//     {
+//         self.init(name, value: try DSL.init(with: populate))
+//     }
+// }
+// extension Mongo.Stage:BSONEncodable
+// {
+//     public
+//     func encode(to field:inout BSON.Field)
+//     {
+//         self.encoded.encode(to: &field)
+//     }
+// }
+// extension Mongo.Stage
+// {
+//     @available(*, unavailable, renamed: "set(_:)")
+//     public static
+//     func addFields(
+//         _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
+//     {
+//         try .set(populate)
+//     }
+//     @available(*, unavailable, renamed: "collectionStats(_:)")
+//     public static
+//     func collStats(
+//         _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
+//     {
+//         try .collectionStats(populate)
+//     }
+//     @available(*, unavailable, renamed: "union(with:_:)")
+//     public static
+//     func unionWith(_ other:Mongo.Collection, pipeline:[Self] = []) -> Self
+//     {
+//         .union(with: other, pipeline: pipeline)
+//     }
+// }
+// extension Mongo.Stage
+// {
+//     @inlinable public static
+//     func bucket(_ document:__owned Mongo.PredicateDocument) -> Self
+//     {
+//         .init("$bucket", value: document)
+//     }
+//     @inlinable public static
+//     func bucket(_ populate:(inout Mongo.PredicateDocument) throws -> ()) rethrows -> Self
+//     {
+//         .bucket(try .init(with: populate))
+//     }
+
+//     @inlinable public static
+//     func match(_ document:__owned Mongo.PredicateDocument) -> Self
+//     {
+//         .init("$match", value: document)
+//     }
+//     @inlinable public static
+//     func match(_ populate:(inout Mongo.PredicateDocument) throws -> ()) rethrows -> Self
+//     {
+//         .match(try .init(with: populate))
+//     }
+
+//     @inlinable public static
+//     func project(_ document:__owned MongoProjection) -> Self
+//     {
+//         .init("$project", value: document)
+//     }
+//     @inlinable public static
+//     func project(_ populate:(inout MongoProjection) throws -> ()) rethrows -> Self
+//     {
+//         .project(try .init(with: populate))
+//     }
+
+//     @inlinable public static
+//     func collectionStats(_ document:__owned MongoExpressionDSL) -> Self
+//     {
+//         .init("$collStats", value: document)
+//     }
+//     @inlinable public static
+//     func collectionStats(
+//         _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
+//     {
+//         .collectionStats(try .init(with: populate))
+//     }
+
+//     @inlinable public static
+//     func set(_ document:__owned MongoExpressionDSL) -> Self
+//     {
+//         .init("$set", value: document)
+//     }
+//     @inlinable public static
+//     func set(
+//         _ populate:(inout MongoExpressionDSL) throws -> ()) rethrows -> Self
+//     {
+//         .set(try .init(with: populate))
+//     }
+// }
+// extension Mongo.Stage
+// {
+//     @inlinable public static
+//     func union(with other:Mongo.Collection, pipeline:[Self] = []) -> Self
+//     {
+//         pipeline.isEmpty ? .init("$unionWith", value: other) : .init("$unionWith")
+//         {
+//             (bson:inout BSON.Fields) in
+
+//             bson["coll"] = other
+//             bson["pipeline"] = pipeline
+//         }
+//     }
+// }

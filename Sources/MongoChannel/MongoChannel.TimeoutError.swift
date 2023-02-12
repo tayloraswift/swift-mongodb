@@ -5,6 +5,7 @@ extension MongoChannel
     public
     struct TimeoutError:Equatable, Error
     {
+        public
         let sent:Bool
 
         public

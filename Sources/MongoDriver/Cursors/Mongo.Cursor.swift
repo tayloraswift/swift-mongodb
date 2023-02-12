@@ -33,7 +33,7 @@ extension Mongo.Cursor
         .init(rawValue: self.position)
     }
 }
-extension Mongo.Cursor:BSONDictionaryDecodable
+extension Mongo.Cursor:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws

@@ -22,10 +22,6 @@ extension Mongo.ConfigureFailpoint
 }
 extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
 {
-    /// `ConfigureFailpoint` must be sent to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
-
     /// The string [`"configureFailPoint"`](). Note that the capitalization
     /// is different from that of the command type.
     @inlinable public static
@@ -34,34 +30,40 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
         "configureFailPoint"
     }
 
+    /// `ConfigureFailpoint` must be sent to the `admin` database.
     public
-    func encode(to bson:inout BSON.Fields)
-    {
-        //  note: capitalization
-        bson[Self.name] = Options.name
+    typealias Database = Mongo.Database.Admin
 
-        switch self
+    public
+    var fields:BSON.Fields
+    {
+        .init
         {
-        case .always(let options):
-            bson["data"] = options
-            bson["mode"] = "alwaysOn"
-        
-        case .random(let options, probability: let probability):
-            bson["data"] = options
-            bson["mode"] = .init
+            $0[Self.name] = Options.name
+
+            switch self
             {
-                $0["activationProbability"] = probability
+            case .always(let options):
+                $0["data"] = options
+                $0["mode"] = "alwaysOn"
+            
+            case .random(let options, probability: let probability):
+                $0["data"] = options
+                $0["mode"] = .init
+                {
+                    $0["activationProbability"] = probability
+                }
+            
+            case .times(let options, count: let count):
+                $0["data"] = options
+                $0["mode"] = .init
+                {
+                    $0["times"] = count
+                }
+            
+            case .off:
+                $0["mode"] = "off"
             }
-        
-        case .times(let options, count: let count):
-            bson["data"] = options
-            bson["mode"] = .init
-            {
-                $0["times"] = count
-            }
-        
-        case .off:
-            bson["mode"] = "off"
         }
     }
 }

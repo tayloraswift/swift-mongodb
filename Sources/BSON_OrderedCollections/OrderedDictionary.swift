@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import BSONUnions
 import OrderedCollections
 
@@ -18,15 +19,24 @@ extension OrderedDictionary:BSONDocumentDecodable, BSONDecodable
         }
     }
 }
-extension OrderedDictionary:BSONDocumentEncodable, BSONEncodable
-    where Key == String, Value:BSONEncodable
+extension OrderedDictionary:BSONDSLEncodable
+    where Key == String, Value:BSONDSLEncodable
 {
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(document: .init(BSON.Fields.init(with: self.encode(to:))))
+    }
     public
     func encode(to bson:inout BSON.Fields)
     {
         for (key, value):(Key, Value) in self.elements
         {
-            bson[key] = value
+            bson[pushing: key] = value
         }
     }
+}
+extension OrderedDictionary:BSONDocumentEncodable, BSONEncodable
+    where Key == String, Value:BSONEncodable
+{
 }

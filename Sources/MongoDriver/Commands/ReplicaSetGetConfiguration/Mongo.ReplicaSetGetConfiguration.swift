@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import NIOCore
 
 extension Mongo
@@ -14,6 +15,13 @@ extension Mongo
 }
 extension Mongo.ReplicaSetGetConfiguration:MongoCommand
 {
+    /// The string [`"replSetGetConfig"`]().
+    @inlinable public static
+    var name:String
+    {
+        "replSetGetConfig"
+    }
+    
     /// `ReplicaSetGetConfiguration` must be sent to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
@@ -41,18 +49,14 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
     {
         return try bson["config"].decode(to: Mongo.ReplicaSetConfiguration.self)
     }
-    
-    /// The string [`"replSetGetConfig"`]().
-    @inlinable public static
-    var name:String
-    {
-        "replSetGetConfig"
-    }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        bson[Self.name] = 1 as Int32
+        .init
+        {
+            $0[Self.name] = 1 as Int32
+        }
     }
 }
 extension Mongo.ReplicaSetGetConfiguration:MongoImplicitSessionCommand

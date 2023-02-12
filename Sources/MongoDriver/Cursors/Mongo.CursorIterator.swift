@@ -103,7 +103,7 @@ extension Mongo.CursorIterator
         try await self.pinned.session.run(
             command: Mongo.GetMore<Element>.init(cursor: self.id,
                 collection: self.namespace.collection,
-                timeout: self.lifecycle._timeout,
+                timeout: self.lifecycle.timeout,
                 count: self.stride),
             against: self.namespace.database,
             over: self.pinned.connection,

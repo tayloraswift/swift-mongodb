@@ -23,18 +23,18 @@ extension Mongo
         }
     }
 }
-extension Mongo.EndSessions:MongoCommand
+extension Mongo.EndSessions:MongoChannelCommand
 {
-    /// `EndSessions` must be sent to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
-
     /// The string [`"endSessions"`]().
     @inlinable public static
     var name:String
     {
         "endSessions"
     }
+
+    /// `EndSessions` must be sent to the `admin` database.
+    public
+    typealias Database = Mongo.Database.Admin
 
     public
     func encode(to bson:inout BSON.Fields)

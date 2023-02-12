@@ -117,7 +117,7 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
         case .request(let command, let continuation):
             let request:MongoWire.MessageIdentifier = self.request.next()
             let message:MongoWire.Message<[UInt8]> = .init(
-                sections: .init(body: .init(command)),
+                sections: command,
                 checksum: false,
                 id: request)
             

@@ -19,7 +19,7 @@ enum Main:SyncTests
             (tests / "null").do
             {
                 let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try bson.dictionary()
-                try dictionary["null"].decode(to: Void.self)
+                let _:Never? = try dictionary["null"].decode(to: Never?.self)
             }
             TestDecoding(tests / "max", bson: bson, to: .init())
             {
@@ -270,7 +270,7 @@ enum Main:SyncTests
             let tests:TestGroup = tests / "binary" / "md5"
 
             let md5:BSON.Binary<[UInt8]> = .init(subtype: .md5,
-                bytes: [0xff, 0xfe, 0xfd])
+                slice: [0xff, 0xfe, 0xfd])
             let bson:BSON.Document<[UInt8]> =
             [
                 "md5": .binary(md5),

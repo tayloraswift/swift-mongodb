@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -63,6 +64,9 @@ extension Mongo.Host:LosslessStringConvertible
         "\(self.name):\(self.port)"
     }
 }
-extension Mongo.Host:BSONStringScheme
+extension Mongo.Host:BSONDecodable, BSONStringDecodable
+{
+}
+extension Mongo.Host:BSONEncodable, BSONStringEncodable
 {
 }

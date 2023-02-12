@@ -52,9 +52,12 @@ extension BSON.Input
                 }
             
             case .sequence:
-                let sequence:MongoWire.Message<Source.SubSequence>.Sequence = try self.parse(
-                    as: MongoWire.Message<Source.SubSequence>.Sequence.self)
-                outlined.append(try sequence.parse())
+                var sequence:BSON.Input<Source.SubSequence> = .init(
+                    try self.parse(MongoWire.SequenceFrame.self))
+                
+                let id:String = try sequence.parse(as: String.self)
+
+                outlined.append(.init(id: id, slice: sequence.remaining))
             }
         }
 
@@ -80,14 +83,13 @@ extension BSON.Output
         self.append(MongoWire.Section.body.rawValue)
         self.serialize(document: sections.body)
 
-        for section:MongoWire.Message<Bytes>.Outline in sections.outlined
+        for outline:MongoWire.Message<Bytes>.Outline in sections.outlined
         {
             self.append(MongoWire.Section.sequence.rawValue)
-            // TODO: get rid of this intermediate buffer
-            let sequence:MongoWire.Message<[UInt8]>.Sequence = .init(id: section.id,
-                documents: section.documents)
-            self.serialize(integer: sequence.header as Int32)
-            self.append(sequence.bytes)
+
+            self.serialize(integer: Int32.init(outline.size))
+            self.serialize(key: outline.id)
+            self.append(outline.slice)
         }
     }
 }

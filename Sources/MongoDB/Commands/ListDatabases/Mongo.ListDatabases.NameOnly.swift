@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo.ListDatabases
 {
@@ -13,30 +14,22 @@ extension Mongo.ListDatabases
     struct NameOnly:Sendable
     {
         public
-        let base:Mongo.ListDatabases
+        var base:Mongo.ListDatabases
 
         public
-        init(_ base:Mongo.ListDatabases)
+        init(authorizedDatabases:Bool? = nil, filter:Mongo.PredicateDocument = [:])
         {
-            self.base = base
+            self.base = .init(authorizedDatabases: authorizedDatabases, filter: filter)
+            self.base.fields["nameOnly"] = true
         }
     }
 }
 extension Mongo.ListDatabases.NameOnly
 {
-    public
-    init(authorizedDatabases:Bool? = nil, filter:BSON.Fields = .init())
-    {
-        self.init(.init(authorizedDatabases: authorizedDatabases, filter: filter))
-    }
+
 }
 extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
 {
-    public
-    typealias Database = Mongo.Database.Admin
-    public
-    typealias Response = [Mongo.Database]
-
     /// The string [`"listDatabases"`]().
     @inlinable public static
     var name:String
@@ -45,10 +38,14 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    typealias Database = Mongo.Database.Admin
+    public
+    typealias Response = [Mongo.Database]
+
+    public
+    var fields:BSON.Fields
     {
-        self.base.encode(to: &bson)
-        bson["nameOnly"] = true
+        self.base.fields
     }
 
     @inlinable public static

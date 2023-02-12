@@ -532,14 +532,15 @@ extension AnyBSON
     /// Attempts to load an explicit ``null`` from this variant.
     /// 
     /// -   Returns:
-    ///     [`()`]() if this variant is ``null``, [`nil`]() otherwise.
+    ///     [`nil`]() in the inner optional this variant is ``null``,
+    //      [`nil`]() in the outer optional otherwise.
     @inlinable public 
-    var null:Void?
+    var null:Never??
     {
         switch self 
         {
-        case .null: return () 
-        default:    return nil
+        case .null: return (nil as Never?) as Never??
+        default:    return  nil            as Never??
         }
     }
     /// Attempts to load a ``max`` key from this variant.

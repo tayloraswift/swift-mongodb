@@ -9,19 +9,10 @@ extension Mongo
     struct Create:Sendable
     {
         public
-        let collection:Collection
-        
-        public
-        let collation:Collation?
-        public
         let writeConcern:WriteConcern?
-        public
-        let indexOptionDefaults:StorageConfiguration?
-        public
-        let storageEngine:StorageConfiguration?
 
         public
-        let variant:Variant
+        var fields:BSON.Fields
 
         public
         init(collection:Collection,
@@ -31,12 +22,42 @@ extension Mongo
             storageEngine:StorageConfiguration? = nil,
             variant:Variant = .collection())
         {
-            self.collection = collection
-            self.collation = collation
             self.writeConcern = writeConcern
-            self.indexOptionDefaults = indexOptionDefaults
-            self.storageEngine = storageEngine
-            self.variant = variant
+
+            self.fields = .init
+            {
+                $0[Self.name] = collection
+                $0["collation"] = collation
+                $0["indexOptionDefaults", elide: true] = indexOptionDefaults
+                $0["storageEngine", elide: true] = storageEngine
+
+                switch variant
+                {
+                case .collection(cap: let cap,
+                    validationAction: let action,
+                    validationLevel: let level,
+                    validator: let validator):
+
+                    if let cap:Mongo.Cap
+                    {
+                        $0["capped"] = true
+                        $0["size"] = cap.size
+                        $0["max"] = cap.max
+                    }
+
+                    $0["validator", elide: true] = validator
+                    $0["validationAction"] = action
+                    $0["validationLevel"] = level
+                
+                case .timeseries(let timeseries):
+                    $0["timeseries"] = timeseries
+                
+                case .view(on: let collection, pipeline: let pipeline):
+                    // don’t elide pipeline, it should always be there
+                    $0["viewOn"] = collection
+                    $0["pipeline", elide: false] = pipeline
+                }
+            }
         }
     }
 }
@@ -47,41 +68,5 @@ extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     var name:String
     {
         "create"
-    }
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = self.collection
-        bson["collation"] = self.collation
-        bson["writeConcern"] = self.writeConcern
-        bson["indexOptionDefaults", elide: true] = self.indexOptionDefaults
-        bson["storageEngine", elide: true] = self.storageEngine
-
-        switch self.variant
-        {
-        case .collection(cap: let cap,
-            validationAction: let action,
-            validationLevel: let level,
-            validator: let validator):
-
-            if let cap:Mongo.Cap
-            {
-                bson["capped"] = true
-                bson["size"] = cap.size
-                bson["max"] = cap.max
-            }
-
-            bson["validator", elide: true] = validator
-            bson["validationAction"] = action
-            bson["validationLevel"] = level
-        
-        case .timeseries(let timeseries):
-            bson["timeseries"] = timeseries
-        
-        case .view(on: let collection, pipeline: let pipeline):
-            // don’t elide pipeline, it should always be there
-            bson["viewOn"] = collection
-            bson["pipeline", elide: false] = pipeline
-        }
     }
 }

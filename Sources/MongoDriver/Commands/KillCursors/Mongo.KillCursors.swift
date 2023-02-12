@@ -26,16 +26,19 @@ extension Mongo.KillCursors:MongoCommand
     {
         "killCursors"
     }
-
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = self.collection
-        bson["cursors"] = self.cursors
-    }
     
     public
     typealias Response = Mongo.KillCursorsResponse
+
+    public
+    var fields:BSON.Fields
+    {
+        .init
+        {
+            $0[Self.name] = self.collection
+            $0["cursors"] = self.cursors
+        }
+    }
 }
 extension Mongo.KillCursors:MongoTransactableCommand
 {

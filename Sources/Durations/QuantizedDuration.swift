@@ -53,6 +53,57 @@ extension QuantizedDuration where Self == Milliseconds
         .init(rawValue: minutes.rawValue * 60_000)
     }
 }
+extension QuantizedDuration where Self == Microseconds
+{
+    @inlinable public static
+    func microseconds(_ microseconds:Int64) -> Self
+    {
+        .init(rawValue: microseconds)
+    }
+    @inlinable public static
+    func milliseconds(_ milliseconds:Int64) -> Self
+    {
+        .init(rawValue: milliseconds * 1_000)
+    }
+    @inlinable public static
+    func seconds(_ seconds:Seconds) -> Self
+    {
+        .init(rawValue: seconds.rawValue * 1_000_000)
+    }
+    @inlinable public static
+    func minutes(_ minutes:Minutes) -> Self
+    {
+        .init(rawValue: minutes.rawValue * 60_000_000)
+    }
+}
+extension QuantizedDuration where Self == Nanoseconds
+{
+    @inlinable public static
+    func nanoseconds(_ nanoseconds:Int64) -> Self
+    {
+        .init(rawValue: nanoseconds)
+    }
+    @inlinable public static
+    func microseconds(_ microseconds:Int64) -> Self
+    {
+        .init(rawValue: microseconds * 1_000)
+    }
+    @inlinable public static
+    func milliseconds(_ milliseconds:Int64) -> Self
+    {
+        .init(rawValue: milliseconds * 1_000_000)
+    }
+    @inlinable public static
+    func seconds(_ seconds:Seconds) -> Self
+    {
+        .init(rawValue: seconds.rawValue * 1_000_000_000)
+    }
+    @inlinable public static
+    func minutes(_ minutes:Minutes) -> Self
+    {
+        .init(rawValue: minutes.rawValue * 60_000_000_000)
+    }
+}
 extension QuantizedDuration
 {
     @inlinable public static

@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 
 extension Mongo
 {
@@ -13,20 +14,29 @@ extension Mongo
     struct ListDatabases:Sendable
     {
         public
-        let authorizedDatabases:Bool?
-        public
-        let filter:BSON.Fields
+        var fields:BSON.Fields
 
         public
-        init(authorizedDatabases:Bool? = nil, filter:BSON.Fields = .init())
+        init(authorizedDatabases:Bool? = nil, filter:Mongo.PredicateDocument = [:])
         {
-            self.authorizedDatabases = authorizedDatabases
-            self.filter = filter
+            self.fields = .init
+            {
+                $0[Self.name] = 1 as Int32
+                $0["authorizedDatabases"] = authorizedDatabases
+                $0["filter", elide: true] = filter
+            }
         }
     }
 }
 extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
 {
+    /// The string [`"listDatabases"`]().
+    @inlinable public static
+    var name:String
+    {
+        "listDatabases"
+    }
+
     public
     typealias Database = Mongo.Database.Admin
     public
@@ -35,21 +45,6 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
         totalSize:Int,
         databases:[Mongo.DatabaseMetadata]
     )
-
-    /// The string [`"listDatabases"`]().
-    @inlinable public static
-    var name:String
-    {
-        "listDatabases"
-    }
-    
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = 1 as Int32
-        bson["authorizedDatabases"] = self.authorizedDatabases
-        bson["filter", elide: true] = self.filter
-    }
 
     @inlinable public static
     func decode(reply bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws ->

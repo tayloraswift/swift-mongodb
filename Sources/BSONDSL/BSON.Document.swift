@@ -9,6 +9,6 @@ extension BSON.Document<[UInt8]>
     @inlinable public
     init(_ fields:some BSONDSL)
     {
-        self.init(bytes: fields.bytes)
+        self.init(slice: fields.bytes)
     }
 }

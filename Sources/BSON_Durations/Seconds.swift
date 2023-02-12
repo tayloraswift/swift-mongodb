@@ -1,6 +1,7 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import Durations
 
-extension Seconds:BSONScheme
+extension Seconds:BSONDecodable, BSONEncodable
 {
 }

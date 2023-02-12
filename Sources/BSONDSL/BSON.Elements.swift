@@ -42,6 +42,14 @@ extension BSON.Elements
         self.count += 1
     }
 }
+extension BSON.Elements:ExpressibleByArrayLiteral
+{
+    @inlinable public
+    init(arrayLiteral:Never...)
+    {
+        self.init()
+    }
+}
 extension BSON.Elements
 {
     /// Creates an empty encoding view and initializes it with the given closure.
@@ -64,7 +72,7 @@ extension BSON.Elements
     @inlinable public
     init(_ bson:BSON.Tuple<[UInt8]>, count:Int)
     {
-        self.init(bytes: bson.bytes, count: count)
+        self.init(bytes: bson.slice, count: count)
     }
     /// Creates an encoding view around the given generic tuple-document,
     /// copying its backing storage if it is not already backed by
@@ -84,7 +92,16 @@ extension BSON.Elements
         case let bson as BSON.Tuple<[UInt8]>:
             self.init(bson, count: count)
         case let bson:
-            self.init(bytes: .init(bson.bytes), count: count)
+            self.init(bytes: .init(bson.slice), count: count)
         }
+    }
+}
+//  See note about ``BSON.Fields``.
+extension BSON.Elements<BSON.Fields>?
+{
+    @inlinable public
+    init(with populate:(inout Wrapped) throws -> ()) rethrows
+    {
+        self = .some(try .init(with: populate))
     }
 }

@@ -24,7 +24,7 @@ extension BSON.Tuple
     @inlinable public
     func parse(to decode:(_ element:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
     {
-        var input:BSON.Input<Bytes> = .init(self.bytes)
+        var input:BSON.Input<Bytes> = .init(self.slice)
         while let code:UInt8 = input.next()
         {
             let type:BSON = try .init(code: code)
@@ -73,7 +73,7 @@ extension BSON.Tuple:ExpressibleByArrayLiteral
         {
             ($0.0.description, $0.1)
         })
-        self.init(bytes: document.bytes)
+        self.init(slice: document.slice)
     }
 
     @inlinable public 

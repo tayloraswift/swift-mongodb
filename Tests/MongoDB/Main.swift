@@ -22,6 +22,7 @@ enum Main:AsyncTests
                 .init(name: "mongo-3", port: 27017),
                 .init(name: "mongo-4", port: 27017),
                 .init(name: "mongo-5", port: 27017),
+                .init(name: "mongo-6", port: 27017),
             ]
             
             print("running tests for replicated topology (hosts: \(members))")

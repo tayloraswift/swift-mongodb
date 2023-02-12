@@ -8,18 +8,20 @@ extension MongoChannel
 {
     /// Encodes the given command to a document, sends it over this channel and
     /// awaits its reply.
-    @inlinable public
+    ///
+    /// If the deadline has already passed before the command can be encoded, this
+    /// method will throw a ``TimeoutError``, but the channel will not be closed.
+    /// In all other scenarios, the channel will be closed on timeout.
     func run<Command>(command:__owned Command,
         against database:Command.Database,
-        labels:Mongo.SessionLabels? = nil,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
-        where Command:MongoCommand
+        where Command:MongoChannelCommand
     {
-        if  let message:MongoWire.Message<ByteBufferView> = try await self.run(
-                command: .init { command.encode(to: &$0, database: database, labels: labels) },
+        if  let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
+                database: database,
                 by: deadline)
         {
-            return try .init(message: message)
+            return try .init(message: try await self.run(command: command, by: deadline))
         }
         else
         {
@@ -47,9 +49,10 @@ extension MongoChannel
         try .init(bson: try await self.run(command: command, against: database,
             by: deadline.instant).result.get())
     }
-    /// Runs a ``Mongo/Hello`` command, and decodes its response.
+    /// Runs a ``Mongo/Hello`` command, and decodes a subset of its response
+    /// suitable for authentication purposes.
     func run(hello command:__owned Mongo.Hello,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.HelloResponse
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Authentication.HelloResponse
     {
         try .init(bson: try await self.run(command: command, against: .admin,
             by: deadline.instant).result.get())

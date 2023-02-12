@@ -73,17 +73,17 @@ extension Mongo.DriverBootstrap
             executor: self.executor,
             timeout: timeout)
         
-        let pool:Mongo.SessionPool = .init(cluster: monitor.cluster)
+        let pool:Mongo.SessionPool = .init(deployment: monitor.deployment)
         do
         {
             let success:Success = try await body(pool)
-            await monitor.cluster.end(sessions: await pool.drain())
+            await monitor.deployment.end(sessions: await pool.drain())
             await monitor.stop()
             return success
         }
         catch let error
         {
-            await monitor.cluster.end(sessions: await pool.drain())
+            await monitor.deployment.end(sessions: await pool.drain())
             await monitor.stop()
             throw error
         }

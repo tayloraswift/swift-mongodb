@@ -33,10 +33,6 @@ extension Mongo.RefreshSessions:MongoTransactableCommand
 }
 extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
 {
-    /// `RefreshSessions` must be sent to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
-
     /// The string [`"refreshSessions"`]().
     @inlinable public static
     var name:String
@@ -44,9 +40,16 @@ extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
         "refreshSessions"
     }
 
+    /// `RefreshSessions` must be sent to the `admin` database.
     public
-    func encode(to bson:inout BSON.Fields)
+    typealias Database = Mongo.Database.Admin
+
+    public
+    var fields:BSON.Fields
     {
-        bson[Self.name] = self.sessions
+        .init
+        {
+            $0[Self.name] = self.sessions
+        }
     }
 }

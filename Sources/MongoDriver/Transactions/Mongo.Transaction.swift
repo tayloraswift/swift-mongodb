@@ -42,6 +42,12 @@ extension Mongo.Transaction
     {
         self.session.transaction
     }
+
+    @usableFromInline
+    var deployment:Mongo.Deployment
+    {
+        self.session.deployment
+    }
 }
 extension Mongo.Transaction
 {
@@ -58,7 +64,7 @@ extension Mongo.Transaction
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
         where Command:MongoTransactableCommand
     {
-        let connect:Mongo.ConnectionDeadline = self.session.cluster.timeout.deadline(from: .now,
+        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
         
         let connection:Mongo.Connection = try await .init(from: self.pinned, by: connect)
@@ -76,7 +82,7 @@ extension Mongo.Transaction
         async throws -> Success
         where Query:MongoTransactableCommand & MongoIterableCommand
     {
-        let connect:Mongo.ConnectionDeadline = self.session.cluster.timeout.deadline(from: .now,
+        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
 
         return try await self.session.run(query: query, against: database, on: .primary,

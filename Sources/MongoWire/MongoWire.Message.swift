@@ -64,12 +64,11 @@ extension MongoWire.Message
         // 4 bytes of flags + 1 for body section type
         var count:Int = 4 + 1 + sections.body.size
         
-        for section:Outline in sections.outlined
+        for outline:Outline in sections.outlined
         {
             // section type
             count += 1
-            // 4 for size, 1 for null byte after id string
-            count += section.documents.reduce(5 + section.id.utf8.count) { $0 + $1.size }
+            count += outline.size
         }
 
         let flags:MongoWire.Flags

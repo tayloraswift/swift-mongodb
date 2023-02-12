@@ -2,6 +2,7 @@ import Durations
 import Heartbeats
 import MongoChannel
 import NIOCore
+import OnlineCDF
 
 extension Mongo
 {
@@ -9,11 +10,11 @@ extension Mongo
     public final
     actor Monitor
     {
-        public nonisolated
-        let cluster:Cluster
-
         private nonisolated
         let credentials:CredentialCache
+        
+        public nonisolated
+        let deployment:Deployment
 
         private
         var state:State
@@ -40,7 +41,7 @@ extension Mongo
                 executor: executor,
                 timeout: timeout)
             
-            self.cluster = .init(timeout: timeout)
+            self.deployment = .init(timeout: timeout)
 
             self.state = .monitoring(bootstrap, .unknown(seedlist))
             self.tasks = 0
@@ -101,7 +102,7 @@ extension Mongo.Monitor
 
             self.state = .monitoring(bootstrap, topology)
 
-            await self.cluster.push(snapshot: snapshot)
+            await self.deployment.push(snapshot: snapshot)
             return accepted ? .reconnect : .stop
         }
         else
@@ -126,7 +127,7 @@ extension Mongo.Monitor
 
             self.state = .monitoring(bootstrap, topology)
 
-            await self.cluster.push(snapshot: snapshot, sessions: sessions)
+            await self.deployment.push(snapshot: snapshot, sessions: sessions)
             return accepted ? nil : .stop
         }
         else
@@ -189,40 +190,44 @@ extension Mongo.Monitor
         host:Mongo.Host) async -> ExitStatus
     {
         let deadline:Mongo.ConnectionDeadline = bootstrap.timeout.deadline(from: .now)
-        
-        let heartbeat:Heartbeat = .init(interval: .milliseconds(bootstrap.heartbeatInterval))
-        let channel:MongoChannel
+
+        let connection:Connection
         do
         {
-            channel = try await bootstrap.channel(to: host, attaching: heartbeat.heart)
+            connection = try await .init(using: bootstrap, for: host)
         }
         catch let error
         {
             return await self.sequence(error: error, host: host)
         }
 
-        let helloResponse:Mongo.HelloResponse
-
-        switch await self.credentials.establish(channel,
-            credentials: bootstrap.credentials,
-            by: deadline)
+        //  '''
+        //  Drivers MUST NOT authenticate on sockets used for monitoring nor
+        //  include SCRAM mechanism negotiation (i.e. saslSupportedMechs), as
+        //  doing so would make monitoring checks more expensive for the server.
+        //  '''
+        let hello:HelloResult
+        do
         {
-        case .failure(let error):
+            hello = try await connection.run(hello: .init(
+                    client: .init(application: self.credentials.application),
+                    user: nil),
+                by: deadline)
+        }
+        catch let error
+        {
             async
-            let checker:Void = channel.close()
+            let checker:Void = connection.close()
 
             let exit:ExitStatus = await self.sequence(error: error, host: host)
 
             await checker
 
             return exit
-        
-        case .success(let response):
-            helloResponse = response
         }
         
         let pool:Mongo.ConnectionPool = .init(generation: generation,
-            signaling: heartbeat.heart,
+            signaling: connection.heartbeat.heart,
             bootstrap: bootstrap,
             host: host)
 
@@ -230,22 +235,21 @@ extension Mongo.Monitor
         do
         {
             exit = try await self.check(host: host,
-                initialHelloResponse: helloResponse,
-                every: heartbeat,
-                over: channel,
+                initialHello: hello,
+                over: connection,
                 pool: pool)
             async
-            let pool:Void = pool.drain()
+            let pool:Void = pool.drain(because: .init())
 
-            await channel.close()
+            await connection.close()
             await pool
         }
         catch let error
         {
             async
-            let checker:Void = channel.close()
+            let checker:Void = connection.close()
             async
-            let pool:Void = pool.drain()
+            let pool:Void = pool.drain(because: .init(because: error))
 
             exit = await self.sequence(error: error, host: host)
 
@@ -255,37 +259,41 @@ extension Mongo.Monitor
         return exit
     }
     private
-    func check(host:Mongo.Host, initialHelloResponse initial:Mongo.HelloResponse,
-        every heartbeat:Heartbeat,
-        over channel:MongoChannel,
+    func check(host:Mongo.Host, initialHello initial:HelloResult,
+        over connection:Connection,
         pool:Mongo.ConnectionPool) async throws -> ExitStatus
     {
-        if  let exit:ExitStatus = await self.sequence(update: initial.update,
-                sessions: initial.sessions,
+        if  let exit:ExitStatus = await self.sequence(update: initial.response.update,
+                sessions: initial.response.sessions,
                 pool: pool,
                 host: host)
         {
             return exit
         }
-        for try await _:Void in heartbeat
+
+        var latency:Mongo.LatencyCDF = .init(seed: initial.latency, notifying: pool)
+
+        for try await _:Void in connection.heartbeat
         {
             let deadline:Mongo.ConnectionDeadline = pool.timeout.deadline(from: .now)
             
-            let subsequent:Mongo.HelloResponse = try await channel.run(
+            let subsequent:HelloResult = try await connection.run(
                 hello: .init(user: nil),
                 by: deadline)
-            if  subsequent.token != initial.token
+            if  subsequent.response.token != initial.response.token
             {
-                throw Mongo.ConnectionTokenError.init(recorded: initial.token,
-                    invalid: subsequent.token)
+                throw Mongo.ConnectionTokenError.init(recorded: initial.response.token,
+                    invalid: subsequent.response.token)
             }
-            if  let exit:ExitStatus = await self.sequence(update: subsequent.update,
-                    sessions: subsequent.sessions,
+            if  let exit:ExitStatus = await self.sequence(update: subsequent.response.update,
+                    sessions: subsequent.response.sessions,
                     pool: pool,
                     host: host)
             {
                 return exit
             }
+
+            latency.insert(subsequent.latency, notifying: pool)
         }
         //  a variety of errors can happen while checking a server.
         //  but if the checker stops without an error, that means

@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import BSONUnions
 
 extension Mongo
@@ -16,7 +17,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.StorageConfiguration:BSONDocumentEncodable
+extension Mongo.StorageConfiguration:BSONEncodable, BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.Fields)
@@ -27,7 +28,7 @@ extension Mongo.StorageConfiguration:BSONDocumentEncodable
         }
     }
 }
-extension Mongo.StorageConfiguration:BSONDocumentDecodable
+extension Mongo.StorageConfiguration:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
     init<Bytes>(bson:BSON.Document<Bytes>) throws

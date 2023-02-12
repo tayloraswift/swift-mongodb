@@ -12,14 +12,14 @@ extension Mongo
         public
         let collection:Collection
         public
-        let timeout:OperationTimeout?
+        let timeout:MaxTime?
         public
         let count:Int?
 
         @inlinable public
         init(cursor:CursorIdentifier, collection:Collection,
-            timeout:OperationTimeout? = nil,
-            count:Int? = nil)
+            timeout:MaxTime?,
+            count:Int?)
         {
             self.cursor = cursor
             self.collection = collection
@@ -38,16 +38,18 @@ extension Mongo.GetMore:MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = self.cursor
-        bson["collection"] = self.collection
-        bson["maxTimeMS"] = self.timeout?.milliseconds
-        bson["batchSize"] = self.count
-    }
+    typealias Response = Mongo.Cursor<Element>
 
     public
-    typealias Response = Mongo.Cursor<Element>
+    var fields:BSON.Fields
+    {
+        .init
+        {
+            $0[Self.name] = self.cursor
+            $0["collection"] = self.collection
+            $0["batchSize"] = self.count
+        }
+    }
 }
 extension Mongo.GetMore:MongoTransactableCommand
 {

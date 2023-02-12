@@ -16,4 +16,10 @@ protocol VariableLengthBSON<Bytes>
     ///
     /// The implementation may slice the argument, but should do so in O(1) time.
     init(slicing:Bytes) throws
+
+    /// The slice of bytes constituting the opaque content this view.
+    /// The portion of the original buffer this instance was parsed from
+    /// is defined by the implementation, and may not cover the entirety
+    /// of the argument passed to ``init(slicing:)``.
+    var slice:Bytes { get }
 }

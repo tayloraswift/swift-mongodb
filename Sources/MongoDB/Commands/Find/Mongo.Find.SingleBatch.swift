@@ -1,4 +1,5 @@
-import BSONSchema
+import BSONDecoding
+import BSONEncoding
 import Durations
 import MongoSchema
 
@@ -8,52 +9,44 @@ extension Mongo.Find
     struct SingleBatch:Sendable where Element:MongoDecodable
     {
         public
-        let find:Mongo.Find<Element>
+        var find:Mongo.Find<Element>
 
         public
         init(collection:Mongo.Collection,
-            timeout:Milliseconds? = nil,
             limit:Int,
             skip:Int? = nil,
-            `let`:BSON.Fields = .init(),
-            filter:BSON.Fields = .init(),
-            sort:BSON.Fields = .init(),
-            projection:BSON.Fields = .init(),
-            collation:Mongo.Collation? = nil,
-            readLevel:Mongo.ReadLevel? = nil,
+            filter:Mongo.PredicateDocument = [:],
+            projection:Mongo.ProjectionDocument = [:],
             hint:Mongo.IndexHint? = nil,
-            min:BSON.Fields = .init(),
-            max:BSON.Fields = .init(),
+            sort:Mongo.SortDocument = [:],
+            `let`:Mongo.LetDocument = [:],
+            collation:Mongo.Collation? = nil,
+            readConcern:Mongo.ReadConcern? = nil,
+            min:BSON.Fields = [:],
+            max:BSON.Fields = [:],
             returnKey:Bool? = nil,
             showRecordIdentifier:Bool? = nil)
         {
             self.find = .init(
                 collection: collection,
-                timeout: timeout,
                 tailing: nil,
                 stride: limit,
                 limit: nil,
                 skip: skip,
-                let: `let`,
                 filter: filter,
-                sort: sort,
                 projection: projection,
-                collation: collation,
-                readLevel: readLevel,
                 hint: hint,
+                sort: sort,
+                let: `let`,
+                collation: collation,
+                readConcern: readConcern,
                 min: min,
                 max: max,
                 returnKey: returnKey,
                 showRecordIdentifier: showRecordIdentifier)
+            
+            self.find.fields["singleBatch"] = true
         }
-    }
-}
-extension Mongo.Find.SingleBatch:MongoReadCommand
-{
-    @inlinable public
-    var readLevel:Mongo.ReadLevel?
-    {
-        self.find.readLevel
     }
 }
 extension Mongo.Find.SingleBatch:MongoImplicitSessionCommand,
@@ -68,14 +61,19 @@ extension Mongo.Find.SingleBatch:MongoImplicitSessionCommand,
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    typealias Response = [Element]
+
+    @inlinable public
+    var readConcern:Mongo.ReadConcern?
     {
-        self.find.encode(to: &bson)
-        bson["singleBatch"] = true
+        self.find.readConcern
     }
 
-    public
-    typealias Response = [Element]
+    @inlinable public
+    var fields:BSON.Fields
+    {
+        self.find.fields
+    }
 
     @inlinable public static
     func decode<Bytes>(reply:BSON.Dictionary<Bytes>) throws -> [Element]

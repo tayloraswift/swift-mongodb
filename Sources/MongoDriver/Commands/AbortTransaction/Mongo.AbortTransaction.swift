@@ -18,10 +18,6 @@ extension Mongo
 }
 extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
 {
-    /// `AbortTransaction` must be sent to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
-
     /// The string [`"abortTransaction"`]().
     @inlinable public static
     var name:String
@@ -29,10 +25,16 @@ extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
         "abortTransaction"
     }
 
+    /// `AbortTransaction` must be sent to the `admin` database.
     public
-    func encode(to bson:inout BSON.Fields)
+    typealias Database = Mongo.Database.Admin
+
+    public
+    var fields:BSON.Fields
     {
-        bson[Self.name] = 1 as Int32
-        bson["writeConcern"] = self.writeConcern
+        .init
+        {
+            $0[Self.name] = 1 as Int32
+        }
     }
 }

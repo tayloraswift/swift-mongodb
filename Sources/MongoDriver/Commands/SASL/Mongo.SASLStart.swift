@@ -18,10 +18,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.SASLStart:MongoCommand
+extension Mongo.SASLStart:MongoChannelCommand
 {
-    typealias Response = Mongo.SASLResponse
-    
     /// The string [`"saslStart"`]().
     static
     var name:String

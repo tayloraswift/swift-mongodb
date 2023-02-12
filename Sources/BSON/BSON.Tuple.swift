@@ -11,9 +11,9 @@ extension BSON
         let document:BSON.Document<Bytes>
 
         @inlinable public
-        init(bytes:Bytes)
+        init(slice:Bytes)
         {
-            self.document = .init(bytes: bytes)
+            self.document = .init(slice: slice)
         }
     }
 }
@@ -35,24 +35,24 @@ extension BSON.Tuple:VariableLengthBSON
     public
     typealias Frame = BSON.DocumentFrame
 
-    /// Stores the argument in ``bytes`` unchanged. Equivalent to ``init(bytes:)``.
+    /// Stores the argument in ``slice`` unchanged. Equivalent to ``init(slice:)``.
     ///
     /// >   Complexity: O(1)
     @inlinable public
     init(slicing bytes:Bytes)
     {
-        self.init(bytes: bytes)
+        self.init(slice: bytes)
     }
 }
 extension BSON.Tuple
 {
-    /// The raw data backing this tuple. This collection *does*
+    /// The raw data backing this tuple. This collection *does not*
     /// include the trailing null byte that appears after its inline 
     /// elements list.
     @inlinable public
-    var bytes:Bytes
+    var slice:Bytes
     {
-        self.document.bytes
+        self.document.slice
     }
     /// The length that would be encoded in this tuple’s prefixed header.
     /// Equal to [`self.size`]().
@@ -67,6 +67,6 @@ extension BSON.Tuple
     @inlinable public
     var size:Int
     {
-        5 + self.bytes.count
+        5 + self.slice.count
     }
 }
