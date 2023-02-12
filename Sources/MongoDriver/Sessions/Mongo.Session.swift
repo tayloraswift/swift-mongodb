@@ -53,12 +53,12 @@ extension Mongo
         public
         let id:SessionIdentifier
 
-        /// The server cluster associated with this session’s ``pool``.
+        /// The deployment associated with this session’s ``pool``.
         ///
-        /// This can also be obtained by accessing `pool.cluster`, but is
+        /// This can also be obtained by accessing `pool.deployment`, but is
         /// stored inline to speed up access.
         @usableFromInline
-        let cluster:Cluster
+        let deployment:Deployment
         /// The pool this session came from. The pool cannot be drained until
         /// this session object is deinitialized.
         private
@@ -73,7 +73,7 @@ extension Mongo
             self.reuse = true
             self.id = metadata.id
 
-            self.cluster = pool.cluster
+            self.deployment = pool.deployment
             self.pool = pool
         }
         deinit
@@ -165,9 +165,9 @@ extension Mongo.Session
         {
             fatalError(Self.transactionUnpinnedErrorMessage)
         }
-        let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now,
+        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
-        let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+        let connections:Mongo.ConnectionPool = try await self.deployment.pool(
             preference: preference,
             by: connect)
         let connection:Mongo.Connection = try await .init(from: connections, by: connect)
@@ -211,14 +211,14 @@ extension Mongo.Session
             fatalError(Self.transactionUnpinnedErrorMessage)
         }
 
-        let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now,
+        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
 
         return try await self.run(query: query, against: database, on: preference,
             by: deadline ?? connect.instant,
             with: consumer)
         {
-            let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+            let connections:Mongo.ConnectionPool = try await self.deployment.pool(
                 preference: preference,
                 by: connect)
             return try await .init(from: connections, by: connect)
@@ -284,12 +284,12 @@ extension Mongo.Session
         run body:(Mongo.Transaction) async throws -> Success)
         async -> Mongo.TransactionResult<Success>
     {
-        let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: .now)
+        let deadline:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now)
         let connections:Mongo.ConnectionPool
         //  Transactions can only be performed on the primary/master, and moreover,
         //  must be pinned to a specific server. (This means primary stepdown is not
         //  allowed.)
-        switch await self.cluster.select(.primary, by: deadline)
+        switch await self.deployment.select(.primary, by: deadline)
         {
         case .failure(let error):
             return .unavailable(error)
@@ -374,8 +374,8 @@ extension Mongo.Session
         where Command:MongoCommand
     {
         let labels:Mongo.SessionLabels = self.labels(
-            writeConcern: (command as? any MongoWriteCommand)?.writeConcern,
-            readConcern: (command as? any MongoReadCommand).map(\.readConcern),
+            writeConcern: command.writeConcernLabel,
+            readConcern: command.readConcernLabel,
             preference: preference)
         
         let sent:ContinuousClock.Instant = .now
@@ -387,7 +387,7 @@ extension Mongo.Session
         self.combine(operationTime: reply.operationTime,
             reuse: connection.reusable,
             sent: sent)
-        self.cluster.yield(clusterTime: reply.clusterTime)
+        self.deployment.yield(clusterTime: reply.clusterTime)
 
         return try Command.decode(reply: try reply.result.get())
     }
@@ -410,7 +410,7 @@ extension Mongo.Session
             batches = .create(preference: preference,
                 lifecycle: query.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
                 timeout: .init(
-                    milliseconds: self.cluster.timeout.milliseconds),
+                    milliseconds: self.deployment.timeout.milliseconds),
                 initial: try await self.run(command: query,
                     against: database,
                     over: connection,
@@ -484,7 +484,7 @@ extension Mongo.Session
             }
             transaction = nil
         }
-        return .init(clusterTime: self.cluster.time,
+        return .init(clusterTime: self.deployment.clusterTime,
             writeConcern: writeOptions,
             readConcern: readOptions,
             transaction: transaction,

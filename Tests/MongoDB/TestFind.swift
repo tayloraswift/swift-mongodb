@@ -23,7 +23,7 @@ func TestFind(_ tests:TestGroup,
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 100)
                 let response:Mongo.InsertResponse = try await pool.run(
-                    command: Mongo.Insert<Ordinals>.init(collection: collection,
+                    command: Mongo.Insert.init(collection: collection,
                         elements: ordinals),
                     against: database)
                 

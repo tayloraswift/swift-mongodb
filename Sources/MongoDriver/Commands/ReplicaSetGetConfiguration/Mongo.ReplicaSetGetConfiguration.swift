@@ -15,6 +15,13 @@ extension Mongo
 }
 extension Mongo.ReplicaSetGetConfiguration:MongoCommand
 {
+    /// The string [`"replSetGetConfig"`]().
+    @inlinable public static
+    var name:String
+    {
+        "replSetGetConfig"
+    }
+    
     /// `ReplicaSetGetConfiguration` must be sent to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
@@ -41,13 +48,6 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
         throws -> Mongo.ReplicaSetConfiguration
     {
         return try bson["config"].decode(to: Mongo.ReplicaSetConfiguration.self)
-    }
-    
-    /// The string [`"replSetGetConfig"`]().
-    @inlinable public static
-    var name:String
-    {
-        "replSetGetConfig"
     }
 
     public

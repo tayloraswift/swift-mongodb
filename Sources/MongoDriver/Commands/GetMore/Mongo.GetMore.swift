@@ -5,21 +5,21 @@ import MongoSchema
 extension Mongo
 {
     @frozen public
-    struct GetMore<Element>:MongoGetMoreCommand, Sendable where Element:MongoDecodable
+    struct GetMore<Element>:Sendable where Element:MongoDecodable
     {
         public
         let cursor:CursorIdentifier
         public
         let collection:Collection
         public
-        let timeout:OperationTimeout?
+        let timeout:MaxTime?
         public
         let count:Int?
 
         @inlinable public
         init(cursor:CursorIdentifier, collection:Collection,
-            timeout:OperationTimeout? = nil,
-            count:Int? = nil)
+            timeout:MaxTime?,
+            count:Int?)
         {
             self.cursor = cursor
             self.collection = collection
@@ -38,6 +38,9 @@ extension Mongo.GetMore:MongoCommand
     }
 
     public
+    typealias Response = Mongo.Cursor<Element>
+
+    public
     var fields:BSON.Fields
     {
         .init
@@ -47,9 +50,6 @@ extension Mongo.GetMore:MongoCommand
             $0["batchSize"] = self.count
         }
     }
-
-    public
-    typealias Response = Mongo.Cursor<Element>
 }
 extension Mongo.GetMore:MongoTransactableCommand
 {

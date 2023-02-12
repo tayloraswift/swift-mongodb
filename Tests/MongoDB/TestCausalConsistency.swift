@@ -34,12 +34,10 @@ func TestCausalConsistency(_ tests:TestGroup,
         await (tests / "initialize").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert<[Letter]>.init(collection: collection,
+                command: Mongo.Insert.init(collection: collection,
                     elements: [a],
-                    writeConcern: .init(
-                        //  We should ensure the write propogates to all four visible replicas.
-                        level: .acknowledged(by: 4), 
-                        journaled: true)),
+                    //  We should ensure the write propogates to all four visible replicas.
+                    writeConcern: .acknowledged(by: 4, journaled: true)),
                 against: database,
                 on: .primary)
             
@@ -105,9 +103,9 @@ func TestCausalConsistency(_ tests:TestGroup,
         await (tests / "insert-b").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert<[Letter]>.init(collection: collection,
+                command: Mongo.Insert.init(collection: collection,
                     elements: [b],
-                    writeConcern: .init(level: .majority, journaled: true)),
+                    writeConcern: .majority(journaled: true)),
                 against: database,
                 on: .primary)
             
@@ -130,9 +128,9 @@ func TestCausalConsistency(_ tests:TestGroup,
         await (tests / "insert-c").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert<[Letter]>.init(collection: collection,
+                command: Mongo.Insert.init(collection: collection,
                     elements: [c],
-                    writeConcern: .init(level: .acknowledged(by: 3), journaled: true)),
+                    writeConcern: .acknowledged(by: 3, journaled: true)),
                 against: database,
                 on: .primary)
             
@@ -153,9 +151,9 @@ func TestCausalConsistency(_ tests:TestGroup,
         await (tests / "insert-d").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert<[Letter]>.init(collection: collection,
+                command: Mongo.Insert.init(collection: collection,
                     elements: [d],
-                    writeConcern: .init(level: .acknowledged(by: 2), journaled: true)),
+                    writeConcern: .acknowledged(by: 2, journaled: true)),
                 against: database,
                 on: .primary)
             

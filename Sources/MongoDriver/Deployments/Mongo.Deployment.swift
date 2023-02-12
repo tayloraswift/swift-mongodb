@@ -11,7 +11,7 @@ extension Mongo
     ///     what the logical session TTL is.
     /// -   What the current largest-seen cluster time is, and proof that that
     ///     cluster time came from a `mongod`/`mongos` server.
-    /// -   A snapshot of the current cluster topology, which contains references
+    /// -   A snapshot of the current deployment topology, which contains references
     ///     to the current ``ConnectionPool`` associated with each reachable server.
     ///
     /// Instances of this type are responsible for making this information available
@@ -23,7 +23,7 @@ extension Mongo
     /// the service monitor, and service monitoring computations don’t block requests
     /// for information about deployment state.
     public final
-    actor Cluster
+    actor Deployment
     {
         /// The combined connection and operation timeout for driver operations.
         public nonisolated
@@ -78,7 +78,7 @@ extension Mongo
     }
 }
 
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     public nonisolated
     var sessions:Mongo.LogicalSessions?
@@ -88,12 +88,12 @@ extension Mongo.Cluster
     }
     /// The current largest-seen cluster time, if any.
     public nonisolated
-    var time:Mongo.ClusterTime?
+    var clusterTime:Mongo.ClusterTime?
     {
         self.atomic.time.load(ordering: .relaxed)?.value
     }
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     /// Synchronously yield an observed cluster time to this deployment model.
     /// The time sample will be integrated into the deployment state
@@ -128,7 +128,7 @@ extension Mongo.Cluster
         self.atomic.time.store(clusterTime.combined(with: current), ordering: .relaxed)
     }
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     /// Pushes a topology snapshot to the deployment model, along with information
     /// about the deployment’s logical sessions support.
@@ -172,7 +172,7 @@ extension Mongo.Cluster
         }
     }
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     private
     func request() -> UInt
@@ -181,11 +181,11 @@ extension Mongo.Cluster
         return self.counter
     }
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     /// Returns deployment-wide logical session parameters, without suspending,
-    /// if the cluster is known to support logical sessions. Suspends for at most
-    /// the specified amount of time otherwise, returning as soon as this
+    /// if the deployment is known to support logical sessions. Suspends for at
+    /// most the specified amount of time otherwise, returning as soon as this
     /// information becomes available.
     ///
     /// This method often suspends if it is called immediately after initializing
@@ -231,7 +231,7 @@ extension Mongo.Cluster
         self.sessionsRequests[id].fail(diagnosing: self.snapshot)
     }
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     @usableFromInline
     func pool(preference:Mongo.ReadPreference,
@@ -274,7 +274,7 @@ extension Mongo.Cluster
         self.selectionRequests[id].fail(diagnosing: self.snapshot)
     }
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     /// Sends an ``EndSessions`` command ending the given list of sessions
     /// to an appropriate server for this deployment’s topology, and awaits

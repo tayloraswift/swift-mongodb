@@ -9,14 +9,26 @@ import NIOCore
 public
 protocol MongoCommand<Response>:Sendable
 {
+    associatedtype WriteConcern = Never
+    associatedtype ReadConcern = Never
+
     /// The type of database this command can be run against.
     associatedtype Database:MongoCommandDatabase = Mongo.Database
+
     /// The server response this command expects to receive.
     ///
     /// >   Note:
     ///     By convention, the library refers to a decoded message as a *response*,
     ///     and an undecoded message as a *reply*.
     associatedtype Response:Sendable
+
+    var writeConcernLabel:Mongo.WriteConcern? { get }
+    var writeConcern:WriteConcern? { get }
+
+    var readConcernLabel:Mongo.ReadConcern?? { get }
+    var readConcern:ReadConcern? { get }
+
+    var timeout:Mongo.MaxTime? { get }
 
     /// The payload of this command.
     var payload:Mongo.Payload? { get }
@@ -51,7 +63,55 @@ extension MongoCommand
     {
         nil
     }
+    @inlinable public
+    var timeout:Mongo.MaxTime?
+    {
+        .auto
+    }
 }
+extension MongoCommand where ReadConcern == Mongo.ReadConcern
+{
+    @inlinable public
+    var readConcernLabel:Mongo.ReadConcern??
+    {
+        self.readConcern
+    }
+}
+extension MongoCommand where ReadConcern == Never
+{
+    @inlinable public
+    var readConcernLabel:Mongo.ReadConcern??
+    {
+        nil
+    }
+    @inlinable public
+    var readConcern:Never?
+    {
+        nil
+    }
+}
+extension MongoCommand where WriteConcern == Mongo.WriteConcern
+{
+    @inlinable public
+    var writeConcernLabel:Mongo.WriteConcern?
+    {
+        self.writeConcern
+    }
+}
+extension MongoCommand where WriteConcern == Never
+{
+    @inlinable public
+    var writeConcernLabel:Mongo.WriteConcern?
+    {
+        nil
+    }
+    @inlinable public
+    var writeConcern:Never?
+    {
+        nil
+    }
+}
+
 extension MongoCommand<Void>
 {
     /// Does nothing, ignoring the supplied decoding container.
@@ -74,20 +134,12 @@ extension MongoCommand
     /// Encodes this command to a BSON document, adding the given database
     /// as a field with the key [`"$db"`]().
     public __consuming
-    func encode(database:Database, labels:Mongo.SessionLabels?, timed:Bool = true,
+    func encode(database:Database, labels:Mongo.SessionLabels?,
         by deadline:ContinuousClock.Instant) -> MongoWire.Message<[UInt8]>.Sections?
     {
         // do this first, so we never have to access `self` after reading `self.fields`
-        let outlined:[MongoWire.Message<[UInt8]>.Outline]
-
-        if  let payload:Mongo.Payload = self.payload
-        {
-            outlined = [.init(id: payload.id.rawValue, slice: payload.output.destination)]
-        }
-        else
-        {
-            outlined = []
-        }
+        let outlined:[MongoWire.Message<[UInt8]>.Outline] =
+            self.payload.map { [$0.outline] } ?? []
 
         let now:ContinuousClock.Instant = .now
 
@@ -97,14 +149,13 @@ extension MongoCommand
             return nil
         }
 
-        let timeout:Milliseconds?
-        if  let self:any MongoGetMoreCommand = self as? any MongoGetMoreCommand
+        let timeout:Milliseconds? = self.timeout.map
         {
-            timeout = self.timeout?.milliseconds
-        }
-        else
-        {
-            timeout = timed ? .init(truncating: now.duration(to: deadline)) : nil
+            switch $0
+            {
+            case .auto:
+                return .init(truncating: now.duration(to: deadline))
+            }
         }
 
         let body:BSON.Document<[UInt8]> = self.body(database: database,

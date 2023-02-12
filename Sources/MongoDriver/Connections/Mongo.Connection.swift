@@ -1,5 +1,7 @@
+import Atomics
 import BSON
 import BSONDSL
+import Durations
 import MongoChannel
 import MongoWire
 import NIOCore
@@ -16,7 +18,7 @@ extension Mongo
     {
         @usableFromInline
         let channel:MongoChannel
-        private
+        @usableFromInline
         let pool:ConnectionPool
 
         @usableFromInline
@@ -55,14 +57,7 @@ extension Mongo.Connection
     public convenience
     init(from pool:Mongo.ConnectionPool, by deadline:Mongo.ConnectionDeadline) async throws
     {
-        if  let channel:MongoChannel = await pool.create(by: deadline)
-        {
-            self.init(channel: channel, pool: pool)
-        }
-        else
-        {
-            throw Mongo.ConnectionCheckoutError.init()
-        }
+        self.init(channel: try await pool.create(by: deadline), pool: pool)
     }
 }
 extension Mongo.Connection
@@ -90,10 +85,11 @@ extension Mongo.Connection
     @inlinable public
     func run<Command>(command:__owned Command,
         against database:Command.Database,
-        labels:Mongo.SessionLabels? = nil,
+        labels:Mongo.SessionLabels,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
         where Command:MongoCommand
     {
+        let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
         guard   let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
                     database: database,
                     labels: labels,

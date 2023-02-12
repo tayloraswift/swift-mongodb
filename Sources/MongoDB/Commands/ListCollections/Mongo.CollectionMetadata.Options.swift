@@ -9,7 +9,7 @@ extension Mongo.CollectionMetadata
         public
         let collation:Mongo.Collation?
         public
-        let writeConcern:Mongo.WriteConcern?
+        let writeConcern:Mongo.WriteConcern.Options?
         public
         let indexOptionDefaults:Mongo.StorageConfiguration?
         public
@@ -20,7 +20,7 @@ extension Mongo.CollectionMetadata
 
         public
         init(collation:Mongo.Collation?,
-            writeConcern:Mongo.WriteConcern?,
+            writeConcern:Mongo.WriteConcern.Options?,
             indexOptionDefaults:Mongo.StorageConfiguration?,
             storageEngine:Mongo.StorageConfiguration?,
             variant:Mongo.Create.Variant)
@@ -102,7 +102,7 @@ extension Mongo.CollectionMetadata.Options
         }
     }
     @inlinable public
-    var pipeline:[BSON.Fields]?
+    var pipeline:Mongo.Pipeline?
     {
         switch self.variant
         {
@@ -147,11 +147,11 @@ extension Mongo.CollectionMetadata.Options
         case .view:
             variant = .view(
                 on: try bson["viewOn"].decode(to: Mongo.Collection.self),
-                pipeline: try bson["pipeline"].decode(to: [BSON.Fields].self))
+                pipeline: try bson["pipeline"].decode(to: Mongo.Pipeline.self))
         }
         self.init(
             collation: try bson["collation"]?.decode(to: Mongo.Collation.self),
-            writeConcern: try bson["writeConcern"]?.decode(to: Mongo.WriteConcern.self),
+            writeConcern: try bson["writeConcern"]?.decode(to: Mongo.WriteConcern.Options.self),
             indexOptionDefaults: try bson["indexOptionDefaults"]?.decode(
                 to: Mongo.StorageConfiguration.self),
             storageEngine: try bson["storageEngine"]?.decode(

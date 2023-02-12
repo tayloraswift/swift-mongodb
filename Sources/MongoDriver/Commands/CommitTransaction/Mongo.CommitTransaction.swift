@@ -16,11 +16,15 @@ extension Mongo
         }
     }
 }
-extension Mongo.CommitTransaction:MongoWriteCommand
-{
-}
 extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
 {
+    /// The string [`"commitTransaction"`]().
+    @inlinable public static
+    var name:String
+    {
+        "commitTransaction"
+    }
+
     /// `CommitTransaction` must be sent to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
@@ -32,12 +36,5 @@ extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
         {
             $0[Self.name] = 1 as Int32
         }
-    }
-
-    /// The string [`"commitTransaction"`]().
-    @inlinable public static
-    var name:String
-    {
-        "commitTransaction"
     }
 }

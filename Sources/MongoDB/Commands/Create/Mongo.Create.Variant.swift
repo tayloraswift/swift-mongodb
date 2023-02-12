@@ -14,7 +14,7 @@ extension Mongo.Create
         case timeseries(Mongo.Timeseries)
 
         case view(on:Mongo.Collection,
-            pipeline:[BSON.Fields])
+            pipeline:Mongo.Pipeline)
     }
 }
 extension Mongo.Create.Variant

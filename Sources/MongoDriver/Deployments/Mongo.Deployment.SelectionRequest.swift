@@ -1,9 +1,9 @@
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     typealias SelectionResponse =
-        Result<Mongo.ConnectionPool, Mongo.ClusterError<Mongo.ReadPreferenceError>>
+        Result<Mongo.ConnectionPool, Mongo.DeploymentStateError<Mongo.ReadPreferenceError>>
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     struct SelectionRequest
     {
@@ -18,12 +18,12 @@ extension Mongo.Cluster
         }
     }
 }
-extension Mongo.Cluster.SelectionRequest?
+extension Mongo.Deployment.SelectionRequest?
 {
     mutating
     func fail(diagnosing servers:Mongo.Servers)
     {
-        guard let request:Mongo.Cluster.SelectionRequest = self
+        guard let request:Wrapped = self
         else
         {
             return
@@ -40,7 +40,7 @@ extension Mongo.Cluster.SelectionRequest?
     mutating
     func fulfill(with pool:Mongo.ConnectionPool)
     {
-        if  let request:Mongo.Cluster.SelectionRequest = self
+        if  let request:Wrapped = self
         {
             request.promise.resume(returning: .success(pool))
             self = nil

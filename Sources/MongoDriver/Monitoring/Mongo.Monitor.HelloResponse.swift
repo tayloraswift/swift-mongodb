@@ -3,15 +3,10 @@ import BSON_Durations
 import Durations
 import MongoWire
 
-extension Mongo
+extension Mongo.Monitor
 {
-    //@frozen public
     struct HelloResponse
     {
-        /// An array of SASL mechanisms used to create the user's credential or credentials.
-        public
-        let saslSupportedMechs:Set<Authentication.SASL>?
-
         /// The maximum number of write operations permitted in a write batch.
         public
         let maxWriteBatchCount:Int
@@ -35,7 +30,7 @@ extension Mongo
         /// to the client.
         /// This is called `connectionId` in the server reply.
         public
-        let token:ConnectionToken
+        let token:Mongo.ConnectionToken
 
         /// The range of versions of the wire protocol that this `mongod` or `mongos`
         /// instance is capable of using to communicate with clients.
@@ -43,7 +38,7 @@ extension Mongo
         //public
         //let wireVersions:ClosedRange<MongoWire>
 
-        let sessions:LogicalSessions
+        let sessions:Mongo.LogicalSessions
 
         /// Type-specific information about the server which can be used to
         /// update a topology model. This is [`nil`]() if the server type is
@@ -51,7 +46,7 @@ extension Mongo
         let update:Mongo.TopologyUpdate?
     }
 }
-extension Mongo.HelloResponse:BSONDictionaryDecodable
+extension Mongo.Monitor.HelloResponse:BSONDictionaryDecodable
 {
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
     {
@@ -67,9 +62,6 @@ extension Mongo.HelloResponse:BSONDictionaryDecodable
             throw Mongo.VersionRequirementError.init(
                 invalid: min(minWireVersion, maxWireVersion) ... maxWireVersion)
         }
-
-        self.saslSupportedMechs = try bson["saslSupportedMechs"]?.decode(
-            to: Set<Mongo.Authentication.SASL>.self)
 
         self.sessions = .init(ttl: try bson["logicalSessionTimeoutMinutes"].decode(
             to: Minutes.self))

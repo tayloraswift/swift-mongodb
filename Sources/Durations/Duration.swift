@@ -15,4 +15,14 @@ extension Duration
     {
         .milliseconds(milliseconds.rawValue)
     }
+    @inlinable public static
+    func microseconds(_ microseconds:Microseconds) -> Self
+    {
+        .microseconds(microseconds.rawValue)
+    }
+    @inlinable public static
+    func nanoseconds(_ nanoseconds:Nanoseconds) -> Self
+    {
+        .nanoseconds(nanoseconds.rawValue)
+    }
 }

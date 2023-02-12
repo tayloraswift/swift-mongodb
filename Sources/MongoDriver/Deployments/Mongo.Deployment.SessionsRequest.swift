@@ -1,9 +1,9 @@
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     typealias SessionsResponse =
-        Result<Mongo.LogicalSessions, Mongo.ClusterError<Mongo.LogicalSessionsError>>
+        Result<Mongo.LogicalSessions, Mongo.DeploymentStateError<Mongo.LogicalSessionsError>>
 }
-extension Mongo.Cluster
+extension Mongo.Deployment
 {
     struct SessionsRequest
     {
@@ -15,12 +15,12 @@ extension Mongo.Cluster
         }
     }
 }
-extension Mongo.Cluster.SessionsRequest?
+extension Mongo.Deployment.SessionsRequest?
 {
     mutating
     func fail(diagnosing servers:Mongo.Servers)
     {
-        guard let request:Mongo.Cluster.SessionsRequest = self
+        guard let request:Wrapped = self
         else
         {
             return
@@ -37,7 +37,7 @@ extension Mongo.Cluster.SessionsRequest?
     mutating
     func fulfill(with sessions:Mongo.LogicalSessions)
     {
-        if  let request:Mongo.Cluster.SessionsRequest = self
+        if  let request:Wrapped = self
         {
             request.promise.resume(returning: .success(sessions))
             self = nil

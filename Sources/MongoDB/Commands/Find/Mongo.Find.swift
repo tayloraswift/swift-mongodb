@@ -8,43 +8,14 @@ extension Mongo
     struct Find<Element>:Sendable where Element:MongoDecodable
     {
         public
-        let collection:Collection
-        public
-        let timeout:Milliseconds?
+        let readConcern:ReadConcern?
         public
         let tailing:Tailing?
         public
         let stride:Int
 
         public
-        let filter:PredicateDocument
-        public
-        let projection:ProjectionDocument
-        public
-        let sort:SortDocument
-        public
-        let `let`:LetDocument
-
-        public
-        let skip:Int?
-        public
-        let limit:Int?
-
-        public
-        let collation:Collation?
-        public
-        let readLevel:ReadLevel?
-
-        public
-        let hint:IndexHint?
-        public
-        let min:BSON.Fields
-        public
-        let max:BSON.Fields
-        public
-        let returnKey:Bool?
-        public
-        let showRecordIdentifier:Bool?
+        var fields:BSON.Fields
 
         public
         init(collection:Collection,
@@ -58,55 +29,47 @@ extension Mongo
             sort:SortDocument = [:],
             `let`:LetDocument = [:],
             collation:Collation? = nil,
-            readLevel:ReadLevel? = nil,
-            timeout:Milliseconds? = nil,
+            readConcern:ReadConcern? = nil,
             min:BSON.Fields = [:],
             max:BSON.Fields = [:],
             returnKey:Bool? = nil,
             showRecordIdentifier:Bool? = nil)
         {
-            self.collection = collection
-            self.timeout = timeout
+            self.readConcern = readConcern
             self.tailing = tailing
             self.stride = stride
-            self.limit = limit
-            self.skip = skip
-            self.let = `let`
-            self.filter = filter
-            self.sort = sort
-            self.projection = projection
-            self.collation = collation
-            self.readLevel = readLevel
-            self.hint = hint
-            self.min = min
-            self.max = max
-            self.returnKey = returnKey
-            self.showRecordIdentifier = showRecordIdentifier
+
+            self.fields = .init
+            {
+                $0[Self.name] = collection
+                $0["batchSize"] = stride
+                $0["tailable"] = tailing.map { _ in true }
+                $0["awaitData"] = tailing.flatMap { $0.awaits ? true : nil }
+                    
+                $0["let", elide: true] = `let`
+                $0["filter", elide: true] = filter
+                $0["sort", elide: true] = sort
+                $0["projection", elide: true] = projection
+                    
+                $0["skip"] = skip
+                $0["limit"] = limit
+
+                $0["collation"] = collation
+                    
+                $0["hint"] = hint
+                $0["min", elide: true] = min
+                $0["max", elide: true] = max
+                    
+                $0["returnKey"] = returnKey
+                $0["showRecordId"] = showRecordIdentifier
+            }
         }
-    }
-}
-extension Mongo.Find
-{
-    var tailable:Bool
-    {
-        switch self.tailing
-        {
-        case _?:        return true
-        case nil:       return false
-        }
-    }
-    var awaitData:Bool
-    {
-        self.tailing?.awaits ?? false
     }
 }
 extension Mongo.Find:MongoIterableCommand
 {
     public
     typealias Response = Mongo.Cursor<Element>
-}
-extension Mongo.Find:MongoReadCommand
-{
 }
 extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
@@ -115,31 +78,5 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
     var name:String
     {
         "find"
-    }
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = self.collection
-        bson["batchSize"] = self.stride
-        bson["maxTimeMS"] = self.timeout
-        bson["tailable"] = self.tailable ? true : nil
-        bson["awaitData"] = self.awaitData ? true : nil
-            
-        bson["let", elide: true] = self.let
-        bson["filter", elide: true] = self.filter
-        bson["sort", elide: true] = self.sort
-        bson["projection", elide: true] = self.projection
-            
-        bson["skip"] = self.skip
-        bson["limit"] = self.limit
-
-        bson["collation"] = self.collation
-            
-        bson["hint"] = self.hint
-        bson["min", elide: true] = self.min
-        bson["max", elide: true] = self.max
-            
-        bson["returnKey"] = self.returnKey
-        bson["showRecordId"] = self.showRecordIdentifier
     }
 }

@@ -17,11 +17,6 @@ extension Mongo
 }
 extension Mongo.Fsync:MongoImplicitSessionCommand, MongoCommand
 {
-    public
-    typealias Database = Mongo.Database.Admin
-    public
-    typealias Response = Mongo.FsyncLock
-
     /// The string [`"fsync"`]().
     @inlinable public static
     var name:String
@@ -30,9 +25,17 @@ extension Mongo.Fsync:MongoImplicitSessionCommand, MongoCommand
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    typealias Database = Mongo.Database.Admin
+    public
+    typealias Response = Mongo.FsyncLock
+
+    public
+    var fields:BSON.Fields
     {
-        bson[Self.name] = 1 as Int32
-        bson["lock"] = self.lock
+        .init
+        {
+            $0[Self.name] = 1 as Int32
+            $0["lock"] = self.lock
+        }
     }
 }

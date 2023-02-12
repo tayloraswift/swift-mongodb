@@ -1,4 +1,4 @@
-extension DigestHistogram
+extension OnlineCDF
 {
     struct Centroid
     {
@@ -12,7 +12,7 @@ extension DigestHistogram
         }
     }
 }
-extension DigestHistogram.Centroid
+extension OnlineCDF.Centroid
 {
     var sum:Double
     {

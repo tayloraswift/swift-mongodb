@@ -1,5 +1,7 @@
 import Atomics
 import BSON
+import Durations
+import Durations_Atomics
 import Heartbeats
 import MongoChannel
 import MongoMonitoring
@@ -17,11 +19,6 @@ extension MongoMonitoringDelegate where Self == Mongo.ConnectionPool
     func stopMonitoring()
     {
         self.heart.stop()
-    }
-    public nonisolated
-    func stopMonitoring(throwing error:any Error)
-    {
-        self.heart.stop(throwing: error)
     }
 }
 extension Mongo.ConnectionPool:MongoMonitoringDelegate
@@ -79,11 +76,19 @@ extension Mongo
         let releasing:UnsafeAtomic<Int>
         /// All requests currently awaiting connections, identified by `UInt`.
         private
-        var requests:[UInt: CheckedContinuation<MongoChannel?, Never>]
+        var requests:[UInt: CheckedContinuation<MongoChannel, any Error>]
         /// A monotonically-increasing counter used to generate request
         /// identifiers.
         private
         var counter:UInt
+
+        private nonisolated
+        let latency:UnsafeAtomic<Nanoseconds>
+
+        /// The error that will be reported if a connection cannot be created.
+        /// This is initially a ``ConnectionCheckoutError``.
+        private
+        var error:any Error
         /// The current stage of the pool’s lifecycle. Pools start out in the
         /// “filling” state, and eventually transition to the “draining” state,
         /// which is terminal. There are no “in-between” states.
@@ -114,6 +119,9 @@ extension Mongo
             self.requests = [:]
             self.counter = 0
 
+            self.latency = .create(0)
+
+            self.error = ConnectionCheckoutError.init()
             self.state = .filling(.init(channel: bootstrap.bootstrap(for: host),
                 credentials: bootstrap.credentials,
                 cache: bootstrap.cache,
@@ -127,6 +135,7 @@ extension Mongo
         deinit
         {
             self.releasing.destroy()
+            self.latency.destroy()
 
             guard self.requests.isEmpty
             else
@@ -172,6 +181,22 @@ extension Mongo.ConnectionPool
 }
 extension Mongo.ConnectionPool
 {
+    /// Sets the round-trip latency tracked by this pool.
+    public nonisolated
+    func set(latency:Nanoseconds)
+    {
+        self.latency.store(latency, ordering: .relaxed)
+    }
+    /// Adjusts the given deadline to account for round-trip latency, as
+    /// tracked by this pool.
+    public nonisolated
+    func adjust(deadline:ContinuousClock.Instant) -> ContinuousClock.Instant
+    {
+        deadline - .nanoseconds(self.latency.load(ordering: .relaxed))
+    }
+}
+extension Mongo.ConnectionPool
+{
     /// Mints a new request identifier.
     private
     func request() -> UInt
@@ -205,10 +230,10 @@ extension Mongo.ConnectionPool
     {
         //  will throw ``CancellationError`` if request succeeds
         try await Task.sleep(until: deadline.instant, clock: .continuous)
-        if  let continuation:CheckedContinuation<MongoChannel?, Never> =
+        if  let continuation:CheckedContinuation<MongoChannel, any Error> =
                 self.requests.removeValue(forKey: request)
         {
-            continuation.resume(returning: nil)
+            continuation.resume(throwing: Mongo.ConnectionCheckoutError.init())
         }
     }
 }
@@ -225,16 +250,16 @@ extension Mongo.ConnectionPool
     ///
     /// No interrupt signal will be sent to perished connections, since their
     /// channels are already closed.
-    func drain() async
+    func drain(because error:Mongo.MonitorRemovedError) async
     {
         if case .draining(_?) = self.state
         {
             fatalError("unreachable (draining connection pool that is already being drained!)")
         }
 
-        for request:CheckedContinuation<MongoChannel?, Never> in self.requests.values
+        for request:CheckedContinuation<MongoChannel, any Error> in self.requests.values
         {
-            request.resume(returning: nil)
+            request.resume(throwing: error)
         }
         self.requests = [:]
 
@@ -261,6 +286,43 @@ extension Mongo.ConnectionPool
         }
         await direct
     }
+
+    /// Transitions the pool to its draining state (if it is not already in that
+    /// state), sends an interrupt signal to its associated monitoring task, and
+    /// unblocks all awaiting connection requests by throwing them the given error.
+    /// The error will also be stored in ``error``, so that new connection
+    /// requests can also observe it.
+    ///
+    /// If the pool is already in a draining state and a caller is waiting on
+    /// the drainage to complete, this method checks if the pool is empty and
+    /// unblocks the awaiter accordingly. (This allows us to use this method as an
+    /// epilogue to a failed ``expand(using:)`` call.)
+    private
+    func close(because error:any Error)
+    {
+        switch self.state
+        {
+        case .filling:
+            self.stopMonitoring()
+            self.error = error
+            for request:CheckedContinuation<MongoChannel, any Error> in self.requests.values
+            {
+                request.resume(throwing: error)
+            }
+            self.requests = [:]
+            self.state = .draining(nil)
+        
+        case .draining(nil):
+            break
+        
+        case .draining(let continuation?):
+            if  self.connections.isEmpty
+            {
+                continuation.resume()
+                self.state = .draining(nil)
+            }
+        }
+    }
 }
 extension Mongo.ConnectionPool
 {
@@ -275,7 +337,7 @@ extension Mongo.ConnectionPool
     /// caller, the call will return [`nil`](), but the channel will still be
     /// created and added to the pool, and may be used to complete a different
     /// request.
-    func create(by deadline:Mongo.ConnectionDeadline) async -> MongoChannel?
+    func create(by deadline:Mongo.ConnectionDeadline) async throws -> MongoChannel
     {
         while case .filling(let bootstrap) = self.state
         {
@@ -300,14 +362,14 @@ extension Mongo.ConnectionPool
                 async
                 let _:Void = self.fail(request, by: deadline)
 
-                return await withCheckedContinuation
+                return try await withCheckedThrowingContinuation
                 {
                     self.requests.updateValue($0, forKey: request)
                 }
             }
         }
 
-        return nil
+        throw self.error
     }
     /// Synchronously notifies the pool that a connection is being returned
     /// to it, and asynchronously re-indexes the connection.
@@ -451,9 +513,7 @@ extension Mongo.ConnectionPool
         }
     }
     /// Tries to create and add a new connection to the pool. If anything goes wrong
-    /// during this process, the ``stopMonitoring(throwing:)`` signal will be emitted
-    /// if the pool is still in the filling stage when the error is observed, and
-    /// the pool will immediately transition to its draining stage.
+    /// during this process, the pool will be closed with ``close(because:)``.
     ///
     /// If the pool is still in the filling stage when the connection is successfully
     /// established, it will trigger a (non-blocking) recursive call to this method
@@ -528,23 +588,7 @@ extension Mongo.ConnectionPool
         catch let error
         {
             self.connections.pending -= 1
-
-            switch self.state
-            {
-            case .filling:
-                self.stopMonitoring(throwing: error)
-                self.state = .draining(nil)
-            
-            case .draining(nil):
-                break
-            
-            case .draining(let continuation?):
-                if  self.connections.isEmpty
-                {
-                    continuation.resume()
-                    self.state = .draining(nil)
-                }
-            }
+            self.close(because: error)
         }
     }
 }

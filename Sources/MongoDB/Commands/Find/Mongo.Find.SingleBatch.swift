@@ -9,7 +9,7 @@ extension Mongo.Find
     struct SingleBatch:Sendable where Element:MongoDecodable
     {
         public
-        let find:Mongo.Find<Element>
+        var find:Mongo.Find<Element>
 
         public
         init(collection:Mongo.Collection,
@@ -21,8 +21,7 @@ extension Mongo.Find
             sort:Mongo.SortDocument = [:],
             `let`:Mongo.LetDocument = [:],
             collation:Mongo.Collation? = nil,
-            readLevel:Mongo.ReadLevel? = nil,
-            timeout:Milliseconds? = nil,
+            readConcern:Mongo.ReadConcern? = nil,
             min:BSON.Fields = [:],
             max:BSON.Fields = [:],
             returnKey:Bool? = nil,
@@ -40,21 +39,14 @@ extension Mongo.Find
                 sort: sort,
                 let: `let`,
                 collation: collation,
-                readLevel: readLevel,
-                timeout: timeout,
+                readConcern: readConcern,
                 min: min,
                 max: max,
                 returnKey: returnKey,
                 showRecordIdentifier: showRecordIdentifier)
+            
+            self.find.fields["singleBatch"] = true
         }
-    }
-}
-extension Mongo.Find.SingleBatch:MongoReadCommand
-{
-    @inlinable public
-    var readLevel:Mongo.ReadLevel?
-    {
-        self.find.readLevel
     }
 }
 extension Mongo.Find.SingleBatch:MongoImplicitSessionCommand,
@@ -69,14 +61,19 @@ extension Mongo.Find.SingleBatch:MongoImplicitSessionCommand,
     }
 
     public
-    func encode(to bson:inout BSON.Fields)
+    typealias Response = [Element]
+
+    @inlinable public
+    var readConcern:Mongo.ReadConcern?
     {
-        self.find.encode(to: &bson)
-        bson["singleBatch"] = true
+        self.find.readConcern
     }
 
-    public
-    typealias Response = [Element]
+    @inlinable public
+    var fields:BSON.Fields
+    {
+        self.find.fields
+    }
 
     @inlinable public static
     func decode<Bytes>(reply:BSON.Dictionary<Bytes>) throws -> [Element]

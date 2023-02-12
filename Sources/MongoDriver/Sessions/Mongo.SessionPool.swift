@@ -17,7 +17,7 @@ extension Mongo
         /// and also copies (strong-references) it to give to individual
         /// ``Session`` objects.
         @usableFromInline nonisolated
-        let cluster:Cluster
+        let deployment:Deployment
 
         /// The number of sessions currently being re-indexed by this pool.
         /// Session deinitializers increment this counter, and the pool 
@@ -40,9 +40,9 @@ extension Mongo
         private
         var state:State
 
-        init(cluster:Cluster) 
+        init(deployment:Deployment) 
         {
-            self.cluster = cluster
+            self.deployment = deployment
             self.releasing = .create(0)
             self.released = []
             self.retained = []
@@ -98,8 +98,8 @@ extension Mongo.SessionPool
         by deadline:Mongo.ConnectionDeadline? = nil) async throws -> Mongo.ConnectionPool
     {
         let connect:Mongo.ConnectionDeadline = deadline ??
-            self.cluster.timeout.deadline(from: .now)
-        return try await self.cluster.pool(preference: preference, by: connect)
+            self.deployment.timeout.deadline(from: .now)
+        return try await self.deployment.pool(preference: preference, by: connect)
     }
 }
 extension Mongo.SessionPool
@@ -121,9 +121,9 @@ extension Mongo.SessionPool
     {
         let started:ContinuousClock.Instant = .now
 
-        let connect:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(from: started,
+        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: started,
             clamping: deadline)
-        let connections:Mongo.ConnectionPool = try await self.cluster.pool(
+        let connections:Mongo.ConnectionPool = try await self.deployment.pool(
             preference: preference,
             by: connect)
         //  this creates the connection before creating the session, because
@@ -183,8 +183,8 @@ extension Mongo.SessionPool
     nonisolated
     func create() async throws -> Mongo.SessionMetadata
     {
-        let deadline:Mongo.ConnectionDeadline = self.cluster.timeout.deadline(clamping: nil)
-        let sessions:Mongo.LogicalSessions = try await self.cluster.sessions(by: deadline)
+        let deadline:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(clamping: nil)
+        let sessions:Mongo.LogicalSessions = try await self.deployment.sessions(by: deadline)
         return await self.create(ttl: sessions.ttl)
     }
     /// Destroy (unsafe) session metadata. The session will re-indexed by the

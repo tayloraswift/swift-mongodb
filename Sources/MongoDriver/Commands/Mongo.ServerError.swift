@@ -18,14 +18,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.ServerError:CustomStringConvertible
-{
-    public
-    var description:String
-    {
-        self.message
-    }
-}
 extension Mongo.ServerError:NamedError
 {
     public

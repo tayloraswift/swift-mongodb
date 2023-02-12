@@ -27,9 +27,11 @@ extension Mongo.DropDatabase:MongoImplicitSessionCommand, MongoCommand
         "dropDatabase"
     }
     public
-    func encode(to bson:inout BSON.Fields)
+    var fields:BSON.Fields
     {
-        bson[Self.name] = 1 as Int32
-        bson["writeConcern"] = self.writeConcern
+        .init
+        {
+            $0[Self.name] = 1 as Int32
+        }
     }
 }

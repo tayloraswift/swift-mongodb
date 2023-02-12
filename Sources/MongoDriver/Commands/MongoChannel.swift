@@ -12,18 +12,13 @@ extension MongoChannel
     /// If the deadline has already passed before the command can be encoded, this
     /// method will throw a ``TimeoutError``, but the channel will not be closed.
     /// In all other scenarios, the channel will be closed on timeout.
-    @inlinable public
     func run<Command>(command:__owned Command,
         against database:Command.Database,
-        labels:Mongo.SessionLabels? = nil,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
-        where Command:MongoCommand
+        where Command:MongoChannelCommand
     {
-        //  Never append `maxTimeMS` to commands run directly on a channel.
         if  let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
                 database: database,
-                labels: labels,
-                timed: false,
                 by: deadline)
         {
             return try .init(message: try await self.run(command: command, by: deadline))
@@ -54,9 +49,10 @@ extension MongoChannel
         try .init(bson: try await self.run(command: command, against: database,
             by: deadline.instant).result.get())
     }
-    /// Runs a ``Mongo/Hello`` command, and decodes its response.
+    /// Runs a ``Mongo/Hello`` command, and decodes a subset of its response
+    /// suitable for authentication purposes.
     func run(hello command:__owned Mongo.Hello,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.HelloResponse
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Authentication.HelloResponse
     {
         try .init(bson: try await self.run(command: command, against: .admin,
             by: deadline.instant).result.get())

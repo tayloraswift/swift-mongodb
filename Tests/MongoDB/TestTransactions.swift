@@ -32,9 +32,8 @@ func TestTransactions(_ tests:TestGroup,
         {
             let tests:TestGroup = tests / "abortion-cancelled"
             //  We should be able to abort an empty transaction by throwing an error.
-            let result:Mongo.TransactionResult<Void> = await session.withTransaction(
-                writeConcern: .init(level: .majority),
-                readConcern: .snapshot)
+            let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
+                writeConcern: .majority)
             {
                 (_:Mongo.Transaction) in
                 throw CancellationError.init()
@@ -67,9 +66,8 @@ func TestTransactions(_ tests:TestGroup,
                 try await session.refresh()
             }
             //  We should be able to abort a non-empty transaction by throwing an error.
-            let result:Mongo.TransactionResult<Void> = await session.withTransaction(
-                writeConcern: .init(level: .majority),
-                readConcern: .snapshot)
+            let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
+                writeConcern: .majority)
             {
                 (transaction:Mongo.Transaction) in
                 //  We should be able to observe a precondition time associated with
@@ -81,7 +79,7 @@ func TestTransactions(_ tests:TestGroup,
                 await (tests / "insert").do
                 {
                     let response:Mongo.InsertResponse = try await transaction.run(
-                        command: Mongo.Insert<[Letter]>.init(collection: collection,
+                        command: Mongo.Insert.init(collection: collection,
                             elements: [a]),
                         against: database)
                     
@@ -153,9 +151,8 @@ func TestTransactions(_ tests:TestGroup,
             let tests:TestGroup = tests / "commit-cancelled"
             //  We should be able to commit an empty transaction, by returning from
             //  the closure argument.
-            let result:Mongo.TransactionResult<Void> = await session.withTransaction(
-                writeConcern: .init(level: .majority),
-                readConcern: .snapshot)
+            let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
+                writeConcern: .majority)
             {
                 (_:Mongo.Transaction) in
             }
@@ -178,16 +175,15 @@ func TestTransactions(_ tests:TestGroup,
             let tests:TestGroup = tests / "commit"
             //  We should be able to commit a non-empty transaction, by returning from
             //  the closure argument.
-            let result:Mongo.TransactionResult<Void> = await session.withTransaction(
-                writeConcern: .init(level: .majority),
-                readConcern: .snapshot)
+            let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
+                writeConcern: .majority)
             {
                 (transaction:Mongo.Transaction) in
 
                 await (tests / "insert").do
                 {
                     let response:Mongo.InsertResponse = try await transaction.run(
-                        command: Mongo.Insert<[Letter]>.init(collection: collection,
+                        command: Mongo.Insert.init(collection: collection,
                             elements: [b]),
                         against: database)
                     

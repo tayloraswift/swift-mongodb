@@ -16,7 +16,7 @@ extension Mongo
         /// The server cluster associated with this session’s ``pool``.
         /// This is stored inline to speed up access.
         @usableFromInline
-        let cluster:Cluster
+        let deployment:Deployment
         private
         let pool:SessionPool
 
@@ -28,7 +28,7 @@ extension Mongo
             self.touched = metadata.touched
             self.id = metadata.id
 
-            self.cluster = pool.cluster
+            self.deployment = pool.deployment
             self.pool = pool
         }
         deinit

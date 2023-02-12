@@ -16,11 +16,15 @@ extension Mongo
         }
     }
 }
-extension Mongo.AbortTransaction:MongoWriteCommand
-{
-}
 extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
 {
+    /// The string [`"abortTransaction"`]().
+    @inlinable public static
+    var name:String
+    {
+        "abortTransaction"
+    }
+
     /// `AbortTransaction` must be sent to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
@@ -32,12 +36,5 @@ extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
         {
             $0[Self.name] = 1 as Int32
         }
-    }
-
-    /// The string [`"abortTransaction"`]().
-    @inlinable public static
-    var name:String
-    {
-        "abortTransaction"
     }
 }

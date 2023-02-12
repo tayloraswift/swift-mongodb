@@ -12,10 +12,8 @@ extension Mongo
         let message:SCRAM.Message
     }
 }
-extension Mongo.SASLContinue:MongoCommand
+extension Mongo.SASLContinue:MongoChannelCommand
 {
-    typealias Response = Mongo.SASLResponse
-    
     /// The string [`"saslContinue"`]().
     static
     var name:String
@@ -23,14 +21,10 @@ extension Mongo.SASLContinue:MongoCommand
         "saslContinue"
     }
 
-    public
-    var fields:BSON.Fields
+    func encode(to bson:inout BSON.Fields)
     {
-        .init
-        {
-            $0[Self.name] = true
-            $0["conversationId"] = self.conversation
-            $0["payload"] = self.message.base64
-        }
+        bson[Self.name] = true
+        bson["conversationId"] = self.conversation
+        bson["payload"] = self.message.base64
     }
 }

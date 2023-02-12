@@ -84,10 +84,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.Aggregate:MongoReadCommand, MongoWriteCommand
-    where Element:MongoDecodable
-{
-}
 extension Mongo.Aggregate:MongoIterableCommand
     where Element:MongoDecodable
 {

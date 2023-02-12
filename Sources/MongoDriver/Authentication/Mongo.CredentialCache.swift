@@ -58,7 +58,7 @@ extension Mongo.CredentialCache
     nonisolated
     func establish(_ channel:MongoChannel,
         credentials:Mongo.Credentials?,
-        by deadline:Mongo.ConnectionDeadline) async -> Result<Mongo.HelloResponse, any Error>
+        by deadline:Mongo.ConnectionDeadline) async -> Result<Void, any Error>
     {
         let user:Mongo.Namespaced<String>?
         // if we don’t have an explicit authentication mode, ask the server
@@ -73,7 +73,7 @@ extension Mongo.CredentialCache
             user = nil
         }
 
-        let response:Mongo.HelloResponse
+        let response:Mongo.Authentication.HelloResponse
         do
         {
             response = try await channel.run(hello: .init(
@@ -91,7 +91,7 @@ extension Mongo.CredentialCache
             do
             {
                 try await self.authenticate(channel, with: credentials,
-                    mechanisms: response.saslSupportedMechs,
+                    mechanisms: response.mechanisms,
                     by: deadline)
             }
             catch let error
@@ -101,7 +101,7 @@ extension Mongo.CredentialCache
             }
         }
 
-        return .success(response)
+        return .success(())
     }
 }
 

@@ -3,58 +3,98 @@
 //  https://github.com/facebook/folly/blob/main/folly/stats/TDigest.h
 
 public
-struct DigestHistogram:Sendable
+struct OnlineCDF:Sendable
 {
-    let capacity:Int
+    public
+    let resolution:Int
 
     private
     var centroids:[Centroid]
 
     public private(set)
-    var samples:Int
-    public private(set)
-    var sum:Double
-
+    var weight:Double
     public private(set)
     var min:Double
     public private(set)
     var max:Double
+    public private(set)
+    var sum:Double
 
-    init(capacity:Int, samples:Int,
-        min:Double =  .infinity,
-        max:Double = -.infinity)
+    private
+    init(resolution:Int, centroids:[Centroid],
+        weight:Double,
+        min:Double,
+        max:Double,
+        sum:Double)
     {
-        self.capacity = capacity
+        self.resolution = resolution
 
-        self.centroids = []
-        self.centroids.reserveCapacity(capacity)
+        self.centroids = centroids
+        self.centroids.reserveCapacity(resolution)
 
-        self.samples = samples
-        self.sum = 0
-
+        self.weight = weight
         self.min = min
         self.max = max
+        self.sum = sum
     }
 }
 
-extension DigestHistogram
+extension OnlineCDF
 {
-    public
-    init(capacity:Int = 100)
+    private
+    init(resolution:Int,
+        weight:Double,
+        min:Double,
+        max:Double)
     {
-        self.init(capacity: capacity, samples: 0)
+        self.init(resolution: resolution, centroids: [],
+            weight: weight,
+            min: min,
+            max: max,
+            sum: 0)
     }
 }
-extension DigestHistogram
+extension OnlineCDF
+{
+    public
+    init(resolution:Int, seed:Double)
+    {
+        let seed:Centroid = .init(weight: 1, mean: seed)
+        self.init(resolution: resolution, centroids: [seed],
+            weight: seed.weight,
+            min: seed.mean,
+            max: seed.mean,
+            sum: seed.sum)
+    }
+    public
+    init(resolution:Int, sorted:[Double])
+    {
+        if sorted.isEmpty
+        {
+            fatalError("CDF seed values list cannot be empty.")
+        }
+
+        self.init(resolution: resolution, weight: 0,
+            min:  .infinity,
+            max: -.infinity)
+        self.insert(sorted: sorted)
+    }
+    @inlinable public
+    init(resolution:Int, seeds:some Sequence<Double>)
+    {
+        self.init(resolution: resolution, sorted: seeds.sorted())
+    }
+}
+extension OnlineCDF
 {
     public
     var mean:Double
     {
-        self.samples != 0 ? self.sum / .init(self.samples) : 0
+        self.weight != 0 ? self.sum / self.weight : 0
     }
 }
 
-extension DigestHistogram
+extension OnlineCDF
 {
     public mutating
     func insert(sorted:[Double])
@@ -67,18 +107,26 @@ extension DigestHistogram
         self = self.merged(with: CollectionOfOne<Double>.init(sample))
     }
     @inlinable public mutating
-    func insert(_ samples:some RandomAccessCollection<Double>)
+    func insert(_ samples:some Sequence<Double>)
     {
         self.insert(sorted: samples.sorted())
     }
 }
-extension DigestHistogram
+extension OnlineCDF
 {
     private
     func limit(k:Int) -> Double
     {
-        let q:Q = .init(k, capacity: self.capacity)
-        return q * self.samples
+        let base:Double = .init(k) / .init(self.resolution)
+        if  base < 0.5
+        {
+            return self.weight * (    2 * base * base)
+        }
+        else
+        {
+            let base:Double = 1 - base
+            return self.weight * (1 - 2 * base * base)
+        }
     }
 
     private
@@ -94,8 +142,8 @@ extension DigestHistogram
 
         if  let lowest:Double = next.sample
         {
-            merged = .init(capacity: self.capacity,
-                samples: self.samples + sorted.count,
+            merged = .init(resolution: self.resolution,
+                weight: self.weight + .init(sorted.count),
                 min: Swift.min(self.min, lowest),
                 max: Swift.max(self.max, sorted[sorted.index(before: sorted.endIndex)]))
             
@@ -121,11 +169,9 @@ extension DigestHistogram
         merging:
         for k:Int in 1...
         {
+            var unmerged:(weight:Double, sum:Double) = (0, 0)
+
             let limit:Double = merged.limit(k: k)
-
-            var weightsToMerge:Double = 0
-            var sumsToMerge:Double = 0
-
             while true
             {
                 let new:Centroid
@@ -133,7 +179,7 @@ extension DigestHistogram
                 switch next
                 {
                 case (centroid: nil, sample: nil):
-                    merged.sum += previous.add(weight: weightsToMerge, sum: sumsToMerge)
+                    merged.sum += previous.add(weight: unmerged.weight, sum: unmerged.sum)
                     merged.centroids.append(previous)
                     break merging
 
@@ -159,15 +205,15 @@ extension DigestHistogram
 
                 if  limit < accumulated
                 {
-                    merged.sum += previous.add(weight: weightsToMerge, sum: sumsToMerge)
+                    merged.sum += previous.add(weight: unmerged.weight, sum: unmerged.sum)
                     merged.centroids.append(previous)
                     previous = new
                     continue merging
                 }
                 else
                 {
-                    sumsToMerge += new.sum
-                    weightsToMerge += new.weight
+                    unmerged.weight += new.weight
+                    unmerged.sum += new.sum
                 }
             }
         }
@@ -179,57 +225,12 @@ extension DigestHistogram
     }
 }
 
-extension DigestHistogram
+extension OnlineCDF
 {
-    private
-    func resolve(upper quantile:Double) -> (index:Int, fraction:Double)
-    {
-        let unit:Double = .init(self.samples)
-        let rank:Double = quantile * unit
-
-        var remaining:Double = unit
-        for index:Int in self.centroids.indices.reversed()
-        {
-            remaining -= self.centroids[index].weight
-
-            if rank >= remaining
-            {
-                return (index, rank - remaining)
-            }
-        }
-
-        return (self.centroids.startIndex, rank - remaining)
-    }
-    private
-    func resolve(lower quantile:Double) -> (index:Int, fraction:Double)
-    {
-        let unit:Double = .init(self.samples)
-        let rank:Double = quantile * unit
-
-        var accumulated:Double = 0
-        for index:Int in self.centroids.indices
-        {
-            let combined:Double = accumulated + self.centroids[index].weight
-
-            if rank < combined
-            {
-                return (index, rank - accumulated)
-            }
-            else
-            {
-                accumulated = combined
-            }
-        }
-
-        return (self.centroids.index(before: self.centroids.endIndex), rank - accumulated)
-    }
     public
     func estimate(quantile:Double) -> Double
     {
-        if self.centroids.isEmpty
-        {
-            return 0
-        }
+        assert(!self.centroids.isEmpty)
 
         let index:Int
         let fraction:Double
@@ -238,7 +239,7 @@ extension DigestHistogram
         {
             if quantile > 0
             {
-                (index, fraction) = self.resolve(lower: quantile)
+                (index, fraction) = self.snap(lower: quantile)
             }
             else
             {
@@ -249,7 +250,7 @@ extension DigestHistogram
         {
             if quantile < 1
             {
-                (index, fraction) = self.resolve(upper: quantile)
+                (index, fraction) = self.snap(upper: quantile)
             }
             else
             {
@@ -257,25 +258,15 @@ extension DigestHistogram
             }
         }
 
-        let before:Centroid?
         let main:Centroid = self.centroids[index]
-        let after:Centroid?
+
+        let before:Centroid? = index == self.centroids.startIndex ?
+            nil : self.centroids[self.centroids.index(before: index)]
+        let after:Centroid? = index == self.centroids.index(before: self.centroids.endIndex) ?
+            nil : self.centroids[self.centroids.index(after: index)]
 
         let range:ClosedRange<Double>
         let delta:Double
-        if  self.centroids.count == 1
-        {
-            before = nil
-            after = nil
-        }
-        else
-        {
-            before = index == self.centroids.startIndex ?
-                nil : self.centroids[self.centroids.index(before: index)]
-            
-            after = index == self.centroids.index(before: self.centroids.endIndex) ?
-                nil : self.centroids[self.centroids.index(after: index)]
-        }
 
         switch (before, after)
         {
@@ -298,5 +289,46 @@ extension DigestHistogram
 
         let value:Double = main.mean + (fraction / main.weight - 0.5) * delta
         return Swift.max(range.lowerBound, Swift.min(value, range.upperBound))
+    }
+
+    private
+    func snap(upper quantile:Double) -> (index:Int, fraction:Double)
+    {
+        let rank:Double = self.weight * quantile
+
+        var remaining:Double = self.weight
+        for index:Int in self.centroids.indices.reversed()
+        {
+            remaining -= self.centroids[index].weight
+
+            if rank >= remaining
+            {
+                return (index, rank - remaining)
+            }
+        }
+
+        return (self.centroids.startIndex, rank - remaining)
+    }
+    private
+    func snap(lower quantile:Double) -> (index:Int, fraction:Double)
+    {
+        let rank:Double = self.weight * quantile
+
+        var accumulated:Double = 0
+        for index:Int in self.centroids.indices
+        {
+            let combined:Double = accumulated + self.centroids[index].weight
+
+            if rank < combined
+            {
+                return (index, rank - accumulated)
+            }
+            else
+            {
+                accumulated = combined
+            }
+        }
+
+        return (self.centroids.index(before: self.centroids.endIndex), rank - accumulated)
     }
 }

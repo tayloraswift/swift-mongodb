@@ -159,7 +159,7 @@ func TestReadPreference(_ tests:TestGroup,
             {
                 let tests:TestGroup = tests / name
                 await tests.do(
-                    catching: Mongo.ClusterError<Mongo.ReadPreferenceError>.init(
+                    catching: Mongo.DeploymentStateError<Mongo.ReadPreferenceError>.init(
                         diagnostics: .init(
                             undesirable:
                             [
@@ -182,7 +182,8 @@ func TestReadPreference(_ tests:TestGroup,
             do
             {
                 let tests:TestGroup = tests / "secondary-staleness-zero"
-                await tests.do(catching: Mongo.ClusterError<Mongo.ReadPreferenceError>.self)
+                await tests.do(
+                    catching: Mongo.DeploymentStateError<Mongo.ReadPreferenceError>.self)
                 {
                     try await session.refresh(on: .secondary(maxStaleness: 0))
                 }

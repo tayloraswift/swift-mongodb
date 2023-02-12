@@ -18,10 +18,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.SASLStart:MongoCommand
+extension Mongo.SASLStart:MongoChannelCommand
 {
-    typealias Response = Mongo.SASLResponse
-    
     /// The string [`"saslStart"`]().
     static
     var name:String
@@ -29,18 +27,14 @@ extension Mongo.SASLStart:MongoCommand
         "saslStart"
     }
 
-    public
-    var fields:BSON.Fields
+    func encode(to bson:inout BSON.Fields)
     {
-        .init
+        bson[Self.name] = true
+        bson["mechanism"] = self.mechanism
+        bson["payload"] = self.scram.message.base64
+        bson["options"] = .init
         {
-            $0[Self.name] = true
-            $0["mechanism"] = self.mechanism
-            $0["payload"] = self.scram.message.base64
-            $0["options"] = .init
-            {
-                $0["skipEmptyExchange"] = true
-            }
+            $0["skipEmptyExchange"] = true
         }
     }
 }

@@ -14,25 +14,27 @@ extension Mongo
     struct ListCollections:Sendable
     {
         public
-        let authorizedCollections:Bool?
+        let stride:Int
 
         public
-        let timeout:Milliseconds?
-        public
-        let stride:Int
-        public
-        let filter:BSON.Fields
+        var fields:BSON.Fields
 
         public
         init(authorizedCollections:Bool? = nil,
-            timeout:Milliseconds? = nil,
             stride:Int,
-            filter:BSON.Fields = .init())
+            filter:Mongo.PredicateDocument = [:])
         {
-            self.authorizedCollections = authorizedCollections
-            self.timeout = timeout
             self.stride = stride
-            self.filter = filter
+            self.fields = .init
+            {
+                $0[Self.name] = 1 as Int32
+                $0["cursor"] = .init
+                {
+                    $0["batchSize"] = stride
+                }
+                $0["authorizedCollections"] = authorizedCollections
+                $0["filter", elide: true] = filter
+            }
         }
     }
 }
@@ -59,21 +61,6 @@ extension Mongo.ListCollections:MongoImplicitSessionCommand,
     {
         "listCollections"
     }
-    
-    public
-    func encode(to bson:inout BSON.Fields)
-    {
-        bson[Self.name] = 1 as Int32
-        bson["cursor"] = .init
-        {
-            $0["batchSize"] = self.stride
-        }
-        bson["maxTimeMS"] = self.timeout
-        bson["authorizedCollections"] = self.authorizedCollections
-        bson["filter", elide: true] = self.filter
-    }
-
 }
-// TODO: `listCollections` should by a streamable command...
 // FIXME: ListCollections *can* run on a secondary,
 // but *should* run on a primary.

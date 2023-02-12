@@ -22,10 +22,6 @@ extension Mongo.ConfigureFailpoint
 }
 extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
 {
-    /// `ConfigureFailpoint` must be sent to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
-
     /// The string [`"configureFailPoint"`](). Note that the capitalization
     /// is different from that of the command type.
     @inlinable public static
@@ -33,6 +29,10 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
     {
         "configureFailPoint"
     }
+
+    /// `ConfigureFailpoint` must be sent to the `admin` database.
+    public
+    typealias Database = Mongo.Database.Admin
 
     public
     var fields:BSON.Fields

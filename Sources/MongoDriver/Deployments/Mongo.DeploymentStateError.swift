@@ -3,7 +3,7 @@ import TraceableErrors
 extension Mongo
 {
     public
-    struct ClusterError<Underlying>:Error where Underlying:Error
+    struct DeploymentStateError<Underlying>:Error where Underlying:Error
     {
         public
         let diagnostics:Mongo.SelectionDiagnostics
@@ -18,10 +18,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.ClusterError:Equatable where Underlying:Equatable
+extension Mongo.DeploymentStateError:Equatable where Underlying:Equatable
 {
 }
-extension Mongo.ClusterError:TraceableError
+extension Mongo.DeploymentStateError:TraceableError
 {
     public
     var underlying:any Error
