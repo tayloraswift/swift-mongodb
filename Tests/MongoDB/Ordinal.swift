@@ -1,13 +1,12 @@
 import BSONDecoding
 import BSONEncoding
-import MongoSchema
 
 struct Ordinal:Hashable, Sendable
 {
     let id:Int
     let value:Int64
 }
-extension Ordinal:MongoEncodable
+extension Ordinal:BSONEncodable, BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.Fields)
     {
@@ -15,7 +14,7 @@ extension Ordinal:MongoEncodable
         bson["ordinal"] = self.value
     }
 }
-extension Ordinal:MongoDecodable
+extension Ordinal:BSONDecodable, BSONDictionaryDecodable
 {
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
     {

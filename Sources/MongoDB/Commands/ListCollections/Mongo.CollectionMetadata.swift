@@ -1,5 +1,4 @@
 import BSONDecoding
-import MongoSchema
 
 extension Mongo
 {
@@ -35,7 +34,7 @@ extension Mongo.CollectionMetadata
         self.options.variant.type
     }
 }
-extension Mongo.CollectionMetadata:MongoDecodable, BSONDictionaryDecodable
+extension Mongo.CollectionMetadata:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws

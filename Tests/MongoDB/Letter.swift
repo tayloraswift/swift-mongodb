@@ -1,6 +1,5 @@
 import BSONDecoding
 import BSONEncoding
-import MongoSchema
 
 struct Letter:Hashable, Sendable
 {
@@ -13,14 +12,14 @@ extension Letter:ExpressibleByUnicodeScalarLiteral
         self.init(id: unicodeScalarLiteral)
     }
 }
-extension Letter:MongoEncodable
+extension Letter:BSONEncodable, BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.Fields)
     {
         bson["_id"] = self.id
     }
 }
-extension Letter:MongoDecodable
+extension Letter:BSONDecodable, BSONDictionaryDecodable
 {
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
     {

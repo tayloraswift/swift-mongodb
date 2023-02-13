@@ -36,7 +36,7 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
                         collection: collection,
                         limit: 10),
                     against: database)
@@ -50,7 +50,7 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
                         collection: collection,
                         limit: 7,
                         skip: 5),
@@ -65,14 +65,16 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
                         collection: collection,
                         limit: 5,
-                        skip: 10,
-                        hint: .index(.init
+                        skip: 10)
+                    {
+                        $0[.hint] = .init
                         {
-                            $0["_id"] = 1 as Int32
-                        })),
+                            $0["_id"] = (+)
+                        }
+                    },
                     against: database)
 
                 tests.expect(batch ..? ordinals[10 ..< 15])
@@ -84,14 +86,16 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Ordinal>.SingleBatch.init(
+                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
                         collection: collection,
                         limit: 5,
-                        skip: 10,
-                        sort: .init
+                        skip: 10)
+                    {
+                        $0[.sort] = .init
                         {
                             $0["ordinal"] = (-)
-                        }),
+                        }
+                    },
                     against: database)
 
                 tests.expect(batch ..? ordinals[85 ..< 90].reversed())
@@ -103,7 +107,7 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(query: Mongo.Find<Ordinal>.init(
+                try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
                         stride: 10),
                     against: database)
@@ -129,16 +133,18 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(query: Mongo.Find<Ordinal>.init(
+                try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
-                        stride: 10,
-                        filter: .init
+                        stride: 10)
+                    {
+                        $0[.filter] = .init
                         {
                             $0["ordinal"] = .init
                             {
                                 $0[.mod] = (by: 3, is: 0)
                             }
-                        }),
+                        }
+                    },
                     against: database)
                 {
                     var expected:Array<Ordinal>.Iterator = 
@@ -163,17 +169,19 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(query: Mongo.Find<Ordinal>.init(
+                try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
-                        stride: 10,
-                        projection: .init
+                        stride: 10)
+                    {
+                        $0[.projection] = .init
                         {
                             $0["_id"] = 1 as Int32
                             $0["ordinal"] = .init
                             {
                                 $0[.add] = ("$ordinal", 5)
                             }
-                        }),
+                        }
+                    },
                     against: database)
                 {
                     var expected:Ordinals.Iterator = Ordinals.init(

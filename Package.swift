@@ -26,7 +26,6 @@ products:
     .library(name: "MongoChannel", targets: ["MongoChannel"]),
     .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
     .library(name: "MongoDriver", targets: ["MongoDriver"]),
-    .library(name: "MongoSchema", targets: ["MongoSchema"]),
     .library(name: "MongoWire", targets: ["MongoWire"]),
 
     .library(name: "SCRAM", targets: ["SCRAM"]),
@@ -172,13 +171,6 @@ products:
                 .target(name: "Mongo"),
                 .target(name: "MongoDSL"),
             ]),
-
-        .target(name: "MongoSchema",
-            dependencies:
-            [
-                .target(name: "BSONDecoding"),
-                .target(name: "BSONEncoding"),
-            ]),
         
         .target(name: "MongoDriver",
             dependencies: 
@@ -190,7 +182,6 @@ products:
                 .target(name: "Heartbeats"),
                 .target(name: "Mongo"),
                 .target(name: "MongoChannel"),
-                .target(name: "MongoSchema"),
                 .target(name: "OnlineCDF"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2", package: "swift-hash"),

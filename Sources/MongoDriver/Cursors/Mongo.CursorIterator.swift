@@ -1,5 +1,5 @@
 import Durations
-import MongoSchema
+import BSONDecoding
 
 extension Mongo
 {
@@ -98,7 +98,7 @@ extension Mongo.CursorIterator
     /// recommended, and the cursor should be discarded.
     @inlinable public
     func get<Element>(more _:Element.Type) async throws -> Mongo.Cursor<Element>
-        where Element:MongoDecodable
+        where Element:BSONDocumentDecodable
     {
         try await self.pinned.session.run(
             command: Mongo.GetMore<Element>.init(cursor: self.id,
