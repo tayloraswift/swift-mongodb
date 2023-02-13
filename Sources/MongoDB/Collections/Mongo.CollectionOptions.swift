@@ -1,29 +1,29 @@
 import BSONDecoding
 
-extension Mongo.CollectionMetadata
+extension Mongo
 {
     /// Collection options.
     @frozen public
-    struct Options:Sendable
+    struct CollectionOptions:Sendable
     {
         public
-        let collation:Mongo.Collation?
+        let collation:Collation?
         public
-        let writeConcern:Mongo.WriteConcern.Options?
+        let writeConcern:WriteConcern.Options?
         public
-        let indexOptionDefaults:Mongo.StorageConfiguration?
+        let indexOptionDefaults:BSON.Fields?
         public
-        let storageEngine:Mongo.StorageConfiguration?
+        let storageEngine:BSON.Fields?
 
         public
-        let variant:Mongo.Create.Variant
+        let variant:CollectionVariant
 
         public
-        init(collation:Mongo.Collation?,
-            writeConcern:Mongo.WriteConcern.Options?,
-            indexOptionDefaults:Mongo.StorageConfiguration?,
-            storageEngine:Mongo.StorageConfiguration?,
-            variant:Mongo.Create.Variant)
+        init(collation:Collation?,
+            writeConcern:WriteConcern.Options?,
+            indexOptionDefaults:BSON.Fields?,
+            storageEngine:BSON.Fields?,
+            variant:CollectionVariant)
         {
             self.collation = collation
             self.writeConcern = writeConcern
@@ -33,7 +33,7 @@ extension Mongo.CollectionMetadata
         }
     }
 }
-extension Mongo.CollectionMetadata.Options
+extension Mongo.CollectionOptions
 {
     @inlinable public
     var capped:Bool
@@ -82,53 +82,37 @@ extension Mongo.CollectionMetadata.Options
     @inlinable public
     var timeseries:Mongo.Timeseries?
     {
-        switch self.variant
-        {
-        case .timeseries(let timeseries):
-            return timeseries
-        default:
-            return nil
-        }
+        self.variant.timeseries
     }
     @inlinable public
     var viewOn:Mongo.Collection?
     {
-        switch self.variant
-        {
-        case .view(on: let collection, pipeline: _):
-            return collection
-        default:
-            return nil
-        }
+        self.variant.view?.collection
     }
     @inlinable public
     var pipeline:Mongo.Pipeline?
     {
-        switch self.variant
-        {
-        case .view(on: _, pipeline: let pipeline):
-            return pipeline
-        default:
-            return nil
-        }
+        self.variant.view?.pipeline
     }
 }
-extension Mongo.CollectionMetadata.Options
+extension Mongo.CollectionOptions
 {
     @inlinable public
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>,
         type:Mongo.CollectionType) throws
     {
-        let variant:Mongo.Create.Variant
+        let variant:Mongo.CollectionVariant
         switch type
         {
         case .collection:
-            let cap:Mongo.Cap?
+            let cap:(size:Int, max:Int?)?
             if case true? = try bson["capped"]?.decode(to: Bool.self)
             {
-                cap = .init(
+                cap =
+                (
                     size: try bson["size"].decode(to: Int.self),
-                    max: try bson["max"]?.decode(to: Int.self))
+                    max: try bson["max"]?.decode(to: Int.self)
+                )
             }
             else
             {
@@ -139,23 +123,23 @@ extension Mongo.CollectionMetadata.Options
                     to: Mongo.ValidationAction.self),
                 validationLevel: try bson["validationLevel"]?.decode(
                     to: Mongo.ValidationLevel.self),
-                validator: try bson["validator"]?.decode(to: BSON.Fields.self) ?? .init())
+                validator: try bson["validator"]?.decode(
+                    to: Mongo.PredicateDocument.self))
         
         case .timeseries:
             variant = .timeseries(try bson["timeseries"].decode(to: Mongo.Timeseries.self))
         
         case .view:
-            variant = .view(
-                on: try bson["viewOn"].decode(to: Mongo.Collection.self),
-                pipeline: try bson["pipeline"].decode(to: Mongo.Pipeline.self))
+            variant = .view(.init(on: try bson["viewOn"].decode(to: Mongo.Collection.self),
+                pipeline: try bson["pipeline"].decode(to: Mongo.Pipeline.self)))
         }
         self.init(
             collation: try bson["collation"]?.decode(to: Mongo.Collation.self),
             writeConcern: try bson["writeConcern"]?.decode(to: Mongo.WriteConcern.Options.self),
             indexOptionDefaults: try bson["indexOptionDefaults"]?.decode(
-                to: Mongo.StorageConfiguration.self),
+                to: BSON.Fields.self),
             storageEngine: try bson["storageEngine"]?.decode(
-                to: Mongo.StorageConfiguration.self),
+                to: BSON.Fields.self),
             variant: variant)
     }
 }

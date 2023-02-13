@@ -81,11 +81,7 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
         limit:Int? = nil,
         skip:Int? = nil)
     {
-        self.readConcern = readConcern
-        self.tailing = tailing
-        self.stride = stride
-
-        self.fields = .init
+        self.init(readConcern: readConcern, tailing: tailing, stride: stride)
         {
             $0[Self.name] = collection
             $0["awaitData"] = tailing.flatMap { $0.awaits ? true : nil }
@@ -121,13 +117,10 @@ extension Mongo.Find where Mode.Tailing == Never, Mode.Stride == Void
         limit:Int,
         skip:Int? = nil)
     {
-        self.readConcern = readConcern
-        self.tailing = nil
-        self.stride = ()
-
-        self.fields = .init
+        self.init(readConcern: readConcern, tailing: nil, stride: ())
         {
             $0[Self.name] = collection
+            $0["singleBatch"] = true
             $0["batchSize"] = limit
             $0["limit"] = limit
             $0["skip"] = skip

@@ -8,12 +8,12 @@ extension Mongo
         public
         let collection:Collection
         public
-        let options:Options
+        let options:CollectionOptions
         public
-        let info:Info
+        let info:CollectionInfo
 
         @inlinable public
-        init(collection:Collection, options:Options, info:Info)
+        init(collection:Collection, options:CollectionOptions, info:CollectionInfo)
         {
             self.collection = collection
             self.options = options
@@ -46,6 +46,6 @@ extension Mongo.CollectionMetadata:BSONDecodable, BSONDictionaryDecodable
                 try .init(bson: $0, 
                     type: try bson["type"].decode(to: Mongo.CollectionType.self))
             },
-            info: try bson["info"].decode(to: Info.self))
+            info: try bson["info"].decode(to: Mongo.CollectionInfo.self))
     }
 }

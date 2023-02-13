@@ -267,5 +267,13 @@ products:
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/MongoDriver"),
+        
+        
+        .target(name: "MongoDSLAPITests",
+            dependencies:
+            [
+                .target(name: "MongoBuiltins"),
+            ], 
+            path: "Tests/MongoDSLAPI"),
     ]
 )
