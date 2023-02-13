@@ -14,8 +14,8 @@ jobs:
         strategy:
             matrix:
                 image: 
-                -   nightly-amazonlinux2
-                -   nightly
+                -   nightly-5.8-amazonlinux2
+                -   nightly-5.8
 
         steps:
             -   name: checkout repository

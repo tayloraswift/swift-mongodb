@@ -8,10 +8,10 @@ extension Mongo
         public
         let message:String
         public
-        let code:Int32?
+        let code:Code?
 
         public
-        init(_ code:Int32?, message:String)
+        init(_ code:Code?, message:String)
         {
             self.message = message
             self.code = code

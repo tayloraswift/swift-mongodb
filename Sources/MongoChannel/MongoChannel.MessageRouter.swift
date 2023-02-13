@@ -31,12 +31,12 @@ extension MongoChannel
 }
 extension MongoChannel.MessageRouter
 {
-    func perish(throwing error:any Error)
+    func perish(throwing error:MongoChannel.ExecutionError)
     {
         switch self.state
         {
         case .awaiting(let continuation):
-            continuation?.resume(throwing: error)
+            continuation?.resume(returning: .failure(error))
             self.state = .perished
         
         case .perished:
@@ -65,7 +65,7 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
                 fallthrough
             }
 
-            continuation.resume(returning: message)
+            continuation.resume(returning: .success(message))
             self.state = .awaiting(nil)
         
         case .awaiting(nil):
@@ -80,14 +80,14 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
     public
     func errorCaught(context:ChannelHandlerContext, error:any Error)
     {
-        self.perish(throwing: error)
+        self.perish(throwing: .network(error: .other(error)))
         
         context.fireErrorCaught(error)
     }
     public
     func channelInactive(context:ChannelHandlerContext)
     {
-        self.perish(throwing: MongoChannel.DisconnectionError.init())
+        self.perish(throwing: .network(error: .disconnected))
 
         context.fireChannelInactive()
     }
@@ -105,12 +105,12 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
         switch self.unwrapOutboundIn(data)
         {
         case .interrupt:
-            self.perish(throwing: MongoChannel.InterruptError.init())
+            self.perish(throwing: .network(error: .interrupted))
 
             context.channel.close(mode: .all, promise: nil)
         
         case .timeout:
-            self.perish(throwing: MongoChannel.TimeoutError.init(sent: true))
+            self.perish(throwing: .timeout)
 
             context.channel.close(mode: .all, promise: nil)
         
@@ -124,7 +124,7 @@ extension MongoChannel.MessageRouter:ChannelOutboundHandler
             switch self.state
             {
             case .perished:
-                continuation.resume(throwing: MongoChannel.DisconnectionError.init())
+                continuation.resume(returning: .failure(.network(error: .disconnected)))
                 return
             
             case .awaiting(_?):

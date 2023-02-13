@@ -10,7 +10,8 @@ extension MongoChannel
     {
         case interrupt
         case timeout
-        case request(MongoWire.Message<[UInt8]>.Sections,
-            CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>)
+        case request(MongoWire.Message<[UInt8]>.Sections, CheckedContinuation<
+            Result<MongoWire.Message<ByteBufferView>, ExecutionError>,
+            Never>)
     }
 }

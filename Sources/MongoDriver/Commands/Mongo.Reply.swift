@@ -7,7 +7,7 @@ extension Mongo
     @frozen public
     struct Reply
     {
-        @usableFromInline
+        private
         let result:Result<BSON.Dictionary<ByteBufferView>, Mongo.ServerError>
 
         @usableFromInline
@@ -22,6 +22,38 @@ extension Mongo
             self.result = result
             self.operationTime = operationTime
             self.clusterTime = clusterTime
+        }
+    }
+}
+extension Mongo.Reply
+{
+    var ok:Bool
+    {
+        switch self.result
+        {
+        case .success: return true
+        case .failure: return false
+        }
+    }
+
+    @usableFromInline
+    func callAsFunction() throws -> BSON.Dictionary<ByteBufferView>
+    {
+        switch self.result
+        {
+        case .success(let dictionary):
+            return dictionary
+        
+        case .failure(let error):
+            if  let code:Mongo.ServerError.Code = error.code,
+                    code.indicatesTimeLimitExceeded
+            {
+                throw Mongo.TimeoutError.server(code: code)
+            }
+            else
+            {
+                throw error
+            }
         }
     }
 }
@@ -47,7 +79,8 @@ extension Mongo.Reply
         }
         else
         {
-            self.init(result: .failure(.init(try dictionary["code"]?.decode(to: Int32.self),
+            self.init(result: .failure(.init(try dictionary["code"]?.decode(
+                        to: Mongo.ServerError.Code.self),
                     message: try dictionary["errmsg"]?.decode(to: String.self) ?? "")),
                 operationTime: operationTime,
                 clusterTime: clusterTime)

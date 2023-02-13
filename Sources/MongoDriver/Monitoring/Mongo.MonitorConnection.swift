@@ -1,9 +1,9 @@
 import Heartbeats
 import MongoChannel
 
-extension Mongo.Monitor
+extension Mongo
 {
-    struct Connection
+    struct MonitorConnection
     {
         let heartbeat:Heartbeat
         private
@@ -17,7 +17,7 @@ extension Mongo.Monitor
         }
     }
 }
-extension Mongo.Monitor.Connection
+extension Mongo.MonitorConnection
 {
     /// Sets up a TCP channel to the given host alongside a heartbeat that
     /// will stop if the channel is closed (for any reason).
@@ -50,7 +50,7 @@ extension Mongo.Monitor.Connection
         await self.channel.close()
     }
 }
-extension Mongo.Monitor.Connection
+extension Mongo.MonitorConnection
 {
     /// Runs a ``Mongo/Hello`` command, and decodes a subset of its response
     /// suitable for monitoring purposes.
@@ -63,7 +63,7 @@ extension Mongo.Monitor.Connection
         let reply:Mongo.Reply = try await self.channel.run(command: command, against: .admin,
             by: deadline.instant)
         let received:ContinuousClock.Instant = .now
-        return .init(response: try .init(bson: reply.result.get()),
+        return .init(response: try .init(bson: reply()),
             latency: received - sent)
     }
 }

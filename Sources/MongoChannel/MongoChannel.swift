@@ -73,6 +73,7 @@ extension MongoChannel:Hashable
         hasher.combine(ObjectIdentifier.init(self.channel))
     }
 }
+
 extension MongoChannel
 {
     /// Sends the given command document over this connection, unchanged, and
@@ -84,21 +85,24 @@ extension MongoChannel
     /// deadline is sensible.
     @inlinable public
     func run(command:__owned MongoWire.Message<[UInt8]>.Sections,
-        by deadline:ContinuousClock.Instant) async throws -> MongoWire.Message<ByteBufferView>
+        by deadline:ContinuousClock.Instant)
+        async -> Result<MongoWire.Message<ByteBufferView>, ExecutionError>
     {
         async
         let _:Void = self.timeout(by: deadline)
 
-        return try await withCheckedThrowingContinuation
+        return await withCheckedContinuation
         {
-            (continuation:CheckedContinuation<MongoWire.Message<ByteBufferView>, any Error>) in
+            (continuation:CheckedContinuation<
+                Result<MongoWire.Message<ByteBufferView>, ExecutionError>,
+                Never>) in
 
             self.channel.writeAndFlush(Action.request(command, continuation)).whenComplete
             {
                 // don’t leak the continuation!
                 if case .failure(let error) = $0
                 {
-                    continuation.resume(throwing: error)
+                    continuation.resume(returning: .failure(.network(error: .other(error))))
                 }
             }
         }
