@@ -96,21 +96,21 @@ extension Mongo.Connection
                     by: deadline)
         else
         {
-            throw MongoChannel.TimeoutError.init()
+            throw Mongo.TimeoutError.driver(sent: false)
         }
 
-        let message:MongoWire.Message<ByteBufferView>
+        switch await self.channel.run(command: command, by: deadline)
+        {
+        case .success(let message):
+            return try .init(message: message)
         
-        do
-        {
-            message = try await self.channel.run(command: command, by: deadline)
-        }
-        catch let error
-        {
+        case .failure(.network(error: let error)):
             self.reuse = false
             throw error
+        
+        case .failure(.timeout):
+            self.reuse = false
+            throw Mongo.TimeoutError.driver(sent: true)
         }
-
-        return try .init(message: message)
     }
 }

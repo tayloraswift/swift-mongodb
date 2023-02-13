@@ -389,7 +389,7 @@ extension Mongo.Session
             sent: sent)
         self.deployment.yield(clusterTime: reply.clusterTime)
 
-        return try Command.decode(reply: try reply.result.get())
+        return try Command.decode(reply: try reply())
     }
 
     @inlinable public

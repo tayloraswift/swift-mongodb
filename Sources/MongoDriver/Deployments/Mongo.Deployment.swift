@@ -316,13 +316,7 @@ extension Mongo.Deployment
                 against: .admin,
                 by: deadline.instant)
             
-            switch reply.result
-            {
-            case .success:
-                return true
-            case .failure:
-                return false
-            }
+            return reply.ok
         }
         catch
         {

@@ -17,15 +17,24 @@ extension MongoChannel
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
         where Command:MongoChannelCommand
     {
-        if  let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
-                database: database,
-                by: deadline)
-        {
-            return try .init(message: try await self.run(command: command, by: deadline))
-        }
+        guard   let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
+                    database: database,
+                    by: deadline)
         else
         {
-            throw MongoChannel.TimeoutError.init()
+            throw Mongo.TimeoutError.driver(sent: false)
+        }
+
+        switch await self.run(command: command, by: deadline)
+        {
+        case .success(let message):
+            return try .init(message: message)
+        
+        case .failure(.network(error: let error)):
+            throw error
+        
+        case .failure(.timeout):
+            throw Mongo.TimeoutError.driver(sent: true)
         }
     }
 }
@@ -38,7 +47,7 @@ extension MongoChannel
         by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.SASLResponse
     {
         try .init(bson: try await self.run(command: command, against: database,
-            by: deadline.instant).result.get())
+            by: deadline.instant)())
     }
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.
@@ -47,7 +56,7 @@ extension MongoChannel
         by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.SASLResponse
     {
         try .init(bson: try await self.run(command: command, against: database,
-            by: deadline.instant).result.get())
+            by: deadline.instant)())
     }
     /// Runs a ``Mongo/Hello`` command, and decodes a subset of its response
     /// suitable for authentication purposes.
@@ -55,6 +64,6 @@ extension MongoChannel
         by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Authentication.HelloResponse
     {
         try .init(bson: try await self.run(command: command, against: .admin,
-            by: deadline.instant).result.get())
+            by: deadline.instant)())
     }
 }

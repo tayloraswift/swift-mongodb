@@ -191,7 +191,7 @@ extension Mongo.Monitor
     {
         let deadline:Mongo.ConnectionDeadline = bootstrap.timeout.deadline(from: .now)
 
-        let connection:Connection
+        let connection:Mongo.MonitorConnection
         do
         {
             connection = try await .init(using: bootstrap, for: host)
@@ -260,7 +260,7 @@ extension Mongo.Monitor
     }
     private
     func check(host:Mongo.Host, initialHello initial:HelloResult,
-        over connection:Connection,
+        over connection:Mongo.MonitorConnection,
         pool:Mongo.ConnectionPool) async throws -> ExitStatus
     {
         if  let exit:ExitStatus = await self.sequence(update: initial.response.update,
