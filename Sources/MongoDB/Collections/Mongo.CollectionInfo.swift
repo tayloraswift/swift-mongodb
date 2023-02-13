@@ -2,10 +2,10 @@ import BSONDecoding
 import BSON_UUID
 import UUID
 
-extension Mongo.CollectionMetadata
+extension Mongo
 {
     @frozen public
-    struct Info:Sendable
+    struct CollectionInfo:Sendable
     {
         public
         let readOnly:Bool
@@ -20,7 +20,7 @@ extension Mongo.CollectionMetadata
         }
     }
 }
-extension Mongo.CollectionMetadata.Info:BSONDictionaryDecodable
+extension Mongo.CollectionInfo:BSONDecodable, BSONDictionaryDecodable
 {
     @inlinable public
     init<Bytes>(bson:BSON.Dictionary<Bytes>) throws

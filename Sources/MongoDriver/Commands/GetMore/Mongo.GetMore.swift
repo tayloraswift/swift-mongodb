@@ -1,11 +1,11 @@
+import BSONDecoding
 import BSONEncoding
 import Durations
-import MongoSchema
 
 extension Mongo
 {
     @frozen public
-    struct GetMore<Element>:Sendable where Element:MongoDecodable
+    struct GetMore<Element>:Sendable where Element:BSONDocumentDecodable
     {
         public
         let cursor:CursorIdentifier

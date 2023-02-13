@@ -89,7 +89,7 @@ func TestCausalConsistency(_ tests:TestGroup,
         await (tests / "before").do
         {
             let letters:[Letter] = try await session.run(
-                command: Mongo.Find<Letter>.SingleBatch.init(
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
                     collection: collection,
                     limit: 10),
                 against: database,
@@ -175,13 +175,15 @@ func TestCausalConsistency(_ tests:TestGroup,
         func ReadLetters() async throws -> [Letter]
         {
             try await session.run(
-                command: Mongo.Find<Letter>.SingleBatch.init(
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
                     collection: collection,
-                    limit: 10,
-                    sort: .init
+                    limit: 10)
+                {
+                    $0[.sort] = .init
                     {
                         $0["_id"] = (+)
-                    }),
+                    }
+                },
                 against: database,
                 on: secondary,
                 by: .now.advanced(by: .milliseconds(500)))
@@ -207,13 +209,15 @@ func TestCausalConsistency(_ tests:TestGroup,
         await (tests / "bystander").do
         {
             let letters:[Letter] = try await session.run(
-                command: Mongo.Find<Letter>.SingleBatch.init(
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
                     collection: collection,
-                    limit: 10,
-                    sort: .init
+                    limit: 10)
+                {
+                    $0[.sort] = .init
                     {
                         $0["_id"] = (+)
-                    }),
+                    }
+                },
                 against: database,
                 on: .secondary(tagSets: [["name": "D"]]))
             
@@ -234,7 +238,7 @@ func TestCausalConsistency(_ tests:TestGroup,
         await (tests / "non-causal").do
         {
             let letters:[Letter] = try await other.run(
-                command: Mongo.Find<Letter>.SingleBatch.init(
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
                     collection: collection,
                     limit: 10),
                 against: database,
@@ -263,7 +267,7 @@ func TestCausalConsistency(_ tests:TestGroup,
             tests.expect(forked.preconditionTime ==? head)
 
             let _:[Letter] = try await forked.run(
-                command: Mongo.Find<Letter>.SingleBatch.init(
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
                     collection: collection,
                     limit: 10),
                 against: database,

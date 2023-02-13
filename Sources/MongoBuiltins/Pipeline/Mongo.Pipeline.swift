@@ -17,6 +17,15 @@ extension Mongo
         }
     }
 }
+extension Mongo.Pipeline
+{
+    @inlinable public
+    init(with populate:(inout Self) throws -> ()) rethrows
+    {
+        self.init(stages: [])
+        try populate(&self)
+    }
+}
 extension Mongo.Pipeline:BSONDecodable
 {
     @inlinable public

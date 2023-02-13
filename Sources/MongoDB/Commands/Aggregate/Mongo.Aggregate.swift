@@ -1,6 +1,6 @@
+import BSONDecoding
 import BSONEncoding
 import Durations
-import MongoSchema
 
 extension Mongo
 {
@@ -59,7 +59,7 @@ extension Mongo
         init(collection:Collection,
             _cursor:CursorOptions,
             pipeline:Pipeline,
-            hint:IndexHint? = nil,
+            //hint:IndexHint? = nil,
             `let`:LetDocument,
             collation:Collation? = nil,
             writeConcern:WriteConcern? = nil,
@@ -76,7 +76,7 @@ extension Mongo
                 //$0["maxTimeMS"] = self.timeout
 
                 $0["pipeline", elide: false] = pipeline
-                $0["hint"] = hint
+                //$0["hint"] = hint
                 $0["let", elide: true] = `let`
                     
                 $0["collation"] = collation
@@ -85,7 +85,7 @@ extension Mongo
     }
 }
 extension Mongo.Aggregate:MongoIterableCommand
-    where Element:MongoDecodable
+    where Element:BSONDocumentDecodable
 {
     public
     typealias Response = Mongo.Cursor<Element>
@@ -97,7 +97,7 @@ extension Mongo.Aggregate:MongoIterableCommand
     }
 }
 extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
-    where Element:MongoDecodable
+    where Element:BSONDocumentDecodable
 {
 }
 extension Mongo.Aggregate

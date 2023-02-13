@@ -1,5 +1,4 @@
 import BSONEncoding
-import MongoSchema
 
 extension Mongo
 {
@@ -24,7 +23,7 @@ extension Mongo
             bypassDocumentValidation:Bool? = nil,
             ordered:Bool? = nil,
             writeConcern:WriteConcern? = nil)
-            where Elements:Sequence, Elements.Element:MongoEncodable
+            where Elements:Sequence, Elements.Element:BSONDocumentEncodable
         {
             self.writeConcern = writeConcern
             self.documents = .init(elements)

@@ -1,10 +1,10 @@
 import Durations
-import MongoSchema
+import BSONDecoding
 
 extension Mongo
 {
     public
-    struct Batches<BatchElement> where BatchElement:MongoDecodable
+    struct Batches<BatchElement> where BatchElement:BSONDocumentDecodable & Sendable
     {
         public
         let iterator:AsyncIterator

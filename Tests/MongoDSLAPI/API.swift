@@ -1,48 +1,19 @@
 import BSONEncoding
+import MongoBuiltins
 
-func MongoExpressionAPITest()
+func API()
 {
     let _:BSON.Fields = .init
     {
         $0["_"] = [] as [Never]
         $0["_"] = [:]
-    }
-    let _:Mongo.Accumulator = .init
-    {
-        $0[.top] = .init
+        $0["_"] = .init
         {
-            $0[.output] = "$field"
-            $0[.by] = .init
+            $0["_"] = .init
             {
-                $0["x"] = (+)
-                $0["y"] = (-)
+                $0["_"] = [:]
             }
         }
-    }
-    let _:Mongo.Accumulator = .init
-    {
-        $0[.top] = .init
-        {
-            $0[.output] = "$field"
-            $0[.count] = 5
-            $0[.by] = .init
-            {
-                $0["x"] = (+)
-                $0["y"] = (-)
-            }
-        }
-    }
-    let _:Mongo.Accumulator = .init
-    {
-        $0[.first] = .init
-        {
-            $0[.input] = "$field"
-            $0[.count] = 5
-        }
-    }
-    let _:Mongo.Accumulator = .init
-    {
-        $0[.first] = "$field"
     }
     let _:MongoExpression = .init
     {
@@ -415,5 +386,42 @@ func MongoExpressionAPITest()
                 $0[.defaults] = [0, 0]
             }
         }
+    }
+        let _:Mongo.Accumulator = .init
+    {
+        $0[.top] = .init
+        {
+            $0[.output] = "$field"
+            $0[.by] = .init
+            {
+                $0["x"] = (+)
+                $0["y"] = (-)
+            }
+        }
+    }
+    let _:Mongo.Accumulator = .init
+    {
+        $0[.top] = .init
+        {
+            $0[.output] = "$field"
+            $0[.count] = 5
+            $0[.by] = .init
+            {
+                $0["x"] = (+)
+                $0["y"] = (-)
+            }
+        }
+    }
+    let _:Mongo.Accumulator = .init
+    {
+        $0[.first] = .init
+        {
+            $0[.input] = "$field"
+            $0[.count] = 5
+        }
+    }
+    let _:Mongo.Accumulator = .init
+    {
+        $0[.first] = "$field"
     }
 }
