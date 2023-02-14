@@ -3,7 +3,7 @@ import BSONUnions
 extension BSON
 {
     /// A thin wrapper around a native Swift dictionary providing an efficient decoding
-    /// interface for a ``BSON/Document``.
+    /// interface for a ``BSON/DocumentView``.
     @frozen public
     struct Dictionary<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {

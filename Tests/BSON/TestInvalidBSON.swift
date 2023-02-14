@@ -11,8 +11,8 @@ func TestInvalidBSON(_ tests:TestGroup, invalid:String, catching error:some Erro
 
     tests.do(catching: error)
     {
-        let document:BSON.Document<ArraySlice<UInt8>> = try input.parse(
-            as: BSON.Document<ArraySlice<UInt8>>.self)
+        let document:BSON.DocumentView<ArraySlice<UInt8>> = try input.parse(
+            as: BSON.DocumentView<ArraySlice<UInt8>>.self)
         try input.finish()
         _ = try document.canonicalized()
     }

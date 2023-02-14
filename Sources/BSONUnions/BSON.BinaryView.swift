@@ -1,6 +1,6 @@
 import BSON
 
-extension BSON.Binary
+extension BSON.BinaryView
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws

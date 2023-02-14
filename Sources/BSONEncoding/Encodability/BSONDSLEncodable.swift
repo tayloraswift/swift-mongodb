@@ -23,11 +23,11 @@ extension BSONDSLEncodable where Self:RawRepresentable, RawValue:BSONDSLEncodabl
 }
 extension BSONDSLEncodable where Self:Sequence, Element:BSONDSLEncodable
 {
-    /// Encodes this sequence as a value of type ``BSON.tuple``.
+    /// Encodes this sequence as a value of type ``BSON.list``.
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(tuple: .init(BSON.Elements<Never>.init(elements: self)))
+        field.encode(list: .init(BSON.Elements<Never>.init(elements: self)))
     }
 }
 extension BSONDSLEncodable where Self:BinaryFloatingPoint

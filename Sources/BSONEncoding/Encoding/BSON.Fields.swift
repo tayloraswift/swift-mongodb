@@ -16,7 +16,7 @@ extension BSON.Fields
 extension BSON.Fields
 {
     /// Appends the given key-value pair to this document builder, encoding the
-    /// given tuple elements as the field value, so long as it is not empty (or
+    /// given list elements as the field value, so long as it is not empty (or
     /// `elide` is [`false`]()).
     ///
     /// Type inference will always infer this subscript as long as any

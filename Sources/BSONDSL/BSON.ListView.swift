@@ -1,8 +1,8 @@
 import BSON
 
-extension BSON.Tuple<[UInt8]>
+extension BSON.ListView<[UInt8]>
 {
-    /// Stores the output buffer of the given tuple elements into
+    /// Stores the output buffer of the given list elements into
     /// an instance of this type.
     ///
     /// >   Complexity: O(1).

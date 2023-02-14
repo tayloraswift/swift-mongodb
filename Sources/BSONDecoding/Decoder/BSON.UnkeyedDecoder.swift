@@ -35,7 +35,7 @@ extension BSON.UnkeyedDecoder
     mutating 
     func diagnose<T>(_ decode:(AnyBSON<Bytes>) throws -> T?) throws -> T
     {
-        let key:BSON.TupleKey = .init(intValue: self.currentIndex) 
+        let key:BSON.ListKey = .init(intValue: self.currentIndex) 
         var path:[any CodingKey] 
         { 
             self.codingPath + CollectionOfOne<any CodingKey>.init(key) 

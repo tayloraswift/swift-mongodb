@@ -17,8 +17,8 @@ extension BSON.Output
         case .document(let document):
             self.serialize(document: document)
 
-        case .tuple(let tuple):
-            self.serialize(tuple: tuple)
+        case .list(let list):
+            self.serialize(list: list)
 
         case .binary(let binary):
             self.serialize(binary: binary)

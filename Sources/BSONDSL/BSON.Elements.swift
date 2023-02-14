@@ -66,30 +66,30 @@ extension BSON.Elements
         self.init(bytes: other.bytes, count: other.count)
     }
     /// Creates an encoding view around the given [`[UInt8]`]()-backed
-    /// tuple-document.
+    /// list-document.
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ bson:BSON.Tuple<[UInt8]>, count:Int)
+    init(_ bson:BSON.ListView<[UInt8]>, count:Int)
     {
         self.init(bytes: bson.slice, count: count)
     }
-    /// Creates an encoding view around the given generic tuple-document,
+    /// Creates an encoding view around the given generic list-document,
     /// copying its backing storage if it is not already backed by
     /// a native Swift array.
     ///
-    /// If the tuple-document is statically known to be backed by a Swift array,
+    /// If the list-document is statically known to be backed by a Swift array,
     /// prefer calling the non-generic ``init(_:)``.
     ///
     /// >   Complexity:
     ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
     ///     where *n* is the encoded size of the document.
     @inlinable public
-    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>, count:Int)
+    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>, count:Int)
     {
         switch bson
         {
-        case let bson as BSON.Tuple<[UInt8]>:
+        case let bson as BSON.ListView<[UInt8]>:
             self.init(bson, count: count)
         case let bson:
             self.init(bytes: .init(bson.slice), count: count)

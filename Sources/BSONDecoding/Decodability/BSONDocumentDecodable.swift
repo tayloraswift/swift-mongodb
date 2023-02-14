@@ -1,11 +1,11 @@
 import BSONUnions
 
-/// A type that can be decoded from a BSON document. Tuple-documents
+/// A type that can be decoded from a BSON document. List-documents
 /// count as documents, from the perspective of this protocol.
 public
 protocol BSONDocumentDecodable:BSONDecodable
 {
-    init(bson:BSON.Document<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>) throws
 }
 extension BSONDocumentDecodable
 {
@@ -22,7 +22,7 @@ extension Dictionary:BSONDocumentDecodable, BSONDecodable
     /// are not ``BSONEncodable``, because round-tripping them loses the field
     /// ordering information.
     @inlinable public
-    init<Bytes>(bson:BSON.Document<Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentView<Bytes>) throws
     {
         self.init()
         try bson.parse

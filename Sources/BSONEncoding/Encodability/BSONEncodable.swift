@@ -195,7 +195,7 @@ extension StaticString:BSONEncodable
     }
 }
 
-extension BSON.Binary:BSONEncodable
+extension BSON.BinaryView:BSONEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
@@ -203,7 +203,7 @@ extension BSON.Binary:BSONEncodable
         field.encode(binary: self)
     }
 }
-extension BSON.Document:BSONEncodable
+extension BSON.DocumentView:BSONEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
@@ -211,15 +211,15 @@ extension BSON.Document:BSONEncodable
         field.encode(document: self)
     }
 }
-extension BSON.Tuple:BSONEncodable
+extension BSON.ListView:BSONEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(tuple: self)
+        field.encode(list: self)
     }
 }
-extension BSON.UTF8:BSONEncodable
+extension BSON.UTF8View:BSONEncodable
 {
     /// Encodes this UTF-8 string as a ``BSON.string``.
     @inlinable public

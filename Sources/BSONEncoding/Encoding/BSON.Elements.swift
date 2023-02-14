@@ -28,7 +28,7 @@ extension BSON.Elements
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(tuple: .init(self))
+        field.encode(list: .init(self))
     }
 }
 extension BSON.Elements:BSONDSLEncodable

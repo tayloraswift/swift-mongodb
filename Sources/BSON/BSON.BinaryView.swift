@@ -4,7 +4,7 @@ extension BSON
 {
     /// A BSON binary array.
     @frozen public
-    struct Binary<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct BinaryView<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         /// The contents of this binary array. This collection does *not*
         /// include the leading subtype byte.
@@ -22,21 +22,21 @@ extension BSON
         }
     }
 }
-extension BSON.Binary:Equatable
+extension BSON.BinaryView:Equatable
 {
     /// Performs an exact byte-wise comparison on two binary arrays.
     /// The subtypes must match as well.
     @inlinable public static
-    func == (lhs:Self, rhs:BSON.Binary<some RandomAccessCollection<UInt8>>) -> Bool
+    func == (lhs:Self, rhs:BSON.BinaryView<some RandomAccessCollection<UInt8>>) -> Bool
     {
         lhs.subtype == rhs.subtype &&
         lhs.slice.elementsEqual(rhs.slice)
     }
 }
-extension BSON.Binary:Sendable where Bytes:Sendable
+extension BSON.BinaryView:Sendable where Bytes:Sendable
 {
 }
-extension BSON.Binary:VariableLengthBSON where Bytes.SubSequence == Bytes
+extension BSON.BinaryView:VariableLengthBSON where Bytes.SubSequence == Bytes
 {
     public
     typealias Frame = BSON.BinaryFrame
@@ -80,7 +80,7 @@ extension BSON.Binary:VariableLengthBSON where Bytes.SubSequence == Bytes
         }
     }
 }
-extension BSON.Binary
+extension BSON.BinaryView
 {
     /// The length that would be encoded in this binary array’s prefixed header.
     /// Equal to [`self.bytes.count`]().

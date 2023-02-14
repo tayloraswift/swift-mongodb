@@ -4,27 +4,27 @@ extension AnyBSON
 {
     /// Attempts to unwrap and parse an array-decoder from this variant.
     ///
-    /// This method will only attempt to parse statically-typed BSON tuples; it will not
-    /// inspect general documents to determine if they are valid tuples.
+    /// This method will only attempt to parse statically-typed BSON lists; it will not
+    /// inspect general documents to determine if they are valid lists.
     /// 
     /// -   Returns:
     ///     The payload of this variant, parsed to an array-decoder, if it matches
-    ///     ``case tuple(_:)`` and could be successfully parsed, [`nil`]() otherwise.
+    ///     ``case list(_:)`` and could be successfully parsed, [`nil`]() otherwise.
     ///
-    /// This method dispatches to ``BSON/Tuple.array``.
+    /// This method dispatches to ``BSON/ListView.array``.
     ///
     /// >   Complexity: 
-    //      O(*n*), where *n* is the number of elements in the source tuple.
+    //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public 
     func array() throws -> BSON.Array<Bytes.SubSequence>
     {
-        try BSON.Tuple<Bytes>.init(self).array()
+        try BSON.ListView<Bytes>.init(self).array()
     }
     /// Attempts to unwrap and parse a fixed-length array-decoder from this variant.
     /// 
     /// -   Returns:
     ///     The payload of this variant, parsed to an array-decoder, if it matches
-    ///     ``case tuple(_:)``, could be successfully parsed, and contains the
+    ///     ``case list(_:)``, could be successfully parsed, and contains the
     ///     expected number of elements.
     ///
     /// >   Throws:
@@ -48,7 +48,7 @@ extension AnyBSON
     /// satifies the given criteria.
     /// 
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case tuple(_:)``, could be
+    ///     The payload of this variant if it matches ``case list(_:)``, could be
     ///     successfully parsed, and contains the expected number of elements.
     ///
     /// >   Throws:
@@ -74,12 +74,12 @@ extension AnyBSON
     /// Attempts to load a dictionary-decoder from this variant.
     /// 
     /// - Returns: A dictionary-decoder derived from the payload of this variant if it 
-    ///     matches ``case document(_:)`` or ``case tuple(_:)``, [`nil`]() otherwise.
+    ///     matches ``case document(_:)`` or ``case list(_:)``, [`nil`]() otherwise.
     ///
-    /// This method dispatches to ``BSON/Document.dictionary``.
+    /// This method dispatches to ``BSON/DocumentView.dictionary``.
     @inlinable public 
     func dictionary() throws -> BSON.Dictionary<Bytes.SubSequence>
     {
-        try BSON.Document<Bytes>.init(self).dictionary()
+        try BSON.DocumentView<Bytes>.init(self).dictionary()
     }
 }

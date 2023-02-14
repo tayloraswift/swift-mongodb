@@ -9,7 +9,7 @@ enum Main:SyncTests
     {
         do
         {
-            let bson:BSON.Document<[UInt8]> =
+            let bson:BSON.DocumentView<[UInt8]> =
             [
                 "null": .null,
                 "max": .max,
@@ -34,7 +34,7 @@ enum Main:SyncTests
         {
             let tests:TestGroup = tests / "numeric"
 
-            let bson:BSON.Document<[UInt8]> =
+            let bson:BSON.DocumentView<[UInt8]> =
             [
                 "int32": .int32(0x7fff_ffff),
                 "int64": .int64(0x7fff_ffff_ffff_ffff),
@@ -77,7 +77,7 @@ enum Main:SyncTests
         {
             let tests:TestGroup = tests / "tuple"
 
-            let bson:BSON.Document<[UInt8]> =
+            let bson:BSON.DocumentView<[UInt8]> =
             [
                 "none":     [],
                 "two":      ["a", "b"],
@@ -147,7 +147,8 @@ enum Main:SyncTests
             TestDecoding(tests / "map-invalid", bson: bson,
                 catching: BSON.DecodingError<String>.init(
                     BSON.DecodingError<Int>.init(
-                        BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .int64),
+                        BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
+                            invalid: .int64),
                         in: 2),
                     in: "heterogenous"))
             {
@@ -165,7 +166,8 @@ enum Main:SyncTests
             TestDecoding(tests / "element-invalid", bson: bson,
                 catching: BSON.DecodingError<String>.init(
                     BSON.DecodingError<Int>.init(
-                        BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .int64),
+                        BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
+                            invalid: .int64),
                         in: 2),
                     in: "heterogenous"))
             {
@@ -180,12 +182,12 @@ enum Main:SyncTests
         {
             let tests:TestGroup = tests / "document"
 
-            let degenerate:BSON.Document<[UInt8]> =
+            let degenerate:BSON.DocumentView<[UInt8]> =
             [
                 "present": .null,
                 "present": true,
             ]
-            let bson:BSON.Document<[UInt8]> =
+            let bson:BSON.DocumentView<[UInt8]> =
             [
                 "present": .null,
                 "inhabited": true,
@@ -211,7 +213,7 @@ enum Main:SyncTests
 
             TestDecoding(tests / "key-not-matching", bson: bson,
                 catching: BSON.DecodingError<String>.init(
-                    BSON.TypecastError<BSON.UTF8<ArraySlice<UInt8>>>.init(invalid: .bool),
+                    BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(invalid: .bool),
                     in: "inhabited"))
             {
                 try $0["inhabited"].decode(to: String.self)
@@ -269,9 +271,9 @@ enum Main:SyncTests
         {
             let tests:TestGroup = tests / "binary" / "md5"
 
-            let md5:BSON.Binary<[UInt8]> = .init(subtype: .md5,
+            let md5:BSON.BinaryView<[UInt8]> = .init(subtype: .md5,
                 slice: [0xff, 0xfe, 0xfd])
-            let bson:BSON.Document<[UInt8]> =
+            let bson:BSON.DocumentView<[UInt8]> =
             [
                 "md5": .binary(md5),
             ]
@@ -279,8 +281,8 @@ enum Main:SyncTests
             tests.do
             {
                 let dictionary:BSON.Dictionary<ArraySlice<UInt8>> = try bson.dictionary()
-                let decoded:BSON.Binary<ArraySlice<UInt8>> = try dictionary["md5"].decode(
-                    as: BSON.Binary<ArraySlice<UInt8>>.self)
+                let decoded:BSON.BinaryView<ArraySlice<UInt8>> = try dictionary["md5"].decode(
+                    as: BSON.BinaryView<ArraySlice<UInt8>>.self)
                 {
                     $0
                 }
@@ -292,7 +294,7 @@ enum Main:SyncTests
         {
             let tests:TestGroup = tests / "losslessstringconvertible"
 
-            let bson:BSON.Document<[UInt8]> =
+            let bson:BSON.DocumentView<[UInt8]> =
             [
                 "string": "e\u{0301}e\u{0301}",
                 "character": "e\u{0301}",

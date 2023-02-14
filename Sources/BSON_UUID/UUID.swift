@@ -5,7 +5,7 @@ import BSONEncoding
 extension UUID:BSONDecodable, BSONBinaryDecodable
 {
     @inlinable public
-    init(bson:BSON.Binary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.BinaryView<some RandomAccessCollection<UInt8>>) throws
     {
         guard case .uuid = bson.subtype
         else

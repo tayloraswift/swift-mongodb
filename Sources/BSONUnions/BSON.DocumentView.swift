@@ -1,6 +1,6 @@
 import BSON
 
-extension BSON.Document
+extension BSON.DocumentView
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws
@@ -8,7 +8,7 @@ extension BSON.Document
         self = try value.cast(with: \.document)
     }
 }
-extension BSON.Document
+extension BSON.DocumentView
 {
     /// Parses this document into key-value pairs in order, yielding each key-value
     /// pair to the provided closure.
@@ -49,7 +49,7 @@ extension BSON.Document
         return elements
     }
 }
-extension BSON.Document:ExpressibleByDictionaryLiteral 
+extension BSON.DocumentView:ExpressibleByDictionaryLiteral 
     where Bytes:RangeReplaceableCollection<UInt8>
 {
     /// Creates a document containing the given fields, making two passes over
@@ -82,14 +82,14 @@ extension BSON.Document:ExpressibleByDictionaryLiteral
         self.init(fields: dictionaryLiteral)
     }
     /// Recursively parses and re-encodes this document, and any embedded documents
-    /// (and tuple-documents) in its elements. The keys will not be changed or re-ordered.
+    /// (and list-documents) in its elements. The keys will not be changed or re-ordered.
     @inlinable public
     func canonicalized() throws -> Self
     {
         .init(fields: try self.parse { ($0, try $1.canonicalized()) })
     }
 }
-extension BSON.Document
+extension BSON.DocumentView
 {
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
     /// comparing the elements. Returns [`false`]() if either operand fails to parse.
@@ -99,7 +99,7 @@ extension BSON.Document
     /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
     /// will compare equal to a `BSON//Value.string(_:)` value with the same contents.
     @inlinable public static
-    func ~~ <Other>(lhs:Self, rhs:BSON.Document<Other>) -> Bool
+    func ~~ <Other>(lhs:Self, rhs:BSON.DocumentView<Other>) -> Bool
     {
         if  let lhs:[(key:String, value:AnyBSON<Bytes.SubSequence>)] =
                 try? lhs.parse({ ($0, $1) }),

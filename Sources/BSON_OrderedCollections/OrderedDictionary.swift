@@ -7,7 +7,7 @@ extension OrderedDictionary:BSONDocumentDecodable, BSONDecodable
     where Key == String, Value:BSONDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Document<Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentView<Bytes>) throws
     {
         self.init()
         try bson.parse

@@ -158,7 +158,7 @@ extension MongoCommand
             }
         }
 
-        let body:BSON.Document<[UInt8]> = self.body(database: database,
+        let body:BSON.DocumentView<[UInt8]> = self.body(database: database,
             timeout: timeout,
             labels: labels)
 
@@ -167,7 +167,7 @@ extension MongoCommand
 
     private __consuming
     func body(database:Database, timeout:Milliseconds?,
-        labels:Mongo.SessionLabels?) -> BSON.Document<[UInt8]>
+        labels:Mongo.SessionLabels?) -> BSON.DocumentView<[UInt8]>
     {
         var bson:BSON.Fields = self.fields
 

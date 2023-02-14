@@ -1,6 +1,6 @@
 import BSON
 
-extension BSON.Document<[UInt8]>
+extension BSON.DocumentView<[UInt8]>
 {
     /// Stores the output buffer of the given document fields into
     /// an instance of this type.

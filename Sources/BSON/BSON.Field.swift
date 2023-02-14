@@ -103,35 +103,35 @@ extension BSON.Field
     }
 
     @inlinable public mutating
-    func encode(binary:BSON.Binary<some RandomAccessCollection<UInt8>>)
+    func encode(binary:BSON.BinaryView<some RandomAccessCollection<UInt8>>)
     {
         self.output.serialize(type: .binary)
         self.output.serialize(key: self.key)
         self.output.serialize(binary: binary)
     }
     @inlinable public mutating
-    func encode(document:BSON.Document<some RandomAccessCollection<UInt8>>)
+    func encode(document:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
     {
         self.output.serialize(type: .document)
         self.output.serialize(key: self.key)
         self.output.serialize(document: document)
     }
     @inlinable public mutating
-    func encode(tuple:BSON.Tuple<some RandomAccessCollection<UInt8>>)
+    func encode(list:BSON.ListView<some RandomAccessCollection<UInt8>>)
     {
-        self.output.serialize(type: .tuple)
+        self.output.serialize(type: .list)
         self.output.serialize(key: self.key)
-        self.output.serialize(tuple: tuple)
+        self.output.serialize(list: list)
     }
     @inlinable public mutating
-    func encode(string:BSON.UTF8<some BidirectionalCollection<UInt8>>)
+    func encode(string:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
         self.output.serialize(type: .string)
         self.output.serialize(key: self.key)
         self.output.serialize(utf8: string)
     }
     @inlinable public mutating
-    func encode(javascript:BSON.UTF8<some BidirectionalCollection<UInt8>>)
+    func encode(javascript:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
         self.output.serialize(type: .javascript)
         self.output.serialize(key: self.key)

@@ -1,7 +1,7 @@
 import Testing
 import BSONDecoding
 
-func TestDecoding<Failure, Unexpected>(_ tests:TestGroup, bson:BSON.Document<[UInt8]>, 
+func TestDecoding<Failure, Unexpected>(_ tests:TestGroup, bson:BSON.DocumentView<[UInt8]>, 
     catching error:Failure,
     with decode:(BSON.Dictionary<ArraySlice<UInt8>>) throws -> Unexpected)
     where Failure:Equatable & Error
@@ -11,7 +11,7 @@ func TestDecoding<Failure, Unexpected>(_ tests:TestGroup, bson:BSON.Document<[UI
         _ = try decode(try bson.dictionary())
     }
 }
-func TestDecoding<Decoded>(_ tests:TestGroup, bson:BSON.Document<[UInt8]>,
+func TestDecoding<Decoded>(_ tests:TestGroup, bson:BSON.DocumentView<[UInt8]>,
     to expected:Decoded,
     with decode:(BSON.Dictionary<ArraySlice<UInt8>>) throws -> Decoded)
     where Decoded:Equatable

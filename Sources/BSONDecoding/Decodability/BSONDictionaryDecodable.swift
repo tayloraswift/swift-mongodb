@@ -9,7 +9,7 @@ protocol BSONDictionaryDecodable:BSONDocumentDecodable
 extension BSONDictionaryDecodable
 {
     @inlinable public
-    init(bson:BSON.Document<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>) throws
     {
         try self.init(bson: try bson.dictionary())
     }

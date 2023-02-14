@@ -1,6 +1,6 @@
 extension BSON
 {
-    /// A tuple-document had an invalid scheme.
+    /// A list-document had an invalid scheme.
     @frozen public
     struct ArrayShapeError:Equatable, Error
     {

@@ -7,7 +7,7 @@ extension BSON
     /// A BSON document. The backing storage of this type is opaque,
     /// permitting lazy parsing of its inline content.
     @frozen public
-    struct Document<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct DocumentView<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         /// The raw data backing this document. This collection *does not*
         /// include the trailing null byte that typically appears after its
@@ -25,20 +25,20 @@ extension BSON
         }
     }
 }
-extension BSON.Document:Equatable
+extension BSON.DocumentView:Equatable
 {
-    /// Performs an exact byte-wise comparison on two tuples.
+    /// Performs an exact byte-wise comparison on two lists.
     /// Does not parse or validate the operands.
     @inlinable public static
-    func == (lhs:Self, rhs:BSON.Document<some RandomAccessCollection<UInt8>>) -> Bool
+    func == (lhs:Self, rhs:BSON.DocumentView<some RandomAccessCollection<UInt8>>) -> Bool
     {
         lhs.slice.elementsEqual(rhs.slice)
     }
 }
-extension BSON.Document:Sendable where Bytes:Sendable
+extension BSON.DocumentView:Sendable where Bytes:Sendable
 {
 }
-extension BSON.Document:VariableLengthBSON
+extension BSON.DocumentView:VariableLengthBSON
 {
     public
     typealias Frame = BSON.DocumentFrame
@@ -53,7 +53,7 @@ extension BSON.Document:VariableLengthBSON
     }
 }
 
-extension BSON.Document
+extension BSON.DocumentView
 {
     /// The length that would be encoded in this document’s prefixed header.
     /// Equal to [`self.size`]().
@@ -72,7 +72,7 @@ extension BSON.Document
     }
 }
 
-extension BSON.Document:CustomStringConvertible
+extension BSON.DocumentView:CustomStringConvertible
 {
     public
     var description:String

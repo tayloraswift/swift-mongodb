@@ -81,31 +81,31 @@ extension BSON.Output
         }
     }
     @inlinable public mutating
-    func serialize(utf8:BSON.UTF8<some BidirectionalCollection<UInt8>>)
+    func serialize(utf8:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
         self.serialize(integer: utf8.header)
         self.append(utf8.slice)
         self.append(0x00)
     }
     @inlinable public mutating
-    func serialize(binary:BSON.Binary<some RandomAccessCollection<UInt8>>)
+    func serialize(binary:BSON.BinaryView<some RandomAccessCollection<UInt8>>)
     {
         self.serialize(integer: binary.header)
         self.append(binary.subtype.rawValue)
         self.append(binary.slice)
     }
     @inlinable public mutating
-    func serialize(document:BSON.Document<some RandomAccessCollection<UInt8>>)
+    func serialize(document:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
     {
         self.serialize(integer: document.header)
         self.append(document.slice)
         self.append(0x00)
     }
     @inlinable public mutating
-    func serialize(tuple:BSON.Tuple<some RandomAccessCollection<UInt8>>)
+    func serialize(list:BSON.ListView<some RandomAccessCollection<UInt8>>)
     {
-        self.serialize(integer: tuple.header)
-        self.append(tuple.slice)
+        self.serialize(integer: list.header)
+        self.append(list.slice)
         self.append(0x00)
     }
 }
