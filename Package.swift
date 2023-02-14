@@ -36,10 +36,6 @@ products:
     [
         .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.6")),
         
-        // this is used to generate `Sources/BSONDecoding/Decoder/Decoder.spf.swift`
-        .package(url: "https://github.com/kelvin13/swift-package-factory.git",
-            revision: "swift-DEVELOPMENT-SNAPSHOT-2022-12-17-a"),
-        
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.3"),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.0.4")),
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.46.0")),

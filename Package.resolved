@@ -44,42 +44,6 @@
         "revision" : "4fb7ead803e38949eb1d6fabb849206a72c580f3",
         "version" : "2.23.0"
       }
-    },
-    {
-      "identity" : "swift-package-factory",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kelvin13/swift-package-factory.git",
-      "state" : {
-        "branch" : "swift-DEVELOPMENT-SNAPSHOT-2022-12-17-a",
-        "revision" : "2edf1844b15d6a8de1c610b0f0f7066f5c013a09"
-      }
-    },
-    {
-      "identity" : "swift-syntax",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-syntax.git",
-      "state" : {
-        "branch" : "swift-DEVELOPMENT-SNAPSHOT-2022-11-11-a",
-        "revision" : "e4a3ce84b16d777a3f9da4887140061ae77facfb"
-      }
-    },
-    {
-      "identity" : "swift-system",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-system.git",
-      "state" : {
-        "revision" : "025bcb1165deab2e20d4eaba79967ce73013f496",
-        "version" : "1.2.1"
-      }
-    },
-    {
-      "identity" : "swift-system-extras",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kelvin13/swift-system-extras.git",
-      "state" : {
-        "revision" : "42f297a3191e668ed072878d5db3890db8eada50",
-        "version" : "0.2.0"
-      }
     }
   ],
   "version" : 2
