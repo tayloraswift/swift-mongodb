@@ -3,7 +3,7 @@ import MongoBuiltins
 
 func TestExpressions()
 {
-    let _:BSON.Fields = .init
+    let _:BSON.Document = .init
     {
         $0["_"] = [] as [Never]
         $0["_"] = [:]
@@ -15,7 +15,7 @@ func TestExpressions()
             }
         }
     }
-    let _:BSON.Fields = .init
+    let _:BSON.Document = .init
     {
         $0["foo"] = "$field"
         $0["bar"] = .init

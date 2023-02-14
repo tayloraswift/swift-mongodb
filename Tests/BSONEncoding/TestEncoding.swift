@@ -3,7 +3,7 @@ import BSONUnions
 import Testing
 
 func TestEncoding(_ tests:TestGroup,
-    encoded:BSON.Fields,
+    encoded:BSON.Document,
     literal:BSON.DocumentView<[UInt8]>)
 {
     let encoded:BSON.DocumentView<[UInt8]> = .init(encoded)

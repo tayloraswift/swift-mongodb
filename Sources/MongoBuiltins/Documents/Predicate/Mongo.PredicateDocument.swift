@@ -7,12 +7,12 @@ extension Mongo
     struct PredicateDocument:Sendable
     {
         public
-        var fields:BSON.Fields
+        var document:BSON.Document
 
         @inlinable public
         init(bytes:[UInt8] = [])
         {
-            self.fields = .init(bytes: bytes)
+            self.document = .init(bytes: bytes)
         }
     }
 }
@@ -21,7 +21,7 @@ extension Mongo.PredicateDocument:BSONDSL
     @inlinable public
     var bytes:[UInt8]
     {
-        self.fields.bytes
+        self.document.bytes
     }
 }
 extension Mongo.PredicateDocument:BSONDecodable
@@ -38,7 +38,7 @@ extension Mongo.PredicateDocument
     ///
     /// This does not require [`@_disfavoredOverload`](), because
     /// ``Operator`` has no ``String``-keyed subscripts, so it will
-    /// never conflict with ``BSON.Fields``.
+    /// never conflict with ``BSON.Document``.
     @inlinable public
     subscript(key:String) -> Mongo.PredicateOperator?
     {
@@ -48,7 +48,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.fields[key] = value
+            self.document[key] = value
         }
     }
     @inlinable public
@@ -60,7 +60,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.fields[key] = value
+            self.document[key] = value
         }
     }
     @inlinable public
@@ -72,14 +72,14 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.fields[key] = value
+            self.document[key] = value
         }
     }
 }
 extension Mongo.PredicateDocument
 {
     @inlinable public
-    subscript(key:Branch) -> BSON.Elements<Self>?
+    subscript(key:Branch) -> BSON.List<Self>?
     {
         get
         {
@@ -87,7 +87,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -99,7 +99,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -111,7 +111,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -123,7 +123,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 }

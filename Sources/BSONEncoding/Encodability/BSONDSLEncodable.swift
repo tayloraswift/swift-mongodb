@@ -27,7 +27,7 @@ extension BSONDSLEncodable where Self:Sequence, Element:BSONDSLEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(list: .init(BSON.Elements<Never>.init(elements: self)))
+        field.encode(list: .init(BSON.List<Never>.init(elements: self)))
     }
 }
 extension BSONDSLEncodable where Self:BinaryFloatingPoint

@@ -216,7 +216,7 @@ enum Main:SyncTests
         }
         do
         {
-            let _:BSON.Fields = [:]
+            let _:BSON.Document = [:]
             let tests:TestGroup = tests / "elided-fields"
 
             TestEncoding(tests / "null",

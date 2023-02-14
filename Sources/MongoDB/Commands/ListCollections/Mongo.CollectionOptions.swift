@@ -11,9 +11,9 @@ extension Mongo
         public
         let writeConcern:WriteConcern.Options?
         public
-        let indexOptionDefaults:BSON.Fields?
+        let indexOptionDefaults:BSON.Document?
         public
-        let storageEngine:BSON.Fields?
+        let storageEngine:BSON.Document?
 
         public
         let variant:Variant
@@ -21,8 +21,8 @@ extension Mongo
         public
         init(collation:Collation?,
             writeConcern:WriteConcern.Options?,
-            indexOptionDefaults:BSON.Fields?,
-            storageEngine:BSON.Fields?,
+            indexOptionDefaults:BSON.Document?,
+            storageEngine:BSON.Document?,
             variant:Variant)
         {
             self.collation = collation
@@ -137,9 +137,9 @@ extension Mongo.CollectionOptions
             collation: try bson["collation"]?.decode(to: Mongo.Collation.self),
             writeConcern: try bson["writeConcern"]?.decode(to: Mongo.WriteConcern.Options.self),
             indexOptionDefaults: try bson["indexOptionDefaults"]?.decode(
-                to: BSON.Fields.self),
+                to: BSON.Document.self),
             storageEngine: try bson["storageEngine"]?.decode(
-                to: BSON.Fields.self),
+                to: BSON.Document.self),
             variant: variant)
     }
 }

@@ -1,6 +1,6 @@
 import BSONEncoding
 
-extension BSON.Elements<MongoExpression>:MongoExpressionEncodable
+extension BSON.List<MongoExpression>:MongoExpressionEncodable
 {
     @inlinable public mutating
     func push(_ element:(some MongoExpressionEncodable)?)
@@ -11,7 +11,7 @@ extension BSON.Elements<MongoExpression>:MongoExpressionEncodable
         }
     }
 }
-extension BSON.Elements<MongoExpression>?
+extension BSON.List<MongoExpression>?
 {
     @_disfavoredOverload
     @inlinable public

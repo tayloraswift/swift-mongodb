@@ -74,7 +74,7 @@ extension Mongo.Collation:BSONDecodable, BSONDictionaryDecodable
 extension Mongo.Collation:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["locale"] = self.locale
         bson["strength"] = self.strength != .tertiary ? self.strength : nil

@@ -35,7 +35,7 @@ extension Mongo.FailCommand:MongoFailpoint
 extension Mongo.FailCommand:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["appName"] = self.application
         bson["failCommands"] = self.types.map { $0.name }

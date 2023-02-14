@@ -30,7 +30,7 @@ extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
     typealias Database = Mongo.Database.Admin
 
     public
-    var fields:BSON.Fields
+    var fields:BSON.Document
     {
         .init
         {

@@ -26,7 +26,7 @@ extension Mongo.Ping:MongoImplicitSessionCommand, MongoCommand
     }
 
     public
-    var fields:BSON.Fields
+    var fields:BSON.Document
     {
         .init
         {

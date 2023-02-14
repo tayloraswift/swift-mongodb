@@ -15,7 +15,7 @@ extension Mongo
     struct ListDatabases:Sendable
     {
         public
-        var fields:BSON.Fields
+        var fields:BSON.Document
 
         public
         init()

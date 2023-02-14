@@ -3,7 +3,7 @@ import BSON
 extension BSON
 {
     @frozen public
-    struct Elements<DSL>:Sendable
+    struct List<DSL>:Sendable
     {
         public
         var output:BSON.Output<[UInt8]>
@@ -23,7 +23,7 @@ extension BSON
         }
     }
 }
-extension BSON.Elements
+extension BSON.List
 {
     @inlinable public
     var bytes:[UInt8]
@@ -42,7 +42,7 @@ extension BSON.Elements
         self.count += 1
     }
 }
-extension BSON.Elements:ExpressibleByArrayLiteral
+extension BSON.List:ExpressibleByArrayLiteral
 {
     @inlinable public
     init(arrayLiteral:Never...)
@@ -50,7 +50,7 @@ extension BSON.Elements:ExpressibleByArrayLiteral
         self.init()
     }
 }
-extension BSON.Elements
+extension BSON.List
 {
     /// Creates an empty encoding view and initializes it with the given closure.
     @inlinable public
@@ -61,7 +61,7 @@ extension BSON.Elements
     }
 
     @inlinable public
-    init(_ other:BSON.Elements<some Any>)
+    init(_ other:BSON.List<some Any>)
     {
         self.init(bytes: other.bytes, count: other.count)
     }
@@ -96,8 +96,8 @@ extension BSON.Elements
         }
     }
 }
-//  See note about ``BSON.Fields``.
-extension BSON.Elements<BSON.Fields>?
+//  See note about ``BSON.Document``.
+extension BSON.List<BSON.Document>?
 {
     @inlinable public
     init(with populate:(inout Wrapped) throws -> ()) rethrows

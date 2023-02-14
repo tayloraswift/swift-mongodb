@@ -36,7 +36,7 @@ extension Mongo.Timeseries:BSONDecodable, BSONDictionaryDecodable
 extension Mongo.Timeseries:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["timeField"] = self.timeField
         bson["metaField"] = self.metaField

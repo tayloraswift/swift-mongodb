@@ -69,7 +69,7 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDictionaryDeco
 extension Mongo.ReplicaSetConfiguration.Member:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["_id"] = self.id
         bson["host"] = self.host

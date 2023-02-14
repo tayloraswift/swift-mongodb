@@ -35,7 +35,7 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
     typealias Database = Mongo.Database.Admin
 
     public
-    var fields:BSON.Fields
+    var fields:BSON.Document
     {
         .init
         {

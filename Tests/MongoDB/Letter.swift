@@ -14,7 +14,7 @@ extension Letter:ExpressibleByUnicodeScalarLiteral
 }
 extension Letter:BSONEncodable, BSONDocumentEncodable
 {
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["_id"] = self.id
     }

@@ -60,7 +60,7 @@ extension Mongo.WriteConcernError:BSONDecodable, BSONDictionaryDecodable
 extension Mongo.WriteConcernError:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["code"] = self.code
         bson["errmsg"] = self.message

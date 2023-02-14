@@ -15,13 +15,13 @@ extension Mongo
         let stride:Mode.Stride
 
         public
-        var fields:BSON.Fields
+        var fields:BSON.Document
 
         public
         init(writeConcern:WriteConcern?,
             readConcern:ReadConcern?,
             stride:Mode.Stride,
-            fields:BSON.Fields)
+            fields:BSON.Document)
         {
             self.writeConcern = writeConcern
             self.readConcern = readConcern
@@ -36,7 +36,7 @@ extension Mongo.Aggregate
     init(writeConcern:WriteConcern?,
         readConcern:ReadConcern?,
         stride:Mode.Stride,
-        with populate:(inout BSON.Fields) throws -> ()) rethrows
+        with populate:(inout BSON.Document) throws -> ()) rethrows
     {
         self.init(writeConcern: writeConcern,
             readConcern: readConcern,

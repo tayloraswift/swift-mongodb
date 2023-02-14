@@ -41,7 +41,7 @@ extension Mongo.GetMore:MongoCommand
     typealias Response = Mongo.Cursor<Element>
 
     public
-    var fields:BSON.Fields
+    var fields:BSON.Document
     {
         .init
         {

@@ -31,7 +31,7 @@ extension Mongo.KillCursors:MongoCommand
     typealias Response = Mongo.KillCursorsResponse
 
     public
-    var fields:BSON.Fields
+    var fields:BSON.Document
     {
         .init
         {

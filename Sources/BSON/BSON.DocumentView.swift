@@ -11,7 +11,7 @@ extension BSON
     {
         /// The raw data backing this document. This collection *does not*
         /// include the trailing null byte that typically appears after its
-        /// inline fields list.
+        /// inline field list.
         public 
         let slice:Bytes
 

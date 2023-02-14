@@ -7,12 +7,12 @@ extension Mongo
     struct ProjectionOperator:Sendable
     {
         public
-        var fields:BSON.Fields
+        var document:BSON.Document
 
         @inlinable public
         init(bytes:[UInt8] = [])
         {
-            self.fields = .init(bytes: bytes)
+            self.document = .init(bytes: bytes)
         }
     }
 }
@@ -21,7 +21,7 @@ extension Mongo.ProjectionOperator:BSONDSL
     @inlinable public
     var bytes:[UInt8]
     {
-        self.fields.bytes
+        self.document.bytes
     }
 }
 extension Mongo.ProjectionOperator:BSONEncodable
@@ -42,7 +42,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 }
@@ -57,7 +57,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 }
@@ -73,7 +73,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -91,7 +91,7 @@ extension Mongo.ProjectionOperator
             {
                 return
             }
-            self.fields[pushing: key] = .init
+            self.document[pushing: key] = .init
             {
                 if let index:Index = value.at
                 {

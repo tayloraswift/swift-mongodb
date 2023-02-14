@@ -37,7 +37,7 @@ protocol MongoCommand<Response>:Sendable
     /// all of their fields to this property; some may have fields (such as
     /// `readConcern` or `maxTimeMS`) that are recognized by the driver and added
     /// later during the command execution process.
-    var fields:BSON.Fields { get }
+    var fields:BSON.Document { get }
 
     /// The official name of this command, in the MongoDB specification. It
     /// always begins with a lowercase letter, and usually resembles the name
@@ -169,7 +169,7 @@ extension MongoCommand
     func body(database:Database, timeout:Milliseconds?,
         labels:Mongo.SessionLabels?) -> BSON.DocumentView<[UInt8]>
     {
-        var bson:BSON.Fields = self.fields
+        var bson:BSON.Document = self.fields
 
         bson["$db"] = database.name
         bson["maxTimeMS"] = timeout

@@ -18,7 +18,7 @@ extension MongoChannelCommand
 
         if now < deadline
         {
-            let fields:BSON.Fields = .init
+            let fields:BSON.Document = .init
             {
                 self.encode(to: &$0)
                 $0["$db"] = database.name
