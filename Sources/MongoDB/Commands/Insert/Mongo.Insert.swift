@@ -11,30 +11,56 @@ extension Mongo
     {
         public
         let writeConcern:WriteConcern?
-
         public
-        let documents:Mongo.Payload.Documents?
+        let documents:Mongo.Payload.Documents
 
         public
         var fields:BSON.Fields
 
-        @inlinable public
-        init<Elements>(collection:Collection, elements:Elements,
-            bypassDocumentValidation:Bool? = nil,
-            ordered:Bool? = nil,
-            writeConcern:WriteConcern? = nil)
-            where Elements:Sequence, Elements.Element:BSONDocumentEncodable
+        private
+        init(writeConcern:WriteConcern?,
+            documents:Mongo.Payload.Documents,
+            fields:BSON.Fields)
         {
             self.writeConcern = writeConcern
-            self.documents = .init(elements)
-
-            self.fields = .init
-            {
-                $0[Self.name] = collection
-                $0["bypassDocumentValidation"] = bypassDocumentValidation
-                $0["ordered"] = ordered
-            }
+            self.documents = documents
+            self.fields = fields
         }
+    }
+}
+extension Mongo.Insert
+{
+    @usableFromInline
+    init(collection:Mongo.Collection,
+        writeConcern:WriteConcern?,
+        documents:Mongo.Payload.Documents)
+    {
+        self.init(writeConcern: writeConcern, documents: documents, fields: .init
+        {
+            $0[Self.name] = collection
+        })
+    }
+}
+extension Mongo.Insert
+{
+    @inlinable public
+    init<Elements>(collection:Mongo.Collection,
+        writeConcern:Mongo.WriteConcern? = nil,
+        elements:Elements)
+        where Elements:Sequence, Elements.Element:BSONDocumentEncodable
+    {
+        self.init(collection: collection, writeConcern: writeConcern,
+            documents: .init(elements))
+    }
+    @inlinable public
+    init<Elements>(collection:Mongo.Collection,
+        writeConcern:Mongo.WriteConcern? = nil,
+        elements:Elements,
+        with populate:(inout Self) throws -> ()) rethrows
+        where Elements:Sequence, Elements.Element:BSONDocumentEncodable
+    {
+        self.init(collection: collection, writeConcern: writeConcern, elements: elements)
+        try populate(&self)
     }
 }
 extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
@@ -52,6 +78,22 @@ extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     @inlinable public
     var payload:Mongo.Payload?
     {
-        self.documents.map { .init(id: .documents, documents: $0) }
+        .init(id: .documents, documents: self.documents)
+    }
+}
+
+extension Mongo.Insert
+{
+    @inlinable public
+    subscript(key:Flag) -> Bool?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[key.rawValue] = value
+        }
     }
 }

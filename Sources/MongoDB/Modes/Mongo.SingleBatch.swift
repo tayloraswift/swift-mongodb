@@ -11,16 +11,16 @@ extension Mongo
 extension Mongo.SingleBatch:MongoBatchingMode
 {
     public
-    typealias CommandResponse = [Element]
+    typealias Response = [Element]
     public
     typealias Tailing = Never
     public
     typealias Stride = Void
 
     @inlinable public static
-    func decode(reply:BSON.Dictionary<ByteBufferView>) throws -> [Element]
+    func decode(reply bson:BSON.Dictionary<ByteBufferView>) throws -> [Element]
     {
-        try reply["cursor"].decode(as: BSON.Dictionary<ByteBufferView>.self)
+        try bson["cursor"].decode(as: BSON.Dictionary<ByteBufferView>.self)
         {
             if  let cursor:Mongo.CursorIdentifier = .init(
                     rawValue: try $0["id"].decode(to: Int64.self))

@@ -35,9 +35,9 @@ func TestCausalConsistency(_ tests:TestGroup,
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection: collection,
-                    elements: [a],
+                    writeConcern: .acknowledged(by: 4, journaled: true),
+                    elements: [a]),
                     //  We should ensure the write propogates to all four visible replicas.
-                    writeConcern: .acknowledged(by: 4, journaled: true)),
                 against: database,
                 on: .primary)
             
@@ -104,8 +104,8 @@ func TestCausalConsistency(_ tests:TestGroup,
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection: collection,
-                    elements: [b],
-                    writeConcern: .majority(journaled: true)),
+                    writeConcern: .majority(journaled: true),
+                    elements: [b]),
                 against: database,
                 on: .primary)
             
@@ -129,8 +129,8 @@ func TestCausalConsistency(_ tests:TestGroup,
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection: collection,
-                    elements: [c],
-                    writeConcern: .acknowledged(by: 3, journaled: true)),
+                    writeConcern: .acknowledged(by: 3, journaled: true),
+                    elements: [c]),
                 against: database,
                 on: .primary)
             
@@ -152,8 +152,8 @@ func TestCausalConsistency(_ tests:TestGroup,
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection: collection,
-                    elements: [d],
-                    writeConcern: .acknowledged(by: 2, journaled: true)),
+                    writeConcern: .acknowledged(by: 2, journaled: true),
+                    elements: [d]),
                 against: database,
                 on: .primary)
             

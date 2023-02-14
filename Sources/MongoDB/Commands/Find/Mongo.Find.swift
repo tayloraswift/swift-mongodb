@@ -55,16 +55,16 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
     }
 
     public
-    typealias Response = Mode.CommandResponse
+    typealias Response = Mode.Response
 
     @inlinable public static
-    func decode(reply:BSON.Dictionary<ByteBufferView>) throws -> Mode.CommandResponse
+    func decode(reply:BSON.Dictionary<ByteBufferView>) throws -> Mode.Response
     {
         try Mode.decode(reply: reply)
     }
 }
 extension Mongo.Find:MongoIterableCommand
-    where   Response == Mongo.Cursor<Mode.Element>,
+    where   Mode.Response == Mongo.Cursor<Mode.Element>,
             Mode.Tailing == Mongo.Tailing,
             Mode.Stride == Int
 {

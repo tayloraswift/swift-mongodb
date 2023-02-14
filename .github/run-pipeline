@@ -38,6 +38,9 @@ swift build -c release $SWIFT_FLAGS --target MongoDB ||
 swift run   -c release $SWIFT_FLAGS          MongoDBTests ||
     ANY_FAILED=1
 
+swift build -c release $SWIFT_FLAGS --target MongoDSLAPITests ||
+    ANY_FAILED=1
+
 if [ "$ANY_FAILED" -ne 0 ] ; then
     exit
 fi
