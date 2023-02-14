@@ -1,22 +1,22 @@
 import BSON
 import BSONDSL
 
-extension Mongo
+extension Mongo.CollectionOptions
 {
     @frozen public
-    enum CollectionVariant:Sendable
+    enum Variant:Sendable
     {
         case collection(cap:(size:Int, max:Int?)? = nil,
-            validationAction:ValidationAction? = nil,
-            validationLevel:ValidationLevel? = nil,
-            validator:PredicateDocument? = nil)
+            validationAction:Mongo.ValidationAction? = nil,
+            validationLevel:Mongo.ValidationLevel? = nil,
+            validator:Mongo.PredicateDocument? = nil)
         
-        case timeseries(Timeseries)
+        case timeseries(Mongo.Timeseries)
 
-        case view(CollectionView)
+        case view(Mongo.CollectionView)
     }
 }
-extension Mongo.CollectionVariant
+extension Mongo.CollectionOptions.Variant
 {
     @inlinable public
     var type:Mongo.CollectionType

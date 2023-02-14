@@ -69,7 +69,7 @@ func TestCursors(_ tests:TestGroup,
                 tests.expect(await pool.count ==? 2)
                 //  We should be able to query the collection for results in batches of
                 //  10.
-                try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
                         stride: 10),
                     against: database,
@@ -172,7 +172,7 @@ func TestCursors(_ tests:TestGroup,
                     let session:Mongo.Session = try await .init(from: pool,
                         forking: initializer)
                     let cursor:Mongo.CursorIdentifier? =
-                        try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                        try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                                 collection: collection,
                                 stride: 10),
                             against: database,
@@ -228,7 +228,7 @@ func TestCursors(_ tests:TestGroup,
             {
                 let session:Mongo.Session = try await .init(from: pool, forking: initializer)
                 try await session.run(
-                    query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                    command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
                         stride: 10),
                     against: database,

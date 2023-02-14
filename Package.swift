@@ -34,7 +34,7 @@ products:
 ],
     dependencies: 
     [
-        .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.5")),
+        .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.6")),
         
         // this is used to generate `Sources/BSONDecoding/Decoder/Decoder.spf.swift`
         .package(url: "https://github.com/kelvin13/swift-package-factory.git",

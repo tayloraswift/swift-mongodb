@@ -1,5 +1,6 @@
 import BSONDecoding
 import BSONEncoding
+import NIOCore
 
 extension Mongo
 {
@@ -17,15 +18,22 @@ extension Mongo
         var fields:BSON.Fields
 
         public
-        init(authorizedDatabases:Bool? = nil, filter:Mongo.PredicateDocument = [:])
+        init()
         {
             self.fields = .init
             {
                 $0[Self.name] = 1 as Int32
-                $0["authorizedDatabases"] = authorizedDatabases
-                $0["filter", elide: true] = filter
             }
         }
+    }
+}
+extension Mongo.ListDatabases
+{
+    @inlinable public
+    init(with populate:(inout Self) throws -> ()) rethrows
+    {
+        self.init()
+        try populate(&self)
     }
 }
 extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
@@ -47,7 +55,7 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
     )
 
     @inlinable public static
-    func decode(reply bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws ->
+    func decode(reply bson:BSON.Dictionary<ByteBufferView>) throws ->
     (
         totalSize:Int,
         databases:[Mongo.DatabaseMetadata]
@@ -61,3 +69,32 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
 }
 // FIXME: ListDatabases *can* run on a secondary,
 // but *should* run on a primary.
+
+extension Mongo.ListDatabases
+{
+    @inlinable public
+    subscript(key:AuthorizedDatabases) -> Bool?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[key.rawValue] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Filter) -> Mongo.PredicateDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[key.rawValue] = value
+        }
+    }
+}

@@ -108,8 +108,10 @@ func TestInsert(_ tests:TestGroup,
                     })
                 let response:Mongo.InsertResponse = try await pool.run(
                     command: Mongo.Insert.init(collection: collection,
-                        elements: Ordinals.init(identifiers: -16 ..< 32),
-                        ordered: false),
+                        elements: Ordinals.init(identifiers: -16 ..< 32))
+                    {
+                        $0[.ordered] = false
+                    },
                     against: database)
                 
                 tests.expect(response ==? expected)

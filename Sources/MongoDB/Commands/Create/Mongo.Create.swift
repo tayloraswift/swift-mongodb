@@ -53,7 +53,7 @@ extension Mongo.Create
             $0[Self.name] = collection
         }
     }
-    public
+    @inlinable public
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         with populate:(inout Self) throws -> ()) rethrows
@@ -72,7 +72,7 @@ extension Mongo.Create<Mongo.Timeseries>
         self.init(collection: collection, writeConcern: writeConcern)
         self.fields["timeseries"] = timeseries
     }
-    public
+    @inlinable public
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         timeseries:Mongo.Timeseries,
@@ -94,7 +94,7 @@ extension Mongo.Create<Mongo.CollectionView>
         self.fields["viewOn"] = view.collection
         self.fields["pipeline"] = view.pipeline
     }
-    public
+    @inlinable public
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         view:Mongo.CollectionView,

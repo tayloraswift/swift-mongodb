@@ -40,7 +40,7 @@ extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
         "refreshSessions"
     }
 
-    /// `RefreshSessions` must be sent to the `admin` database.
+    /// `RefreshSessions` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 
