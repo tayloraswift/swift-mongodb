@@ -2,13 +2,13 @@ import BSONTraversal
 
 extension BSON
 {
-    /// A BSON tuple. The backing storage of this type is opaque,
+    /// A BSON list. The backing storage of this type is opaque,
     /// permitting lazy parsing of its inline content.
     @frozen public
-    struct Tuple<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ListView<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         public
-        let document:BSON.Document<Bytes>
+        let document:BSON.DocumentView<Bytes>
 
         @inlinable public
         init(slice:Bytes)
@@ -17,20 +17,20 @@ extension BSON
         }
     }
 }
-extension BSON.Tuple:Equatable
+extension BSON.ListView:Equatable
 {
-    /// Performs an exact byte-wise comparison on two tuples.
+    /// Performs an exact byte-wise comparison on two lists.
     /// Does not parse or validate the operands.
     @inlinable public static
-    func == (lhs:Self, rhs:BSON.Tuple<some RandomAccessCollection<UInt8>>) -> Bool
+    func == (lhs:Self, rhs:BSON.ListView<some RandomAccessCollection<UInt8>>) -> Bool
     {
         lhs.document == rhs.document
     }
 }
-extension BSON.Tuple:Sendable where Bytes:Sendable
+extension BSON.ListView:Sendable where Bytes:Sendable
 {
 }
-extension BSON.Tuple:VariableLengthBSON
+extension BSON.ListView:VariableLengthBSON
 {
     public
     typealias Frame = BSON.DocumentFrame
@@ -44,9 +44,9 @@ extension BSON.Tuple:VariableLengthBSON
         self.init(slice: bytes)
     }
 }
-extension BSON.Tuple
+extension BSON.ListView
 {
-    /// The raw data backing this tuple. This collection *does not*
+    /// The raw data backing this list. This collection *does not*
     /// include the trailing null byte that appears after its inline 
     /// elements list.
     @inlinable public
@@ -54,7 +54,7 @@ extension BSON.Tuple
     {
         self.document.slice
     }
-    /// The length that would be encoded in this tuple’s prefixed header.
+    /// The length that would be encoded in this list’s prefixed header.
     /// Equal to [`self.size`]().
     @inlinable public
     var header:Int32
@@ -62,7 +62,7 @@ extension BSON.Tuple
         .init(self.size)
     }
 
-    /// The size of this tuple when encoded with its header and trailing null byte.
+    /// The size of this list when encoded with its header and trailing null byte.
     /// This *is* the same as the length encoded in the header itself.
     @inlinable public
     var size:Int

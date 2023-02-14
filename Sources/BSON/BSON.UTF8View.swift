@@ -12,7 +12,7 @@ extension BSON
     /// To convert a UTF-8 string to a native Swift ``String`` (repairing invalid UTF-8),
     /// use the ``description`` property.
     @frozen public
-    struct UTF8<Bytes> where Bytes:BidirectionalCollection<UInt8>
+    struct UTF8View<Bytes> where Bytes:BidirectionalCollection<UInt8>
     {
         /// The UTF-8 code units backing this string. This collection does *not*
         /// include the trailing null byte that typically appears when this value
@@ -27,7 +27,7 @@ extension BSON
         }
     }
 }
-extension BSON.UTF8 where Bytes:RangeReplaceableCollection
+extension BSON.UTF8View where Bytes:RangeReplaceableCollection
 {
     /// Creates a BSON UTF-8 string by copying the UTF-8 code units of
     /// the given string to dedicated backing storage.
@@ -44,7 +44,7 @@ extension BSON.UTF8 where Bytes:RangeReplaceableCollection
         self.init(slice: .init(string.utf8))
     }
 }
-extension BSON.UTF8<String.UTF8View>:ExpressibleByStringLiteral,
+extension BSON.UTF8View<String.UTF8View>:ExpressibleByStringLiteral,
     ExpressibleByExtendedGraphemeClusterLiteral, 
     ExpressibleByUnicodeScalarLiteral
 {
@@ -68,7 +68,7 @@ extension BSON.UTF8<String.UTF8View>:ExpressibleByStringLiteral,
         self.init(slice: string.utf8)
     }
 }
-extension BSON.UTF8<Substring.UTF8View>
+extension BSON.UTF8View<Substring.UTF8View>
 {
     /// Creates a BSON UTF-8 string backed by a ``Substring/UTF8View``, making
     /// the base substring contiguous, if it is not already.
@@ -84,7 +84,7 @@ extension BSON.UTF8<Substring.UTF8View>
         self.init(slice: string.utf8)
     }
 }
-extension BSON.UTF8<[UInt8]>
+extension BSON.UTF8View<[UInt8]>
 {
     /// Creates a BSON UTF-8 string backed by a `[UInt8]` array, by copying
     /// the UTF-8 code units stored in the given static string.
@@ -97,20 +97,20 @@ extension BSON.UTF8<[UInt8]>
         self.init(slice: string.withUTF8Buffer([UInt8].init(_:)))
     }
 }
-extension BSON.UTF8:Equatable
+extension BSON.UTF8View:Equatable
 {
     /// Performs a unicode-aware string comparison on two UTF-8 strings.
     @inlinable public static
-    func == (lhs:Self, rhs:BSON.UTF8<some BidirectionalCollection<UInt8>>) -> Bool
+    func == (lhs:Self, rhs:BSON.UTF8View<some BidirectionalCollection<UInt8>>) -> Bool
     {
         lhs.description == rhs.description
     }
 }
-extension BSON.UTF8:Sendable where Bytes:Sendable
+extension BSON.UTF8View:Sendable where Bytes:Sendable
 {
 }
 
-extension BSON.UTF8:CustomStringConvertible
+extension BSON.UTF8View:CustomStringConvertible
 {
     /// Equivalent to calling ``String.init(bson:)`` on this instance.
     @inlinable public
@@ -119,7 +119,7 @@ extension BSON.UTF8:CustomStringConvertible
         .init(bson: self)
     }
 }
-extension BSON.UTF8:VariableLengthBSON where Bytes:RandomAccessCollection<UInt8>
+extension BSON.UTF8View:VariableLengthBSON where Bytes:RandomAccessCollection<UInt8>
 {
     public
     typealias Frame = BSON.UTF8Frame
@@ -134,7 +134,7 @@ extension BSON.UTF8:VariableLengthBSON where Bytes:RandomAccessCollection<UInt8>
     }
 }
 
-extension BSON.UTF8
+extension BSON.UTF8View
 {
     /// The length that would be encoded in this string’s prefixed header.
     /// Equal to [`self.bytes.count + 1`]().
@@ -161,7 +161,7 @@ extension String
     ///
     /// >   Complexity: O(*n*), where *n* is the length of the string.
     @inlinable public
-    init(bson:BSON.UTF8<some BidirectionalCollection<UInt8>>)
+    init(bson:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
         self.init(decoding: bson.slice, as: Unicode.UTF8.self)
     }

@@ -7,12 +7,12 @@ extension Mongo
     struct ProjectionDocument:Sendable
     {
         public
-        var fields:BSON.Fields
+        var document:BSON.Document
 
         @inlinable public
         init(bytes:[UInt8] = [])
         {
-            self.fields = .init(bytes: bytes)
+            self.document = .init(bytes: bytes)
         }
     }
 }
@@ -21,7 +21,7 @@ extension Mongo.ProjectionDocument:BSONDSL
     @inlinable public
     var bytes:[UInt8]
     {
-        self.fields.bytes
+        self.document.bytes
     }
 }
 extension Mongo.ProjectionDocument:BSONEncodable
@@ -37,7 +37,7 @@ extension Mongo.ProjectionDocument
     ///
     /// This does not require [`@_disfavoredOverload`](), because
     /// ``Operator`` has no ``String``-keyed subscripts, so it will
-    /// never conflict with ``BSON.Fields``.
+    /// never conflict with ``BSON.Document``.
     @inlinable public
     subscript(key:String) -> Mongo.ProjectionOperator?
     {
@@ -47,7 +47,7 @@ extension Mongo.ProjectionDocument
         }
         set(value)
         {
-            self.fields[key] = value
+            self.document[key] = value
         }
     }
     @inlinable public
@@ -59,7 +59,7 @@ extension Mongo.ProjectionDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 }

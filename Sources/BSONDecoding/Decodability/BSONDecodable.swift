@@ -149,7 +149,7 @@ extension BSONDecodable where Self:RawRepresentable, RawValue:BSONDecodable
     }
 }
 
-extension BSON.Fields:BSONDecodable
+extension BSON.Document:BSONDecodable
 {
 }
 

@@ -59,7 +59,7 @@ extension Mongo.WriteConcern.Options:BSONDecodable, BSONDictionaryDecodable
 extension Mongo.WriteConcern.Options:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["w"] = self.acknowledgement
         bson["j"] = self.journaled

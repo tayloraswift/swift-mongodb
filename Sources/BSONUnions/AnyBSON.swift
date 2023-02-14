@@ -5,11 +5,11 @@ import BSON
 enum AnyBSON<Bytes> where Bytes:RandomAccessCollection<UInt8>
 {
     /// A general embedded document.
-    case document(BSON.Document<Bytes>)
-    /// An embedded tuple-document.
-    case tuple(BSON.Tuple<Bytes>)
+    case document(BSON.DocumentView<Bytes>)
+    /// An embedded list-document.
+    case list(BSON.ListView<Bytes>)
     /// A binary array.
-    case binary(BSON.Binary<Bytes>)
+    case binary(BSON.BinaryView<Bytes>)
     /// A boolean.
     case bool(Bool)
     /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
@@ -24,11 +24,11 @@ enum AnyBSON<Bytes> where Bytes:RandomAccessCollection<UInt8>
     case int64(Int64)
     /// Javascript code.
     /// The payload is a library type to permit efficient document traversal.
-    case javascript(BSON.UTF8<Bytes>)
+    case javascript(BSON.UTF8View<Bytes>)
     /// A javascript scope containing code. This variant is maintained for 
     /// backward-compatibility with older versions of BSON and 
     /// should not be generated. (Prefer ``javascript(_:)``.)
-    case javascriptScope(BSON.Document<Bytes>, BSON.UTF8<Bytes>)
+    case javascriptScope(BSON.DocumentView<Bytes>, BSON.UTF8View<Bytes>)
     /// The MongoDB max-key.
     case max
     /// UTC milliseconds since the Unix epoch.
@@ -40,12 +40,12 @@ enum AnyBSON<Bytes> where Bytes:RandomAccessCollection<UInt8>
     /// A MongoDB database pointer. This variant is maintained for
     /// backward-compatibility with older versions of BSON and
     /// should not be generated. (Prefer ``id(_:)``.)
-    case pointer(BSON.UTF8<Bytes>, BSON.Identifier)
+    case pointer(BSON.UTF8View<Bytes>, BSON.Identifier)
     /// A regex.
     case regex(BSON.Regex)
     /// A UTF-8 string, possibly containing invalid code units.
     /// The payload is a library type to permit efficient document traversal.
-    case string(BSON.UTF8<Bytes>)
+    case string(BSON.UTF8View<Bytes>)
     /// A 64-bit unsigned integer.
     ///
     /// MongoDB also uses this type internally to represent timestamps.
@@ -60,7 +60,7 @@ extension AnyBSON
         switch self
         {
         case .document:         return .document
-        case .tuple:            return .tuple
+        case .list:             return .list
         case .binary:           return .binary
         case .bool:             return .bool
         case .decimal128:       return .decimal128
@@ -88,8 +88,8 @@ extension AnyBSON
         {
         case .document(let document):
             return document.size
-        case .tuple(let tuple):
-            return tuple.size
+        case .list(let list):
+            return list.size
         case .binary(let binary):
             return binary.size
         case .bool:
@@ -131,8 +131,8 @@ extension AnyBSON
 extension AnyBSON
 {
     /// Performs a type-aware equivalence comparison.
-    /// If both operands are a ``document(_:)`` (or ``tuple(_:)``), performs a recursive
-    /// type-aware comparison by calling `BSON//Document.~~(_:_:)`.
+    /// If both operands are a ``document(_:)`` (or ``list(_:)``), performs a recursive
+    /// type-aware comparison by calling `BSON//DocumentView.~~(_:_:)`.
     /// If both operands are a ``string(_:)``, performs unicode-aware string comparison.
     /// If both operands are a ``double(_:)``, performs floating-point-aware
     /// numerical comparison.
@@ -159,7 +159,7 @@ extension AnyBSON
         {
         case (.document     (let lhs), .document    (let rhs)):
             return lhs ~~ rhs
-        case (.tuple        (let lhs), .tuple       (let rhs)):
+        case (.list         (let lhs), .list        (let rhs)):
             return lhs ~~ rhs
         case (.binary       (let lhs), .binary      (let rhs)):
             return lhs == rhs
@@ -222,14 +222,14 @@ extension AnyBSON:ExpressibleByStringLiteral,
     @inlinable public
     init(arrayLiteral:Self...)
     {
-        self = .tuple(.init(elements: arrayLiteral))
+        self = .list(.init(elements: arrayLiteral))
     }
     @inlinable public
     init(dictionaryLiteral:(String, Self)...)
     {
         self = .document(.init(fields: dictionaryLiteral))
     }
-    /// Recursively parses and re-encodes any embedded documents (and tuple-documents)
+    /// Recursively parses and re-encodes any embedded documents (and list-documents)
     /// in this variant value.
     @inlinable public
     func canonicalized() throws -> Self
@@ -238,8 +238,8 @@ extension AnyBSON:ExpressibleByStringLiteral,
         {
         case    .document(let document):
             return .document(try document.canonicalized())
-        case    .tuple(let tuple):
-            return .tuple(try tuple.canonicalized())
+        case    .list(let list):
+            return .list(try list.canonicalized())
         case    .binary,
                 .bool,
                 .decimal128,
@@ -302,8 +302,8 @@ extension AnyBSON:CustomStringConvertible
         {
         case .document(let document):
             return ".document(\(document))"
-        case .tuple(let tuple):
-            return ".tuple(\(tuple))"
+        case .list(let list):
+            return ".list(\(list))"
         case .binary(let binary):
             return ".binary(\(binary))"
         case .bool(let bool):
@@ -579,7 +579,7 @@ extension AnyBSON
     /// 
     /// >   Complexity: O(1).
     @inlinable public 
-    var binary:BSON.Binary<Bytes>?
+    var binary:BSON.BinaryView<Bytes>?
     {
         switch self 
         {
@@ -592,79 +592,43 @@ extension AnyBSON
     /// Attempts to unwrap a document from this variant.
     /// 
     /// -   Returns: The payload of this variant if it matches ``case document(_:)``
-    ///     or ``case tuple(_:)``, [`nil`]() otherwise.
+    ///     or ``case list(_:)``, [`nil`]() otherwise.
     /// 
-    /// If the variant was a tuple, the string keys of the returned document are likely
-    /// (but not guaranteed) to be the tuple indices encoded as base-10 strings, without
+    /// If the variant was a list, the string keys of the returned document are likely
+    /// (but not guaranteed) to be the list indices encoded as base-10 strings, without
     /// leading zeros.
     /// 
     /// >   Complexity: O(1).
     @inlinable public 
-    var document:BSON.Document<Bytes>?
+    var document:BSON.DocumentView<Bytes>?
     {
         switch self 
         {
         case .document(let document):
             return document
-        case .tuple(let tuple):
-            return tuple.document
+        case .list(let list):
+            return list.document
         default:
             return nil 
         }
     }
-    /// Attempts to unwrap a tuple from this variant.
+    /// Attempts to unwrap a list from this variant.
     /// 
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case tuple(_:)``,
+    ///     The payload of this variant if it matches ``case list(_:)``,
     ///     [`nil`]() otherwise.
     ///
     /// >   Complexity: O(1).
     @inlinable public 
-    var tuple:BSON.Tuple<Bytes>?
+    var list:BSON.ListView<Bytes>?
     {
         switch self 
         {
-        case .tuple(let tuple): return tuple
+        case .list(let list):   return list
         default:                return nil
         }
     }
-    // /// Attempts to unwrap an instance of ``BSON/.string``-typed ``UTF8`` from this
-    // /// variant. Its UTF-8 code units will *not* be validated, which allowes this 
-    // /// method toreturn in constant time.
-    // /// 
-    // /// -   Returns:
-    // ///     The payload of this variant if it matches ``case string(_:)``,
-    // ///     [`nil`]() otherwise.
-    // ///
-    // /// >   Complexity: O(1).
-    // @inlinable public 
-    // var string:BSON.UTF8<Bytes>?
-    // {
-    //     switch self 
-    //     {
-    //     case .string(let string):   return string
-    //     default:                    return nil
-    //     }
-    // }
-    // /// Attempts to unwrap an instance of ``BSON/.javascript``-typed ``UTF8`` from
-    // /// this variant. Its UTF-8 code units will *not* be validated, which allowes
-    // /// this method to return in constant time.
-    // /// 
-    // /// -   Returns:
-    // ///     The payload of this variant if it matches ``case javascript(_:)``,
-    // ///     [`nil`]() otherwise.
-    // ///
-    // /// >   Complexity: O(1).
-    // @inlinable public 
-    // var javascript:BSON.UTF8<Bytes>?
-    // {
-    //     switch self 
-    //     {
-    //     case .javascript(let code): return code
-    //     default:                    return nil
-    //     }
-    // }
-    /// Attempts to unwrap an instance of ``UTF8`` from this variant. Its UTF-8
+    /// Attempts to unwrap an instance of ``UTF8View`` from this variant. Its UTF-8
     /// code units will *not* be validated, which allowes this method to return
     /// in constant time.
     /// 
@@ -674,7 +638,7 @@ extension AnyBSON
     ///
     /// >   Complexity: O(1).
     @inlinable public 
-    var utf8:BSON.UTF8<Bytes>?
+    var utf8:BSON.UTF8View<Bytes>?
     {
         switch self 
         {

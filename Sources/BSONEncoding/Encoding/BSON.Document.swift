@@ -1,4 +1,4 @@
-extension BSON.Fields
+extension BSON.Document
 {
     @inlinable public
     init<Encodable>(fields:some Sequence<(key:String, value:Encodable)>)
@@ -13,14 +13,14 @@ extension BSON.Fields
         }
     }
 }
-extension BSON.Fields
+extension BSON.Document
 {
     /// Appends the given key-value pair to this document builder, encoding the
-    /// given tuple elements as the field value, so long as it is not empty (or
+    /// given list elements as the field value, so long as it is not empty (or
     /// `elide` is [`false`]()).
     ///
     /// Type inference will always infer this subscript as long as any
-    /// ``BSON.Elements`` API is used within its builder closure.
+    /// ``BSON.List`` API is used within its builder closure.
     ///
     /// The getter always returns [`nil`]().
     ///
@@ -29,7 +29,7 @@ extension BSON.Fields
     /// non-elided state after returning) will add a new field to the document,
     /// even if the key is the same.
     @inlinable public
-    subscript(key:String, elide elide:Bool = false) -> BSON.Elements<Self>?
+    subscript(key:String, elide elide:Bool = false) -> BSON.List<Self>?
     {
         get
         {
@@ -37,7 +37,7 @@ extension BSON.Fields
         }
         set(value)
         {
-            if let value:BSON.Elements<Self>, !(elide && value.isEmpty)
+            if let value:BSON.List<Self>, !(elide && value.isEmpty)
             {
                 self.append(key: key, with: value.encode(to:))
             }
@@ -184,6 +184,6 @@ extension BSON.Fields
         }
     }
 }
-extension BSON.Fields:BSONEncodable
+extension BSON.Document:BSONEncodable
 {
 }

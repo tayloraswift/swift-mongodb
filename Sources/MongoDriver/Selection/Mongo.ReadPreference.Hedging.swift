@@ -12,7 +12,7 @@ extension Mongo.ReadPreference
 extension Mongo.ReadPreference.Hedging:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["enabled"] = self == .enabled
     }

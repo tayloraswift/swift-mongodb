@@ -48,7 +48,7 @@ extension Mongo.ReplicaSetConfiguration:BSONDictionaryDecodable
 extension Mongo.ReplicaSetConfiguration:BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["_id"] = self.name
         bson["writeConcernMajorityJournalDefault"] = self.writeConcernMajorityJournalDefault

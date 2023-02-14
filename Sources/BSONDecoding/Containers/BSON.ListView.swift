@@ -1,6 +1,6 @@
 import BSONUnions
 
-extension BSON.Tuple
+extension BSON.ListView
 {
     /// @import(BSONUnions)
     /// Decorates the ``AnyBSON``-yielding overload of this method with one that
@@ -17,14 +17,14 @@ extension BSON.Tuple
         }
     }
 
-    /// Attempts to create an array-decoder from this tuple.
+    /// Attempts to create an array-decoder from this list.
     ///
     /// To get a plain array with no decoding interface, call the ``parse`` method.
     /// Alternatively, you can use this method and access the ``BSON//Array.elements``
     /// property.
     ///
     /// >   Complexity: 
-    //      O(*n*), where *n* is the number of elements in the source tuple.
+    //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public 
     func array() throws -> BSON.Array<Bytes.SubSequence>
     {

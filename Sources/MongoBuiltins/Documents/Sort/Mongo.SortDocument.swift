@@ -7,12 +7,12 @@ extension Mongo
     struct SortDocument:Sendable
     {
         public
-        var fields:BSON.Fields
+        var document:BSON.Document
 
         @inlinable public
         init(bytes:[UInt8] = [])
         {
-            self.fields = .init(bytes: bytes)
+            self.document = .init(bytes: bytes)
         }
     }
 }
@@ -21,7 +21,7 @@ extension Mongo.SortDocument:BSONDSL
     @inlinable public
     var bytes:[UInt8]
     {
-        self.fields.bytes
+        self.document.bytes
     }
 }
 extension Mongo.SortDocument:BSONEncodable
@@ -58,7 +58,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.fields[key] = 1 as Int32
+            self.document[key] = 1 as Int32
         }
     }
     @inlinable public
@@ -70,7 +70,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.fields[key] = -1 as Int32
+            self.document[key] = -1 as Int32
         }
     }
     @inlinable public
@@ -82,7 +82,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.fields[key] = value
+            self.document[key] = value
         }
     }
 }

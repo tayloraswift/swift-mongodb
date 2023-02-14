@@ -3,10 +3,10 @@ import BSONUnions
 import Testing
 
 func TestEncoding(_ tests:TestGroup,
-    encoded:BSON.Fields,
-    literal:BSON.Document<[UInt8]>)
+    encoded:BSON.Document,
+    literal:BSON.DocumentView<[UInt8]>)
 {
-    let encoded:BSON.Document<[UInt8]> = .init(encoded)
+    let encoded:BSON.DocumentView<[UInt8]> = .init(encoded)
 
     tests.expect(encoded ==? literal)
 

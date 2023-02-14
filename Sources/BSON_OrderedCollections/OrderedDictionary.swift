@@ -7,7 +7,7 @@ extension OrderedDictionary:BSONDocumentDecodable, BSONDecodable
     where Key == String, Value:BSONDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Document<Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentView<Bytes>) throws
     {
         self.init()
         try bson.parse
@@ -25,10 +25,10 @@ extension OrderedDictionary:BSONDSLEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(document: .init(BSON.Fields.init(with: self.encode(to:))))
+        field.encode(document: .init(BSON.Document.init(with: self.encode(to:))))
     }
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         for (key, value):(Key, Value) in self.elements
         {

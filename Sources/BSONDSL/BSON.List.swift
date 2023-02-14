@@ -3,7 +3,7 @@ import BSON
 extension BSON
 {
     @frozen public
-    struct Elements<DSL>:Sendable
+    struct List<DSL>:Sendable
     {
         public
         var output:BSON.Output<[UInt8]>
@@ -23,7 +23,7 @@ extension BSON
         }
     }
 }
-extension BSON.Elements
+extension BSON.List
 {
     @inlinable public
     var bytes:[UInt8]
@@ -42,7 +42,7 @@ extension BSON.Elements
         self.count += 1
     }
 }
-extension BSON.Elements:ExpressibleByArrayLiteral
+extension BSON.List:ExpressibleByArrayLiteral
 {
     @inlinable public
     init(arrayLiteral:Never...)
@@ -50,7 +50,7 @@ extension BSON.Elements:ExpressibleByArrayLiteral
         self.init()
     }
 }
-extension BSON.Elements
+extension BSON.List
 {
     /// Creates an empty encoding view and initializes it with the given closure.
     @inlinable public
@@ -61,43 +61,43 @@ extension BSON.Elements
     }
 
     @inlinable public
-    init(_ other:BSON.Elements<some Any>)
+    init(_ other:BSON.List<some Any>)
     {
         self.init(bytes: other.bytes, count: other.count)
     }
     /// Creates an encoding view around the given [`[UInt8]`]()-backed
-    /// tuple-document.
+    /// list-document.
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ bson:BSON.Tuple<[UInt8]>, count:Int)
+    init(_ bson:BSON.ListView<[UInt8]>, count:Int)
     {
         self.init(bytes: bson.slice, count: count)
     }
-    /// Creates an encoding view around the given generic tuple-document,
+    /// Creates an encoding view around the given generic list-document,
     /// copying its backing storage if it is not already backed by
     /// a native Swift array.
     ///
-    /// If the tuple-document is statically known to be backed by a Swift array,
+    /// If the list-document is statically known to be backed by a Swift array,
     /// prefer calling the non-generic ``init(_:)``.
     ///
     /// >   Complexity:
     ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
     ///     where *n* is the encoded size of the document.
     @inlinable public
-    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>, count:Int)
+    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>, count:Int)
     {
         switch bson
         {
-        case let bson as BSON.Tuple<[UInt8]>:
+        case let bson as BSON.ListView<[UInt8]>:
             self.init(bson, count: count)
         case let bson:
             self.init(bytes: .init(bson.slice), count: count)
         }
     }
 }
-//  See note about ``BSON.Fields``.
-extension BSON.Elements<BSON.Fields>?
+//  See note about ``BSON.Document``.
+extension BSON.List<BSON.Document>?
 {
     @inlinable public
     init(with populate:(inout Wrapped) throws -> ()) rethrows

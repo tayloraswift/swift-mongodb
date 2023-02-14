@@ -31,7 +31,7 @@ extension Mongo.Hello:MongoChannelCommand
     typealias Database = Mongo.Database.Admin
 
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson[Self.name] = true
         bson["client"] = self.client

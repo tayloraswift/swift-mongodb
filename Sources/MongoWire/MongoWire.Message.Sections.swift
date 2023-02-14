@@ -6,12 +6,12 @@ extension MongoWire.Message
     struct Sections
     {
         public
-        let body:BSON.Document<Bytes>
+        let body:BSON.DocumentView<Bytes>
         public
         let outlined:[Outline]
 
         @inlinable public
-        init(body:BSON.Document<Bytes>, outlined:[Outline] = [])
+        init(body:BSON.DocumentView<Bytes>, outlined:[Outline] = [])
         {
             self.body = body
             self.outlined = outlined
@@ -26,10 +26,11 @@ extension BSON.Input
 {
     @inlinable public mutating
     func parse(
-        as _:MongoWire.Message<Source.SubSequence>.Sections.Type = MongoWire.Message<Source.SubSequence>.Sections.self)
+        as _:MongoWire.Message<Source.SubSequence>.Sections.Type =
+            MongoWire.Message<Source.SubSequence>.Sections.self)
         throws -> MongoWire.Message<Source.SubSequence>.Sections
     {
-        var body:BSON.Document<Source.SubSequence>? = nil
+        var body:BSON.DocumentView<Source.SubSequence>? = nil
         var outlined:[MongoWire.Message<Source.SubSequence>.Outline] = []
 
         while let section:UInt8 = self.next()
@@ -44,7 +45,7 @@ extension BSON.Input
             case .body:
                 if case nil = body
                 {
-                    body = try self.parse(as: BSON.Document<Source.SubSequence>.self)
+                    body = try self.parse(as: BSON.DocumentView<Source.SubSequence>.self)
                 }
                 else
                 {
@@ -65,7 +66,7 @@ extension BSON.Input
         //  A fully constructed OP_MSG MUST contain exactly one Payload Type 0, and optionally
         //  any number of Payload Type 1 where each identifier MUST be unique per message.
         //  '''
-        guard let body:BSON.Document<Source.SubSequence>
+        guard let body:BSON.DocumentView<Source.SubSequence>
         else
         {
             throw MongoWire.BodyCountError.none

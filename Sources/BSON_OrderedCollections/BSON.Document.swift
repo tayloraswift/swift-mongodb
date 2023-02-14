@@ -1,7 +1,7 @@
 import BSONEncoding
 import OrderedCollections
 
-extension BSON.Fields
+extension BSON.Document
 {
     @inlinable public
     subscript<Encodable>(key:String, elide elide:Bool) -> OrderedDictionary<String, Encodable>?

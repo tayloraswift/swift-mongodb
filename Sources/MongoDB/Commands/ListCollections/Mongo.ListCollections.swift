@@ -25,10 +25,10 @@ extension Mongo
         let stride:Int
 
         public
-        var fields:BSON.Fields
+        var fields:BSON.Document
 
         private
-        init(stride:Int, fields:BSON.Fields)
+        init(stride:Int, fields:BSON.Document)
         {
             self.stride = stride
             self.fields = fields
@@ -38,7 +38,7 @@ extension Mongo
 extension Mongo.ListCollections
 {
     private
-    init(stride:Int, with populate:(inout BSON.Fields) throws -> ()) rethrows
+    init(stride:Int, with populate:(inout BSON.Document) throws -> ()) rethrows
     {
         self.init(stride: stride, fields: try .init(with: populate))
     }

@@ -15,12 +15,12 @@ extension Mongo
         let documents:Mongo.Payload.Documents
 
         public
-        var fields:BSON.Fields
+        var fields:BSON.Document
 
         private
         init(writeConcern:WriteConcern?,
             documents:Mongo.Payload.Documents,
-            fields:BSON.Fields)
+            fields:BSON.Document)
         {
             self.writeConcern = writeConcern
             self.documents = documents

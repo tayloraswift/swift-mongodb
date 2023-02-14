@@ -4,7 +4,7 @@ import BSONDSL
 extension Mongo.Namespaced<Mongo.Collection>
 {
     public
-    var document:BSON.Fields
+    var document:BSON.Document
     {
         .init
         {

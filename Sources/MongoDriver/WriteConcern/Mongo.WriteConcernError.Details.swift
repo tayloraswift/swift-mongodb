@@ -38,7 +38,7 @@ extension Mongo.WriteConcernError.Details:BSONDecodable, BSONDictionaryDecodable
 extension Mongo.WriteConcernError.Details:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["w"] = self.acknowledgement
         bson["provenance"] = self.provenance

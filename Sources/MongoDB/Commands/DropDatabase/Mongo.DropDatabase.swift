@@ -27,7 +27,7 @@ extension Mongo.DropDatabase:MongoImplicitSessionCommand, MongoCommand
         "dropDatabase"
     }
     public
-    var fields:BSON.Fields
+    var fields:BSON.Document
     {
         .init
         {

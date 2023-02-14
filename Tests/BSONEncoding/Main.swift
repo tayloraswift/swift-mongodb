@@ -44,8 +44,8 @@ enum Main:SyncTests
                 {
                     $0["a"] = "string"
                     $0["b"] = "string"
-                    $0["c"] = "string" as BSON.UTF8<String.UTF8View>
-                    $0["d"] = "string" as BSON.UTF8<String.UTF8View>
+                    $0["c"] = "string" as BSON.UTF8View<String.UTF8View>
+                    $0["d"] = "string" as BSON.UTF8View<String.UTF8View>
                 },
                 literal:
                 [
@@ -60,31 +60,31 @@ enum Main:SyncTests
                 {
                     $0["a"] = [1, nil, 3]
                     $0["b"] = [1, nil, 3]
-                    $0["c"] = [1, .null, 3] as BSON.Tuple<[UInt8]>
-                    $0["d"] = [1, .null, 3] as BSON.Tuple<[UInt8]>
+                    $0["c"] = [1, .null, 3] as BSON.ListView<[UInt8]>
+                    $0["d"] = [1, .null, 3] as BSON.ListView<[UInt8]>
                 },
                 literal:
                 [
                     "a": [1, .null, 3],
-                    "b": .tuple([1, .null, 3]),
+                    "b": .list([1, .null, 3]),
                     "c": [1, .null, 3],
-                    "d": .tuple([1, .null, 3]),
+                    "d": .list([1, .null, 3]),
                 ])
             
-            TestEncoding(tests / "tuple",
+            TestEncoding(tests / "list",
                 encoded: .init
                 {
                     $0["a"] = [1, 2, 3]
                     $0["b"] = [1, 2, 3]
-                    $0["c"] = [1, 2, 3] as BSON.Tuple<[UInt8]>
-                    $0["d"] = [1, 2, 3] as BSON.Tuple<[UInt8]>
+                    $0["c"] = [1, 2, 3] as BSON.ListView<[UInt8]>
+                    $0["d"] = [1, 2, 3] as BSON.ListView<[UInt8]>
                 },
                 literal:
                 [
                     "a": [1, 2, 3],
-                    "b": .tuple([1, 2, 3]),
+                    "b": .list([1, 2, 3]),
                     "c": [1, 2, 3],
-                    "d": .tuple([1, 2, 3]),
+                    "d": .list([1, 2, 3]),
                 ])
             
             TestEncoding(tests / "document",
@@ -102,8 +102,8 @@ enum Main:SyncTests
                         $0["b"] = 2
                         $0["c"] = 3
                     }
-                    $0["c"] = ["a": 1, "b": 2, "c": 3] as BSON.Document<[UInt8]>
-                    $0["d"] = ["a": 1, "b": 2, "c": 3] as BSON.Document<[UInt8]>
+                    $0["c"] = ["a": 1, "b": 2, "c": 3] as BSON.DocumentView<[UInt8]>
+                    $0["d"] = ["a": 1, "b": 2, "c": 3] as BSON.DocumentView<[UInt8]>
                 },
                 literal:
                 [
@@ -120,7 +120,7 @@ enum Main:SyncTests
             TestEncoding(tests / "binary",
                 encoded: .init
                 {
-                    $0["a"] = BSON.Binary<[UInt8]>.init(subtype: .generic,
+                    $0["a"] = BSON.BinaryView<[UInt8]>.init(subtype: .generic,
                         slice: [0xff, 0xff, 0xff])
                 },
                 literal:
@@ -216,7 +216,7 @@ enum Main:SyncTests
         }
         do
         {
-            let _:BSON.Fields = [:]
+            let _:BSON.Document = [:]
             let tests:TestGroup = tests / "elided-fields"
 
             TestEncoding(tests / "null",

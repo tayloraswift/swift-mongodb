@@ -8,7 +8,7 @@ struct Ordinal:Hashable, Sendable
 }
 extension Ordinal:BSONEncodable, BSONDocumentEncodable
 {
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["_id"] = self.id
         bson["ordinal"] = self.value

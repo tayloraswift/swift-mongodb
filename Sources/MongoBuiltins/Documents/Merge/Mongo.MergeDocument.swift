@@ -7,12 +7,12 @@ extension Mongo
     struct MergeDocument:Sendable
     {
         public
-        var fields:BSON.Fields
+        var document:BSON.Document
 
         @inlinable public
         init(bytes:[UInt8] = [])
         {
-            self.fields = .init(bytes: bytes)
+            self.document = .init(bytes: bytes)
         }
     }
 }
@@ -21,7 +21,7 @@ extension Mongo.MergeDocument:BSONDSL
     @inlinable public
     var bytes:[UInt8]
     {
-        self.fields.bytes
+        self.document.bytes
     }
 }
 extension Mongo.MergeDocument:BSONEncodable
@@ -41,7 +41,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -53,7 +53,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value?.document
+            self.document[pushing: key] = value?.document
         }
     }
 
@@ -66,7 +66,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -78,7 +78,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 
@@ -91,7 +91,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 
@@ -104,7 +104,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -116,7 +116,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -128,7 +128,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 }

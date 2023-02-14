@@ -6,12 +6,12 @@ extension Mongo
     struct ReduceDocument:Sendable
     {
         public
-        var fields:BSON.Fields
+        var document:BSON.Document
 
         @inlinable public
         init(bytes:[UInt8] = [])
         {
-            self.fields = .init(bytes: bytes)
+            self.document = .init(bytes: bytes)
         }
     }    
 }
@@ -20,7 +20,7 @@ extension Mongo.ReduceDocument:BSONDSL
     @inlinable public
     var bytes:[UInt8]
     {
-        self.fields.bytes
+        self.document.bytes
     }
 }
 extension Mongo.ReduceDocument:BSONEncodable
@@ -38,7 +38,7 @@ extension Mongo.ReduceDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
 }

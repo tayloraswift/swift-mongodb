@@ -9,9 +9,9 @@ protocol BSONStringDecodable:BSONDecodable
 {
     /// Initializes an instance of this type from the given UTF8-8 string.
     /// The conformer can assume the string’s backing storage is a
-    /// ``RandomAccessCollection``, even though ``BSON/UTF8`` only requires
-    /// ``BidirectionalCollection``.
-    init(bson:BSON.UTF8<some RandomAccessCollection<UInt8>>) throws
+    /// ``RandomAccessCollection``, even though ``BSON/UTF8View`` only
+    /// requires ``BidirectionalCollection``.
+    init(bson:BSON.UTF8View<some RandomAccessCollection<UInt8>>) throws
 }
 extension BSONStringDecodable
 {
@@ -34,7 +34,7 @@ extension BSONStringDecodable where Self:LosslessStringConvertible
     /// who implement ``LosslessStringConvertible``, but expect to be
     /// decoded from a variant value that is not a string.
     @inlinable public
-    init(bson:BSON.UTF8<some BidirectionalCollection<UInt8>>) throws
+    init(bson:BSON.UTF8View<some BidirectionalCollection<UInt8>>) throws
     {
         let string:String = .init(bson: bson)
         if  let value:Self = .init(string)
@@ -62,7 +62,7 @@ extension Character:BSONStringDecodable
     /// causes its default implementation (where [`Self:LosslessStringConvertible`]())
     /// to do the same.
     @inlinable public
-    init(bson:BSON.UTF8<some BidirectionalCollection<UInt8>>) throws
+    init(bson:BSON.UTF8View<some BidirectionalCollection<UInt8>>) throws
     {
         let string:String = .init(bson: bson)
         if  string.startIndex < string.endIndex,

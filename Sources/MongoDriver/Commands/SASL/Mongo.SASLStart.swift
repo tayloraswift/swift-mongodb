@@ -27,7 +27,7 @@ extension Mongo.SASLStart:MongoChannelCommand
         "saslStart"
     }
 
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson[Self.name] = true
         bson["mechanism"] = self.mechanism

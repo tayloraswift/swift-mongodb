@@ -1,4 +1,4 @@
-extension BSON.Elements
+extension BSON.List
 {
     @inlinable public
     init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONDSLEncodable
@@ -23,18 +23,18 @@ extension BSON.Elements
         self.append(nested)
     }
 }
-extension BSON.Elements
+extension BSON.List
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(tuple: .init(self))
+        field.encode(list: .init(self))
     }
 }
-extension BSON.Elements:BSONDSLEncodable
+extension BSON.List:BSONDSLEncodable
 {
 }
-extension BSON.Elements where DSL:BSONDSL & BSONDSLEncodable
+extension BSON.List where DSL:BSONDSL & BSONDSLEncodable
 {
     @inlinable public mutating
     func append(_ populate:(inout DSL) throws -> ()) rethrows
@@ -43,7 +43,7 @@ extension BSON.Elements where DSL:BSONDSL & BSONDSLEncodable
     }
 }
 
-extension BSON.Elements<BSON.Fields>:BSONEncodable
+extension BSON.List<BSON.Document>:BSONEncodable
 {
     @inlinable public mutating
     func push(_ element:(some BSONEncodable)?)

@@ -16,13 +16,13 @@ extension Mongo
         let stride:Mode.Stride
 
         public
-        var fields:BSON.Fields
+        var fields:BSON.Document
 
         private
         init(readConcern:ReadConcern?,
             tailing:Mode.Tailing?,
             stride:Mode.Stride,
-            fields:BSON.Fields)
+            fields:BSON.Document)
         {
             self.readConcern = readConcern
             self.tailing = tailing
@@ -37,7 +37,7 @@ extension Mongo.Find
     init(readConcern:ReadConcern?,
         tailing:Mode.Tailing?,
         stride:Mode.Stride,
-        with populate:(inout BSON.Fields) throws -> ()) rethrows
+        with populate:(inout BSON.Document) throws -> ()) rethrows
     {
         self.init(readConcern: readConcern,
             tailing: tailing,
@@ -234,7 +234,7 @@ extension Mongo.Find
     }
 
     @inlinable public
-    subscript(key:Range) -> BSON.Fields?
+    subscript(key:Range) -> BSON.Document?
     {
         get
         {

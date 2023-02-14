@@ -21,7 +21,7 @@ extension Mongo.SASLContinue:MongoChannelCommand
         "saslContinue"
     }
 
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson[Self.name] = true
         bson["conversationId"] = self.conversation

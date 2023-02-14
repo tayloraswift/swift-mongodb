@@ -12,16 +12,16 @@ extension BSON.Input
             return .double(.init(bitPattern: try self.parse(as: UInt64.self)))
         
         case .string:
-            return .string(try self.parse(as: BSON.UTF8<Source.SubSequence>.self))
+            return .string(try self.parse(as: BSON.UTF8View<Source.SubSequence>.self))
         
         case .document:
-            return .document(try self.parse(as: BSON.Document<Source.SubSequence>.self))
+            return .document(try self.parse(as: BSON.DocumentView<Source.SubSequence>.self))
         
-        case .tuple:
-            return .tuple(try self.parse(as: BSON.Tuple<Source.SubSequence>.self))
+        case .list:
+            return .list(try self.parse(as: BSON.ListView<Source.SubSequence>.self))
         
         case .binary:
-            return .binary(try self.parse(as: BSON.Binary<Source.SubSequence>.self))
+            return .binary(try self.parse(as: BSON.BinaryView<Source.SubSequence>.self))
         
         case .null:
             return .null
@@ -39,22 +39,22 @@ extension BSON.Input
             return .regex(try self.parse(as: BSON.Regex.self))
         
         case .pointer:
-            let database:BSON.UTF8<Source.SubSequence> = try self.parse(
-                as: BSON.UTF8<Source.SubSequence>.self)
+            let database:BSON.UTF8View<Source.SubSequence> = try self.parse(
+                as: BSON.UTF8View<Source.SubSequence>.self)
             let object:BSON.Identifier = try self.parse(
                 as: BSON.Identifier.self)
             return .pointer(database, object)
         
         case .javascript:
-            return .javascript(try self.parse(as: BSON.UTF8<Source.SubSequence>.self))
+            return .javascript(try self.parse(as: BSON.UTF8View<Source.SubSequence>.self))
         
         case .javascriptScope:
             // possible micro-optimization here
             let _:Int32 = try self.parse(as: Int32.self)
-            let code:BSON.UTF8<Source.SubSequence> = 
-                try self.parse(as: BSON.UTF8<Source.SubSequence>.self)
-            let scope:BSON.Document<Source.SubSequence> = 
-                try self.parse(as: BSON.Document<Source.SubSequence>.self)
+            let code:BSON.UTF8View<Source.SubSequence> = 
+                try self.parse(as: BSON.UTF8View<Source.SubSequence>.self)
+            let scope:BSON.DocumentView<Source.SubSequence> = 
+                try self.parse(as: BSON.DocumentView<Source.SubSequence>.self)
             return .javascriptScope(scope, code)
         
         case .int32:

@@ -47,7 +47,7 @@ extension BSONDSL
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ bson:BSON.Document<[UInt8]>)
+    init(_ bson:BSON.DocumentView<[UInt8]>)
     {
         self.init(bytes: bson.slice)
     }
@@ -62,11 +62,11 @@ extension BSONDSL
     ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
     ///     where *n* is the encoded size of the document.
     @inlinable public
-    init(bson:BSON.Document<some RandomAccessCollection<UInt8>>)
+    init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
     {
         switch bson
         {
-        case let bson as BSON.Document<[UInt8]>:
+        case let bson as BSON.DocumentView<[UInt8]>:
             self.init(bson)
         case let bson:
             self.init(bytes: .init(bson.slice))

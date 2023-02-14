@@ -6,12 +6,12 @@ extension Mongo
     struct ZipDocument:Sendable
     {
         public
-        var fields:BSON.Fields
+        var document:BSON.Document
 
         @inlinable public
         init(bytes:[UInt8] = [])
         {
-            self.fields = .init(bytes: bytes)
+            self.document = .init(bytes: bytes)
         }
     }    
 }
@@ -20,7 +20,7 @@ extension Mongo.ZipDocument:BSONDSL
     @inlinable public
     var bytes:[UInt8]
     {
-        self.fields.bytes
+        self.document.bytes
     }
 }
 extension Mongo.ZipDocument:BSONEncodable
@@ -38,7 +38,7 @@ extension Mongo.ZipDocument
         }
         set(value)
         {
-            self.fields[pushing: key] = value
+            self.document[pushing: key] = value
         }
     }
     @inlinable public
@@ -116,8 +116,8 @@ extension Mongo.ZipDocument
         {
             if let value:Encodable = value
             {
-                self.fields[pushing: key] = value
-                self.fields[pushing: "useLongestLength"] = true
+                self.document[pushing: key] = value
+                self.document[pushing: "useLongestLength"] = true
             }
         }
     }

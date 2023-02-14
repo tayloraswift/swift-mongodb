@@ -12,11 +12,11 @@ extension Mongo
         let writeConcern:WriteConcern?
 
         public
-        var fields:BSON.Fields
+        var fields:BSON.Document
 
         private
         init(writeConcern:WriteConcern?,
-            fields:BSON.Fields)
+            fields:BSON.Document)
         {
             self.writeConcern = writeConcern
             self.fields = fields
@@ -27,7 +27,7 @@ extension Mongo.Create
 {
     private
     init(writeConcern:WriteConcern?,
-        with populate:(inout BSON.Fields) throws -> ()) rethrows
+        with populate:(inout BSON.Document) throws -> ()) rethrows
     {
         self.init(writeConcern: writeConcern, fields: try .init(with: populate))
     }
@@ -121,7 +121,7 @@ extension Mongo.Create
     }
 
     @inlinable public
-    subscript(key:StorageEngine) -> BSON.Fields?
+    subscript(key:StorageEngine) -> BSON.Document?
     {
         get
         {

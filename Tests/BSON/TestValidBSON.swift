@@ -6,7 +6,7 @@ import Testing
 func TestValidBSON(_ tests:TestGroup,
     degenerate:String? = nil,
     canonical:String, 
-    expected:BSON.Document<[UInt8]>)
+    expected:BSON.DocumentView<[UInt8]>)
 {
     let canonical:[UInt8] = Base16.decode(canonical.utf8)
     let size:Int32 = canonical.prefix(4).withUnsafeBytes
@@ -14,7 +14,7 @@ func TestValidBSON(_ tests:TestGroup,
         .init(littleEndian: $0.load(as: Int32.self))
     }
 
-    let document:BSON.Document<ArraySlice<UInt8>> = .init(
+    let document:BSON.DocumentView<ArraySlice<UInt8>> = .init(
         slicing: canonical.dropFirst(4).dropLast())
 
     tests.expect(canonical.count ==? .init(size))
@@ -26,12 +26,12 @@ func TestValidBSON(_ tests:TestGroup,
     if  let degenerate:String
     {
         let degenerate:[UInt8] = Base16.decode(degenerate.utf8)
-        let document:BSON.Document<ArraySlice<UInt8>> = .init(
+        let document:BSON.DocumentView<ArraySlice<UInt8>> = .init(
             slicing: degenerate.dropFirst(4).dropLast())
         
         (tests / "canonicalization").do
         {
-            let canonicalized:BSON.Document<ArraySlice<UInt8>> = 
+            let canonicalized:BSON.DocumentView<ArraySlice<UInt8>> = 
                 try document.canonicalized()
             
             tests.expect(true: expected ~~ document)

@@ -38,7 +38,7 @@ extension Mongo.SessionIdentifier:BSONDecodable, BSONDictionaryDecodable
 extension Mongo.SessionIdentifier:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["id"] = self.uuid
     }

@@ -1,6 +1,6 @@
 import BSONUnions
 
-extension BSON.Document
+extension BSON.DocumentView
 {
     /// @import(BSONUnions)
     /// Decorates the ``AnyBSON``-yielding overload of this method with one that
@@ -31,7 +31,7 @@ extension BSON.Document
     /// comparison would drop one of the values.
     ///
     /// To get a plain array of key-value pairs with no decoding interface, cast this
-    /// variant to a ``BSON/Document`` and call its ``BSON/Document/.parse()`` method.
+    /// variant to a ``BSON/DocumentView`` and call its ``BSON/DocumentView/.parse()`` method.
     /// 
     /// >   Complexity: 
     ///     O(*n*), where *n* is the number of fields in the source document.

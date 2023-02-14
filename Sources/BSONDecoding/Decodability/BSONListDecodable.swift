@@ -1,12 +1,12 @@
 import BSONUnions
 
-/// A type that can be decoded from a BSON tuple-document only.
+/// A type that can be decoded from a BSON list-document only.
 public
-protocol BSONTupleDecodable:BSONDecodable
+protocol BSONListDecodable:BSONDecodable
 {
-    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>) throws
 }
-extension BSONTupleDecodable
+extension BSONListDecodable
 {
     @inlinable public
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
@@ -14,10 +14,10 @@ extension BSONTupleDecodable
         try self.init(bson: try .init(bson))
     }
 }
-extension Array:BSONTupleDecodable, BSONDecodable where Element:BSONDecodable
+extension Array:BSONListDecodable, BSONDecodable where Element:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>) throws
     {
         self.init()
         try bson.parse
@@ -26,10 +26,10 @@ extension Array:BSONTupleDecodable, BSONDecodable where Element:BSONDecodable
         }
     }
 }
-extension Set:BSONTupleDecodable, BSONDecodable where Element:BSONDecodable
+extension Set:BSONListDecodable, BSONDecodable where Element:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.Tuple<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>) throws
     {
         self.init()
         try bson.parse

@@ -18,15 +18,15 @@ protocol BSONDecodableView<Bytes>:Equatable
     init(_:AnyBSON<Bytes>) throws
 }
 
-extension BSON.Binary:BSONDecodableView
+extension BSON.BinaryView:BSONDecodableView
 {
 }
-extension BSON.Document:BSONDecodableView
+extension BSON.DocumentView:BSONDecodableView
 {
 }
-extension BSON.Tuple:BSONDecodableView
+extension BSON.ListView:BSONDecodableView
 {
 }
-extension BSON.UTF8:BSONDecodableView where Bytes:RandomAccessCollection<UInt8>
+extension BSON.UTF8View:BSONDecodableView where Bytes:RandomAccessCollection<UInt8>
 {
 }

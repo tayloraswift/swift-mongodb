@@ -30,7 +30,7 @@ extension Mongo.ReadConcern.Options
 }
 extension Mongo.ReadConcern.Options:BSONEncodable, BSONDocumentEncodable
 {
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.Document)
     {
         bson["level"] = self.level
 
