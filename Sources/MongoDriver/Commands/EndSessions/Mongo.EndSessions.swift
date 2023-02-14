@@ -32,7 +32,7 @@ extension Mongo.EndSessions:MongoChannelCommand
         "endSessions"
     }
 
-    /// `EndSessions` must be sent to the `admin` database.
+    /// `EndSessions` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 

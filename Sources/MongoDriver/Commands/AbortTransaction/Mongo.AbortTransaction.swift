@@ -25,7 +25,7 @@ extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
         "abortTransaction"
     }
 
-    /// `AbortTransaction` must be sent to the `admin` database.
+    /// `AbortTransaction` must be run against the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 

@@ -16,14 +16,14 @@ extension Mongo
         let storageEngine:BSON.Fields?
 
         public
-        let variant:CollectionVariant
+        let variant:Variant
 
         public
         init(collation:Collation?,
             writeConcern:WriteConcern.Options?,
             indexOptionDefaults:BSON.Fields?,
             storageEngine:BSON.Fields?,
-            variant:CollectionVariant)
+            variant:Variant)
         {
             self.collation = collation
             self.writeConcern = writeConcern
@@ -101,7 +101,7 @@ extension Mongo.CollectionOptions
     init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>,
         type:Mongo.CollectionType) throws
     {
-        let variant:Mongo.CollectionVariant
+        let variant:Variant
         switch type
         {
         case .collection:

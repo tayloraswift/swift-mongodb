@@ -75,7 +75,7 @@ extension Mongo.Transaction
             by: deadline ?? connect.instant)
     }
     @inlinable public
-    func run<Query, Success>(query:Query, against database:Query.Database,
+    func run<Query, Success>(command:Query, against database:Query.Database,
         on preference:Mongo.ReadPreference = .primary,
         by deadline:ContinuousClock.Instant? = nil,
         with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
@@ -85,7 +85,7 @@ extension Mongo.Transaction
         let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
 
-        return try await self.session.run(query: query, against: database, on: .primary,
+        return try await self.session.run(command: command, against: database, on: .primary,
             by: deadline ?? connect.instant,
             with: consumer)
         {

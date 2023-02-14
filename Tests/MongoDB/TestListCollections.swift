@@ -1,0 +1,86 @@
+import MongoDB
+import Testing
+
+func TestListCollections(_ tests:TestGroup,
+    bootstrap:Mongo.DriverBootstrap,
+    hosts:Set<Mongo.Host>) async
+{
+    let tests:TestGroup = tests / "list-collections"
+
+    await tests.withTemporaryDatabase(named: "list-collections",
+        bootstrap: bootstrap,
+        hosts: hosts)
+    {
+        (pool:Mongo.SessionPool, database:Mongo.Database) in
+
+        let collections:[Mongo.Collection] = (0 ..< 32).map { .init($0.description) }
+        let session:Mongo.Session = try await .init(from: pool)
+
+        do
+        {
+            let tests:TestGroup = tests / "create"
+            await tests.do
+            {
+                for collection:Mongo.Collection in collections
+                {
+                    await (tests / collection.name).do
+                    {
+                        try await session.run(command: Mongo.Create<Mongo.Collection>.init(
+                                collection: collection), 
+                            against: database)
+                    }
+                }
+            }
+        }
+        do
+        {
+            let tests:TestGroup = tests / "bindings"
+            await tests.do
+            {
+                try await session.run(
+                    command: Mongo.ListCollections<Mongo.CollectionBinding>.init(stride: 10),
+                    against: database)
+                {
+                    var collections:Set<Mongo.Collection> = .init(collections)
+                    for try await batch:[Mongo.CollectionBinding] in $0
+                    {
+                        tests.expect(true: batch.count <= 10)
+                        for binding:Mongo.CollectionBinding in batch
+                        {
+                            let tests:TestGroup = tests / binding.collection.name
+
+                            tests.expect(value: collections.remove(binding.collection))
+                            tests.expect(binding.type ==? .collection)
+                        }
+                    }
+                    tests.expect(collections **? [])
+                }
+            }
+        }
+        do
+        {
+            let tests:TestGroup = tests / "metadata"
+            await tests.do
+            {
+                try await session.run(
+                    command: Mongo.ListCollections<Mongo.CollectionMetadata>.init(stride: 10),
+                    against: database)
+                {
+                    var collections:Set<Mongo.Collection> = .init(collections)
+                    for try await batch:[Mongo.CollectionMetadata] in $0
+                    {
+                        tests.expect(true: batch.count <= 10)
+                        for metadata:Mongo.CollectionMetadata in batch
+                        {
+                            let tests:TestGroup = tests / metadata.collection.name
+
+                            tests.expect(value: collections.remove(metadata.collection))
+                            tests.expect(metadata.type ==? .collection)
+                        }
+                    }
+                    tests.expect(collections **? [])
+                }
+            }
+        }
+    }
+}

@@ -31,15 +31,16 @@ enum Main:AsyncTests
                 credentials: nil,
                 executor: executor)
 
-            await TestFsync     (tests, bootstrap: bootstrap, hosts: members)
-            await TestDatabases (tests, bootstrap: bootstrap, hosts: members)
-            await TestInsert    (tests, bootstrap: bootstrap, hosts: members)
-            await TestFind      (tests, bootstrap: bootstrap, hosts: members)
+            await TestFsync             (tests, bootstrap: bootstrap, hosts: members)
+            await TestDatabases         (tests, bootstrap: bootstrap, hosts: members)
+            await TestListCollections   (tests, bootstrap: bootstrap, hosts: members)
+            await TestInsert            (tests, bootstrap: bootstrap, hosts: members)
+            await TestFind              (tests, bootstrap: bootstrap, hosts: members)
 
-            await TestCausalConsistency(tests, bootstrap: bootstrap, hosts: members)
-            await TestTransactions(tests, bootstrap: bootstrap, hosts: members)
+            await TestCausalConsistency (tests, bootstrap: bootstrap, hosts: members)
+            await TestTransactions      (tests, bootstrap: bootstrap, hosts: members)
 
-            await TestCursors(tests, bootstrap: bootstrap, hosts: members)
+            await TestCursors           (tests, bootstrap: bootstrap, hosts: members)
         }
 
         do
@@ -56,12 +57,13 @@ enum Main:AsyncTests
                     password: "80085"),
                 executor: executor)
 
-            await TestFsync(tests, bootstrap: bootstrap, hosts: [standalone])
-            await TestDatabases(tests, bootstrap: bootstrap, hosts: [standalone])
-            await TestInsert(tests, bootstrap: bootstrap, hosts: [standalone])
-            await TestFind(tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestFsync             (tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestDatabases         (tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestListCollections   (tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestInsert            (tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestFind              (tests, bootstrap: bootstrap, hosts: [standalone])
 
-            await TestCursors(tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestCursors           (tests, bootstrap: bootstrap, hosts: [standalone])
         }
     }
 }

@@ -199,7 +199,7 @@ extension Mongo.Session
     ///     the cursor had already attempted to kill itself eagerly before propogating
     ///     the error to the consumer.
     @inlinable public
-    func run<Query, Success>(query:Query, against database:Query.Database,
+    func run<Query, Success>(command:Query, against database:Query.Database,
         on preference:Mongo.ReadPreference = .primary,
         by deadline:ContinuousClock.Instant? = nil,
         with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
@@ -214,7 +214,7 @@ extension Mongo.Session
         let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
             clamping: deadline)
 
-        return try await self.run(query: query, against: database, on: preference,
+        return try await self.run(command: command, against: database, on: preference,
             by: deadline ?? connect.instant,
             with: consumer)
         {
@@ -393,7 +393,7 @@ extension Mongo.Session
     }
 
     @inlinable public
-    func run<Query, Success>(query:Query, against database:Query.Database,
+    func run<Query, Success>(command:Query, against database:Query.Database,
         on preference:Mongo.ReadPreference,
         by deadline:ContinuousClock.Instant,
         with consumer:(Mongo.Batches<Query.Element>) async throws -> Success,
@@ -408,15 +408,15 @@ extension Mongo.Session
             let connection:Mongo.Connection = try await connection()
 
             batches = .create(preference: preference,
-                lifecycle: query.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
+                lifecycle: command.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
                 timeout: .init(
                     milliseconds: self.deployment.timeout.milliseconds),
-                initial: try await self.run(command: query,
+                initial: try await self.run(command: command,
                     against: database,
                     over: connection,
                     on: preference,
                     by: deadline),
-                stride: query.stride,
+                stride: command.stride,
                 pinned: (connection, self))
         }
         do

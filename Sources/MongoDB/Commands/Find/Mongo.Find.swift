@@ -91,7 +91,7 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
             $0["skip"] = skip
         }
     }
-    public
+    @inlinable public
     init(collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         tailing:Mongo.Tailing? = nil,
@@ -126,7 +126,7 @@ extension Mongo.Find where Mode.Tailing == Never, Mode.Stride == Void
             $0["skip"] = skip
         }
     }
-    public
+    @inlinable public
     init(collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         limit:Int,

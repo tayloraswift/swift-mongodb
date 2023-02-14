@@ -1,32 +1,41 @@
 import BSONDecoding
 import BSONEncoding
+import NIOCore
 
 extension Mongo.ListDatabases
 {
-    /// Lists the names of all existing databases. 
-    /// This command must run against the `admin` database.
+    /// Retrieves the names of all existing databases.
     ///
-    /// This command always enables the `nameOnly` option. To disable it, use the
-    /// ``ListDatabases`` command.
+    /// This command always enables the `nameOnly` option. Unlike ``ListCollections``’s
+    /// name-only mode, `ListDatabases.NameOnly` behaves differently enough from
+    /// ``ListDatabases`` that the driver models it as an independent type.
     ///
     /// > See:  https://www.mongodb.com/docs/manual/reference/command/listDatabases/
     public
     struct NameOnly:Sendable
     {
         public
-        var base:Mongo.ListDatabases
+        var fields:BSON.Fields
 
         public
-        init(authorizedDatabases:Bool? = nil, filter:Mongo.PredicateDocument = [:])
+        init()
         {
-            self.base = .init(authorizedDatabases: authorizedDatabases, filter: filter)
-            self.base.fields["nameOnly"] = true
+            self.fields = .init
+            {
+                $0[Self.name] = 1 as Int32
+                $0["nameOnly"] = true
+            }
         }
     }
 }
 extension Mongo.ListDatabases.NameOnly
 {
-
+    @inlinable public
+    init(with populate:(inout Self) throws -> ()) rethrows
+    {
+        self.init()
+        try populate(&self)
+    }
 }
 extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
 {
@@ -37,25 +46,20 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
         Mongo.ListDatabases.name
     }
 
+    /// ``ListDatabases`` must be run against the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
     public
     typealias Response = [Mongo.Database]
 
-    public
-    var fields:BSON.Fields
-    {
-        self.base.fields
-    }
-
     @inlinable public static
-    func decode<Bytes>(reply bson:BSON.Dictionary<Bytes>) throws -> [Mongo.Database]
+    func decode(reply bson:BSON.Dictionary<ByteBufferView>) throws -> [Mongo.Database]
     {
-        try bson["databases"].decode(as: BSON.Array<Bytes.SubSequence>.self)
+        try bson["databases"].decode(as: BSON.Array<ByteBufferView>.self)
         {
             try $0.map
             {
-                try $0.decode(as: BSON.Dictionary<Bytes.SubSequence>.self)
+                try $0.decode(as: BSON.Dictionary<ByteBufferView>.self)
                 {
                     try $0["name"].decode(to: Mongo.Database.self)
                 }
@@ -65,3 +69,31 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
 }
 // FIXME: ListDatabases.NameOnly *can* run on a secondary,
 // but *should* run on a primary.
+extension Mongo.ListDatabases.NameOnly
+{
+    @inlinable public
+    subscript(key:Mongo.ListDatabases.AuthorizedDatabases) -> Bool?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[key.rawValue] = value
+        }
+    }
+
+    @inlinable public
+    subscript(key:Mongo.ListDatabases.Filter) -> Mongo.PredicateDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields[key.rawValue] = value
+        }
+    }
+}

@@ -25,7 +25,7 @@ extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
         "commitTransaction"
     }
 
-    /// `CommitTransaction` must be sent to the `admin` database.
+    /// `CommitTransaction` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 

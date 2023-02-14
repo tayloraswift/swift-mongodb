@@ -22,7 +22,7 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
         "replSetGetConfig"
     }
     
-    /// `ReplicaSetGetConfiguration` must be sent to the `admin` database.
+    /// `ReplicaSetGetConfiguration` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 

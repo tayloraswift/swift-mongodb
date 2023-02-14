@@ -26,7 +26,7 @@ extension Mongo.Hello:MongoChannelCommand
         "hello"
     }
 
-    /// `Hello` must be sent to the `admin` database.
+    /// `Hello` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 

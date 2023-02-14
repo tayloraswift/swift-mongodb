@@ -30,7 +30,7 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
         "configureFailPoint"
     }
 
-    /// `ConfigureFailpoint` must be sent to the `admin` database.
+    /// `ConfigureFailpoint` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
 

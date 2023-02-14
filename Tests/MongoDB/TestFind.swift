@@ -107,7 +107,7 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
                         stride: 10),
                     against: database)
@@ -133,7 +133,7 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
                         stride: 10)
                     {
@@ -169,7 +169,7 @@ func TestFind(_ tests:TestGroup,
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(query: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
                         collection: collection,
                         stride: 10)
                     {
