@@ -74,6 +74,7 @@ func TestSessionPool(_ tests:TestGroup,
                 {
                     (pool:Mongo.SessionPool) in
 
+                    #if compiler(>=5.8)
                     async
                     let _:Void =
                     {
@@ -82,6 +83,7 @@ func TestSessionPool(_ tests:TestGroup,
                         try await Task.sleep(for: .milliseconds(100))
                         try await session.refresh()
                     }()
+                    #endif
                     try await Task.sleep(for: .milliseconds(50))
                     throw CancellationError.init()
                 }
