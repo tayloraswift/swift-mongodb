@@ -36,9 +36,9 @@ products:
     [
         .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.6")),
         
-        .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.3"),
+        .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(from: "1.0.3")),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.0.4")),
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.46.0")),
+        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.48.0")),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(from: "2.23.0")),
     ],
     targets:
