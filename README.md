@@ -21,25 +21,23 @@ This package vends the following library products:
 
     This module contains a type (`BSON`) of the same name as the module itself, so every declaration in this module is namespaced to that type.
 
-    Does not re-export `BSONTraversal`.
+1.  [**`BSONDSL`**](Sources/BSONDSL) ([`BSON`](Sources/BSON))
 
-1.  [**`BSONDecoding`**](Sources/BSONDecoding) ([`BSON`*](Sources/BSON), [`BSONUnions`](Sources/BSONUnions))
+    Provides the basic definitions needed to bootstrap BSON-based domain-specific languages (DSLs). Defines the `BSONDSL` protocol and the `BSON.Document`, and `BSON.List` containers.
 
-    Vends tools for (performantly) decoding BSON with an emphasis on type-safety and avoiding allocations.
+1.  [**`BSONDecoding`**](Sources/BSONDecoding) ([`BSON`*](Sources/BSON), [`BSONDSL`*](Sources/BSONDSL), [`BSONUnions`](Sources/BSONUnions))
+
+    Provides tools for performantly decoding BSON with an emphasis on type-safety and avoiding allocations.
     
     Also vends a fallback [`Decoder`](https://swiftinit.org/reference/swift/decoder) interface for consumers migrating from [`Decodable`](https://swiftinit.org/reference/swift/decodable).
 
-    Re-exports `BSON`, but not `BSONUnions`.
+    Re-exports `BSON` and `BSONDSL`, but not `BSONUnions`.
 
-1.  [**`BSONEncoding`**](Sources/BSONEncoding) ([`BSON`*](Sources/BSON))
+1.  [**`BSONEncoding`**](Sources/BSONEncoding) ([`BSON`*](Sources/BSON), [`BSONDSL`*](Sources/BSONDSL))
 
-    Vends tools for (performantly) encoding BSON with an emphasis on static typing and legibility.
+    Vends tools for performantly encoding BSON with an emphasis on static typing and legibility.
 
-    Re-exports `BSON`.
-
-1.  [**`BSONSchema`**](Sources/BSONSchema) ([`BSONDecoding`*](Sources/BSONDecoding), [`BSONEncoding`*](Sources/BSONEncoding))
-
-    Convenience module that re-exports `BSONDecoding` and `BSONEncoding`, and defines the typealiases `BSONScheme` and `BSONStringScheme`. Contains no code of its own.
+    Re-exports `BSON` and `BSONDSL`.
 
 1.  [**`BSONUnions`**](Sources/BSONUnions) ([`BSON`](Sources/BSON))
 
@@ -49,15 +47,15 @@ This package vends the following library products:
 
     Does not re-export `BSON`.
 
-1.  [**`BSON_UUID`**](Sources/BSON_UUID) ([`BSON_Schema`](Sources/BSONSchema), [`UUID`](Sources/UUID))
+1.  [**`BSON_UUID`**](Sources/BSON_UUID) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`UUID`](Sources/UUID))
 
     A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the `UUID` type.
 
-1.  [**`BSON_Durations`**](Sources/BSON_Durations) ([`BSON_Schema`](Sources/BSONSchema), [`Durations`](Sources/UUID))
+1.  [**`BSON_Durations`**](Sources/BSON_Durations) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`Durations`](Sources/UUID))
 
     A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the various quantized duration types.
 
-1.  [**`BSON_OrderedCollections`**](Sources/BSON_OrderedCollections) ([`BSON_Schema`](Sources/BSONSchema), `OrderedCollections`)
+1.  [**`BSON_OrderedCollections`**](Sources/BSON_OrderedCollections) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), `OrderedCollections`)
 
     A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for [`OrderedDictionary`](https://swiftinit.org/reference/swift-collections/orderedcollections/ordereddictionary).
 
@@ -65,63 +63,65 @@ This package vends the following library products:
 
     Vends quantized duration types (`Minutes`, `Seconds`, `Milliseconds`), and the `QuantizedDuration` protocol.
 
+1.  [**`Durations_Atomics`**](Sources/Durations_Atomics) ([`Durations`](Sources/UUID), `Atomics`)
+
+    A standard overlay module declaring `AtomicValue` conformances for the various quantized duration types.
+
 1.  [**`Heartbeats`**](Sources/Heartbeats)
 
     Vends a `Heartbeat` type.
 
-1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoDriver`*](Sources/MongoDriver), [`MongoSchema`](Sources/MongoSchema))
+1.  [**`MongoDSL`**](Sources/MongoDSL) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding))
 
-    Vends Swift bindings for MongoDB’s command API, and also implements cursors and managed cursor streams. Most package consumers will depend this module, unless it is possible to depend on one of its constituent dependencies.
+    Implements the MongoDB aggregation expression DSL.
 
-    Depends on SwiftNIO (indirectly), and re-exports `MongoDriver`.
+1.  [**`Mongo`**](Sources/Mongo) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`Durations`](Sources/Durations), [`MongoMonitoring`](Sources/MongoMonitoring), [`TraceableErrors`](Sources/TraceableErrors))
 
-1.  [**`MongoSchema`**](Sources/MongoSchema) ([`BSONSchema`](Sources/BSONSchema))
+    A single-namespace module that implements the topology model and state-transition operations used by the driver’s service discovery and monitoring components.
 
-    Interface module that defines the `MongoDecodable` and `MongoEncodable` protocols, and the `MongoScheme` typealias.
+    Also implements much of the server selection specification, including tag sets, secondary staleness, and read modes.
 
-    Consumers that only implement MongoDB schema and do not need to use the MongoDB driver can depend on this product alone.
+1.  [**`MongoBuiltins`**](Sources/MongoBuiltins) ([`MongoDSL`*](Sources/MongoDSL), [`Mongo`*](Sources/Mongo))
 
-    Does not re-export `BSONSchema`.
+    Implements the MongoDB “standard library”, which currently consists of complex aggregation expression operators, accumulators, various standard MongoDB document formats, and aggregation pipeline stages.
 
 1.  [**`MongoChannel`**](Sources/MongoChannel)
-([`MongoWire`](Sources/MongoWire),
-[`BSONSchema`](Sources/BSONSchema),
-[`Heartbeats`](Sources/Heartbeats),
+([`BSONDecoding`](Sources/BSONDecoding),
+[`BSONEncoding`](Sources/BSONEncoding),
+[`MongoWire`](Sources/MongoWire),
 [`TraceableErrors`](Sources/TraceableErrors),
 `NIOCore`,
 `Atomics`)
 
     A single-namespace, NIO-based layer over `MongoWire`, that vends channel handlers and supports basic command routing and connection lifecycle management.
 
-1.  [**`MongoConnection`**](Sources/MongoConnection) ([`MongoChannel`](Sources/MongoChannel))
+1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoBuiltins`*](Sources/MongoBuiltins), [`MongoDriver`*](Sources/MongoDriver))
 
-    A single-namespace module that models connection state.
+    Vends Swift bindings for MongoDB’s command API, and also implements cursors and managed cursor streams. Most package consumers will depend this module, unless it is possible to depend on one of its constituent dependencies.
 
-1.  [**`MongoTopology`**](Sources/MongoTopology) ([`MongoConnection`](Sources/MongoConnection))
-
-    A single-namespace module that implements the topology model and state-transition operations used by the driver’s service discovery and monitoring components.
-
-    Also implements much of the server selection specification, including tag sets, secondary staleness, and read modes.
+    Depends on SwiftNIO (indirectly), and re-exports `MongoBuiltins` and `MongoDriver`.
 
 1.  [**`MongoDriver`**](Sources/MongoDriver)
-[`MongoTopology`](Sources/MongoTopology),
+([`Mongo`*](Sources/Mongo),
+[`MongoChannel`](Sources/MongoChannel),
 [`BSON_Durations`](Sources/BSON_Durations),
 [`BSON_OrderedCollections`](Sources/BSON_OrderedCollections),
 [`BSON_UUID`](Sources/BSON_UUID),
+[`Durations_Atomics`](Sources/Durations_Atomics),
 [`SCRAM`](Sources/SCRAM),
 [`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),
 `NIOPosix`,
 `NIOSSL`)
 
-    Implements a MongoDB driver, for communicating with a `mongod`/`mongos` server. Handles authentication, sessions, transactions, and command execution, but does not define specific MongoDB commands other than the ones needed to bootstrap a connection.
-
-    All non-protocol types in this module are namespaced under `Mongo`.
-
-    `MongoDriver` has the concept of databases, but does not have any awareness of collections, or other high-level database concepts.
+    Implements a MongoDB driver, for communicating with a `mongod`/`mongos` server. Handles authentication, sessions, transactions, and command execution, but does not define complex MongoDB commands that have DSLs. Notably, `MongoDriver` does not depend on `MongoBuiltins`.
 
 1.  [**`MongoWire`**](Sources/MongoWire) ([`BSON`](Sources/BSON), [`CRC`](https://github.com/kelvin13/swift-hash/tree/master/Sources/CRC))
 
     A single-namespace module that implements the [MongoDB wire protocol](https://www.mongodb.com/docs/manual/reference/mongodb-wire-protocol/), in a generic manner without dependency on SwiftNIO.
+
+1.  [**`OnlineCDF`**](Sources/OnlineCDF)
+
+    Implements the t-digest data structure, for tracking online CDFs.
 
 1.  [**`SCRAM`**](Sources/SCRAM) ([`Base64`](https://github.com/kelvin13/swift-hash/tree/master/Sources/Base64), [`MessageAuthentication`](https://github.com/kelvin13/swift-hash/tree/master/Sources/MessageAuthentication))
 
@@ -135,17 +135,47 @@ This package vends the following library products:
 
     Defines the `UUID` type, and an interface for interacting with UUIDs as [`RandomAccessCollection`](https://swiftinit.org/reference/swift/randomaccesscollection)s of [`UInt8`](https://swiftinit.org/reference/swift/uint8).
 
-Please avoid depending on `SCRAM`, `TraceableErrors`, `UUID`, and the BSON libraries; they are likely to migrate to a separate repository in the medium-term.
+All of the modules listed above are Foundation-free.
+
+## external dependencies
+
+I have verified that all products depended-upon by this package are Foundation-free when compiled for a linux target. Note that some package dependencies do vend products that import Foundation, but swift links binaries at the product level, and this library does not depend on any such products.
+
+My packages:
+
+1.  [`swift-hash`](https://github.com/kelvin13/swift-hash)
+
+    Rationale: this package implements cryptographic algorithms the driver uses to complete authentication with `mongod`/`mongos` servers.
+
+Other packages:
+
+1.  [`apple/swift-atomics`](https://github.com/apple/swift-atomics)
+
+    Rationale: this package provides atomic types that improve the performance of various concurrent data structures in this library.
+
+1.  [`apple/swift-collections`](https://github.com/apple/swift-collections)
+
+    Rationale: this package provides data structures that improve the runtime complexity of several algorithms the driver uses internally. Moreover, the driver’s `swift-nio` dependency already depends on one of this package’s modules (`DequeModule`) anyway.
+
+1.  [`apple/swift-nio`](https://github.com/apple/swift-nio)
+
+    Rationale: networking.
+
+1.  [`apple/swift-nio-ssl`](https://github.com/apple/swift-nio-ssl)
+
+    Rationale: networking.
+
+> Note: This library depends on the `NIOSSL` product from `swift-nio-ssl`, which imports Foundation on Apple platforms only. `NIOSSL` is Foundation-free on all other platforms.
 
 ## toolchain requirement
 
-The MongoDB driver components of this package require a swift 5.8 toolchain.
-
-The bottlenecks are an anonymous `async let` in `MongoDriver` and various parts of the package’s testing infrastructure.
+This package requires swift 5.8 or greater. Compiling with a swift 5.9 toolchain is not recommended, due to known compiler bugs.
 
 ## acknowledgements
 
-`swift-mongodb` started out as a re-write of [Orlandos](https://orlandos.nl/)’s *MongoKitten*. To be honest, the code base has evolved beyond recognition, and the package is a sort of ship-of-Theseus now, but in recognition of its history, we have retained MongoKitten’s [MIT-license](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md) for `MongoDriver`.
+This library originally started out as a re-write of [Orlandos](https://orlandos.nl/)’s *MongoKitten*; accordingly the `MongoDriver` module retains *MongoKitten*’s original [MIT-license](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md).
+
+The [official MongoDB C driver](https://github.com/mongodb/mongo-swift-driver) also served as prior art for this module. 
 
 ## license
 
