@@ -6,7 +6,7 @@ extension BSON
     ///
     /// This type can wrap potentially-invalid UTF-8 data, therefore it
     /// is not backed by an instance of ``String``. Moreover, it (and not ``String``)
-    /// is the payload of ``BSON/Value.string(_:)`` to ensure that long string
+    /// is the payload of ``BSON.Value.string(_:)`` to ensure that long string
     /// fields can be traversed in constant time.
     ///
     /// To convert a UTF-8 string to a native Swift ``String`` (repairing invalid UTF-8),
@@ -32,7 +32,7 @@ extension BSON.UTF8View where Bytes:RangeReplaceableCollection
     /// Creates a BSON UTF-8 string by copying the UTF-8 code units of
     /// the given string to dedicated backing storage.
     /// When possible, prefer using a specialization of this type where
-    /// `Bytes` is `String/UTF8View` or `Substring/UTF8View`, because
+    /// `Bytes` is `String.UTF8View` or `Substring.UTF8View`, because
     /// instances of those specializations can be constructed as
     /// copy-less collection views.
     ///
@@ -54,7 +54,7 @@ extension BSON.UTF8View<String.UTF8View>:ExpressibleByStringLiteral,
         self.init(stringLiteral)
     }
 
-    /// Creates a BSON UTF-8 string backed by a ``String/UTF8View``, making
+    /// Creates a BSON UTF-8 string backed by a ``String.UTF8View``, making
     /// the base string contiguous, if it is not already.
     ///
     /// >   Complexity:
@@ -70,7 +70,7 @@ extension BSON.UTF8View<String.UTF8View>:ExpressibleByStringLiteral,
 }
 extension BSON.UTF8View<Substring.UTF8View>
 {
-    /// Creates a BSON UTF-8 string backed by a ``Substring/UTF8View``, making
+    /// Creates a BSON UTF-8 string backed by a ``Substring.UTF8View``, making
     /// the base substring contiguous, if it is not already.
     ///
     /// >   Complexity:
@@ -137,7 +137,7 @@ extension BSON.UTF8View:VariableLengthBSON where Bytes:RandomAccessCollection<UI
 extension BSON.UTF8View
 {
     /// The length that would be encoded in this string’s prefixed header.
-    /// Equal to [`self.bytes.count + 1`]().
+    /// Equal to [`self.slice.count + 1`]().
     @inlinable public
     var header:Int32
     {
