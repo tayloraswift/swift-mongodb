@@ -1,3 +1,6 @@
+/// A type that specifies the layout of a variable-length BSON view.
+/// Parsers use conforming types to decide how to interpret BSON
+/// length headers read from input data.
 public
 protocol VariableLengthBSONFrame
 {

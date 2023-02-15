@@ -214,8 +214,13 @@ extension Mongo.Deployment
     {
         let id:UInt = self.request()
 
+        #if compiler(<5.8)
+        async
+        let __:Void = self.sessionsUnavailable(for: id, once: deadline)
+        #else
         async
         let _:Void = self.sessionsUnavailable(for: id, once: deadline)
+        #endif
 
         return await withCheckedContinuation
         {
@@ -257,8 +262,13 @@ extension Mongo.Deployment
     {
         let id:UInt = self.request()
 
+        #if compiler(<5.8)
+        async
+        let __:Void = self.selectionUnavailable(for: id, once: deadline)
+        #else
         async
         let _:Void = self.selectionUnavailable(for: id, once: deadline)
+        #endif
 
         return await withCheckedContinuation
         {

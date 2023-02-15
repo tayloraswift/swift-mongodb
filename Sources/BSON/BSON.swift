@@ -1,5 +1,6 @@
-/// A BSON variant type. This enumeration also serves as a namespace for all other
-/// APIs in this module.
+/// A BSON metatype. This enumeration also serves as a namespace for all
+/// other types in this module. The raw value of this enumeration is the
+/// type code of the associated case in BSON’s ABI.
 @frozen public
 enum BSON:UInt8
 {
@@ -26,7 +27,8 @@ enum BSON:UInt8
     case min                = 0xFF
     case max                = 0x7F
 
-    /// Calls ``init(rawValue:)``, but throws a ``TypeError`` instead of returning [`nil`]().
+    /// Calls ``init(rawValue:)``, but throws a ``TypeError`` instead of returning
+    /// [`nil`]().
     @inlinable public
     init(code:UInt8) throws
     {
@@ -39,9 +41,10 @@ enum BSON:UInt8
             throw TypeError.init(invalid: code)
         }
     }
-    /// Converts the given raw type code to a variant type. Deprecated type codes with an
-    /// isomorphic encoding will be canonicalized. The ``pointer`` and ``javascriptScope``
-    /// types will be preserved, because they do not have a modern equivalent.
+    /// Converts the given type code to a variant type. This function will canonicalize
+    /// deprecated type codes that have an isomorphic modern equivalent, but it will
+    /// never change the ``pointer`` and ``javascriptScope`` types, because they do not
+    /// have modern equivalents.
     @inlinable public
     init?(rawValue:UInt8)
     {

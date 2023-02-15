@@ -2,7 +2,8 @@ import BSONTraversal
 
 extension BSON
 {
-    /// Represents a binary array header in the library’s static type system.
+    /// Specifies the interpretation of a length header attached to a ``binary``
+    /// array.
     @frozen public
     enum BinaryFrame:VariableLengthBSONFrame
     {
@@ -10,6 +11,7 @@ extension BSON
         /// subtype byte. Therefore its conceptual prefix size is -1.
         public static
         let prefix:Int = -1
+        /// A binary array never has any trailing bytes when serialized.
         public static
         let suffix:Int = 0
     }

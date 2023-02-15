@@ -1,16 +1,16 @@
 extension BSON
 {
-    /// A BSON binary subtype. This type’s public API performs canonicalization
+    /// A BSON binary metatype. This type’s public API performs canonicalization
     /// and therefore instances of this type are safe to compare.
     @frozen public 
     struct BinarySubtype:Hashable, RawRepresentable, Sendable
     {
-        public static let generic:Self     = .init(unchecked: 0x00)
-        public static let function:Self    = .init(unchecked: 0x01)
-        public static let uuid:Self        = .init(unchecked: 0x04)
-        public static let md5:Self         = .init(unchecked: 0x05)
-        public static let encrypted:Self   = .init(unchecked: 0x06)
-        public static let compressed:Self  = .init(unchecked: 0x07)
+        @inlinable public static var generic:Self       { .init(unchecked: 0x00) }
+        @inlinable public static var function:Self      { .init(unchecked: 0x01) }
+        @inlinable public static var uuid:Self          { .init(unchecked: 0x04) }
+        @inlinable public static var md5:Self           { .init(unchecked: 0x05) }
+        @inlinable public static var encrypted:Self     { .init(unchecked: 0x06) }
+        @inlinable public static var compressed:Self    { .init(unchecked: 0x07) }
 
         public
         let rawValue:UInt8
@@ -28,7 +28,7 @@ extension BSON
             self.rawValue = code
         }
         /// Detects and normalizes a binary subtype from the given
-        /// raw subtype code. Deprecated encodings ([`0x02`]() and [`0x03`]())
+        /// raw subtype code. Deprecated encodings (`0x02` and `0x03`)
         /// will be normalized to their canonical encoding.
         ///
         /// This initializer fails if `rawValue` is a reserved bit pattern.
@@ -47,7 +47,7 @@ extension BSON
             default:            return nil
             }
         }
-        /// Returns a custom binary subtype. Traps if `code` is less than [`0x80`]().
+        /// Returns a custom binary subtype. Traps if `code` is less than `0x80`.
         @inlinable public static
         func custom(code:UInt8) -> Self
         {

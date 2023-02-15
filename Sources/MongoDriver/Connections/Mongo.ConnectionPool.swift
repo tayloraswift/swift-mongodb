@@ -359,8 +359,13 @@ extension Mongo.ConnectionPool
             {
                 let request:UInt = self.request()
 
+                #if compiler(<5.8)
+                async
+                let __:Void = self.fail(request, by: deadline)
+                #else
                 async
                 let _:Void = self.fail(request, by: deadline)
+                #endif
 
                 return try await withCheckedThrowingContinuation
                 {

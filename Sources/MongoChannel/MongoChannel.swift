@@ -88,8 +88,13 @@ extension MongoChannel
         by deadline:ContinuousClock.Instant)
         async -> Result<MongoWire.Message<ByteBufferView>, ExecutionError>
     {
+        #if compiler(<5.8)
+        async
+        let __:Void = self.timeout(by: deadline)
+        #else
         async
         let _:Void = self.timeout(by: deadline)
+        #endif
 
         return await withCheckedContinuation
         {

@@ -169,7 +169,7 @@ Other packages:
 
 ## toolchain requirement
 
-This package requires swift 5.8 or greater. Compiling with a swift 5.9 toolchain is not recommended, due to known compiler bugs.
+This package requires swift 5.7 or greater. Compiling with a swift 5.9 toolchain is not recommended, due to known compiler bugs.
 
 ## acknowledgements
 

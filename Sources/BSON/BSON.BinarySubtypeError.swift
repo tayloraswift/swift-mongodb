@@ -1,6 +1,6 @@
 extension BSON
 {
-    /// The subtype byte of a binary array was matched a reserved bit pattern.
+    /// The subtype byte of a binary array matched a reserved bit pattern.
     @frozen public
     struct BinarySubtypeError:Equatable, Error
     {
