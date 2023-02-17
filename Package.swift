@@ -2,35 +2,42 @@
 import PackageDescription
 
 let package:Package = .init(name: "swift-mongodb",
-products: 
-[
-    .library(name: "BSON", targets: ["BSON"]),
-    .library(name: "BSONDSL", targets: ["BSONDSL"]),
-    .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
-    .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
-    .library(name: "BSONUnions", targets: ["BSONUnions"]),
-    
-    .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
-    .library(name: "BSON_OrderedCollections", targets: ["BSON_OrderedCollections"]),
-    .library(name: "BSON_UUID", targets: ["BSON_UUID"]),
+    platforms:
+    [
+        //  TODO: this is really the wrong place to declare this, because we don’t
+        //  want to restrict availability of the BSON libraries just because of the
+        //  other modules that use async/await.
+        .macOS(.v10_15),
+    ],
+    products: 
+    [
+        .library(name: "BSON", targets: ["BSON"]),
+        .library(name: "BSONDSL", targets: ["BSONDSL"]),
+        .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
+        .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
+        .library(name: "BSONUnions", targets: ["BSONUnions"]),
+        
+        .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
+        .library(name: "BSON_OrderedCollections", targets: ["BSON_OrderedCollections"]),
+        .library(name: "BSON_UUID", targets: ["BSON_UUID"]),
 
-    .library(name: "Durations", targets: ["Durations"]),
-    .library(name: "Durations_Atomics", targets: ["Durations_Atomics"]),
+        .library(name: "Durations", targets: ["Durations"]),
+        .library(name: "Durations_Atomics", targets: ["Durations_Atomics"]),
 
-    .library(name: "Heartbeats", targets: ["Heartbeats"]),
+        .library(name: "Heartbeats", targets: ["Heartbeats"]),
 
-    .library(name: "Mongo", targets: ["Mongo"]),
-    .library(name: "MongoBuiltins", targets: ["MongoBuiltins"]),
-    .library(name: "MongoDB", targets: ["MongoDB"]),
-    .library(name: "MongoDSL", targets: ["MongoDSL"]),
-    .library(name: "MongoChannel", targets: ["MongoChannel"]),
-    .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
-    .library(name: "MongoDriver", targets: ["MongoDriver"]),
-    .library(name: "MongoWire", targets: ["MongoWire"]),
+        .library(name: "Mongo", targets: ["Mongo"]),
+        .library(name: "MongoBuiltins", targets: ["MongoBuiltins"]),
+        .library(name: "MongoDB", targets: ["MongoDB"]),
+        .library(name: "MongoDSL", targets: ["MongoDSL"]),
+        .library(name: "MongoChannel", targets: ["MongoChannel"]),
+        .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
+        .library(name: "MongoDriver", targets: ["MongoDriver"]),
+        .library(name: "MongoWire", targets: ["MongoWire"]),
 
-    .library(name: "SCRAM", targets: ["SCRAM"]),
-    .library(name: "UUID", targets: ["UUID"]),
-],
+        .library(name: "SCRAM", targets: ["SCRAM"]),
+        .library(name: "UUID", targets: ["UUID"]),
+    ],
     dependencies: 
     [
         .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.3.0")),
@@ -59,7 +66,7 @@ products:
             ]),
 
         .target(name: "BSONTraversal"),
-        
+
         .target(name: "BSON",
             dependencies:
             [
