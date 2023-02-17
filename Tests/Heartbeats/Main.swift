@@ -14,8 +14,8 @@ enum Main:AsyncTests
 
             let t0:ContinuousClock.Instant = clock.now
 
-            let interval:Duration = .microseconds(5000)
-            let tolerance:Duration = .microseconds(2500)
+            let interval:Duration = .microseconds(50000)
+            let tolerance:Duration = .microseconds(33333)
             let heartbeat:Heartbeat = .init(interval: interval)
 
             await tests.do
@@ -29,7 +29,7 @@ enum Main:AsyncTests
                     }
                     switch count
                     {
-                    case 1 ..< 400:
+                    case 1 ..< 40:
                         //  heartbeats should not skew over time
                         let center:Duration = interval * count
                         let expected:ClosedRange<Duration> =

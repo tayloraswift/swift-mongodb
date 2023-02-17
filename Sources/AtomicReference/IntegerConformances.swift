@@ -13,6 +13,8 @@
 import _AtomicsShims
 import Atomics
 
+#if os(Linux) && arch(x86_64)
+
 extension DoubleWord: AtomicValue {
   @frozen
   public struct AtomicRepresentation {
@@ -360,3 +362,4 @@ extension DoubleWord.AtomicRepresentation: AtomicStorage {
   }
 }
 
+#endif

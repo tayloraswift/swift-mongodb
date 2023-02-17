@@ -1,0 +1,3 @@
+module AtomicReferenceShims {
+  header "_AtomicsShims.h"
+}

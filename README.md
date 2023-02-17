@@ -143,6 +143,10 @@ I have verified that all products depended-upon by this package are Foundation-f
 
 My packages:
 
+1.  [`swift-grammar`](https://github.com/kelvin13/swift-grammar)
+
+    Rationale: this package provides the `TraceableErrors` module which the driver uses to provide rich diagnostics. The driver does not depend on any parser targets.
+
 1.  [`swift-hash`](https://github.com/kelvin13/swift-hash)
 
     Rationale: this package implements cryptographic algorithms the driver uses to complete authentication with `mongod`/`mongos` servers.
@@ -151,7 +155,7 @@ Other packages:
 
 1.  [`apple/swift-atomics`](https://github.com/apple/swift-atomics)
 
-    Rationale: this package provides atomic types that improve the performance of various concurrent data structures in this library.
+    Rationale: this package provides atomic types that improve the performance of the driver’s various concurrent data structures.
 
 1.  [`apple/swift-collections`](https://github.com/apple/swift-collections)
 
