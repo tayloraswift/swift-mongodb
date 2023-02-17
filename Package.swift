@@ -43,9 +43,12 @@ products:
     ],
     targets:
     [
+        .target(name: "AtomicReferenceShims"),
+        
         .target(name: "AtomicReference",
             dependencies:
             [
+                .target(name: "AtomicReferenceShims"),
                 .product(name: "Atomics", package: "swift-atomics"),
             ]),
         
@@ -56,6 +59,7 @@ products:
             ]),
 
         .target(name: "BSONTraversal"),
+        
         .target(name: "BSON",
             dependencies:
             [
