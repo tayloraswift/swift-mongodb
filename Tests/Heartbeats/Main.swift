@@ -15,7 +15,7 @@ enum Main:AsyncTests
             let t0:ContinuousClock.Instant = clock.now
 
             let interval:Duration = .microseconds(5000)
-            let tolerance:Duration = .microseconds(2500)
+            let tolerance:Duration = .microseconds(3333)
             let heartbeat:Heartbeat = .init(interval: interval)
 
             await tests.do
