@@ -37,4 +37,4 @@ jobs:
                         -v $PWD:/swift-mongodb \
                         -w /swift-mongodb \
                         swiftlang/swift:${{ matrix.image }} \
-                        /bin/bash $(echo .github/run-pipeline)
+                        /bin/bash $(echo .github/pipeline)
