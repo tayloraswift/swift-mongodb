@@ -1,44 +1,44 @@
 #!/bin/bash
 
 ANY_FAILED=0
-SWIFT_FLAGS="-Xcc -mcx16 -Xswiftc -DENABLE_DOUBLEWIDE_ATOMICS"
+C_FLAGS="-Xcc -mcx16"
 
 swift --version
 
-swift build -c release $SWIFT_FLAGS --target BSONSchema ||
+swift build -c release $C_FLAGS --target BSONSchema ||
     ANY_FAILED=1
 
-swift run   -c release $SWIFT_FLAGS          BSONTests ||
+swift run   -c release $C_FLAGS          BSONTests ||
     ANY_FAILED=1
 
-swift run   -c release $SWIFT_FLAGS          BSONDecodingTests ||
+swift run   -c release $C_FLAGS          BSONDecodingTests ||
     ANY_FAILED=1
 
-swift run   -c release $SWIFT_FLAGS          BSONEncodingTests ||
-    ANY_FAILED=1
-
-
-swift build -c release $SWIFT_FLAGS --target Heartbeats ||
-    ANY_FAILED=1
-
-swift run   -c release $SWIFT_FLAGS          HeartbeatsTests ||
+swift run   -c release $C_FLAGS          BSONEncodingTests ||
     ANY_FAILED=1
 
 
-swift build -c release $SWIFT_FLAGS --target MongoDriver ||
+swift build -c release $C_FLAGS --target Heartbeats ||
     ANY_FAILED=1
 
-swift run   -c release $SWIFT_FLAGS          MongoDriverTests ||
+swift run   -c release $C_FLAGS          HeartbeatsTests ||
     ANY_FAILED=1
 
 
-swift build -c release $SWIFT_FLAGS --target MongoDB ||
+swift build -c release $C_FLAGS --target MongoDriver ||
     ANY_FAILED=1
 
-swift run   -c release $SWIFT_FLAGS          MongoDBTests ||
+swift run   -c release $C_FLAGS          MongoDriverTests ||
     ANY_FAILED=1
 
-swift build -c release $SWIFT_FLAGS --target MongoDSLAPITests ||
+
+swift build -c release $C_FLAGS --target MongoDB ||
+    ANY_FAILED=1
+
+swift run   -c release $C_FLAGS          MongoDBTests ||
+    ANY_FAILED=1
+
+swift build -c release $C_FLAGS --target MongoDSLAPITests ||
     ANY_FAILED=1
 
 if [ "$ANY_FAILED" -ne 0 ] ; then

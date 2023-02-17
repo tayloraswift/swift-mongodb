@@ -29,11 +29,11 @@ products:
     .library(name: "MongoWire", targets: ["MongoWire"]),
 
     .library(name: "SCRAM", targets: ["SCRAM"]),
-    .library(name: "TraceableErrors", targets: ["TraceableErrors"]),
     .library(name: "UUID", targets: ["UUID"]),
 ],
     dependencies: 
     [
+        .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.3.0")),
         .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.6")),
         
         .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(from: "1.0.3")),
@@ -43,8 +43,12 @@ products:
     ],
     targets:
     [
-        .target(name: "TraceableErrors"),
-
+        .target(name: "AtomicReference",
+            dependencies:
+            [
+                .product(name: "Atomics", package: "swift-atomics"),
+            ]),
+        
         .target(name: "UUID",
             dependencies:
             [
@@ -67,7 +71,7 @@ products:
             [
                 .target(name: "BSONDSL"),
                 .target(name: "BSONUnions"),
-                .target(name: "TraceableErrors"),
+                .product(name: "TraceableErrors", package: "swift-grammar"),
             ]),
         .target(name: "BSONEncoding",
             dependencies:
@@ -158,7 +162,7 @@ products:
                 .target(name: "BSONEncoding"),
                 .target(name: "Durations"),
                 .target(name: "MongoMonitoring"),
-                .target(name: "TraceableErrors"),
+                .product(name: "TraceableErrors", package: "swift-grammar"),
             ]),
 
         .target(name: "MongoBuiltins",
@@ -171,6 +175,7 @@ products:
         .target(name: "MongoDriver",
             dependencies: 
             [
+                .target(name: "AtomicReference"),
                 .target(name: "BSON_Durations"),
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
@@ -181,7 +186,6 @@ products:
                 .target(name: "OnlineCDF"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2", package: "swift-hash"),
-                .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
             ]),
