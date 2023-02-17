@@ -1,0 +1,12 @@
+swift --version &&
+swift build -c release --target BSONSchema &&
+swift run   -c release          BSONTests &&
+swift run   -c release          BSONDecodingTests &&
+swift run   -c release          BSONEncodingTests &&
+swift build -c release --target Heartbeats &&
+swift run   -c release          HeartbeatsTests &&
+swift build -c release --target MongoDriver &&
+swift run   -c release          MongoDriverTests &&
+swift build -c release --target MongoDB &&
+swift run   -c release          MongoDBTests &&
+swift build -c release --target MongoDSLAPITests
