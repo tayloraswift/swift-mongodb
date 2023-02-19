@@ -23,17 +23,6 @@ extension BSON.List
         self.append(nested)
     }
 }
-extension BSON.List
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(list: .init(self))
-    }
-}
-extension BSON.List:BSONDSLEncodable
-{
-}
 extension BSON.List where DSL:BSONDSL & BSONDSLEncodable
 {
     @inlinable public mutating
@@ -43,8 +32,21 @@ extension BSON.List where DSL:BSONDSL & BSONDSLEncodable
     }
 }
 
+extension BSON.List:BSONDSLEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(list: .init(self))
+    }
+}
 extension BSON.List<BSON.Document>:BSONEncodable
 {
+}
+extension BSON.List<BSON.Document>
+{
+    /// Encodes and appends the given value if it is non-`nil`, does
+    /// nothing otherwise.
     @inlinable public mutating
     func push(_ element:(some BSONEncodable)?)
     {

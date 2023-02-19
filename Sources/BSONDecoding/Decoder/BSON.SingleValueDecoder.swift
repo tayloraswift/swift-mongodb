@@ -80,7 +80,7 @@ extension BSON.SingleValueDecoder:SingleValueDecodingContainer
     public
     func decodeNil() -> Bool
     {
-        self.value.null != nil
+        self.value.as(Never?.self) != nil
     }
     public
     func decode(_:Bool.Type) throws -> Bool

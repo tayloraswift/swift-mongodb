@@ -49,7 +49,7 @@ extension BSON.Document
     /// `elide` is [`false`]()).
     ///
     /// Type inference will always infer this subscript as long as any
-    /// ``Subdocument`` DSL API is used within its builder closure.
+    /// ``Document`` DSL API is used within its builder closure.
     ///
     /// The getter always returns [`nil`]().
     ///
@@ -76,9 +76,8 @@ extension BSON.Document
     /// Appends a key-value pair to this document builder, encoding a
     /// subdocument of a foreign DSL type as the field value.
     ///
-    /// Type inference will always prefer the concrete ``Subdocument``-typed
-    /// subscript overload over this one. This means that only API belonging to
-    /// the ``Subdocument`` DSL will be available with leading-dot syntax.
+    /// Type inference will always prefer the concrete [`Self`]()-typed
+    /// subscript overload over this one.
     ///
     /// The getter always returns [`nil`]().
     ///
