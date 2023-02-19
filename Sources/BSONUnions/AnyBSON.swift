@@ -535,7 +535,7 @@ extension AnyBSON
     ///     [`nil`]() in the inner optional this variant is ``null``,
     //      [`nil`]() in the outer optional otherwise.
     @inlinable public 
-    var null:Never??
+    func `as`(_:Never?.Type) -> Never??
     {
         switch self 
         {
@@ -548,7 +548,7 @@ extension AnyBSON
     /// -   Returns:
     ///     ``Max.max`` if this variant is ``max``, [`nil`]() otherwise.
     @inlinable public 
-    var max:BSON.Max?
+    func `as`(_:BSON.Max.Type) -> BSON.Max?
     {
         switch self 
         {
@@ -561,7 +561,7 @@ extension AnyBSON
     /// -   Returns:
     ///     ``Min.min`` if this variant is ``min``, [`nil`]() otherwise.
     @inlinable public 
-    var min:BSON.Min?
+    func `as`(_:BSON.Min.Type) -> BSON.Min?
     {
         switch self 
         {

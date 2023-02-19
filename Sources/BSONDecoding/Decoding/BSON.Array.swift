@@ -17,6 +17,14 @@ extension BSON
         }
     }
 }
+extension BSON.Array
+{
+    @inlinable public
+    var shape:BSON.ArrayShape
+    {
+        .init(count: self.elements.count)
+    }
+}
 extension BSON.Array:RandomAccessCollection
 {
     @inlinable public

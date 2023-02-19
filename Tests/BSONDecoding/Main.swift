@@ -89,52 +89,54 @@ enum Main:SyncTests
 
             TestDecoding(tests / "none-to-two", bson: bson,
                 catching: BSON.DecodingError<String>.init(
-                    BSON.ArrayShapeError.init(invalid: 0, expected: 2),
+                    BSON.ArrayShapeError.init(invalid: 0, expected: .count(2)),
                     in: "none"))
             {
-                try $0["none"].decode
+                try $0["none"].decode(as: BSON.Array<ArraySlice<UInt8>>.self)
                 {
-                    try $0.array(count: 2)
+                    try $0.shape.expect(count: 2)
                 }
             }
 
             TestDecoding(tests / "two-to-two", bson: bson,
                 to: ["a", "b"])
             {
-                try $0["two"].decode
+                try $0["two"].decode(as: BSON.Array<ArraySlice<UInt8>>.self)
                 {
-                    try $0.array(count: 2).elements
+                    try $0.shape.expect(count: 2)
+                    return try $0.map { try $0.decode(to: String.self) }
                 }
             }
 
             TestDecoding(tests / "three-to-two", bson: bson,
                 catching: BSON.DecodingError<String>.init(
-                    BSON.ArrayShapeError.init(invalid: 3, expected: 2),
+                    BSON.ArrayShapeError.init(invalid: 3, expected: .count(2)),
                     in: "three"))
             {
-                try $0["three"].decode
+                try $0["three"].decode(as: BSON.Array<ArraySlice<UInt8>>.self)
                 {
-                    try $0.array(count: 2)
+                    try $0.shape.expect(count: 2)
                 }
             }
 
             TestDecoding(tests / "three-by-two", bson: bson,
                 catching: BSON.DecodingError<String>.init(
-                    BSON.ArrayShapeError.init(invalid: 3, expected: nil),
+                    BSON.ArrayShapeError.init(invalid: 3, expected: .multiple(of: 2)),
                     in: "three"))
             {
-                try $0["three"].decode
+                try $0["three"].decode(as: BSON.Array<ArraySlice<UInt8>>.self)
                 {
-                    try $0.array { $0.isMultiple(of: 2) }
+                    try $0.shape.expect(multipleOf: 2)
                 }
             }
 
             TestDecoding(tests / "four-by-two", bson: bson,
                 to: ["a", "b", "c", "d"])
             {
-                try $0["four"].decode
+                try $0["four"].decode(as: BSON.Array<ArraySlice<UInt8>>.self)
                 {
-                    (try $0.array { $0.isMultiple(of: 2) }).elements
+                    try $0.shape.expect(multipleOf: 2)
+                    return try $0.map { try $0.decode(to: String.self) }
                 }
             }
 
@@ -157,9 +159,10 @@ enum Main:SyncTests
 
             TestDecoding(tests / "element", bson: bson, to: "c")
             {
-                try $0["four"].decode
+                try $0["four"].decode(as: BSON.Array<ArraySlice<UInt8>>.self)
                 {
-                    try (try $0.array { 2 < $0 })[2].decode(to: String.self)
+                    try $0.shape.expect { 2 < $0 }
+                    return try $0[2].decode(to: String.self)
                 }
             }
 
@@ -171,9 +174,10 @@ enum Main:SyncTests
                         in: 2),
                     in: "heterogenous"))
             {
-                try $0["heterogenous"].decode
+                try $0["heterogenous"].decode(as: BSON.Array<ArraySlice<UInt8>>.self)
                 {
-                    try (try $0.array { 2 < $0 })[2].decode(to: String.self)
+                    try $0.shape.expect { 2 < $0 }
+                    return try $0[2].decode(to: String.self)
                 }
             }
         }

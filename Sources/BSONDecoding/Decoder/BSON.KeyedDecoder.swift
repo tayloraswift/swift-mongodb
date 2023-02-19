@@ -68,7 +68,7 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
     }
     func decodeNil(forKey key:Key) throws -> Bool
     {
-        try self.diagnose(key) { $0.null != nil }
+        try self.diagnose(key) { $0.as(Never?.self) != nil }
     }
     public
     func decode(_:Bool.Type, forKey key:Key) throws -> Bool

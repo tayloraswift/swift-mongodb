@@ -81,7 +81,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     public mutating 
     func decodeNil() throws -> Bool
     {
-        try self.diagnose { $0.null != nil }
+        try self.diagnose { $0.as(Never?.self) != nil }
     }
     public mutating 
     func decode(_:Bool.Type) throws -> Bool

@@ -53,7 +53,7 @@ extension BSON.Max:BSONDecodable
     @inlinable public
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {
-        self = try bson.cast(with: \.max)
+        self = try bson.cast { $0.as(Self.self) }
     }
 }
 extension BSON.Millisecond:BSONDecodable
@@ -69,7 +69,7 @@ extension BSON.Min:BSONDecodable
     @inlinable public
     init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
     {
-        self = try bson.cast(with: \.min)
+        self = try bson.cast { $0.as(Self.self) }
     }
 }
 extension BSON.Regex:BSONDecodable
