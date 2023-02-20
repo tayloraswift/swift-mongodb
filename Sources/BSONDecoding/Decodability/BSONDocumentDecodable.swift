@@ -13,7 +13,7 @@ extension BSONDocumentDecodable<String>
     @inlinable public
     init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>) throws
     {
-        try self.init(bson: try bson.decoder())
+        try self.init(bson: try .init(parsing: bson))
     }
 }
 extension BSONDocumentDecodable where CodingKeys:RawRepresentable<String>
@@ -21,6 +21,6 @@ extension BSONDocumentDecodable where CodingKeys:RawRepresentable<String>
     @inlinable public
     init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>) throws
     {
-        try self.init(bson: try bson.decoder(keys: CodingKeys.self))
+        try self.init(bson: try .init(parsing: bson))
     }
 }

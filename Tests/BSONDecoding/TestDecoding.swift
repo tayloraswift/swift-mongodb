@@ -3,22 +3,22 @@ import BSONDecoding
 
 func TestDecoding<Failure, Unexpected>(_ tests:TestGroup, bson:BSON.DocumentView<[UInt8]>, 
     catching error:Failure,
-    with decode:(BSON.DocumentDecoder<String, ArraySlice<UInt8>>) throws -> Unexpected)
+    with decode:(BSON.DocumentDecoder<String, [UInt8]>) throws -> Unexpected)
     where Failure:Equatable & Error
 {
     tests.do(catching: error)
     {
-        _ = try decode(try bson.decoder())
+        _ = try decode(try .init(parsing: bson))
     }
 }
 func TestDecoding<Decoded>(_ tests:TestGroup, bson:BSON.DocumentView<[UInt8]>,
     to expected:Decoded,
-    with decode:(BSON.DocumentDecoder<String, ArraySlice<UInt8>>) throws -> Decoded)
+    with decode:(BSON.DocumentDecoder<String, [UInt8]>) throws -> Decoded)
     where Decoded:Equatable
 {
     tests.do
     {
-        let decoded:Decoded = try decode(try bson.decoder())
+        let decoded:Decoded = try decode(try .init(parsing: bson))
         tests.expect(expected ==? decoded)
     }
 }

@@ -62,8 +62,8 @@ extension Mongo.Reply
     public
     init(message:MongoWire.Message<ByteBufferView>) throws
     {
-        let bson:BSON.DocumentDecoder<String, ByteBufferView> =
-            try message.sections.body.decoder()
+        let bson:BSON.DocumentDecoder<String, ByteBufferView> = try .init(
+            parsing: message.sections.body)
         let status:Status = try bson["ok"].decode(
             to: Status.self)
 

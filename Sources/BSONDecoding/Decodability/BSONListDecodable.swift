@@ -11,6 +11,6 @@ extension BSONListDecodable
     @inlinable public
     init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>) throws
     {
-        try self.init(bson: try bson.decoder())
+        try self.init(bson: try .init(parsing: bson))
     }
 }

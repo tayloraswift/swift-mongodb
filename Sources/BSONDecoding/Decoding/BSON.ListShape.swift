@@ -1,7 +1,7 @@
 extension BSON
 {
-    /// An efficient interface for checking the length of a decoded
-    /// array at run time.
+    /// An efficient interface for checking the shape of a decoded
+    /// list at run time.
     @frozen public
     struct ListShape:Hashable, Sendable
     {

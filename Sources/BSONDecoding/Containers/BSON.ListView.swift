@@ -16,18 +16,4 @@ extension BSON.ListView
             index += 1
         }
     }
-
-    /// Attempts to create an array-decoder from this list.
-    ///
-    /// To get a plain array with no decoding interface, call the ``parse`` method.
-    /// Alternatively, you can use this method and access the ``BSON//Array.elements``
-    /// property.
-    ///
-    /// >   Complexity: 
-    //      O(*n*), where *n* is the number of elements in the source list.
-    @inlinable public 
-    func decoder() throws -> BSON.ListDecoder<Bytes.SubSequence>
-    {
-        .init(try self.parse())
-    }
 }

@@ -1,6 +1,6 @@
 import BSON
 
-extension BSON.ListView
+extension BSON.ListView:BSONView
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws
