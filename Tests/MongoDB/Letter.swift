@@ -12,18 +12,25 @@ extension Letter:ExpressibleByUnicodeScalarLiteral
         self.init(id: unicodeScalarLiteral)
     }
 }
-extension Letter:BSONEncodable, BSONDocumentEncodable
+extension Letter
 {
-    func encode(to bson:inout BSON.Document)
+    enum CodingKeys:String
     {
-        bson["_id"] = self.id
+        case id = "_id"
     }
 }
-extension Letter:BSONDecodable, BSONDictionaryDecodable
+extension Letter:BSONEncodable, BSONDocumentEncodable
 {
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        self.init(id: try bson["_id"].decode(to: Unicode.Scalar.self))
+        bson[.id] = self.id
+    }
+}
+extension Letter:BSONDecodable, BSONDocumentDecodable
+{
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    {
+        self.init(id: try bson[.id].decode(to: Unicode.Scalar.self))
     }
 }
 extension Letter:CustomStringConvertible

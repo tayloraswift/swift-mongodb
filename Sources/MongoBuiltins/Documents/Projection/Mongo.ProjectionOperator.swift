@@ -42,7 +42,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }
@@ -57,7 +57,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }
@@ -73,7 +73,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -91,7 +91,7 @@ extension Mongo.ProjectionOperator
             {
                 return
             }
-            self.document[pushing: key] = .init
+            self.document[key] = .init
             {
                 if let index:Index = value.at
                 {

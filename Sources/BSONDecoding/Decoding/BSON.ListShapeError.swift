@@ -2,22 +2,22 @@ extension BSON
 {
     /// A list had an invalid number of elements.
     @frozen public
-    struct ArrayShapeError:Equatable, Error
+    struct ListShapeError:Equatable, Error
     {
         public
         let count:Int
         public
-        let expected:ArrayShapeCriteria?
+        let expected:ListShapeCriteria?
 
         @inlinable public
-        init(invalid:Int, expected:ArrayShapeCriteria? = nil)
+        init(invalid:Int, expected:ListShapeCriteria? = nil)
         {
             self.count = invalid
             self.expected = expected
         }
     }
 }
-extension BSON.ArrayShapeError:CustomStringConvertible
+extension BSON.ListShapeError:CustomStringConvertible
 {
     public
     var description:String

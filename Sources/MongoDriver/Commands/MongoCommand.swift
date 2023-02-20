@@ -50,10 +50,10 @@ protocol MongoCommand<Response>:Sendable
     /// This is a static function instead of a requirement on ``Response`` to
     /// permit ``Void`` responses.
     ///
-    /// Commands with responses conforming to ``BSONDictionaryDecodable`` will
+    /// Commands with responses conforming to ``BSONDocumentDecodable`` will
     /// receive a default implementation for this requirement.
     static
-    func decode(reply:BSON.Dictionary<ByteBufferView>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<String, ByteBufferView>) throws -> Response
 }
 extension MongoCommand
 {
@@ -116,15 +116,15 @@ extension MongoCommand<Void>
 {
     /// Does nothing, ignoring the supplied decoding container.
     @inlinable public static
-    func decode(reply _:BSON.Dictionary<ByteBufferView>)
+    func decode(reply _:BSON.DocumentDecoder<String, ByteBufferView>)
     {
     }
 }
-extension MongoCommand where Response:BSONDictionaryDecodable
+extension MongoCommand where Response:BSONDocumentDecodable<String>
 {
-    /// Delegates to the ``Response`` type’s ``BSONDictionaryDecodable`` conformance.
+    /// Delegates to the ``Response`` type’s ``BSONDocumentDecodable`` conformance.
     @inlinable public static
-    func decode(reply:BSON.Dictionary<ByteBufferView>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<String, ByteBufferView>) throws -> Response
     {
         try .init(bson: reply)
     }

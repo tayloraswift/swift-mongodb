@@ -7,15 +7,15 @@ extension BSON
     /// is useful for obtaining structured diagnostics for “key-not-found”
     /// scenarios.
     @frozen public
-    struct ImplicitField<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ImplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         public
-        let key:String
+        let key:Key
         public
         let value:AnyBSON<Bytes>?
 
         @inlinable public
-        init(key:String, value:AnyBSON<Bytes>?)
+        init(key:Key, value:AnyBSON<Bytes>?)
         {
             self.key = key
             self.value = value
@@ -51,7 +51,7 @@ extension BSON.ImplicitField
         }
         else 
         {
-            throw BSON.DictionaryKeyError.undefined(self.key)
+            throw BSON.DocumentKeyError<Key>.undefined(self.key)
         }
     }
 }

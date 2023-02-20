@@ -57,15 +57,15 @@ extension BSON.SingleValueDecoder:Decoder
     public 
     func unkeyedContainer() throws -> any UnkeyedDecodingContainer
     {
-        BSON.UnkeyedDecoder<Bytes.SubSequence>.init(try self.diagnose { try $0.array() },
+        BSON.UnkeyedDecoder<Bytes.SubSequence>.init(try self.diagnose { try $0.decoder() },
             path: self.codingPath) as any UnkeyedDecodingContainer
     }
     public 
     func container<Key>(keyedBy _:Key.Type) throws -> KeyedDecodingContainer<Key> 
-        where Key:CodingKey 
+        where Key:CodingKey
     {
         let container:BSON.KeyedDecoder<Bytes.SubSequence, Key> = 
-            .init(try self.diagnose { try $0.dictionary() }, path: self.codingPath)
+            .init(try self.diagnose { try $0.decoder() }, path: self.codingPath)
         return .init(container)
     }
 }

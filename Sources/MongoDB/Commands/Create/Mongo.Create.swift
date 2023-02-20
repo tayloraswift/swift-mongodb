@@ -116,7 +116,7 @@ extension Mongo.Create
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -129,7 +129,7 @@ extension Mongo.Create
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 }
@@ -163,7 +163,7 @@ extension Mongo.Create<Mongo.Collection>
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -176,7 +176,7 @@ extension Mongo.Create<Mongo.Collection>
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -189,7 +189,7 @@ extension Mongo.Create<Mongo.Collection>
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 }

@@ -41,7 +41,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -53,7 +53,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value?.document
+            self.document.push(key, value?.document)
         }
     }
 
@@ -66,7 +66,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -78,7 +78,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 
@@ -91,7 +91,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 
@@ -104,7 +104,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -116,7 +116,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -128,7 +128,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }

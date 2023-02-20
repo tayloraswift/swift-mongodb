@@ -16,23 +16,31 @@ extension AnyBSON
     /// >   Complexity: 
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public 
-    func array() throws -> BSON.Array<Bytes.SubSequence>
+    func decoder() throws -> BSON.ListDecoder<Bytes.SubSequence>
     {
-        try BSON.ListView<Bytes>.init(self).array()
+        try BSON.ListView<Bytes>.init(self).decoder()
     }
 }
 extension AnyBSON
 {
-    /// Attempts to load a dictionary-decoder from this variant.
+    /// Attempts to load a document decoder from this variant.
     /// 
-    /// - Returns: A dictionary-decoder derived from the payload of this variant if it 
+    /// - Returns: A document decoder derived from the payload of this variant if it 
     ///     matches ``case document(_:)`` or ``case list(_:)``, [`nil`]() otherwise.
     ///
-    /// This method dispatches to ``BSON/DocumentView.dictionary``.
+    /// This method dispatches to ``BSON.DocumentView.dictionary``.
     @inlinable public 
-    func dictionary() throws -> BSON.Dictionary<Bytes.SubSequence>
+    func decoder(keys _:String.Type = String.self)
+        throws -> BSON.DocumentDecoder<String, Bytes.SubSequence>
     {
-        try BSON.DocumentView<Bytes>.init(self).dictionary()
+        try BSON.DocumentView<Bytes>.init(self).decoder()
+    }
+    @inlinable public 
+    func decoder<CodingKey>(keys _:CodingKey.Type = CodingKey.self)
+        throws -> BSON.DocumentDecoder<CodingKey, Bytes.SubSequence>
+        where CodingKey:Hashable & RawRepresentable<String>
+    {
+        try BSON.DocumentView<Bytes>.init(self).decoder()
     }
 }
 

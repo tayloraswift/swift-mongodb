@@ -2,15 +2,18 @@ extension BSON
 {
     /// A document had an invalid key scheme.
     @frozen public
-    enum DictionaryKeyError:Equatable, Error
+    enum DocumentKeyError<Key>:Error
     {
         /// A document contained more than one field with the same key.
-        case duplicate(String)
+        case duplicate(Key)
         /// A document did not contain a field with the expected key.
-        case undefined(String)
+        case undefined(Key)
     }
 }
-extension BSON.DictionaryKeyError:CustomStringConvertible
+extension BSON.DocumentKeyError:Equatable where Key:Equatable
+{
+}
+extension BSON.DocumentKeyError:CustomStringConvertible
 {
     public
     var description:String

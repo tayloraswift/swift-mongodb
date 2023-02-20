@@ -43,7 +43,7 @@ extension Mongo.BucketAutoDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -55,7 +55,7 @@ extension Mongo.BucketAutoDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -67,7 +67,7 @@ extension Mongo.BucketAutoDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -79,7 +79,7 @@ extension Mongo.BucketAutoDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }

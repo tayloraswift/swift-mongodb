@@ -15,10 +15,11 @@ extension BSON.DocumentView
         }
     }
 
-    /// Attempts to create a dictionary-decoder from this document.
+    /// Attempts to create a string-keyed decoder from this document.
     /// 
-    /// This method will throw a ``BSON//DictionaryKeyError`` more than one document
-    /// field contains a key with the same name.
+    /// This function will throw a ``DocumentKeyError`` if more than one document
+    /// field contains a key with the same name. This function will never ignore
+    /// fields.
     ///
     /// Key duplication can interact with unicode normalization in unexpected 
     /// ways. Because BSON is defined in UTF-8, other BSON encoders may not align 
@@ -31,7 +32,7 @@ extension BSON.DocumentView
     /// comparison would drop one of the values.
     ///
     /// To get a plain array of key-value pairs with no decoding interface, cast this
-    /// variant to a ``BSON/DocumentView`` and call its ``BSON/DocumentView/.parse()`` method.
+    /// variant to a ``BSON.DocumentView`` and call its ``BSON.DocumentView parse()`` method.
     /// 
     /// >   Complexity: 
     ///     O(*n*), where *n* is the number of fields in the source document.
@@ -41,16 +42,42 @@ extension BSON.DocumentView
     ///     information for the object items. Reencoding it may produce a BSON 
     ///     document that contains the same data, but does not compare equal.
     @inlinable public 
-    func dictionary() throws -> BSON.Dictionary<Bytes.SubSequence>
+    func decoder()
+        throws -> BSON.DocumentDecoder<String, Bytes.SubSequence>
     {
-        var dictionary:BSON.Dictionary<Bytes.SubSequence> = .init()
+        var decoder:BSON.DocumentDecoder<String, Bytes.SubSequence> = .init()
         try self.parse
         {
-            if case _? = dictionary.items.updateValue($1, forKey: $0)
+            if case _? = decoder.index.updateValue($1, forKey: $0)
             {
-                throw BSON.DictionaryKeyError.duplicate($0)
+                throw BSON.DocumentKeyError<String>.duplicate($0)
             }
         }
-        return dictionary
+        return decoder
+    }
+    /// Attempts to create a decoder with typed coding keys from this document.
+    /// 
+    /// This function will ignore fields whose keys do not correspond to valid
+    /// instances of `CodingKey`. It will throw a ``DocumentKeyError`` if more
+    /// than one non-ignored document field contains the same key. 
+    @inlinable public 
+    func decoder<CodingKey>(keys _:CodingKey.Type = CodingKey.self)
+        throws -> BSON.DocumentDecoder<CodingKey, Bytes.SubSequence>
+        where CodingKey:Hashable & RawRepresentable<String>
+    {
+        var decoder:BSON.DocumentDecoder<CodingKey, Bytes.SubSequence> = .init()
+        try self.parse
+        {
+            guard let key:CodingKey = .init(rawValue: $0)
+            else
+            {
+                return
+            }
+            if case _? = decoder.index.updateValue($1, forKey: key)
+            {
+                throw BSON.DocumentKeyError<CodingKey>.duplicate(key)
+            }
+        }
+        return decoder
     }
 }

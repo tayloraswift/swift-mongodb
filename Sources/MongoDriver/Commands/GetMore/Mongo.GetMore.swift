@@ -5,7 +5,7 @@ import Durations
 extension Mongo
 {
     @frozen public
-    struct GetMore<Element>:Sendable where Element:BSONDocumentDecodable
+    struct GetMore<Element>:Sendable where Element:BSONDecodable
     {
         public
         let cursor:CursorIdentifier

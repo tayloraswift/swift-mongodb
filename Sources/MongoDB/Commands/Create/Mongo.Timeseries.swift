@@ -22,24 +22,34 @@ extension Mongo
         }
     }
 }
-extension Mongo.Timeseries:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.Timeseries
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        case timeField
+        case metaField
+        case granularity
+    }
+}
+extension Mongo.Timeseries:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
-            timeField: try bson["timeField"].decode(to: String.self),
-            metaField: try bson["metaField"]?.decode(to: String.self),
-            granularity: try bson["granularity"].decode(to: Granularity.self))
+            timeField: try bson[.timeField].decode(to: String.self),
+            metaField: try bson[.metaField]?.decode(to: String.self),
+            granularity: try bson[.granularity].decode(to: Granularity.self))
     }
 }
 extension Mongo.Timeseries:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["timeField"] = self.timeField
-        bson["metaField"] = self.metaField
-        bson["granularity"] = self.granularity
+        bson[.timeField] = self.timeField
+        bson[.metaField] = self.metaField
+        bson[.granularity] = self.granularity
     }
 }

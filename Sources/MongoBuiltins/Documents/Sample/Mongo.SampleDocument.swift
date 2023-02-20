@@ -42,7 +42,7 @@ extension Mongo.SampleDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }

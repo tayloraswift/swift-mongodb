@@ -22,10 +22,6 @@ func TestExpressions()
         {
             $0["ccc"] = 56
         }
-        $0[pushing: "baz"] = .init
-        {
-            $0[.abs] = 56
-        }
         $0["qux"] = .init
         {
             $0.append(56)

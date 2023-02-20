@@ -98,7 +98,7 @@ extension Mongo.CursorIterator
     /// recommended, and the cursor should be discarded.
     @inlinable public
     func get<Element>(more _:Element.Type) async throws -> Mongo.Cursor<Element>
-        where Element:BSONDocumentDecodable
+        where Element:BSONDecodable
     {
         try await self.pinned.session.run(
             command: Mongo.GetMore<Element>.init(cursor: self.id,

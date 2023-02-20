@@ -47,7 +47,7 @@ extension Mongo.ProjectionDocument
         }
         set(value)
         {
-            self.document[key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -59,7 +59,7 @@ extension Mongo.ProjectionDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }

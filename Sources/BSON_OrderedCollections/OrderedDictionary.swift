@@ -3,7 +3,7 @@ import BSONEncoding
 import BSONUnions
 import OrderedCollections
 
-extension OrderedDictionary:BSONDocumentDecodable, BSONDecodable
+extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
     where Key == String, Value:BSONDecodable
 {
     @inlinable public
@@ -14,7 +14,7 @@ extension OrderedDictionary:BSONDocumentDecodable, BSONDecodable
         {
             if case _? = self.updateValue(try $0.decode(to: Value.self), forKey: $0.key)
             {
-                throw BSON.DictionaryKeyError.duplicate($0.key)
+                throw BSON.DocumentKeyError<String>.duplicate($0.key)
             }
         }
     }
@@ -32,7 +32,7 @@ extension OrderedDictionary:BSONDSLEncodable
     {
         for (key, value):(Key, Value) in self.elements
         {
-            bson[pushing: key] = value
+            bson.append(key, value)
         }
     }
 }

@@ -1,10 +1,11 @@
 import BSONEncoding
 import OrderedCollections
 
-extension BSON.Document
+extension BSONEncoder
 {
     @inlinable public
-    subscript<Encodable>(key:String, elide elide:Bool) -> OrderedDictionary<String, Encodable>?
+    subscript<Encodable>(key:CodingKey,
+        elide elide:Bool) -> OrderedDictionary<String, Encodable>?
         where Encodable:BSONEncodable
     {
         get
@@ -15,7 +16,7 @@ extension BSON.Document
         {
             if let value:OrderedDictionary<String, Encodable>, !(elide && value.isEmpty)
             {
-                self.append(key: key, with: value.encode(to:))
+                self.append(key, value)
             }
         }
     }

@@ -11,7 +11,7 @@ extension BSON
         let elements:[AnyBSON<Bytes>]
         
         public 
-        init(_ array:BSON.Array<Bytes>, path:[any CodingKey])
+        init(_ array:BSON.ListDecoder<Bytes>, path:[any CodingKey])
         {
             self.codingPath     = path
             self.elements       = array.elements
@@ -174,7 +174,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
         let path:[any CodingKey] = self.codingPath +
             CollectionOfOne<any CodingKey>.init(Index.init(intValue: self.currentIndex))
         let container:BSON.UnkeyedDecoder<Bytes.SubSequence> =
-            .init(try self.diagnose { try $0.array() }, path: path)
+            .init(try self.diagnose { try $0.decoder() }, path: path)
         return container as any UnkeyedDecodingContainer
     }
     public mutating 
@@ -184,7 +184,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
         let path:[any CodingKey] = self.codingPath + 
             CollectionOfOne<any CodingKey>.init(Index.init(intValue: self.currentIndex))
         let container:BSON.KeyedDecoder<Bytes.SubSequence, NestedKey> = 
-            .init(try self.diagnose { try $0.dictionary() }, path: path)
+            .init(try self.diagnose { try $0.decoder() }, path: path)
         return .init(container)
     }
 }

@@ -38,7 +38,7 @@ extension Mongo.ZipDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -116,8 +116,8 @@ extension Mongo.ZipDocument
         {
             if let value:Encodable = value
             {
-                self.document[pushing: key] = value
-                self.document[pushing: "useLongestLength"] = true
+                self.document.append(key, value)
+                self.document.append("useLongestLength", true)
             }
         }
     }

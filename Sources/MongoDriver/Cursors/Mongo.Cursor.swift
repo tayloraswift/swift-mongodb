@@ -4,7 +4,7 @@ extension Mongo
 {
     @frozen public
     struct Cursor<Element>:Sendable
-        where Element:BSONDocumentDecodable & Sendable
+        where Element:BSONDecodable & Sendable
     {
         public
         let namespace:Namespaced<Collection>
@@ -33,12 +33,13 @@ extension Mongo.Cursor
         .init(rawValue: self.position)
     }
 }
-extension Mongo.Cursor:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.Cursor:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentDecoder<String, Bytes>) throws
     {
-        self = try bson["cursor"].decode(as: BSON.Dictionary<Bytes.SubSequence>.self)
+        self = try bson["cursor"].decode(
+            as: BSON.DocumentDecoder<String, Bytes.SubSequence>.self)
         {
             .init(namespace: try $0["ns"].decode(to: Mongo.Namespaced<Mongo.Collection>.self),
                 elements: try ($0["firstBatch"] ?? $0["nextBatch"]).decode(to: [Element].self),

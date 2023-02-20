@@ -98,7 +98,7 @@ extension Mongo.CollectionOptions
 extension Mongo.CollectionOptions
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>,
+    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>,
         type:Mongo.CollectionType) throws
     {
         let variant:Variant

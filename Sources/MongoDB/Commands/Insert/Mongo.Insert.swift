@@ -93,7 +93,7 @@ extension Mongo.Insert
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 }

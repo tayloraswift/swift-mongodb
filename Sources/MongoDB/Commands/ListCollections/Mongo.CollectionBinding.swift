@@ -18,10 +18,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.CollectionBinding:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.CollectionBinding:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
+    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(collection: try bson["name"].decode(to: Mongo.Collection.self),
             type: try bson["type"].decode(to: Mongo.CollectionType.self))

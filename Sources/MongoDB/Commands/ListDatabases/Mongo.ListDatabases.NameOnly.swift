@@ -53,13 +53,14 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
     typealias Response = [Mongo.Database]
 
     @inlinable public static
-    func decode(reply bson:BSON.Dictionary<ByteBufferView>) throws -> [Mongo.Database]
+    func decode(
+        reply bson:BSON.DocumentDecoder<String, ByteBufferView>) throws -> [Mongo.Database]
     {
-        try bson["databases"].decode(as: BSON.Array<ByteBufferView>.self)
+        try bson["databases"].decode(as: BSON.ListDecoder<ByteBufferView>.self)
         {
             try $0.map
             {
-                try $0.decode(as: BSON.Dictionary<ByteBufferView>.self)
+                try $0.decode(as: BSON.DocumentDecoder<String, ByteBufferView>.self)
                 {
                     try $0["name"].decode(to: Mongo.Database.self)
                 }
@@ -80,7 +81,7 @@ extension Mongo.ListDatabases.NameOnly
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -93,7 +94,7 @@ extension Mongo.ListDatabases.NameOnly
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 }

@@ -55,7 +55,7 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
     )
 
     @inlinable public static
-    func decode(reply bson:BSON.Dictionary<ByteBufferView>) throws ->
+    func decode(reply bson:BSON.DocumentDecoder<String, ByteBufferView>) throws ->
     (
         totalSize:Int,
         databases:[Mongo.DatabaseMetadata]
@@ -81,7 +81,7 @@ extension Mongo.ListDatabases
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -94,7 +94,7 @@ extension Mongo.ListDatabases
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 }

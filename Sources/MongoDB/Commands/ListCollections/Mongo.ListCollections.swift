@@ -19,7 +19,7 @@ extension Mongo
     ///
     /// > See:  https://github.com/mongodb/specifications/blob/master/source/enumerate-collections.rst
     public
-    struct ListCollections<Element>:Sendable where Element:BSONDocumentDecodable & Sendable
+    struct ListCollections<Element>:Sendable where Element:BSONDocumentViewDecodable & Sendable
     {
         public
         let stride:Int
@@ -122,7 +122,7 @@ extension Mongo.ListCollections
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -135,7 +135,7 @@ extension Mongo.ListCollections
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 }

@@ -71,7 +71,7 @@ extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand,
     typealias Response = Mode.Response
 
     @inlinable public static
-    func decode(reply:BSON.Dictionary<ByteBufferView>) throws -> Mode.Response
+    func decode(reply:BSON.DocumentDecoder<String, ByteBufferView>) throws -> Mode.Response
     {
         try Mode.decode(reply: reply)
     }
@@ -148,7 +148,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -161,7 +161,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -174,7 +174,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
     @inlinable public
@@ -186,7 +186,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 
@@ -199,7 +199,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields[key.rawValue] = value
+            self.fields.push(key, value)
         }
     }
 }

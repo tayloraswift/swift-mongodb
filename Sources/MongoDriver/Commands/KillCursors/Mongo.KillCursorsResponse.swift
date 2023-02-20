@@ -27,10 +27,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.KillCursorsResponse:BSONDictionaryDecodable
+extension Mongo.KillCursorsResponse:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
             alive: try bson["cursorsAlive"].decode(to: [Mongo.CursorIdentifier].self),

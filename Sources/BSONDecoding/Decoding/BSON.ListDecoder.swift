@@ -2,10 +2,17 @@ import BSONUnions
 
 extension BSON
 {
+    @available(*, deprecated, renamed: "DocumentEncoder")
+    public
+    typealias Array = ListDecoder
+}
+
+extension BSON
+{
     /// A thin wrapper around a native Swift array providing an efficient decoding
     /// interface for a ``BSON/ListView``.
     @frozen public
-    struct Array<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ListDecoder<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         public
         var elements:[AnyBSON<Bytes>]
@@ -17,15 +24,15 @@ extension BSON
         }
     }
 }
-extension BSON.Array
+extension BSON.ListDecoder
 {
     @inlinable public
-    var shape:BSON.ArrayShape
+    var shape:BSON.ListShape
     {
         .init(count: self.elements.count)
     }
 }
-extension BSON.Array:RandomAccessCollection
+extension BSON.ListDecoder:RandomAccessCollection
 {
     @inlinable public
     var startIndex:Int

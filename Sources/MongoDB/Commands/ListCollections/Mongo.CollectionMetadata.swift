@@ -29,14 +29,15 @@ extension Mongo.CollectionMetadata
         self.options.variant.type
     }
 }
-extension Mongo.CollectionMetadata:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.CollectionMetadata:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentDecoder<String, Bytes>) throws
     {
         self.init(
             collection: try bson["name"].decode(to: Mongo.Collection.self),
-            options: try bson["options"].decode(as: BSON.Dictionary<Bytes.SubSequence>.self)
+            options: try bson["options"].decode(
+                as: BSON.DocumentDecoder<String, Bytes.SubSequence>.self)
             {
                 try .init(bson: $0, 
                     type: try bson["type"].decode(to: Mongo.CollectionType.self))
