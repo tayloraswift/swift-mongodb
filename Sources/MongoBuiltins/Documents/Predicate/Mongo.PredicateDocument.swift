@@ -87,7 +87,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -99,7 +99,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.append(key, value)
         }
     }
     @inlinable public
@@ -111,7 +111,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -123,7 +123,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }

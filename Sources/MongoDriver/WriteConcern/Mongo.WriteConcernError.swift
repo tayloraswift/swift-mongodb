@@ -44,29 +44,41 @@ extension Mongo.WriteConcernError:Equatable
         }
     }
 }
-extension Mongo.WriteConcernError:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.WriteConcernError
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        case code
+        case errorDetails = "errInfo"
+        case errorMessage = "errmsg"
+        case writeConcern
+    }
+}
+extension Mongo.WriteConcernError:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentDecoder<CodingKeys, Bytes>) throws
     {
-        self.init(code: try bson["code"].decode(to: Int32.self),
-            message: try bson["errmsg"].decode(to: String.self),
-            details: try bson["errInfo"]?.decode(as: BSON.Dictionary<Bytes.SubSequence>.self)
+        self.init(code: try bson[.code].decode(to: Int32.self),
+            message: try bson[.errorMessage].decode(to: String.self),
+            details: try bson[.errorDetails]?.decode(
+                as: BSON.DocumentDecoder<Details.CodingKey, Bytes.SubSequence>.self)
             {
-                try $0["writeConcern"].decode(to: Details.self)
+                try $0[.writeConcern].decode(to: Details.self)
             })
     }
 }
 extension Mongo.WriteConcernError:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["code"] = self.code
-        bson["errmsg"] = self.message
-        bson["errInfo", elide: true] = .init
+        bson[.code] = self.code
+        bson[.errorMessage] = self.message
+        bson[.errorDetails, elide: true] = .init
         {
-            $0["writeConcern"] = self.details
+            $0[.writeConcern] = self.details
         }
     }
 }

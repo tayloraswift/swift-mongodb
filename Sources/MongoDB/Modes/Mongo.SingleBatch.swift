@@ -4,7 +4,7 @@ import NIOCore
 extension Mongo
 {
     public
-    enum SingleBatch<Element> where Element:BSONDocumentDecodable & Sendable
+    enum SingleBatch<Element> where Element:BSONDecodable & Sendable
     {
     }
 }
@@ -18,9 +18,9 @@ extension Mongo.SingleBatch:MongoBatchingMode
     typealias Stride = Void
 
     @inlinable public static
-    func decode(reply bson:BSON.Dictionary<ByteBufferView>) throws -> [Element]
+    func decode(reply bson:BSON.DocumentDecoder<String, ByteBufferView>) throws -> [Element]
     {
-        try bson["cursor"].decode(as: BSON.Dictionary<ByteBufferView>.self)
+        try bson["cursor"].decode(as: BSON.DocumentDecoder<String, ByteBufferView>.self)
         {
             if  let cursor:Mongo.CursorIdentifier = .init(
                     rawValue: try $0["id"].decode(to: Int64.self))

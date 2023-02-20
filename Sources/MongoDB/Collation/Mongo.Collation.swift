@@ -55,35 +55,51 @@ extension Mongo
         }
     }
 }
-extension Mongo.Collation:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.Collation
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        case locale
+        case strength
+        case caseLevel
+        case caseFirst
+        case numericOrdering
+        case normalization
+        case backwards
+        case alternate
+        case maxVariable
+    }
+}
+extension Mongo.Collation:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(locale: try bson["locale"].decode(to: String.self),
-            alternate: try bson["alternate"]?.decode(to: Alternate.self) ?? .nonignorable,
-            backwards: try bson["backwards"]?.decode(to: Bool.self) ?? false,
-            caseFirst: try bson["caseFirst"]?.decode(to: CaseFirst.self),
-            caseLevel: try bson["caseLevel"]?.decode(to: Bool.self) ?? false,
-            maxVariable: try bson["maxVariable"]?.decode(to: MaxVariable.self),
-            normalization: try bson["normalization"]?.decode(to: Bool.self) ?? false,
-            numericOrdering: try bson["numericOrdering"]?.decode(to: Bool.self) ?? false,
-            strength: try bson["strength"]?.decode(to: Strength.self) ?? .tertiary)
+        self.init(locale: try bson[.locale].decode(to: String.self),
+            alternate: try bson[.alternate]?.decode(to: Alternate.self) ?? .nonignorable,
+            backwards: try bson[.backwards]?.decode(to: Bool.self) ?? false,
+            caseFirst: try bson[.caseFirst]?.decode(to: CaseFirst.self),
+            caseLevel: try bson[.caseLevel]?.decode(to: Bool.self) ?? false,
+            maxVariable: try bson[.maxVariable]?.decode(to: MaxVariable.self),
+            normalization: try bson[.normalization]?.decode(to: Bool.self) ?? false,
+            numericOrdering: try bson[.numericOrdering]?.decode(to: Bool.self) ?? false,
+            strength: try bson[.strength]?.decode(to: Strength.self) ?? .tertiary)
     }
 }
 extension Mongo.Collation:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["locale"] = self.locale
-        bson["strength"] = self.strength != .tertiary ? self.strength : nil
-        bson["caseLevel"] = self.caseLevel ? true : nil
-        bson["caseFirst"] = self.caseFirst
-        bson["numericOrdering"] = self.numericOrdering ? true : nil
-        bson["normalization"] = self.normalization ? true : nil
-        bson["backwards"] = self.backwards ? true : nil
-        bson["alternate"] = self.alternate != .nonignorable ? self.alternate : nil
-        bson["maxVariable"] = self.maxVariable
+        bson[.locale] = self.locale
+        bson[.strength] = self.strength != .tertiary ? self.strength : nil
+        bson[.caseLevel] = self.caseLevel ? true : nil
+        bson[.caseFirst] = self.caseFirst
+        bson[.numericOrdering] = self.numericOrdering ? true : nil
+        bson[.normalization] = self.normalization ? true : nil
+        bson[.backwards] = self.backwards ? true : nil
+        bson[.alternate] = self.alternate != .nonignorable ? self.alternate : nil
+        bson[.maxVariable] = self.maxVariable
     }
 }

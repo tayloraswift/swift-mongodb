@@ -14,7 +14,7 @@ extension BSONDSLEncodable where Self:BSONDSL
 }
 extension BSONDSLEncodable where Self:RawRepresentable, RawValue:BSONDSLEncodable
 {
-    /// Returns the ``bson`` witness of this type’s ``RawRepresentable.rawValue``.
+    /// Returns the ``encode(to:)`` witness of this type’s ``RawRepresentable.rawValue``.
     @inlinable public
     func encode(to field:inout BSON.Field)
     {

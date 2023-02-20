@@ -58,7 +58,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.document[key] = 1 as Int32
+            self.document.append(key, 1 as Int32)
         }
     }
     @inlinable public
@@ -70,7 +70,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.document[key] = -1 as Int32
+            self.document.append(key, -1 as Int32)
         }
     }
     @inlinable public
@@ -82,7 +82,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.document[key] = value
+            self.document.push(key, value)
         }
     }
 }

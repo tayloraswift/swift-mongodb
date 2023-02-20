@@ -26,7 +26,7 @@ extension BSON.ListView
     /// >   Complexity: 
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public 
-    func array() throws -> BSON.Array<Bytes.SubSequence>
+    func decoder() throws -> BSON.ListDecoder<Bytes.SubSequence>
     {
         .init(try self.parse())
     }

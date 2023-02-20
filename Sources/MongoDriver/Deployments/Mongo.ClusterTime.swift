@@ -39,21 +39,30 @@ extension Mongo.ClusterTime
         }
     }
 }
+extension Mongo.ClusterTime
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        case clusterTime
+        case signature
+    }
+}
 extension Mongo.ClusterTime:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["signature", elide: false] = self.signature
-        bson["clusterTime"] = self.time
+        bson[.signature, elide: false] = self.signature
+        bson[.clusterTime] = self.time
     }
 }
-extension Mongo.ClusterTime:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.ClusterTime:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(signature: try bson["signature"].decode(to: BSON.Document.self),
-            time: try bson["clusterTime"].decode(to: Mongo.Instant.self))
+        self.init(signature: try bson[.signature].decode(to: BSON.Document.self),
+            time: try bson[.clusterTime].decode(to: Mongo.Instant.self))
     }
 }

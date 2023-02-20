@@ -14,16 +14,23 @@ protocol BSONScope<Bytes>
 extension BSONScope
 {
     @inlinable public
-    func decode<T>(as _:BSON.Array<Bytes.SubSequence>.Type,
-        with decode:(BSON.Array<Bytes.SubSequence>) throws -> T) throws -> T
+    func decode<T>(as _:BSON.ListDecoder<Bytes.SubSequence>.Type,
+        with decode:(BSON.ListDecoder<Bytes.SubSequence>) throws -> T) throws -> T
     {
-        try self.decode { try decode(try $0.array()) }
+        try self.decode { try decode(try $0.decoder()) }
     }
     @inlinable public
-    func decode<T>(as _:BSON.Dictionary<Bytes.SubSequence>.Type,
-        with decode:(BSON.Dictionary<Bytes.SubSequence>) throws -> T) throws -> T
+    func decode<T>(as _:BSON.DocumentDecoder<String, Bytes.SubSequence>.Type,
+        with decode:(BSON.DocumentDecoder<String, Bytes.SubSequence>) throws -> T) throws -> T
     {
-        try self.decode { try decode(try $0.dictionary()) }
+        try self.decode { try decode(try $0.decoder()) }
+    }
+    @inlinable public
+    func decode<Key, T>(as _:BSON.DocumentDecoder<Key, Bytes.SubSequence>.Type,
+        with decode:(BSON.DocumentDecoder<Key, Bytes.SubSequence>) throws -> T) throws -> T
+        where Key:RawRepresentable<String>
+    {
+        try self.decode { try decode(try $0.decoder()) }
     }
     @inlinable public
     func decode<View, T>(as _:View.Type,

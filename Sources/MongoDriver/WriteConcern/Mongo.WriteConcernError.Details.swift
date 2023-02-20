@@ -24,24 +24,34 @@ extension Mongo.WriteConcernError
         }
     }
 }
-extension Mongo.WriteConcernError.Details:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.WriteConcernError.Details
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        case j
+        case provenance
+        case w
+    }
+}
+extension Mongo.WriteConcernError.Details:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
-            acknowledgement: try bson["w"].decode(to: Mongo.WriteConcern.Acknowledgement.self),
-            provenance: try bson["provenance"].decode(to: Mongo.WriteConcernProvenance.self),
-            journaled: try bson["j"]?.decode(to: Bool.self))
+            acknowledgement: try bson[.w].decode(to: Mongo.WriteConcern.Acknowledgement.self),
+            provenance: try bson[.provenance].decode(to: Mongo.WriteConcernProvenance.self),
+            journaled: try bson[.j]?.decode(to: Bool.self))
     }
 }
 extension Mongo.WriteConcernError.Details:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["w"] = self.acknowledgement
-        bson["provenance"] = self.provenance
-        bson["j"] = self.journaled
+        bson[.w] = self.acknowledgement
+        bson[.provenance] = self.provenance
+        bson[.j] = self.journaled
     }
 }

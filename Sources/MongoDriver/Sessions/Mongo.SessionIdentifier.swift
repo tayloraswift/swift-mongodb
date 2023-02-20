@@ -26,20 +26,28 @@ extension Mongo.SessionIdentifier
         .init(.random())
     }
 }
-
-extension Mongo.SessionIdentifier:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.SessionIdentifier
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        //  note: no leading underscore
+        case id
+    }
+}
+extension Mongo.SessionIdentifier:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(try bson["id"].decode(to: UUID.self))
+        self.init(try bson[.id].decode(to: UUID.self))
     }
 }
 extension Mongo.SessionIdentifier:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["id"] = self.uuid
+        bson[.id] = self.uuid
     }
 }

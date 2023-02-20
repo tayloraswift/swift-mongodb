@@ -42,7 +42,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -54,7 +54,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -66,7 +66,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -78,7 +78,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }
@@ -93,7 +93,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 
@@ -107,7 +107,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 
@@ -121,7 +121,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -140,7 +140,7 @@ extension Mongo.PredicateOperator
             {
                 return
             }
-            self.document[pushing: key] = .init
+            self.document[key] = .init
             {
                 $0.append(divisor)
                 $0.append(remainder)

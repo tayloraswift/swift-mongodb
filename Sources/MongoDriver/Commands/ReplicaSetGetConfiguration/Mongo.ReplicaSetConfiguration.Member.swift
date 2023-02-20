@@ -32,15 +32,31 @@ extension Mongo.ReplicaSetConfiguration
         }
     }
 }
-extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.ReplicaSetConfiguration.Member
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        case arbiterOnly
+        case buildsIndexes = "buildIndexes"
+        case hidden
+        case host
+        case id = "_id"
+        case priority
+        case secondaryDelaySeconds = "secondaryDelaySecs"
+        case tags
+        case votes
+    }
+}
+extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
-        let id:Int64 = try bson["_id"].decode(to: Int64.self)
-        let host:Mongo.Host = try bson["host"].decode(to: Mongo.Host.self)
+        let id:Int64 = try bson[.id].decode(to: Int64.self)
+        let host:Mongo.Host = try bson[.host].decode(to: Mongo.Host.self)
 
-        if  try bson["arbiterOnly"].decode(to: Bool.self)
+        if  try bson[.arbiterOnly].decode(to: Bool.self)
         {
             self.init(id: id, host: host, replica: nil)
             return
@@ -49,35 +65,35 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDictionaryDeco
         let rights:Mongo.ReplicaSetConfiguration.Rights
 
         if  let citizen:Mongo.ReplicaSetConfiguration.Citizen = .init(
-                priority: try bson["priority"].decode(to: Double.self))
+                priority: try bson[.priority].decode(to: Double.self))
         {
             rights = .citizen(citizen)
         }
         else
         {
             rights = .resident(.init(
-                buildsIndexes: try bson["buildIndexes"].decode(to: Bool.self),
-                delay: try bson["hidden"].decode(to: Bool.self) ?
-                    try bson["secondaryDelaySecs"].decode(to: Seconds.self) : nil))
+                buildsIndexes: try bson[.buildsIndexes].decode(to: Bool.self),
+                delay: try bson[.hidden].decode(to: Bool.self) ?
+                    try bson[.secondaryDelaySeconds].decode(to: Seconds.self) : nil))
         }
 
         self.init(id: id, host: host, replica: .init(rights: rights,
-            votes: try bson["votes"].decode(to: Int.self),
-            tags: try bson["tags"].decode(to: OrderedDictionary<String, String>.self)))
+            votes: try bson[.votes].decode(to: Int.self),
+            tags: try bson[.tags].decode(to: OrderedDictionary<String, String>.self)))
     }
 }
 extension Mongo.ReplicaSetConfiguration.Member:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["_id"] = self.id
-        bson["host"] = self.host
+        bson[.id] = self.id
+        bson[.host] = self.host
 
         guard let replica:Mongo.ReplicaSetConfiguration.Replica = self.replica
         else
         {
-            bson["arbiterOnly"] = true
+            bson[.arbiterOnly] = true
             return
         }
 
@@ -86,17 +102,17 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONEncodable, BSONDocumentEncoda
         case .resident(let resident):
             if  let delay:Seconds = resident.delay
             {
-                bson["secondaryDelaySecs"] = delay
-                bson["hidden"] = true
+                bson[.secondaryDelaySeconds] = delay
+                bson[.hidden] = true
             }
-            bson["buildIndexes"] = resident.buildsIndexes
-            bson["priority"] = 0.0
+            bson[.buildsIndexes] = resident.buildsIndexes
+            bson[.priority] = 0.0
         
         case .citizen(let citizen):
-            bson["priority"] = citizen.priority
+            bson[.priority] = citizen.priority
         }
 
-        bson["votes"] = replica.votes
-        bson["tags", elide: true] = replica.tags
+        bson[.votes] = replica.votes
+        bson[.tags, elide: true] = replica.tags
     }
 }

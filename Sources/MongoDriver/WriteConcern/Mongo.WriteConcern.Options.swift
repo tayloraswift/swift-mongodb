@@ -46,23 +46,32 @@ extension Mongo.WriteConcern.Options
         .init(unchecked: .votes(0), journaled: nil)
     }
 }
-extension Mongo.WriteConcern.Options:BSONDecodable, BSONDictionaryDecodable
+extension Mongo.WriteConcern.Options
+{
+    @frozen public
+    enum CodingKeys:String
+    {
+        case w
+        case j
+    }
+}
+extension Mongo.WriteConcern.Options:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
-            acknowledgement: try bson["w"].decode(to: Mongo.WriteConcern.Acknowledgement.self),
-            journaled: try bson["j"]?.decode(to: Bool.self))
+            acknowledgement: try bson[.w].decode(to: Mongo.WriteConcern.Acknowledgement.self),
+            journaled: try bson[.j]?.decode(to: Bool.self))
     }
 }
 extension Mongo.WriteConcern.Options:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson["w"] = self.acknowledgement
-        bson["j"] = self.journaled
+        bson[.w] = self.acknowledgement
+        bson[.j] = self.journaled
         // 'wtimeout' is deprecated
         // bson["wtimeout"] = self.timeout
     }

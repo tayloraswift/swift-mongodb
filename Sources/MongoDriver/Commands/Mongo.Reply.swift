@@ -8,14 +8,14 @@ extension Mongo
     struct Reply
     {
         private
-        let result:Result<BSON.Dictionary<ByteBufferView>, Mongo.ServerError>
+        let result:Result<BSON.DocumentDecoder<String, ByteBufferView>, Mongo.ServerError>
 
         @usableFromInline
         let operationTime:Instant?
         @usableFromInline
         let clusterTime:ClusterTime?
 
-        init(result:Result<BSON.Dictionary<ByteBufferView>, Mongo.ServerError>,
+        init(result:Result<BSON.DocumentDecoder<String, ByteBufferView>, Mongo.ServerError>,
             operationTime:Instant?,
             clusterTime:ClusterTime?)
         {
@@ -37,7 +37,7 @@ extension Mongo.Reply
     }
 
     @usableFromInline
-    func callAsFunction() throws -> BSON.Dictionary<ByteBufferView>
+    func callAsFunction() throws -> BSON.DocumentDecoder<String, ByteBufferView>
     {
         switch self.result
         {
@@ -62,26 +62,27 @@ extension Mongo.Reply
     public
     init(message:MongoWire.Message<ByteBufferView>) throws
     {
-        let dictionary:BSON.Dictionary<ByteBufferView> = try message.sections.body.dictionary()
-        let status:Status = try dictionary["ok"].decode(
+        let bson:BSON.DocumentDecoder<String, ByteBufferView> =
+            try message.sections.body.decoder()
+        let status:Status = try bson["ok"].decode(
             to: Status.self)
 
-        let operationTime:Mongo.Instant? = try dictionary["operationTime"]?.decode(
+        let operationTime:Mongo.Instant? = try bson["operationTime"]?.decode(
             to: Mongo.Instant.self)
-        let clusterTime:Mongo.ClusterTime? = try dictionary["$clusterTime"]?.decode(
+        let clusterTime:Mongo.ClusterTime? = try bson["$clusterTime"]?.decode(
             to: Mongo.ClusterTime.self)
         
         if  status.ok
         {
-            self.init(result: .success(dictionary),
+            self.init(result: .success(bson),
                 operationTime: operationTime,
                 clusterTime: clusterTime)
         }
         else
         {
-            self.init(result: .failure(.init(try dictionary["code"]?.decode(
+            self.init(result: .failure(.init(try bson["code"]?.decode(
                         to: Mongo.ServerError.Code.self),
-                    message: try dictionary["errmsg"]?.decode(to: String.self) ?? "")),
+                    message: try bson["errmsg"]?.decode(to: String.self) ?? "")),
                 operationTime: operationTime,
                 clusterTime: clusterTime)
         }

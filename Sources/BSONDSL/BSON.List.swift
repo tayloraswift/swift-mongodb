@@ -97,11 +97,11 @@ extension BSON.List
     }
 }
 //  See note about ``BSON.Document``.
-extension BSON.List<BSON.Document>?
-{
-    @inlinable public
-    init(with populate:(inout Wrapped) throws -> ()) rethrows
-    {
-        self = .some(try .init(with: populate))
-    }
-}
+// extension BSON.List<BSON.Document>?
+// {
+//     @inlinable public
+//     init(with populate:(inout Wrapped) throws -> ()) rethrows
+//     {
+//         self = .some(try .init(with: populate))
+//     }
+// }

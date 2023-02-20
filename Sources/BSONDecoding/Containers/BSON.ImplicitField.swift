@@ -7,15 +7,15 @@ extension BSON
     /// is useful for obtaining structured diagnostics for “key-not-found”
     /// scenarios.
     @frozen public
-    struct ImplicitField<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ImplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         public
-        let key:String
+        let key:Key
         public
         let value:AnyBSON<Bytes>?
 
         @inlinable public
-        init(key:String, value:AnyBSON<Bytes>?)
+        init(key:Key, value:AnyBSON<Bytes>?)
         {
             self.key = key
             self.value = value
@@ -39,7 +39,7 @@ extension BSON.ImplicitField
 }
 extension BSON.ImplicitField
 {
-    /// Gets the value of this key, throwing a ``BSON/DictionaryKeyError``
+    /// Gets the value of this key, throwing a ``BSON.DocumentKeyError``
     /// if it is [`nil`](). This is a distinct condition from an explicit
     /// ``BSON.null`` value, which will be returned without throwing an error.
     @inlinable public
@@ -51,15 +51,15 @@ extension BSON.ImplicitField
         }
         else 
         {
-            throw BSON.DictionaryKeyError.undefined(self.key)
+            throw BSON.DocumentKeyError<Key>.undefined(self.key)
         }
     }
 }
 extension BSON.ImplicitField:BSONScope
 {
     /// Decodes the value of this implicit field with the given decoder, throwing a
-    /// ``BSON/DictionaryKeyError`` if it does not exist. Throws a
-    /// ``BSON/DecodingError`` wrapping the underlying error if decoding fails.
+    /// ``BSON.DocumentKeyError`` if it does not exist. Throws a
+    /// ``BSON.DecodingError`` wrapping the underlying error if decoding fails.
     @inlinable public
     func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
     {

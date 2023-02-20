@@ -18,9 +18,9 @@ extension Mongo.SASLResponse
         .init(conversation: self.conversation, message: message)
     }
 }
-extension Mongo.SASLResponse:BSONDictionaryDecodable
+extension Mongo.SASLResponse:BSONDocumentDecodable
 {
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
     {
         self.conversation = try bson["conversationId"].decode(to: Int32.self)
         self.message = try bson["payload"].decode

@@ -23,10 +23,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.InsertResponse:BSONDictionaryDecodable
+extension Mongo.InsertResponse:BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.Dictionary<Bytes>) throws
+    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(inserted: try bson["n"].decode(to: Int.self),
             writeConcernErrors: try bson["writeConcernErrors"]?.decode(

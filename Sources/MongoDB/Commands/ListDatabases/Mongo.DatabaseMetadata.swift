@@ -21,10 +21,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.DatabaseMetadata:BSONDictionaryDecodable
+extension Mongo.DatabaseMetadata:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.Dictionary<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(database: try bson["name"].decode(to: Mongo.Database.self),
             size: try bson["sizeOnDisk"].decode(to: Int.self))

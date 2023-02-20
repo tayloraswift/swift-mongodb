@@ -42,7 +42,7 @@ extension Mongo.CollectionStatsDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -54,7 +54,7 @@ extension Mongo.CollectionStatsDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -66,7 +66,7 @@ extension Mongo.CollectionStatsDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }

@@ -4,7 +4,7 @@ import BSONDecoding
 extension Mongo
 {
     public
-    struct Batches<BatchElement> where BatchElement:BSONDocumentDecodable & Sendable
+    struct Batches<BatchElement> where BatchElement:BSONDecodable & Sendable
     {
         public
         let iterator:AsyncIterator

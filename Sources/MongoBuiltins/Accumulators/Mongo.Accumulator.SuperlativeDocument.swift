@@ -43,7 +43,7 @@ extension Mongo.Accumulator.SuperlativeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -56,7 +56,7 @@ extension Mongo.Accumulator.SuperlativeDocument
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
 }

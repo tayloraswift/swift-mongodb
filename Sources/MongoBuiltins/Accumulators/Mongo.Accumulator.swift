@@ -42,7 +42,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -55,7 +55,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -68,7 +68,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @inlinable public
@@ -80,7 +80,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document[pushing: key.n] = value
+            self.document.push(key.n, value)
         }
     }
     @inlinable public
@@ -92,7 +92,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document[pushing: key] = value
+            self.document.push(key, value)
         }
     }
     @_disfavoredOverload
@@ -105,7 +105,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document[pushing: key.n] = value
+            self.document.push(key.n, value)
         }
     }
 }
