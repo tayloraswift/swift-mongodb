@@ -27,7 +27,7 @@ extension Mongo.EndSessions:MongoChannelCommand
 {
     /// The string [`"endSessions"`]().
     @inlinable public static
-    var name:String
+    var name:BSON.Key
     {
         "endSessions"
     }
@@ -37,7 +37,7 @@ extension Mongo.EndSessions:MongoChannelCommand
     typealias Database = Mongo.Database.Admin
 
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson[Self.name] = self.sessions
     }

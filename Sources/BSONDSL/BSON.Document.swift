@@ -13,7 +13,12 @@ extension BSON
         var output:BSON.Output<[UInt8]>
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init()
+        {
+            self.output = .init(preallocated: [])
+        }
+        @inlinable public
+        init(bytes:[UInt8])
         {
             self.output = .init(preallocated: bytes)
         }
@@ -29,6 +34,11 @@ extension BSON.Document:BSONDSL
 }
 extension BSON.Document
 {
+    @inlinable public mutating
+    func append(contentsOf other:Self)
+    {
+        self.output.append(other.bytes)
+    }
     @inlinable public mutating
     func append(_ key:String, with serialize:(inout BSON.Field) -> ())
     {

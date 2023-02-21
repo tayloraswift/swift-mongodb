@@ -21,7 +21,7 @@ extension Mongo.Hello:MongoChannelCommand
 {
     /// The string [`"hello"`]().
     @inlinable public static
-    var name:String
+    var name:BSON.Key
     {
         "hello"
     }
@@ -31,7 +31,7 @@ extension Mongo.Hello:MongoChannelCommand
     typealias Database = Mongo.Database.Admin
 
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson[Self.name] = true
         bson["client"] = self.client

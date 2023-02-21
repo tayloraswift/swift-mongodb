@@ -1,5 +1,6 @@
 extension BSON
 {
+    /// A type that can serialize any BSON container element.
     @frozen public
     struct Field
     {
@@ -109,6 +110,7 @@ extension BSON.Field
         self.output.serialize(key: self.key)
         self.output.serialize(binary: binary)
     }
+
     @inlinable public mutating
     func encode(document:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
     {
@@ -123,6 +125,7 @@ extension BSON.Field
         self.output.serialize(key: self.key)
         self.output.serialize(list: list)
     }
+
     @inlinable public mutating
     func encode(string:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
@@ -136,5 +139,15 @@ extension BSON.Field
         self.output.serialize(type: .javascript)
         self.output.serialize(key: self.key)
         self.output.serialize(utf8: javascript)
+    }
+}
+extension BSON.Field
+{
+    @inlinable public mutating
+    func frame(_ type:BSON, then finish:(inout BSON.Output<[UInt8]>) -> ())
+    {
+        self.output.serialize(type: type)
+        self.output.serialize(key: self.key)
+        self.output.frame(finish)
     }
 }

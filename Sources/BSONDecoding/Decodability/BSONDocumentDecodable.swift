@@ -4,23 +4,15 @@ import BSONUnions
 public
 protocol BSONDocumentDecodable<CodingKeys>:BSONDocumentViewDecodable
 {
-    associatedtype CodingKeys:Hashable = String
+    associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.Key
 
     init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
 }
-extension BSONDocumentDecodable<String>
+extension BSONDocumentDecodable
 {
     @inlinable public
     init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>) throws
     {
-        try self.init(bson: try bson.decoder())
-    }
-}
-extension BSONDocumentDecodable where CodingKeys:RawRepresentable<String>
-{
-    @inlinable public
-    init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>) throws
-    {
-        try self.init(bson: try bson.decoder(keys: CodingKeys.self))
+        try self.init(bson: try .init(parsing: bson))
     }
 }

@@ -135,7 +135,7 @@ extension Date:CustomStringConvertible
 }
 extension Date:BSONDocumentEncodable
 {
-    func encode(to bson:inout BSON.Fields)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson["year"] = self.year
         bson["month"] = self.month

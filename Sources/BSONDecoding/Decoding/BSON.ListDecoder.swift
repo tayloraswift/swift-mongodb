@@ -2,17 +2,10 @@ import BSONUnions
 
 extension BSON
 {
-    @available(*, deprecated, renamed: "DocumentEncoder")
-    public
-    typealias Array = ListDecoder
-}
-
-extension BSON
-{
     /// A thin wrapper around a native Swift array providing an efficient decoding
     /// interface for a ``BSON/ListView``.
     @frozen public
-    struct ListDecoder<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ListDecoder<Storage> where Storage:RandomAccessCollection<UInt8>
     {
         public
         var elements:[AnyBSON<Bytes>]
@@ -24,8 +17,42 @@ extension BSON
         }
     }
 }
+extension BSON.ListDecoder:BSONDecoder
+{
+    /// Attempts to unwrap and parse an array-decoder from the given variant.
+    ///
+    /// This method will only attempt to parse statically-typed BSON lists; it will not
+    /// inspect general documents to determine if they are valid lists.
+    /// 
+    /// -   Returns:
+    ///     The payload of the variant, parsed to a list decoder, if it matches
+    ///     ``case list(_:)`` and could be successfully parsed, [`nil`]() otherwise.
+    ///
+    /// >   Complexity: 
+    //      O(*n*), where *n* is the number of elements in the source list.
+    @inlinable public
+    init(parsing bson:__shared AnyBSON<Storage>) throws
+    {
+        try self.init(parsing: try .init(bson))
+    }
+}
 extension BSON.ListDecoder
 {
+    /// Attempts to create a list decoder from the given list.
+    ///
+    /// To get a plain array with no decoding interface, call the list’s ``parse``
+    /// method instead. Alternatively, you can use this function and access the
+    /// ``elements`` property afterwards.
+    ///
+    /// >   Complexity: 
+    //      O(*n*), where *n* is the number of elements in the source list.
+    @inlinable public
+    init(parsing bson:__shared BSON.ListView<Storage>) throws
+    {
+        self.init(try bson.parse())
+    }
+
+    /// The shape of the list being decoded.
     @inlinable public
     var shape:BSON.ListShape
     {

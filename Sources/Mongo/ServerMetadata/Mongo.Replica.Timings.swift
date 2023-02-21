@@ -24,7 +24,8 @@ extension Mongo.Replica
 extension Mongo.Replica.Timings:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>)
+        throws
     {
         self.init(write: try bson["lastWriteDate"].decode(to: BSON.Millisecond.self))
     }

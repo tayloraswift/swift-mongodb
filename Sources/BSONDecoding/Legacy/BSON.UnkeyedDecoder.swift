@@ -2,16 +2,19 @@ import BSONUnions
 
 extension BSON
 {
-    struct UnkeyedDecoder<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct UnkeyedDecoder<Storage> where Storage:RandomAccessCollection<UInt8>
     {
+        public
+        typealias Bytes = Storage.SubSequence
+
         public 
         let codingPath:[any CodingKey]
         public 
-        var currentIndex:Int 
+        var currentIndex:Int
         let elements:[AnyBSON<Bytes>]
         
         public 
-        init(_ array:BSON.ListDecoder<Bytes>, path:[any CodingKey])
+        init(_ array:BSON.ListDecoder<Storage>, path:[any CodingKey])
         {
             self.codingPath     = path
             self.elements       = array.elements
@@ -173,8 +176,8 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     {
         let path:[any CodingKey] = self.codingPath +
             CollectionOfOne<any CodingKey>.init(Index.init(intValue: self.currentIndex))
-        let container:BSON.UnkeyedDecoder<Bytes.SubSequence> =
-            .init(try self.diagnose { try $0.decoder() }, path: path)
+        let container:BSON.UnkeyedDecoder<Bytes> =
+            .init(try self.diagnose { try .init(parsing: $0) }, path: path)
         return container as any UnkeyedDecodingContainer
     }
     public mutating 
@@ -183,8 +186,8 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     {
         let path:[any CodingKey] = self.codingPath + 
             CollectionOfOne<any CodingKey>.init(Index.init(intValue: self.currentIndex))
-        let container:BSON.KeyedDecoder<Bytes.SubSequence, NestedKey> = 
-            .init(try self.diagnose { try $0.decoder() }, path: path)
+        let container:BSON.KeyedDecoder<Bytes, NestedKey> = 
+            .init(try self.diagnose { try .init(parsing: $0) }, path: path)
         return .init(container)
     }
 }

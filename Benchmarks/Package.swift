@@ -8,7 +8,7 @@ let package:Package = .init(name: "swift-mongodb-benchmarks",
     dependencies: 
     [
         .package(url: "https://github.com/ordo-one/package-benchmark",
-            .upToNextMajor(from: "0.4.3")),
+            .upToNextMajor(from: "0.8.0")),
         .package(path: ".."),
     ],
     targets: 

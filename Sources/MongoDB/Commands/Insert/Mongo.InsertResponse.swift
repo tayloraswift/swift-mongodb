@@ -26,7 +26,7 @@ extension Mongo
 extension Mongo.InsertResponse:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(inserted: try bson["n"].decode(to: Int.self),
             writeConcernErrors: try bson["writeConcernErrors"]?.decode(

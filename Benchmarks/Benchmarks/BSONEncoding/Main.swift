@@ -26,10 +26,10 @@ func benchmarks()
         }
     }
     print("generated \(dates.count) dates")
-    Benchmark.init("dates",
-        metrics: [.throughput, .mallocCountSmall, .mallocCountLarge, .cpuUser, .cpuTotal],
+    Benchmark.init("dates", configuration: .init(
+        metrics: BenchmarkMetric.all,
         timeUnits: .microseconds,
-        desiredDuration: .seconds(10))
+        desiredDuration: .seconds(10)))
     {
         benchmark in
         
@@ -41,7 +41,7 @@ func benchmarks()
 }
 
 @inline(never)
-func encode(dates:[Date]) -> [BSON.Fields]
+func encode(dates:[Date]) -> [BSON.Document]
 {
     dates.map { .init(with: $0.encode(to:)) }
 }

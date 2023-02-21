@@ -11,12 +11,12 @@ protocol MongoBatchingMode
     associatedtype Stride:Sendable
 
     static
-    func decode(reply:BSON.DocumentDecoder<String, ByteBufferView>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
 }
-extension MongoBatchingMode where Response:BSONDocumentDecodable<String>
+extension MongoBatchingMode where Response:BSONDocumentDecodable<BSON.Key>
 {
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<String, ByteBufferView>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
     {
         try .init(bson: reply)
     }

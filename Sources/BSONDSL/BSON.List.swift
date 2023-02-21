@@ -60,11 +60,6 @@ extension BSON.List
         try populate(&self)
     }
 
-    @inlinable public
-    init(_ other:BSON.List<some Any>)
-    {
-        self.init(bytes: other.bytes, count: other.count)
-    }
     /// Creates an encoding view around the given [`[UInt8]`]()-backed
     /// list-document.
     ///

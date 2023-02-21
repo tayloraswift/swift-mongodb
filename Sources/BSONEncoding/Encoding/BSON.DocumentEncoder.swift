@@ -1,31 +1,28 @@
 extension BSON
 {
     @frozen public
-    struct DocumentEncoder<CodingKey> 
+    struct DocumentEncoder<CodingKey> where CodingKey:Hashable & RawRepresentable<String>
     {
         public
-        var document:Document
+        var output:BSON.Output<[UInt8]>
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(output:BSON.Output<[UInt8]>)
         {
-            self.document = .init(bytes: bytes)
+            self.output = output
         }
     }
 }
-extension BSON.DocumentEncoder:BSONDSL, BSONDSLEncodable
+extension BSON.DocumentEncoder:BSONEncoder
 {
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
-    }
+    @inlinable public static
+    var type:BSON { .document }
 }
-extension BSON.DocumentEncoder:BSONEncoder where CodingKey:RawRepresentable<String>
+extension BSON.DocumentEncoder:BSONBuilder
 {
     @inlinable public mutating
     func append(_ key:CodingKey, _ value:some BSONDSLEncodable)
     {
-        self.document.append(key.rawValue, with: value.encode(to:))
+        self.output.with(key: key.rawValue, do: value.encode(to:))
     }
 }

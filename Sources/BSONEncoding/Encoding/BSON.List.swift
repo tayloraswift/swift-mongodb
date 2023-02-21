@@ -57,6 +57,6 @@ extension BSON.List:BSONDSLEncodable
         field.encode(list: .init(self))
     }
 }
-extension BSON.List:BSONEncodable where DSL:BSONEncoder
+extension BSON.List:BSONEncodable where DSL:BSONBuilder
 {
 }

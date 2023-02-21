@@ -3,7 +3,10 @@ import BSONTraversal
 extension BSON
 {
     @frozen public
-    struct Output<Destination> where Destination:RangeReplaceableCollection<UInt8>
+    struct Output<Destination>
+        where   Destination.Index == Int,
+                Destination:RangeReplaceableCollection<UInt8>,
+                Destination:RandomAccessCollection<UInt8>
     {
         public
         var destination:Destination
@@ -31,6 +34,39 @@ extension BSON
 }
 extension BSON.Output:Sendable where Destination:Sendable
 {
+}
+extension BSON.Output<[UInt8]>
+{
+    @inlinable public mutating
+    func frame(_ body:(inout Self) -> ())
+    {
+        // make room for the length header
+        let start:Int = self.destination.endIndex
+
+        self.append(0x00)
+        self.append(0x00)
+        self.append(0x00)
+        self.append(0x00)
+
+        body(&self)
+        
+        self.append(0x00)
+
+        let end:Int = self.destination.endIndex
+        let length:Int32 = .init(self.destination.distance(from: start, to: end))
+
+        assert(length >= 5)
+
+        withUnsafeBytes(of: length.littleEndian)
+        {
+            var index:Int = start
+            for byte:UInt8 in $0
+            {
+                self.destination[index] = byte
+                self.destination.formIndex(after: &index)
+            }
+        }
+    }
 }
 extension BSON.Output
 {

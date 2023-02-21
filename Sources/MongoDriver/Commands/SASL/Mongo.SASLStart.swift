@@ -22,12 +22,12 @@ extension Mongo.SASLStart:MongoChannelCommand
 {
     /// The string [`"saslStart"`]().
     static
-    var name:String
+    var name:BSON.Key
     {
         "saslStart"
     }
 
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson[Self.name] = true
         bson["mechanism"] = self.mechanism

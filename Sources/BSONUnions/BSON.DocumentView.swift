@@ -1,6 +1,6 @@
 import BSON
 
-extension BSON.DocumentView
+extension BSON.DocumentView:BSONView
 {
     @inlinable public
     init(_ value:AnyBSON<Bytes>) throws
@@ -50,7 +50,9 @@ extension BSON.DocumentView
     }
 }
 extension BSON.DocumentView:ExpressibleByDictionaryLiteral 
-    where Bytes:RangeReplaceableCollection<UInt8>
+    where   Bytes:RangeReplaceableCollection<UInt8>,
+            Bytes:RandomAccessCollection<UInt8>,
+            Bytes.Index == Int
 {
     /// Creates a document containing the given fields, making two passes over
     /// the list of fields in order to encode the output without reallocations.
