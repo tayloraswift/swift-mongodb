@@ -126,7 +126,7 @@ extension Mongo.ReadPreference
 extension Mongo.ReadPreference:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<BSON.UniversalKey>)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson["mode"] = self.mode
         bson["maxStalenessSeconds"] = self.maxStaleness

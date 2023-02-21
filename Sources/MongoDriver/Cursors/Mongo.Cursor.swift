@@ -36,10 +36,10 @@ extension Mongo.Cursor
 extension Mongo.Cursor:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.DocumentDecoder<BSON.UniversalKey, Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentDecoder<BSON.Key, Bytes>) throws
     {
         self = try bson["cursor"].decode(
-            as: BSON.DocumentDecoder<BSON.UniversalKey, Bytes.SubSequence>.self)
+            as: BSON.DocumentDecoder<BSON.Key, Bytes.SubSequence>.self)
         {
             .init(namespace: try $0["ns"].decode(to: Mongo.Namespaced<Mongo.Collection>.self),
                 elements: try ($0["firstBatch"] ?? $0["nextBatch"]).decode(to: [Element].self),

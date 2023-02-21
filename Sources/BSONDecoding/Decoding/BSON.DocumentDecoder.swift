@@ -40,7 +40,7 @@ extension BSON.DocumentDecoder
     /// instances of `CodingKey`. It will throw a ``DocumentKeyError`` if more
     /// than one non-ignored document field contains the same key. 
     ///
-    /// If `CodingKey` is ``UniversalKey``, this function will never ignore fields.
+    /// If `CodingKey` is ``Key``, this function will never ignore fields.
     ///
     /// Key duplication can interact with unicode normalization in unexpected 
     /// ways. Because BSON is defined in UTF-8, other BSON encoders may not align 

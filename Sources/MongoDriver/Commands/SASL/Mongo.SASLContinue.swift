@@ -16,12 +16,12 @@ extension Mongo.SASLContinue:MongoChannelCommand
 {
     /// The string [`"saslContinue"`]().
     static
-    var name:BSON.UniversalKey
+    var name:BSON.Key
     {
         "saslContinue"
     }
 
-    func encode(to bson:inout BSON.DocumentEncoder<BSON.UniversalKey>)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson[Self.name] = true
         bson["conversationId"] = self.conversation

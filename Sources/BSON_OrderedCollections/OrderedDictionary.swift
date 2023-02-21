@@ -28,7 +28,7 @@ extension OrderedDictionary:BSONDSLEncodable
         field.frame(then: self.encode(to:))
     }
     public
-    func encode(to bson:inout BSON.DocumentEncoder<BSON.UniversalKey>)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         for (key, value):(Key, Value) in self.elements
         {

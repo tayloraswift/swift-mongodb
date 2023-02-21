@@ -32,7 +32,7 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
     // we need to provide this witness, to prevent the default implementation
     // from running (which will fail to unnest one level of 'config')
     public static
-    func decode(reply bson:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>)
+    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView>)
         throws -> Mongo.ReplicaSetConfiguration
     {
         try bson["config"].decode(to: Mongo.ReplicaSetConfiguration.self)

@@ -58,7 +58,7 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
     typealias Response = Mode.Response
 
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>) throws -> Mode.Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Mode.Response
     {
         try Mode.decode(reply: reply)
     }

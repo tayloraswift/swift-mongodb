@@ -54,7 +54,7 @@ protocol MongoCommand<Response>:Sendable
     /// receive a default implementation for this requirement.
     static
     func decode(
-        reply:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>) throws -> Response
+        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
 }
 extension MongoCommand
 {
@@ -117,16 +117,16 @@ extension MongoCommand<Void>
 {
     /// Does nothing, ignoring the supplied decoding container.
     @inlinable public static
-    func decode(reply _:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>)
+    func decode(reply _:BSON.DocumentDecoder<BSON.Key, ByteBufferView>)
     {
     }
 }
-extension MongoCommand where Response:BSONDocumentDecodable<BSON.UniversalKey>
+extension MongoCommand where Response:BSONDocumentDecodable<BSON.Key>
 {
     /// Delegates to the ``Response`` type’s ``BSONDocumentDecodable`` conformance.
     @inlinable public static
     func decode(
-        reply:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>) throws -> Response
+        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
     {
         try .init(bson: reply)
     }

@@ -1,7 +1,7 @@
 public
 protocol BSONDocumentEncodable<CodingKeys>:BSONDSLEncodable
 {
-    associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.UniversalKey
+    associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.Key
 
     /// Creates a document from this instance by encoding to
     /// the parameter.

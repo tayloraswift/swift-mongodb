@@ -32,12 +32,12 @@ extension Mongo.CollectionMetadata
 extension Mongo.CollectionMetadata:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.DocumentDecoder<BSON.UniversalKey, Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentDecoder<BSON.Key, Bytes>) throws
     {
         self.init(
             collection: try bson["name"].decode(to: Mongo.Collection.self),
             options: try bson["options"].decode(
-                as: BSON.DocumentDecoder<BSON.UniversalKey, Bytes.SubSequence>.self)
+                as: BSON.DocumentDecoder<BSON.Key, Bytes.SubSequence>.self)
             {
                 try .init(bson: $0, 
                     type: try bson["type"].decode(to: Mongo.CollectionType.self))

@@ -54,7 +54,7 @@ extension Mongo.ReadPreference.TagSet
 extension Mongo.ReadPreference.TagSet:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<BSON.UniversalKey>)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         for (key, value):(String, String) in self.patterns
         {

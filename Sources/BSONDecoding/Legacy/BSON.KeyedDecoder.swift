@@ -9,9 +9,9 @@ extension BSON
 
         let codingPath:[any CodingKey]
         let allKeys:[Key]
-        let items:[BSON.UniversalKey: AnyBSON<Bytes>]
+        let items:[BSON.Key: AnyBSON<Bytes>]
         
-        init(_ dictionary:BSON.DocumentDecoder<BSON.UniversalKey, Storage>,
+        init(_ dictionary:BSON.DocumentDecoder<BSON.Key, Storage>,
             path:[any CodingKey]) 
         {
             self.codingPath = path

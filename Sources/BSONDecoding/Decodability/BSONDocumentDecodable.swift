@@ -4,7 +4,7 @@ import BSONUnions
 public
 protocol BSONDocumentDecodable<CodingKeys>:BSONDocumentViewDecodable
 {
-    associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.UniversalKey
+    associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.Key
 
     init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
 }

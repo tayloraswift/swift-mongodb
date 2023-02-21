@@ -48,7 +48,7 @@ extension Mongo.Monitor
 }
 extension Mongo.Monitor.HelloResponse:BSONDocumentDecodable
 {
-    init(bson:BSON.DocumentDecoder<BSON.UniversalKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
         let minWireVersion:MongoWire = try bson["minWireVersion"].decode(as: Int32.self,
             with: MongoWire.init(rawValue:))

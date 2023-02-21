@@ -55,7 +55,7 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
     )
 
     @inlinable public static
-    func decode(reply bson:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>) throws ->
+    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws ->
     (
         totalSize:Int,
         databases:[Mongo.DatabaseMetadata]

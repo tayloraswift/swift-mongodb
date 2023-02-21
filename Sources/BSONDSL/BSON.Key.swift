@@ -3,7 +3,7 @@ import BSON
 extension BSON
 {
     @frozen public
-    struct UniversalKey:Hashable, RawRepresentable
+    struct Key:Hashable, RawRepresentable, Sendable
     {
         public
         let rawValue:String
@@ -15,7 +15,7 @@ extension BSON
         }
     }
 }
-extension BSON.UniversalKey
+extension BSON.Key
 {
     public
     init(_ codingKey:CodingKey)
@@ -23,7 +23,7 @@ extension BSON.UniversalKey
         self.init(rawValue: codingKey.stringValue)
     }
 }
-extension BSON.UniversalKey:CustomStringConvertible
+extension BSON.Key:CustomStringConvertible
 {
     @inlinable public
     var description:String
@@ -31,7 +31,7 @@ extension BSON.UniversalKey:CustomStringConvertible
         self.rawValue
     }
 }
-extension BSON.UniversalKey:ExpressibleByStringLiteral
+extension BSON.Key:ExpressibleByStringLiteral
 {
     @inlinable public
     init(stringLiteral:String)

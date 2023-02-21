@@ -18,9 +18,9 @@ extension Mongo.SingleBatch:MongoBatchingMode
     typealias Stride = Void
 
     @inlinable public static
-    func decode(reply bson:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>) throws -> [Element]
+    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> [Element]
     {
-        try bson["cursor"].decode(as: BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>.self)
+        try bson["cursor"].decode(as: BSON.DocumentDecoder<BSON.Key, ByteBufferView>.self)
         {
             if  let cursor:Mongo.CursorIdentifier = .init(
                     rawValue: try $0["id"].decode(to: Int64.self))

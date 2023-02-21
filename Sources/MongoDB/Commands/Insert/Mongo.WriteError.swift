@@ -24,7 +24,7 @@ extension Mongo
 extension Mongo.WriteError:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<BSON.UniversalKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(index: try bson["index"].decode(to: Int.self),
             message: try bson["errmsg"].decode(to: String.self),

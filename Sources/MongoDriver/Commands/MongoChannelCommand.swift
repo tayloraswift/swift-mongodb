@@ -1,7 +1,7 @@
 import BSONEncoding
 import MongoWire
 
-protocol MongoChannelCommand:BSONDocumentEncodable<BSON.UniversalKey>, Sendable
+protocol MongoChannelCommand:BSONDocumentEncodable<BSON.Key>, Sendable
 {
     /// The type of database this command can be run against.
     associatedtype Database:MongoCommandDatabase = Mongo.Database
