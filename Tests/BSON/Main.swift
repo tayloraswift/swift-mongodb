@@ -445,7 +445,7 @@ enum Main:SyncTests
             
             TestInvalidBSON(tests / "invalid-length-negative",
                 invalid: "0D000000057800FFFFFFFF0000",
-                catching: BSON.InputError.init(expected: .bytes(1)))
+                catching: BSON.BinaryViewError.init(expected: .subtype))
             // TODO: tests for legacy binary subtype 0x02
         }
 
