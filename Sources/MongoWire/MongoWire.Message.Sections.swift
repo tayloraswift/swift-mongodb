@@ -89,7 +89,7 @@ extension BSON.Output
             self.append(MongoWire.Section.sequence.rawValue)
 
             self.serialize(integer: Int32.init(outline.size))
-            self.serialize(key: outline.id)
+            self.serialize(cString: outline.id)
             self.append(outline.slice)
         }
     }

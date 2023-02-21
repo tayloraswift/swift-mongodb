@@ -74,7 +74,7 @@ extension BSONBuilder<String>
         {
             if let value:BSON.List<Self>, !(elide && value.isEmpty)
             {
-                self.append(key.rawValue, value)
+                self.append(key, value)
             }
         }
     }
