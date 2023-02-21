@@ -54,13 +54,13 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
 
     @inlinable public static
     func decode(
-        reply bson:BSON.DocumentDecoder<String, ByteBufferView>) throws -> [Mongo.Database]
+        reply bson:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>) throws -> [Mongo.Database]
     {
         try bson["databases"].decode(as: BSON.ListDecoder<ByteBufferView>.self)
         {
             try $0.map
             {
-                try $0.decode(as: BSON.DocumentDecoder<String, ByteBufferView>.self)
+                try $0.decode(as: BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>.self)
                 {
                     try $0["name"].decode(to: Mongo.Database.self)
                 }

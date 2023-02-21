@@ -8,14 +8,16 @@ extension Mongo
     struct Reply
     {
         private
-        let result:Result<BSON.DocumentDecoder<String, ByteBufferView>, Mongo.ServerError>
+        let result:Result<BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>,
+            Mongo.ServerError>
 
         @usableFromInline
         let operationTime:Instant?
         @usableFromInline
         let clusterTime:ClusterTime?
 
-        init(result:Result<BSON.DocumentDecoder<String, ByteBufferView>, Mongo.ServerError>,
+        init(result:Result<BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>,
+                Mongo.ServerError>,
             operationTime:Instant?,
             clusterTime:ClusterTime?)
         {
@@ -37,7 +39,7 @@ extension Mongo.Reply
     }
 
     @usableFromInline
-    func callAsFunction() throws -> BSON.DocumentDecoder<String, ByteBufferView>
+    func callAsFunction() throws -> BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView>
     {
         switch self.result
         {
@@ -62,7 +64,7 @@ extension Mongo.Reply
     public
     init(message:MongoWire.Message<ByteBufferView>) throws
     {
-        let bson:BSON.DocumentDecoder<String, ByteBufferView> = try .init(
+        let bson:BSON.DocumentDecoder<BSON.UniversalKey, ByteBufferView> = try .init(
             parsing: message.sections.body)
         let status:Status = try bson["ok"].decode(
             to: Status.self)

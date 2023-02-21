@@ -20,7 +20,7 @@ extension Mongo.SASLResponse
 }
 extension Mongo.SASLResponse:BSONDocumentDecodable
 {
-    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.UniversalKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.conversation = try bson["conversationId"].decode(to: Int32.self)
         self.message = try bson["payload"].decode

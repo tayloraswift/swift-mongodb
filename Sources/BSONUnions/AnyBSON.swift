@@ -212,7 +212,9 @@ extension AnyBSON:ExpressibleByStringLiteral,
     ExpressibleByExtendedGraphemeClusterLiteral, 
     ExpressibleByUnicodeScalarLiteral,
     ExpressibleByDictionaryLiteral
-    where Bytes:RangeReplaceableCollection<UInt8>
+    where   Bytes:RangeReplaceableCollection<UInt8>,
+            Bytes:RandomAccessCollection<UInt8>,
+            Bytes.Index == Int
 {
     @inlinable public
     init(stringLiteral:String)

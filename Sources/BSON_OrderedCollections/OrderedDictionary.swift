@@ -25,14 +25,14 @@ extension OrderedDictionary:BSONDSLEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(document: .init(BSON.Document.init(with: self.encode(to:))))
+        field.frame(then: self.encode(to:))
     }
     public
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.UniversalKey>)
     {
         for (key, value):(Key, Value) in self.elements
         {
-            bson.append(key, value)
+            bson.append(.init(rawValue: key), value)
         }
     }
 }

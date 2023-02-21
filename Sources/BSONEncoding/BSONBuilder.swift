@@ -1,5 +1,5 @@
 public
-protocol BSONEncoder<CodingKey>:BSONDSL, BSONDSLEncodable
+protocol BSONBuilder<CodingKey>
 {
     associatedtype CodingKey
 
@@ -7,20 +7,8 @@ protocol BSONEncoder<CodingKey>:BSONDSL, BSONDSLEncodable
     func append(_ key:CodingKey, _ value:some BSONDSLEncodable)
 }
 
-extension BSONEncoder
+extension BSONBuilder
 {
-    @inlinable public
-    init<Encodable>(fields:some Sequence<(key:CodingKey, value:Encodable)>)
-        where Encodable:BSONEncodable
-    {
-        self.init
-        {
-            for (key, value):(CodingKey, Encodable) in fields
-            {
-                $0.append(key, value)
-            }
-        }
-    }
     @inlinable public mutating
     func push(_ key:CodingKey, _ value:(some BSONDSLEncodable)?)
     {
@@ -37,7 +25,7 @@ extension BSONEncoder
         self.push(key, value as _?)
     }
 }
-extension BSONEncoder<String>
+extension BSONBuilder<String>
 {
     @inlinable public mutating
     func append(_ key:some RawRepresentable<String>, _ value:some BSONDSLEncodable)
@@ -60,7 +48,7 @@ extension BSONEncoder<String>
         self.push(key, value as _?)
     }
 }
-extension BSONEncoder<String>
+extension BSONBuilder<String>
 {
     /// Appends the given key-value pair to this document builder, encoding the
     /// given list elements as the field value, so long as it is not empty (or
@@ -91,7 +79,7 @@ extension BSONEncoder<String>
         }
     }
 }
-extension BSONEncoder
+extension BSONBuilder
 {
     /// Appends the given key-value pair to this document builder, encoding the
     /// given list elements as the field value, so long as it is not empty (or
@@ -135,7 +123,7 @@ extension BSONEncoder
     /// non-elided state after returning) will add a new field to the document,
     /// even if the key is the same.
     @inlinable public
-    subscript(key:CodingKey, elide elide:Bool = false) -> Self?
+    subscript(key:CodingKey, elide elide:Bool = false) -> BSON.Document?
     {
         get
         {
@@ -143,7 +131,7 @@ extension BSONEncoder
         }
         set(value)
         {
-            if let value:Self, !(elide && value.isEmpty)
+            if let value:BSON.Document, !(elide && value.isEmpty)
             {
                 self.append(key, value)
             }

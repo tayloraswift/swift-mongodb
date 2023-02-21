@@ -20,15 +20,9 @@ extension BSONScope
         try self.decode { try decode(try .init(parsing: $0)) }
     }
     @inlinable public
-    func decode<T>(as _:BSON.DocumentDecoder<String, Bytes>.Type,
-        with decode:(BSON.DocumentDecoder<String, Bytes>) throws -> T) throws -> T
-    {
-        try self.decode { try decode(try .init(parsing: $0)) }
-    }
-    @inlinable public
     func decode<Key, T>(as _:BSON.DocumentDecoder<Key, Bytes>.Type,
         with decode:(BSON.DocumentDecoder<Key, Bytes>) throws -> T) throws -> T
-        where Key:RawRepresentable<String>
+        where Key:Hashable & RawRepresentable<String>
     {
         try self.decode { try decode(try .init(parsing: $0)) }
     }

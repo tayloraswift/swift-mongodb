@@ -30,7 +30,7 @@ extension Mongo.ClientMetadata
 }
 extension Mongo.ClientMetadata:BSONEncodable, BSONDocumentEncodable
 {
-    func encode(to bson:inout BSON.Document)
+    func encode(to bson:inout BSON.DocumentEncoder<BSON.UniversalKey>)
     {
         if let application:String = self.application
         {

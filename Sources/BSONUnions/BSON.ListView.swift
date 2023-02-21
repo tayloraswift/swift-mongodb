@@ -61,7 +61,9 @@ extension BSON.ListView
     }
 }
 extension BSON.ListView:ExpressibleByArrayLiteral
-    where Bytes:RangeReplaceableCollection<UInt8>
+    where   Bytes:RangeReplaceableCollection<UInt8>,
+            Bytes:RandomAccessCollection<UInt8>,
+            Bytes.Index == Int
 {
     /// Creates a list-document containing the given elements.
     @inlinable public

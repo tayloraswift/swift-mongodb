@@ -1,59 +1,34 @@
-
 public
 protocol BSONDocumentEncodable<CodingKeys>:BSONDSLEncodable
 {
-    associatedtype CodingKeys = String
+    associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.UniversalKey
 
     /// Creates a document from this instance by encoding to
-    /// the encoding container parameter.
+    /// the parameter.
     ///
-    /// The implementation may assume the encoding container is
-    /// initially empty, which means implementations can simply
-    /// assign assign a stored document to the `inout` binding.
-    func encode(to bson:inout BSON.Document)
-    /// Creates a document from this instance by encoding to
-    /// the encoding container parameter, using a strongly-typed
-    /// coding key type.
-    ///
-    /// The implementation may assume the encoding container is
-    /// initially empty, which means implementations can simply
-    /// assign assign a stored document to the `inout` binding.
+    /// The implementation must not assume the encoding container
+    /// is initially empty, because it may be the owner of the
+    /// final output buffer.
     func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
 }
-extension BSONDocumentEncodable<String>
+extension BSONDocumentEncodable
 {
-    @inlinable public
-    func encode(to bson:inout BSON.DocumentEncoder<String>)
-    {
-        self.encode(to: &bson.document)
-    }
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(document: .init(BSON.Document.init(
-            with: self.encode(to:))))
+        field.frame(then: self.encode(to:))
     }
 }
-extension BSONDocumentEncodable where CodingKeys:RawRepresentable<String>
+extension BSONDocumentEncodable
 {
-    @available(*, unavailable, message:
-    """
-    An encodable type with enumerated 'CodingKeys' must provide a 'DocumentEncoder' witness.
-    """)
-    public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
-    {
-        fatalError()
-    }
     @inlinable public
     func encode(to bson:inout BSON.Document)
     {
-        bson = BSON.DocumentEncoder<CodingKeys>.init(with: self.encode(to:)).document
-    }
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(document: .init(BSON.DocumentEncoder<CodingKeys>.init(
-            with: self.encode(to:))))
+        var encoder:BSON.DocumentEncoder<CodingKeys> = .init(output: bson.output)
+        bson.output = .init(preallocated: [])
+
+        self.encode(to: &encoder)
+        
+        bson.output = encoder.output
     }
 }

@@ -1,7 +1,7 @@
 import BSONEncoding
 import OrderedCollections
 
-extension BSONEncoder
+extension BSONBuilder
 {
     @inlinable public
     subscript<Encodable>(key:CodingKey,

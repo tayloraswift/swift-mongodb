@@ -4,7 +4,7 @@ import NIOCore
 extension Mongo
 {
     public
-    enum Explain<Response> where Response:Sendable & BSONDocumentDecodable<String>
+    enum Explain<Response> where Response:Sendable & BSONDocumentDecodable<BSON.UniversalKey>
     {
     }
 }

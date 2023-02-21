@@ -18,7 +18,8 @@ enum Main:SyncTests
 
             (tests / "null").do
             {
-                let bson:BSON.DocumentDecoder<String, [UInt8]> = try .init(parsing: bson)
+                let bson:BSON.DocumentDecoder<BSON.UniversalKey, [UInt8]> = try .init(
+                    parsing: bson)
                 let _:Never? = try bson["null"].decode(to: Never?.self)
             }
             TestDecoding(tests / "max", bson: bson, to: .init())
@@ -284,7 +285,8 @@ enum Main:SyncTests
 
             tests.do
             {
-                let bson:BSON.DocumentDecoder<String, [UInt8]> = try .init(parsing: bson)
+                let bson:BSON.DocumentDecoder<BSON.UniversalKey, [UInt8]> = try .init(
+                    parsing: bson)
                 let decoded:BSON.BinaryView<ArraySlice<UInt8>> = try bson["md5"].decode(
                     as: BSON.BinaryView<ArraySlice<UInt8>>.self)
                 {

@@ -6,7 +6,8 @@ extension BSON
     /// interface for a ``BSON/DocumentView``.
     @frozen public
     struct DocumentDecoder<CodingKey, Storage>
-        where CodingKey:Hashable, Storage:RandomAccessCollection<UInt8>
+        where   CodingKey:Hashable & RawRepresentable<String>,
+                Storage:RandomAccessCollection<UInt8>
     {
         public
         var index:[CodingKey: AnyBSON<Bytes>]
@@ -25,14 +26,14 @@ extension BSON.DocumentDecoder
     /// larger parent ``String``.
     public
     typealias Bytes = Storage.SubSequence
-}
-extension BSON.DocumentDecoder where CodingKey == String
-{
-    /// Attempts to create a string-keyed decoder from this document.
+
+    /// Attempts to create a decoder with typed coding keys from this document.
     /// 
-    /// This function will throw a ``DocumentKeyError`` if more than one document
-    /// field contains a key with the same name. This function will never ignore
-    /// fields.
+    /// This function will ignore fields whose keys do not correspond to valid
+    /// instances of `CodingKey`. It will throw a ``DocumentKeyError`` if more
+    /// than one non-ignored document field contains the same key. 
+    ///
+    /// If `CodingKey` is ``UniversalKey``, this function will never ignore fields.
     ///
     /// Key duplication can interact with unicode normalization in unexpected 
     /// ways. Because BSON is defined in UTF-8, other BSON encoders may not align 
@@ -54,36 +55,6 @@ extension BSON.DocumentDecoder where CodingKey == String
     ///     When you convert an object to a dictionary representation, you lose the ordering 
     ///     information for the object items. Re-encoding it may produce a BSON 
     ///     document that contains the same data, but does not compare equal.
-    @inlinable public
-    init(parsing bson:__shared BSON.DocumentView<Storage>) throws
-    {
-        self.init()
-        try bson.parse
-        {
-            if case _? = self.index.updateValue($1, forKey: $0)
-            {
-                throw BSON.DocumentKeyError<String>.duplicate($0)
-            }
-        }
-    }
-    /// Attempts to load a document decoder from the given variant.
-    /// 
-    /// - Returns:
-    ///     A document decoder derived from the payload of this variant if it matches
-    ///     ``case document(_:)`` or ``case list(_:)``, [`nil`]() otherwise.
-    @inlinable public
-    init(parsing bson:__shared AnyBSON<Storage>) throws
-    {
-        try self.init(parsing: try .init(bson))
-    }
-}
-extension BSON.DocumentDecoder where CodingKey:Hashable & RawRepresentable<String>
-{
-    /// Attempts to create a decoder with typed coding keys from this document.
-    /// 
-    /// This function will ignore fields whose keys do not correspond to valid
-    /// instances of `CodingKey`. It will throw a ``DocumentKeyError`` if more
-    /// than one non-ignored document field contains the same key. 
     @inlinable public 
     init(parsing bson:__shared BSON.DocumentView<Storage>) throws
     {

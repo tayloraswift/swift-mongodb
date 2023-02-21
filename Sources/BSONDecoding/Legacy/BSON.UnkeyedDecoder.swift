@@ -10,7 +10,7 @@ extension BSON
         public 
         let codingPath:[any CodingKey]
         public 
-        var currentIndex:Int 
+        var currentIndex:Int
         let elements:[AnyBSON<Bytes>]
         
         public 

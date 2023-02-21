@@ -20,7 +20,7 @@ extension Mongo
 extension Mongo.FsyncLock:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<String, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.UniversalKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(count: try bson["lockCount"].decode(to: Int.self))
     }
