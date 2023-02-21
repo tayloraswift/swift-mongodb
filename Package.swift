@@ -148,7 +148,8 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoWire",
             dependencies: 
             [
-                .target(name: "BSON"),
+                .target(name: "BSONStream"),
+                .target(name: "BSONView"),
                 .product(name: "CRC", package: "swift-hash"),
             ]),
 

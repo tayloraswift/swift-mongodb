@@ -385,9 +385,9 @@ extension Mongo.Session
             by: deadline)
 
         self.combine(operationTime: reply.operationTime,
+            clusterTime: reply.clusterTime,
             reuse: connection.reusable,
             sent: sent)
-        self.deployment.yield(clusterTime: reply.clusterTime)
 
         return try Command.decode(reply: try reply())
     }
@@ -484,7 +484,17 @@ extension Mongo.Session
             }
             transaction = nil
         }
-        return .init(clusterTime: self.deployment.clusterTime,
+
+        let clusterTime:Mongo.ClusterTime? = self.deployment.clusterTime
+
+        if  let preconditionTime:Mongo.Instant = self.preconditionTime,
+            let clusterTime:Mongo.Instant = clusterTime?.time,
+                clusterTime < preconditionTime
+        {
+            print("WARNING: clusterTime < preconditionTime (\(clusterTime), \(preconditionTime))")
+        }
+
+        return .init(clusterTime: clusterTime,
             writeConcern: writeOptions,
             readConcern: readOptions,
             transaction: transaction,
@@ -509,11 +519,22 @@ extension Mongo.Session
     ///         of this session, and is used by the driver to estimate its
     ///         freshness.
     @usableFromInline
-    func combine(operationTime:Mongo.Instant?, reuse:Bool, sent:ContinuousClock.Instant)
+    func combine(operationTime:Mongo.Instant?,
+        clusterTime:Mongo.ClusterTime?,
+        reuse:Bool,
+        sent:ContinuousClock.Instant)
     {
         self.touched = sent
         self.reuse = self.reuse && reuse
         self.combine(operationTime: operationTime)
+        self.deployment.yield(clusterTime: clusterTime)
+
+        if  let operationTime:Mongo.Instant,
+            let clusterTime:Mongo.Instant = clusterTime?.time,
+                clusterTime < operationTime
+        {
+            print("WARNING: clusterTime < operationTime (\(clusterTime), \(operationTime))")
+        }
     }
     /// Update the session’s precondition time with an observed operation time.
     ///
