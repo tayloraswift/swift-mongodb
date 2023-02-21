@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 extension BSON
 {
@@ -9,7 +9,7 @@ extension BSON
 
         let codingPath:[any CodingKey]
         let allKeys:[Key]
-        let items:[BSON.Key: AnyBSON<Bytes>]
+        let items:[BSON.Key: BSON.AnyValue<Bytes>]
         
         init(_ dictionary:BSON.DocumentDecoder<BSON.Key, Storage>,
             path:[any CodingKey]) 
@@ -29,13 +29,13 @@ extension BSON.KeyedDecoder
     }
     // local `Key` type may be different from the dictionary’s `Key` type
     func diagnose<T>(_ key:some CodingKey,
-        _ decode:(AnyBSON<Bytes>) throws -> T?) throws -> T
+        _ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
     {
         var path:[any CodingKey]
         { 
             self.codingPath + CollectionOfOne<any CodingKey>.init(key) 
         }
-        guard let value:AnyBSON<Bytes> = self.items[.init(key)]
+        guard let value:BSON.AnyValue<Bytes> = self.items[.init(key)]
         else 
         {
             let context:DecodingError.Context = .init(codingPath: path, 
@@ -160,7 +160,7 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
         typed _:Key.Type = Key.self) throws -> BSON.SingleValueDecoder<Bytes>
         where Key:CodingKey
     {
-        let value:AnyBSON<Bytes> = try self.diagnose(key){ $0 }
+        let value:BSON.AnyValue<Bytes> = try self.diagnose(key){ $0 }
         let decoder:BSON.SingleValueDecoder<Bytes> = .init(value, 
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder

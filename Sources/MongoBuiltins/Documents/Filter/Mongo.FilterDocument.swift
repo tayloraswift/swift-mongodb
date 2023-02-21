@@ -15,7 +15,7 @@ extension Mongo
         }
     }    
 }
-extension Mongo.FilterDocument:BSONDSL
+extension Mongo.FilterDocument:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

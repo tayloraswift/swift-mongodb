@@ -2,7 +2,7 @@
 /// exists to allow types that also conform to ``LosslessStringConvertible``
 /// to opt-in to automatic ``BSONEncodable`` conformance as well.
 public
-protocol BSONStringEncodable:BSONDSLEncodable
+protocol BSONStringEncodable:BSONStreamEncodable
 {
     /// Converts an instance of this type to a string. This requirement
     /// restates its counterpart in ``LosslessStringConvertible`` if

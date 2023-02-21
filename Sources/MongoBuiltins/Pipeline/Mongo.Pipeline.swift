@@ -1,6 +1,6 @@
 import BSONDecoding
 import BSONEncoding
-import BSONUnions
+import BSONView
 
 extension Mongo
 {
@@ -29,7 +29,7 @@ extension Mongo.Pipeline
 extension Mongo.Pipeline:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self.init(stages: try .init(bson: bson))
     }

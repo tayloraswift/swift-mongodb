@@ -1,6 +1,6 @@
 /// A type that can be encoded to a BSON variant value.
 public
-protocol BSONEncodable:BSONDSLEncodable
+protocol BSONEncodable:BSONStreamEncodable
 {
     func encode(to field:inout BSON.Field)
 }

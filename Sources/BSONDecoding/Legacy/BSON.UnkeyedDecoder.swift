@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 extension BSON
 {
@@ -11,7 +11,7 @@ extension BSON
         let codingPath:[any CodingKey]
         public 
         var currentIndex:Int
-        let elements:[AnyBSON<Bytes>]
+        let elements:[BSON.AnyValue<Bytes>]
         
         public 
         init(_ array:BSON.ListDecoder<Storage>, path:[any CodingKey])
@@ -36,7 +36,7 @@ extension BSON.UnkeyedDecoder
     }
     
     mutating 
-    func diagnose<T>(_ decode:(AnyBSON<Bytes>) throws -> T?) throws -> T
+    func diagnose<T>(_ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
     {
         let key:Index = .init(intValue: self.currentIndex) 
         var path:[any CodingKey] 
@@ -51,7 +51,7 @@ extension BSON.UnkeyedDecoder
             throw DecodingError.keyNotFound(key, context)
         }
         
-        let value:AnyBSON<Bytes> = self.elements[self.currentIndex]
+        let value:BSON.AnyValue<Bytes> = self.elements[self.currentIndex]
         self.currentIndex += 1
         do 
         {
@@ -166,7 +166,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     func singleValueContainer() throws -> BSON.SingleValueDecoder<Bytes>
     {
         let key:Index = .init(intValue: self.currentIndex) 
-        let value:AnyBSON<Bytes> = try self.diagnose { $0 }
+        let value:BSON.AnyValue<Bytes> = try self.diagnose { $0 }
         let decoder:BSON.SingleValueDecoder<Bytes> = .init(value, 
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder

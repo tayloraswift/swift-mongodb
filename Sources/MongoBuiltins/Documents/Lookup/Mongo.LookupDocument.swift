@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.LookupDocument:BSONDSL
+extension Mongo.LookupDocument:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

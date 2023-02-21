@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 extension BSON
 {
@@ -8,10 +8,10 @@ extension BSON
     struct ListDecoder<Storage> where Storage:RandomAccessCollection<UInt8>
     {
         public
-        var elements:[AnyBSON<Bytes>]
+        var elements:[BSON.AnyValue<Bytes>]
 
         @inlinable public
-        init(_ elements:[AnyBSON<Bytes>])
+        init(_ elements:[BSON.AnyValue<Bytes>])
         {
             self.elements = elements
         }
@@ -31,7 +31,7 @@ extension BSON.ListDecoder:BSONDecoder
     /// >   Complexity: 
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public
-    init(parsing bson:__shared AnyBSON<Storage>) throws
+    init(parsing bson:__shared BSON.AnyValue<Storage>) throws
     {
         try self.init(parsing: try .init(bson))
     }

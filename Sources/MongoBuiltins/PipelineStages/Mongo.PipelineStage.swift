@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PipelineStage:BSONDSL
+extension Mongo.PipelineStage:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

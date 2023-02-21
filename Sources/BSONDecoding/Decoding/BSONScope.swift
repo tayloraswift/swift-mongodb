@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 /// A type that represents a scope for decoding operations.
 public
@@ -9,7 +9,7 @@ protocol BSONScope<Bytes>
     /// Attempts to load a BSON variant value and passes it to the given
     /// closure, returns its result. If decoding fails, the implementation
     /// should annotate the error with appropriate context and re-throw it.
-    func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(BSON.AnyValue<Bytes>) throws -> T) throws -> T
 }
 extension BSONScope
 {

@@ -1,5 +1,5 @@
 import BSONDecoding
-import BSONUnions
+import BSONView
 
 extension Mongo.Reply
 {
@@ -36,7 +36,7 @@ extension Mongo.Reply
 extension Mongo.Reply.Status:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self.init(ok: try bson.cast
         {

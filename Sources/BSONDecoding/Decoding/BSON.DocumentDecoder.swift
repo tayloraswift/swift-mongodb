@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 extension BSON
 {
@@ -10,10 +10,10 @@ extension BSON
                 Storage:RandomAccessCollection<UInt8>
     {
         public
-        var index:[CodingKey: AnyBSON<Bytes>]
+        var index:[CodingKey: BSON.AnyValue<Bytes>]
         
         @inlinable public
-        init(_ index:[CodingKey: AnyBSON<Bytes>] = [:])
+        init(_ index:[CodingKey: BSON.AnyValue<Bytes>] = [:])
         {
             self.index = index
         }
@@ -27,7 +27,7 @@ extension BSON.DocumentDecoder:BSONDecoder
     ///     A document decoder derived from the payload of this variant if it matches
     ///     ``case document(_:)`` or ``case list(_:)``, [`nil`]() otherwise.
     @inlinable public
-    init(parsing bson:__shared AnyBSON<Storage>) throws
+    init(parsing bson:__shared BSON.AnyValue<Storage>) throws
     {
         try self.init(parsing: try .init(bson))
     }

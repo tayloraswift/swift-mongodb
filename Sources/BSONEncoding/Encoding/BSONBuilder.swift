@@ -4,13 +4,13 @@ protocol BSONBuilder<CodingKey>
     associatedtype CodingKey
 
     mutating
-    func append(_ key:CodingKey, _ value:some BSONDSLEncodable)
+    func append(_ key:CodingKey, _ value:some BSONStreamEncodable)
 }
 
 extension BSONBuilder
 {
     @inlinable public mutating
-    func push(_ key:CodingKey, _ value:(some BSONDSLEncodable)?)
+    func push(_ key:CodingKey, _ value:(some BSONStreamEncodable)?)
     {
         value.map
         {
@@ -20,7 +20,7 @@ extension BSONBuilder
 
     @available(*, deprecated, message: "use append(_:_:) for non-optional values")
     public mutating
-    func push(_ key:CodingKey, _ value:some BSONDSLEncodable)
+    func push(_ key:CodingKey, _ value:some BSONStreamEncodable)
     {
         self.push(key, value as _?)
     }
@@ -28,12 +28,12 @@ extension BSONBuilder
 extension BSONBuilder<String>
 {
     @inlinable public mutating
-    func append(_ key:some RawRepresentable<String>, _ value:some BSONDSLEncodable)
+    func append(_ key:some RawRepresentable<String>, _ value:some BSONStreamEncodable)
     {
         self.append(key.rawValue, value)
     }
     @inlinable public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:(some BSONDSLEncodable)?)
+    func push(_ key:some RawRepresentable<String>, _ value:(some BSONStreamEncodable)?)
     {
         value.map
         {
@@ -43,7 +43,7 @@ extension BSONBuilder<String>
 
     @available(*, deprecated, message: "use append(_:_:) for non-optional values")
     public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:some BSONDSLEncodable)
+    func push(_ key:some RawRepresentable<String>, _ value:some BSONStreamEncodable)
     {
         self.push(key, value as _?)
     }
@@ -152,7 +152,7 @@ extension BSONBuilder
     /// even if the key is the same.
     @inlinable public
     subscript<Encodable>(key:CodingKey, elide elide:Bool = false) -> Encodable?
-        where Encodable:BSONEncodable & BSONDSL
+        where Encodable:BSONEncodable & BSONStream
     {
         get
         {

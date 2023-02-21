@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.UnionWithDocument:BSONDSL
+extension Mongo.UnionWithDocument:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

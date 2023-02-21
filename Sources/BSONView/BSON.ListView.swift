@@ -3,7 +3,7 @@ import BSON
 extension BSON.ListView:BSONView
 {
     @inlinable public
-    init(_ value:AnyBSON<Bytes>) throws
+    init(_ value:BSON.AnyValue<Bytes>) throws
     {
         self = try value.cast(with: \.list)
     }
@@ -22,7 +22,7 @@ extension BSON.ListView
     /// >   Complexity:
     ///     O(*n*), where *n* is the size of this list’s backing storage.
     @inlinable public
-    func parse(to decode:(_ element:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
+    func parse(to decode:(_ element:BSON.AnyValue<Bytes.SubSequence>) throws -> ()) throws
     {
         var input:BSON.Input<Bytes> = .init(self.slice)
         while let code:UInt8 = input.next()
@@ -34,7 +34,7 @@ extension BSON.ListView
     }
     @inlinable public
     func parse<T>(
-        _ transform:(_ element:AnyBSON<Bytes.SubSequence>) throws -> T) throws -> [T]
+        _ transform:(_ element:BSON.AnyValue<Bytes.SubSequence>) throws -> T) throws -> [T]
     {
         var elements:[T] = []
         try self.parse
@@ -55,41 +55,9 @@ extension BSON.ListView
     /// >   Complexity:
     ///     O(*n*), where *n* is the size of this list’s backing storage.
     @inlinable public
-    func parse() throws -> [AnyBSON<Bytes.SubSequence>]
+    func parse() throws -> [BSON.AnyValue<Bytes.SubSequence>]
     {
         try self.parse { $0 }
-    }
-}
-extension BSON.ListView:ExpressibleByArrayLiteral
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
-{
-    /// Creates a list-document containing the given elements.
-    @inlinable public
-    init(elements:some Sequence<AnyBSON<some RandomAccessCollection<UInt8>>>)
-    {
-        // we do need to precompute the ordinal keys, so we know the total length
-        // of the document.
-        let document:BSON.DocumentView<Bytes> = .init(fields: elements.enumerated().map
-        {
-            (.init(index: $0.0), $0.1)
-        })
-        self.init(slice: document.slice)
-    }
-
-    @inlinable public 
-    init(arrayLiteral:AnyBSON<Bytes>...)
-    {
-        self.init(elements: arrayLiteral)
-    }
-
-    /// Recursively parses and re-encodes this list-document, and any embedded documents
-    /// (and list-documents) in its elements. The ordinal keys will be regenerated.
-    @inlinable public
-    func canonicalized() throws -> Self
-    {
-        .init(elements: try self.parse { try $0.canonicalized() })
     }
 }
 extension BSON.ListView
@@ -105,11 +73,11 @@ extension BSON.ListView
     @inlinable public static
     func ~~ <Other>(lhs:Self, rhs:BSON.ListView<Other>) -> Bool
     {
-        if  let lhs:[AnyBSON<Bytes.SubSequence>] = try? lhs.parse(),
-            let rhs:[AnyBSON<Other.SubSequence>] = try? rhs.parse(),
+        if  let lhs:[BSON.AnyValue<Bytes.SubSequence>] = try? lhs.parse(),
+            let rhs:[BSON.AnyValue<Other.SubSequence>] = try? rhs.parse(),
                 rhs.count == lhs.count
         {
-            for (lhs, rhs):(AnyBSON<Bytes.SubSequence>, AnyBSON<Other.SubSequence>) in
+            for (lhs, rhs):(BSON.AnyValue<Bytes.SubSequence>, BSON.AnyValue<Other.SubSequence>) in
                 zip(lhs, rhs)
             {
                 guard lhs ~~ rhs

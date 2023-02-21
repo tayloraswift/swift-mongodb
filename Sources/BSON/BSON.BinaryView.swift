@@ -54,7 +54,7 @@ extension BSON.BinaryView:VariableLengthBSON where Bytes.SubSequence == Bytes
         guard let code:UInt8 = bytes.first
         else
         {
-            throw BSON.InputError.init(expected: .bytes(1))
+            throw BSON.BinaryViewError.init(expected: .subtype)
         }
         guard let subtype:BSON.BinarySubtype = .init(rawValue: code)
         else
@@ -75,8 +75,7 @@ extension BSON.BinaryView:VariableLengthBSON where Bytes.SubSequence == Bytes
         }
         else
         {
-            throw BSON.InputError.init(expected: .bytes(4), 
-                encountered: bytes.distance(from: start, to: bytes.endIndex))
+            throw BSON.BinaryViewError.init(expected: .subheader)
         }
     }
 }

@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 extension BSON
 {
@@ -8,10 +8,10 @@ extension BSON
         public
         let key:Key
         public
-        let value:AnyBSON<Bytes>
+        let value:BSON.AnyValue<Bytes>
 
         @inlinable public
-        init(key:Key, value:AnyBSON<Bytes>)
+        init(key:Key, value:BSON.AnyValue<Bytes>)
         {
             self.key = key
             self.value = value
@@ -24,7 +24,7 @@ extension BSON.ExplicitField:BSONScope
     /// Throws a ``BSON/DecodingError`` wrapping the underlying
     /// error if decoding fails.
     @inlinable public
-    func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(BSON.AnyValue<Bytes>) throws -> T) throws -> T
     {
         do
         {

@@ -1,9 +1,9 @@
-import BSONUnions
+import BSONView
 
 extension BSON.DocumentView
 {
-    /// @import(BSONUnions)
-    /// Decorates the ``AnyBSON``-yielding overload of this method with one that
+    /// @import(BSONView)
+    /// Decorates the ``BSON.AnyValue``-yielding overload of this method with one that
     /// yields the key-value pairs as fields.
     @inlinable public
     func parse(

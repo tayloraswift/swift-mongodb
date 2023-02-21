@@ -1,6 +1,6 @@
 import Base16
 import BSON
-import BSONUnions
+import BSONCanonicalization
 import Testing
 
 @main 

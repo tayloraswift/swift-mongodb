@@ -1,6 +1,6 @@
 import Atomics
 import BSON
-import BSONDSL
+import BSONStream
 import Durations
 import MongoChannel
 import MongoWire

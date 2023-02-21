@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 extension BSON 
 {
@@ -7,14 +7,14 @@ extension BSON
     public 
     struct SingleValueDecoder<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
-        let value:AnyBSON<Bytes>
+        let value:BSON.AnyValue<Bytes>
         public 
         let codingPath:[any CodingKey]
         public 
         let userInfo:[CodingUserInfoKey: Any]
         
         public 
-        init(_ value:AnyBSON<Bytes>, path:[any CodingKey],
+        init(_ value:BSON.AnyValue<Bytes>, path:[any CodingKey],
             userInfo:[CodingUserInfoKey: Any] = [:])
         {
             self.value = value 
@@ -25,7 +25,7 @@ extension BSON
 }
 extension BSON.SingleValueDecoder
 {
-    func diagnose<T>(_ decode:(AnyBSON<Bytes>) throws -> T?) throws -> T
+    func diagnose<T>(_ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
     {
         do 
         {

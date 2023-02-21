@@ -12,7 +12,7 @@ struct MongoExpression
         self.document = .init(bytes: bytes)
     }
 }
-extension MongoExpression:BSONDSL
+extension MongoExpression:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

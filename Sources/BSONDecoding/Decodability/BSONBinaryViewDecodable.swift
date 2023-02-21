@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 /// A type that can be decoded from a BSON binary array.
 public
@@ -13,7 +13,7 @@ extension BSONBinaryViewDecodable
     /// Attempts to cast the given variant value to a binary array, and then
     /// delegates to this type’s ``init(bson:)`` witness.
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         try self.init(bson: try .init(bson))
     }

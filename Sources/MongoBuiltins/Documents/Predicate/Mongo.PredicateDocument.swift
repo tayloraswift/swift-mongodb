@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateDocument:BSONDSL
+extension Mongo.PredicateDocument:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]
@@ -33,7 +33,7 @@ extension Mongo.PredicateDocument:BSONEncodable
 
 extension Mongo.PredicateDocument
 {
-    /// @import(BSONDSL)
+    /// @import(BSONStream)
     /// Encodes an ``Operator``.
     ///
     /// This does not require [`@_disfavoredOverload`](), because

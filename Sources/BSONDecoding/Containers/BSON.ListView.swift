@@ -1,9 +1,9 @@
-import BSONUnions
+import BSONView
 
 extension BSON.ListView
 {
-    /// @import(BSONUnions)
-    /// Decorates the ``AnyBSON``-yielding overload of this method with one that
+    /// @import(BSONView)
+    /// Decorates the ``BSON.AnyValue``-yielding overload of this method with one that
     /// enumerates the elements and yields them as fields.
     @inlinable public
     func parse(

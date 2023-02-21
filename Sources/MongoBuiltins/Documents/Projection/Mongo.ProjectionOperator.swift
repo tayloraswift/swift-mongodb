@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ProjectionOperator:BSONDSL
+extension Mongo.ProjectionOperator:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

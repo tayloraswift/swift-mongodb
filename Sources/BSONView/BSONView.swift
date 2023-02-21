@@ -15,5 +15,5 @@ protocol BSONView<Bytes>:Equatable
 
     /// Attempts to cast a BSON variant backed by ``Bytes`` to an instance
     /// of this view type without copying the contents of the backing storage.
-    init(_:AnyBSON<Bytes>) throws
+    init(_:BSON.AnyValue<Bytes>) throws
 }

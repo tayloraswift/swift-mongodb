@@ -30,7 +30,7 @@ extension BSON.ListEncoder
         self.count += 1
     }
     @inlinable public mutating
-    func append(_ value:some BSONDSLEncodable)
+    func append(_ value:some BSONStreamEncodable)
     {
         self.append(with: value.encode(to:))
     }

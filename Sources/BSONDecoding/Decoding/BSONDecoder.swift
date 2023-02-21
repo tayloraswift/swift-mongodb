@@ -1,11 +1,11 @@
-import BSONUnions
+import BSONView
 
 public
 protocol BSONDecoder<Storage>
 {
     associatedtype Storage:RandomAccessCollection<UInt8>
 
-    init(parsing bson:__shared AnyBSON<Storage>) throws
+    init(parsing bson:__shared BSON.AnyValue<Storage>) throws
 }
 extension BSONDecoder
 {

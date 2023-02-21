@@ -1,5 +1,5 @@
 import BSON
-import BSONDSL
+import BSONStream
 
 extension Mongo.Namespaced<Mongo.Collection>
 {

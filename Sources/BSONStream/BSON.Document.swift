@@ -24,7 +24,7 @@ extension BSON
         }
     }
 }
-extension BSON.Document:BSONDSL
+extension BSON.Document:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]
@@ -46,7 +46,7 @@ extension BSON.Document
     }
 }
 //  When adding overloads to any ``Optional`` whose ``Wrapped`` value
-//  conforms to ``BSONDSLEncodable``, mark them as `@_disfavoredOverload`
+//  conforms to ``BSONStreamEncodable``, mark them as `@_disfavoredOverload`
 //  to prevent them from shadowing the ``subscript(pushing)`` interface.
 // extension BSON.Document?
 // {

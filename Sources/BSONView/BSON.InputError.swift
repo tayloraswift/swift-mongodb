@@ -1,3 +1,5 @@
+import BSON
+
 extension BSON
 {
     /// A parser did not receive the expected amount of input.

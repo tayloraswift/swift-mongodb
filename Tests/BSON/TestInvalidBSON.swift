@@ -1,6 +1,6 @@
 import Base16
 import BSON
-import BSONUnions
+import BSONCanonicalization
 import Testing
 
 func TestInvalidBSON(_ tests:TestGroup, invalid:String, catching error:some Error & Equatable)

@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 /// A type that can be decoded from a BSON list-document only.
 public
@@ -9,7 +9,7 @@ protocol BSONListViewDecodable:BSONDecodable
 extension BSONListViewDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         try self.init(bson: try .init(bson))
     }

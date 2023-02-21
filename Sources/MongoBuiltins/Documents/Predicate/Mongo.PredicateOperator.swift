@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateOperator:BSONDSL
+extension Mongo.PredicateOperator:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

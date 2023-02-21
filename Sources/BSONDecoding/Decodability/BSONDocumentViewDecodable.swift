@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 /// A type that can be decoded from a BSON document. List-documents
 /// count as documents, from the perspective of this protocol.
@@ -10,7 +10,7 @@ protocol BSONDocumentViewDecodable:BSONDecodable
 extension BSONDocumentViewDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         try self.init(bson: try .init(bson))
     }

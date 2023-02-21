@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 extension BSON
 {
@@ -12,10 +12,10 @@ extension BSON
         public
         let key:Key
         public
-        let value:AnyBSON<Bytes>?
+        let value:BSON.AnyValue<Bytes>?
 
         @inlinable public
-        init(key:Key, value:AnyBSON<Bytes>?)
+        init(key:Key, value:BSON.AnyValue<Bytes>?)
         {
             self.key = key
             self.value = value
@@ -43,9 +43,9 @@ extension BSON.ImplicitField
     /// if it is [`nil`](). This is a distinct condition from an explicit
     /// ``BSON.null`` value, which will be returned without throwing an error.
     @inlinable public
-    func decode() throws -> AnyBSON<Bytes>
+    func decode() throws -> BSON.AnyValue<Bytes>
     {
-        if let value:AnyBSON<Bytes> = self.value
+        if let value:BSON.AnyValue<Bytes> = self.value
         {
             return value 
         }
@@ -61,12 +61,12 @@ extension BSON.ImplicitField:BSONScope
     /// ``BSON.DocumentKeyError`` if it does not exist. Throws a
     /// ``BSON.DecodingError`` wrapping the underlying error if decoding fails.
     @inlinable public
-    func decode<T>(with decode:(AnyBSON<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(BSON.AnyValue<Bytes>) throws -> T) throws -> T
     {
         // we cannot *quite* shove this into the `do` block, because we 
         // do not want to throw a ``DecodingError`` just because the key 
         // was not found.
-        let value:AnyBSON<Bytes> = try self.decode()
+        let value:BSON.AnyValue<Bytes> = try self.decode()
         do 
         {
             return try decode(value)

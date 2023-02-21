@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 /// A type that can be decoded from a BSON variant value backed by
 /// some type of storage not particular to the decoded type.
@@ -12,14 +12,14 @@ protocol BSONDecodable
     /// Attempts to cast a BSON variant backed by some storage type to an
     /// instance of this type. The implementation can copy the contents
     /// of the backing storage if needed.
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
 }
 
 extension Never:BSONDecodable
 {
     /// Always throws a ``BSON.TypecastError``.
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         throw BSON.TypecastError<Never>.init(invalid: bson.type)
     }
@@ -27,7 +27,7 @@ extension Never:BSONDecodable
 extension Bool:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -35,7 +35,7 @@ extension Bool:BSONDecodable
 extension BSON.Decimal128:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -43,7 +43,7 @@ extension BSON.Decimal128:BSONDecodable
 extension BSON.Identifier:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -51,7 +51,7 @@ extension BSON.Identifier:BSONDecodable
 extension BSON.Max:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -59,7 +59,7 @@ extension BSON.Max:BSONDecodable
 extension BSON.Millisecond:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -67,7 +67,7 @@ extension BSON.Millisecond:BSONDecodable
 extension BSON.Min:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -80,7 +80,7 @@ extension BSON.Regex:BSONDecodable
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -105,13 +105,13 @@ extension Float80:BSONDecodable {}
 //  This is very similar to the default witness provided by `BSONDocumentViewDecodable`,
 //  except the outer `init(bson:)` call is non-throwing.
 //
-//  We could achieve the same result by explicitly conforming all of our ``BSONDSL``
+//  We could achieve the same result by explicitly conforming all of our ``BSONStream``
 //  types to ``BSONDocumentViewDecodable`` instead of just ``BSONDecodable``. But we
-//  would rather keep these concepts separate from ``BSONDSL``.
-extension BSONDecodable where Self:BSONDSL
+//  would rather keep these concepts separate from ``BSONStream``.
+extension BSONDecodable where Self:BSONStream
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self.init(bson: try .init(bson))
     }
@@ -119,7 +119,7 @@ extension BSONDecodable where Self:BSONDSL
 extension BSONDecodable where Self:FixedWidthInteger
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { try $0.as(Self.self) }
     }
@@ -127,7 +127,7 @@ extension BSONDecodable where Self:FixedWidthInteger
 extension BSONDecodable where Self:BinaryFloatingPoint
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }
@@ -135,7 +135,7 @@ extension BSONDecodable where Self:BinaryFloatingPoint
 extension BSONDecodable where Self:RawRepresentable, RawValue:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         let rawValue:RawValue = try .init(bson: bson)
         if  let value:Self = .init(rawValue: rawValue)
@@ -156,7 +156,7 @@ extension BSON.Document:BSONDecodable
 extension Optional:BSONDecodable where Wrapped:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         if case .null = bson 
         {

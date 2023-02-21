@@ -1,6 +1,6 @@
 import BSONDecoding
 import BSONEncoding
-import BSONUnions
+import BSONView
 import OrderedCollections
 
 extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
@@ -22,8 +22,8 @@ extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
         }
     }
 }
-extension OrderedDictionary:BSONDSLEncodable
-    where Key == String, Value:BSONDSLEncodable
+extension OrderedDictionary:BSONStreamEncodable
+    where Key == String, Value:BSONStreamEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)

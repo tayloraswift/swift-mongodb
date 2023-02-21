@@ -1,6 +1,6 @@
 import BSONDecoding
 import BSONEncoding
-import BSONUnions
+import BSONView
 
 extension Mongo
 {
@@ -42,7 +42,7 @@ extension Mongo.Instant:BSONDecodable
     /// MongoDB timestamp. The conversion is not a integer case, and will
     /// succeed if and only if the variant has type ``BSON.uint64``.
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self.init(timestamp: try bson.cast
         {

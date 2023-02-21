@@ -14,7 +14,7 @@ extension BSON.Document
 extension BSON.Document:BSONBuilder
 {
     @inlinable public mutating
-    func append(_ key:String, _ value:some BSONDSLEncodable)
+    func append(_ key:String, _ value:some BSONStreamEncodable)
     {
         self.append(key, with: value.encode(to:))
     }

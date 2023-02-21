@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.LatencyStatsDocument:BSONDSL
+extension Mongo.LatencyStatsDocument:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]

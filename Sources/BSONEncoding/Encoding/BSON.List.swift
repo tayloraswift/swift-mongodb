@@ -1,7 +1,7 @@
 extension BSON.List
 {
     @inlinable public
-    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONDSLEncodable
+    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONStreamEncodable
     {
         self.init
         {
@@ -17,7 +17,7 @@ extension BSON.List
         self.append(try Self.init(with: populate))
     }
     @inlinable public mutating
-    func append(_ element:some BSONDSLEncodable)
+    func append(_ element:some BSONStreamEncodable)
     {
         self.append(with: element.encode(to:))
     }
@@ -25,7 +25,7 @@ extension BSON.List
     /// Encodes and appends the given value if it is non-`nil`, does
     /// nothing otherwise.
     @inlinable public mutating
-    func push(_ element:(some BSONDSLEncodable)?)
+    func push(_ element:(some BSONStreamEncodable)?)
     {
         element.map
         {
@@ -35,12 +35,12 @@ extension BSON.List
 
     @available(*, deprecated, message: "use append(_:) for non-optional values")
     public mutating
-    func push(_ element:some BSONDSLEncodable)
+    func push(_ element:some BSONStreamEncodable)
     {
         self.push(element as _?)
     }
 }
-extension BSON.List where DSL:BSONDSL & BSONDSLEncodable
+extension BSON.List where DSL:BSONStream & BSONStreamEncodable
 {
     @inlinable public mutating
     func append(_ populate:(inout DSL) throws -> ()) rethrows
@@ -49,7 +49,7 @@ extension BSON.List where DSL:BSONDSL & BSONDSLEncodable
     }
 }
 
-extension BSON.List:BSONDSLEncodable
+extension BSON.List:BSONStreamEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)

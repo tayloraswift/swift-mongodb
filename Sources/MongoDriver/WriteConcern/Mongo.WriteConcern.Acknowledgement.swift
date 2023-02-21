@@ -1,6 +1,6 @@
 import BSONDecoding
 import BSONEncoding
-import BSONUnions
+import BSONView
 
 extension Mongo.WriteConcern
 {
@@ -45,7 +45,7 @@ extension Mongo.WriteConcern.Acknowledgement:BSONEncodable
 extension Mongo.WriteConcern.Acknowledgement:BSONDecodable
 {
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         if case .string(let string) = bson
         {

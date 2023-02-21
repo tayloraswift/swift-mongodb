@@ -21,29 +21,29 @@ This package vends the following library products:
 
     This module contains a type (`BSON`) of the same name as the module itself, so every declaration in this module is namespaced to that type.
 
-1.  [**`BSONDSL`**](Sources/BSONDSL) ([`BSON`](Sources/BSON))
+1.  [**`BSONStream`**](Sources/BSONStream) ([`BSON`](Sources/BSON))
 
-    Provides the basic definitions needed to bootstrap BSON-based domain-specific languages (DSLs). Defines the `BSONDSL` protocol and the `BSON.Document`, and `BSON.List` containers.
+    Provides the basic definitions needed to bootstrap BSON-based domain-specific languages (DSLs). Defines the `BSONStream` protocol and the `BSON.Document`, and `BSON.List` containers.
 
-1.  [**`BSONDecoding`**](Sources/BSONDecoding) ([`BSON`*](Sources/BSON), [`BSONDSL`*](Sources/BSONDSL), [`BSONUnions`](Sources/BSONUnions))
+1.  [**`BSONDecoding`**](Sources/BSONDecoding) ([`BSON`*](Sources/BSON), [`BSONStream`*](Sources/BSONStream), [`BSONView`](Sources/BSONView))
 
     Provides tools for performantly decoding BSON with an emphasis on type-safety and avoiding allocations.
     
     Also vends a fallback [`Decoder`](https://swiftinit.org/reference/swift/decoder) interface for consumers migrating from [`Decodable`](https://swiftinit.org/reference/swift/decodable).
 
-    Re-exports `BSON` and `BSONDSL`, but not `BSONUnions`.
+    Re-exports `BSON` and `BSONStream`, but not `BSONView`.
 
-1.  [**`BSONEncoding`**](Sources/BSONEncoding) ([`BSON`*](Sources/BSON), [`BSONDSL`*](Sources/BSONDSL))
+1.  [**`BSONEncoding`**](Sources/BSONEncoding) ([`BSON`*](Sources/BSON), [`BSONStream`*](Sources/BSONStream))
 
     Vends tools for performantly encoding BSON with an emphasis on static typing and legibility.
 
-    Re-exports `BSON` and `BSONDSL`.
+    Re-exports `BSON` and `BSONStream`.
 
-1.  [**`BSONUnions`**](Sources/BSONUnions) ([`BSON`](Sources/BSON))
+1.  [**`BSONView`**](Sources/BSONView) ([`BSON`](Sources/BSON))
 
-    Defines the `AnyBSON` union type, the `BSON.TypecastError` type, and provides tools for working with heterogenous/dynamically-typed BSON.
+    Defines the `BSON.AnyValue` union type, the `BSON.TypecastError` type, and provides tools for working with heterogenous/dynamically-typed BSON.
 
-    Also vends [`ExpressibleByArrayLiteral`](https://swiftinit.org/reference/swift/expressiblebyarrayliteral) and [`ExpressibleByDictionaryLiteral`](https://swiftinit.org/reference/swift/expressiblebydictionaryliteral) conformances for various BSON types, including `AnyBSON`.
+    Also vends [`ExpressibleByArrayLiteral`](https://swiftinit.org/reference/swift/expressiblebyarrayliteral) and [`ExpressibleByDictionaryLiteral`](https://swiftinit.org/reference/swift/expressiblebydictionaryliteral) conformances for various BSON types, including `BSON.AnyValue`.
 
     Does not re-export `BSON`.
 

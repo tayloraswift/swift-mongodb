@@ -1,3 +1,4 @@
+import BSON
 import BSONTraversal
 
 extension BSON
@@ -174,6 +175,6 @@ extension BSON.Field
         where Frame:VariableLengthBSONFrame
     {
         self.emit(type)
-        self.output.serialize(frame: Frame.self, around: fill)
+        self.output.with(frame: Frame.self, do: fill)
     }
 }

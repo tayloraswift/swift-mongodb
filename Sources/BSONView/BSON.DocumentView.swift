@@ -3,7 +3,7 @@ import BSON
 extension BSON.DocumentView:BSONView
 {
     @inlinable public
-    init(_ value:AnyBSON<Bytes>) throws
+    init(_ value:BSON.AnyValue<Bytes>) throws
     {
         self = try value.cast(with: \.document)
     }
@@ -21,7 +21,7 @@ extension BSON.DocumentView
     ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
     func parse<CodingKey>(
-        to decode:(_ key:CodingKey, _ value:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
+        to decode:(_ key:CodingKey, _ value:BSON.AnyValue<Bytes.SubSequence>) throws -> ()) throws
         where CodingKey:RawRepresentable<String>
     {
         var input:BSON.Input<Bytes> = .init(self.slice)
@@ -44,7 +44,7 @@ extension BSON.DocumentView
     ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
     func parse<CodingKey, T>(
-        _ transform:(_ key:CodingKey, _ value:AnyBSON<Bytes.SubSequence>) throws -> T)
+        _ transform:(_ key:CodingKey, _ value:BSON.AnyValue<Bytes.SubSequence>) throws -> T)
         throws -> [T]
         where CodingKey:RawRepresentable<String>
     {
@@ -56,49 +56,7 @@ extension BSON.DocumentView
         return elements
     }
 }
-extension BSON.DocumentView:ExpressibleByDictionaryLiteral 
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
-{
-    /// Creates a document containing the given fields, making two passes over
-    /// the list of fields in order to encode the output without reallocations.
-    /// The order of the fields will be preserved.
-    @inlinable public
-    init(fields:some Collection<(key:BSON.Key, value:AnyBSON<some RandomAccessCollection<UInt8>>)>)
-    {
-        let size:Int = fields.reduce(0) { $0 + 2 + $1.key.rawValue.utf8.count + $1.value.size }
-        var output:BSON.Output<Bytes> = .init(capacity: size)
-            output.serialize(fields: fields)
-        
-        assert(output.destination.count == size,
-            "precomputed size (\(size)) does not match output size (\(output.destination.count))")
 
-        self.init(slice: output.destination)
-    }
-
-    /// Creates a document containing a single key-value pair.
-    @inlinable public
-    init<Other>(key:BSON.Key, value:AnyBSON<Other>)
-        where Other:RandomAccessCollection<UInt8>
-    {
-        self.init(
-            fields: CollectionOfOne<(key:BSON.Key, value:AnyBSON<Other>)>.init((key, value)))
-    }
-
-    @inlinable public
-    init(dictionaryLiteral:(BSON.Key, AnyBSON<Bytes>)...)
-    {
-        self.init(fields: dictionaryLiteral)
-    }
-    /// Recursively parses and re-encodes this document, and any embedded documents
-    /// (and list-documents) in its elements. The keys will not be changed or re-ordered.
-    @inlinable public
-    func canonicalized() throws -> Self
-    {
-        .init(fields: try self.parse { ($0, try $1.canonicalized()) })
-    }
-}
 extension BSON.DocumentView
 {
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
@@ -111,16 +69,16 @@ extension BSON.DocumentView
     @inlinable public static
     func ~~ <Other>(lhs:Self, rhs:BSON.DocumentView<Other>) -> Bool
     {
-        if  let lhs:[(key:BSON.Key, value:AnyBSON<Bytes.SubSequence>)] =
+        if  let lhs:[(key:BSON.Key, value:BSON.AnyValue<Bytes.SubSequence>)] =
                 try? lhs.parse({ ($0, $1) }),
-            let rhs:[(key:BSON.Key, value:AnyBSON<Other.SubSequence>)] =
+            let rhs:[(key:BSON.Key, value:BSON.AnyValue<Other.SubSequence>)] =
                 try? rhs.parse({ ($0, $1) }),
                 rhs.count == lhs.count
         {
             for (lhs, rhs):
             (
-                (key:BSON.Key, value:AnyBSON<Bytes.SubSequence>),
-                (key:BSON.Key, value:AnyBSON<Other.SubSequence>)
+                (key:BSON.Key, value:BSON.AnyValue<Bytes.SubSequence>),
+                (key:BSON.Key, value:BSON.AnyValue<Other.SubSequence>)
             )
             in zip(lhs, rhs)
             {

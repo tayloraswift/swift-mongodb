@@ -1,4 +1,4 @@
-import BSONUnions
+import BSONView
 
 /// A type that can be decoded from a BSON UTF-8 string. Javascript sources
 /// count as UTF-8 strings, from the perspective of this protocol. This protocol
@@ -18,7 +18,7 @@ extension BSONStringDecodable
     /// Attempts to cast the given variant value to a string, and then
     /// delegates to this type’s ``init(bson:)`` witness.
     @inlinable public
-    init(bson:AnyBSON<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         try self.init(bson: try .init(bson))
     }

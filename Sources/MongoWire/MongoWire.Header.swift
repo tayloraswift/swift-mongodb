@@ -1,4 +1,6 @@
 import BSON
+import BSONStream
+import BSONView
 
 extension MongoWire
 {

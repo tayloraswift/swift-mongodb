@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.BucketAutoDocument:BSONDSL
+extension Mongo.BucketAutoDocument:BSONStream
 {
     @inlinable public
     var bytes:[UInt8]
