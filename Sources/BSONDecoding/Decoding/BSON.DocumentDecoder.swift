@@ -19,14 +19,21 @@ extension BSON
         }
     }
 }
+extension BSON.DocumentDecoder:BSONDecoder
+{
+    /// Attempts to load a document decoder from the given variant.
+    /// 
+    /// - Returns:
+    ///     A document decoder derived from the payload of this variant if it matches
+    ///     ``case document(_:)`` or ``case list(_:)``, [`nil`]() otherwise.
+    @inlinable public
+    init(parsing bson:__shared AnyBSON<Storage>) throws
+    {
+        try self.init(parsing: try .init(bson))
+    }
+}
 extension BSON.DocumentDecoder
 {
-    /// Document decoder elements are indices over fragments of BSON
-    /// parsed from a larger allocation, like ``Substring``s from a
-    /// larger parent ``String``.
-    public
-    typealias Bytes = Storage.SubSequence
-
     /// Attempts to create a decoder with typed coding keys from this document.
     /// 
     /// This function will ignore fields whose keys do not correspond to valid
@@ -71,16 +78,6 @@ extension BSON.DocumentDecoder
                 throw BSON.DocumentKeyError<CodingKey>.duplicate(key)
             }
         }
-    }
-    /// Attempts to load a document decoder from the given variant.
-    /// 
-    /// - Returns:
-    ///     A document decoder derived from the payload of this variant if it matches
-    ///     ``case document(_:)`` or ``case list(_:)``, [`nil`]() otherwise.
-    @inlinable public
-    init(parsing bson:__shared AnyBSON<Storage>) throws
-    {
-        try self.init(parsing: try .init(bson))
     }
 }
 extension BSON.DocumentDecoder

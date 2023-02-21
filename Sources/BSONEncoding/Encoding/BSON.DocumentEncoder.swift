@@ -13,7 +13,7 @@ extension BSON
         }
     }
 }
-extension BSON.DocumentEncoder:BSONLens
+extension BSON.DocumentEncoder:BSONEncoder
 {
     @inlinable public static
     var type:BSON { .document }

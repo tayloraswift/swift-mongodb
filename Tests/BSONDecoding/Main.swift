@@ -43,7 +43,7 @@ enum Main:SyncTests
             ]
 
             TestDecoding(tests / "int32-to-uint8", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.IntegerOverflowError<UInt8>.int32(0x7fff_ffff),
                     in: "int32"))
             {
@@ -89,7 +89,7 @@ enum Main:SyncTests
             ]
 
             TestDecoding(tests / "none-to-two", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.ListShapeError.init(invalid: 0, expected: .count(2)),
                     in: "none"))
             {
@@ -110,7 +110,7 @@ enum Main:SyncTests
             }
 
             TestDecoding(tests / "three-to-two", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.ListShapeError.init(invalid: 3, expected: .count(2)),
                     in: "three"))
             {
@@ -121,7 +121,7 @@ enum Main:SyncTests
             }
 
             TestDecoding(tests / "three-by-two", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.ListShapeError.init(invalid: 3, expected: .multiple(of: 2)),
                     in: "three"))
             {
@@ -148,7 +148,7 @@ enum Main:SyncTests
             }
 
             TestDecoding(tests / "map-invalid", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
                             invalid: .int64),
@@ -168,7 +168,7 @@ enum Main:SyncTests
             }
 
             TestDecoding(tests / "element-invalid", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
                             invalid: .int64),
@@ -199,13 +199,13 @@ enum Main:SyncTests
             ]
 
             TestDecoding(tests / "key-not-unique", bson: degenerate,
-                catching: BSON.DocumentKeyError<String>.duplicate("present"))
+                catching: BSON.DocumentKeyError<BSON.UniversalKey>.duplicate("present"))
             {
                 try $0["not-present"].decode(to: Bool.self)
             }
 
             TestDecoding(tests / "key-not-present", bson: bson,
-                catching: BSON.DocumentKeyError<String>.undefined("not-present"))
+                catching: BSON.DocumentKeyError<BSON.UniversalKey>.undefined("not-present"))
             {
                 try $0["not-present"].decode(to: Bool.self)
             }
@@ -217,7 +217,7 @@ enum Main:SyncTests
             }
 
             TestDecoding(tests / "key-not-matching", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(invalid: .bool),
                     in: "inhabited"))
             {
@@ -225,7 +225,7 @@ enum Main:SyncTests
             }
 
             TestDecoding(tests / "key-not-matching-inhabited", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.TypecastError<Bool>.init(invalid: .null),
                     in: "present"))
             {
@@ -264,7 +264,7 @@ enum Main:SyncTests
 
             // should throw an error instead of returning [`nil`]().
             TestDecoding(tests / "key-optional-not-inhabited", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.TypecastError<Bool>.init(invalid: .null),
                     in: "present"))
             {
@@ -308,14 +308,14 @@ enum Main:SyncTests
             ]
 
             TestDecoding(tests / "unicode-scalar-from-string", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.ValueError<String, Unicode.Scalar>.init(invalid: "e\u{0301}e\u{0301}"),
                     in: "string"))
             {
                 try $0["string"].decode(to: Unicode.Scalar.self)
             }
             TestDecoding(tests / "unicode-scalar-from-character", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.ValueError<String, Unicode.Scalar>.init(invalid: "e\u{0301}"),
                     in: "character"))
             {
@@ -328,7 +328,7 @@ enum Main:SyncTests
             }
 
             TestDecoding(tests / "character-from-string", bson: bson,
-                catching: BSON.DecodingError<String>.init(
+                catching: BSON.DecodingError<BSON.UniversalKey>.init(
                     BSON.ValueError<String, Character>.init(invalid: "e\u{0301}e\u{0301}"),
                     in: "string"))
             {

@@ -1,7 +1,7 @@
 import BSON
 
 public
-protocol BSONLens
+protocol BSONEncoder
 {
     init(output:BSON.Output<[UInt8]>)
     var output:BSON.Output<[UInt8]> { get }

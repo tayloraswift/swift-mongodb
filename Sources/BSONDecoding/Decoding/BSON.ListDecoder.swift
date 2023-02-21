@@ -17,27 +17,8 @@ extension BSON
         }
     }
 }
-extension BSON.ListDecoder
+extension BSON.ListDecoder:BSONDecoder
 {
-    /// List decoder elements are indices over fragments of BSON
-    /// parsed from a larger allocation, like ``Substring``s from a
-    /// larger parent ``String``.
-    public
-    typealias Bytes = Storage.SubSequence
-
-    /// Attempts to create a list decoder from the given list.
-    ///
-    /// To get a plain array with no decoding interface, call the list’s ``parse``
-    /// method instead. Alternatively, you can use this function and access the
-    /// ``elements`` property afterwards.
-    ///
-    /// >   Complexity: 
-    //      O(*n*), where *n* is the number of elements in the source list.
-    @inlinable public
-    init(parsing bson:__shared BSON.ListView<Storage>) throws
-    {
-        self.init(try bson.parse())
-    }
     /// Attempts to unwrap and parse an array-decoder from the given variant.
     ///
     /// This method will only attempt to parse statically-typed BSON lists; it will not
@@ -53,6 +34,22 @@ extension BSON.ListDecoder
     init(parsing bson:__shared AnyBSON<Storage>) throws
     {
         try self.init(parsing: try .init(bson))
+    }
+}
+extension BSON.ListDecoder
+{
+    /// Attempts to create a list decoder from the given list.
+    ///
+    /// To get a plain array with no decoding interface, call the list’s ``parse``
+    /// method instead. Alternatively, you can use this function and access the
+    /// ``elements`` property afterwards.
+    ///
+    /// >   Complexity: 
+    //      O(*n*), where *n* is the number of elements in the source list.
+    @inlinable public
+    init(parsing bson:__shared BSON.ListView<Storage>) throws
+    {
+        self.init(try bson.parse())
     }
 
     /// The shape of the list being decoded.

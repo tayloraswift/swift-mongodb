@@ -16,7 +16,7 @@ extension BSON
         }
     }
 }
-extension BSON.ListEncoder:BSONLens
+extension BSON.ListEncoder:BSONEncoder
 {
     @inlinable public static
     var type:BSON { .list }
