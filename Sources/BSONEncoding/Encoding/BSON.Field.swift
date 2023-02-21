@@ -6,7 +6,7 @@ extension BSON.Field
     func frame<Encoder>(_:Encoder.Type = Encoder.self,
         then encode:(inout Encoder) -> ()) where Encoder:BSONEncoder
     {
-        self.frame(Encoder.type)
+        self.emit(Encoder.type, frame: BSON.DocumentFrame.self)
         {
             var lens:Encoder = .init(output: $0)
             $0 = .init(preallocated: [])

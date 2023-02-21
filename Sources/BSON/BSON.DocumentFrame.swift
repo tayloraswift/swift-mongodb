@@ -7,12 +7,12 @@ extension BSON
     @frozen public
     enum DocumentFrame:VariableLengthBSONFrame
     {
-        /// A document’s length header counts its own length. Therefore its
-        /// conceptual prefix size is 4.
-        public static
-        let prefix:Int = 4
+        /// A document’s length header counts its own length. In other words,
+        /// it skips -4 bytes.
+        @inlinable public static
+        var skipped:Int { -4 }
         /// A document always includes a trailing null byte when serialized.
-        public static
-        let suffix:Int = 1
+        @inlinable public static
+        var trailer:UInt8? { 0x00 }
     }
 }

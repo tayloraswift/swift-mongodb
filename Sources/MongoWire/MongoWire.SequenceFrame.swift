@@ -5,9 +5,9 @@ extension MongoWire
     public
     enum SequenceFrame:VariableLengthBSONFrame
     {
-        public static
-        let prefix:Int = 4
-        public static
-        let suffix:Int = 0
+        @inlinable public static
+        var skipped:Int { -4 }
+        @inlinable public static
+        var trailer:UInt8? { nil }
     }
 }

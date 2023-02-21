@@ -8,11 +8,11 @@ extension BSON
     enum BinaryFrame:VariableLengthBSONFrame
     {
         /// A binary array header starts its count after skipping the interceding
-        /// subtype byte. Therefore its conceptual prefix size is -1.
-        public static
-        let prefix:Int = -1
+        /// subtype byte.
+        @inlinable public static
+        var skipped:Int { 1 }
         /// A binary array never has any trailing bytes when serialized.
-        public static
-        let suffix:Int = 0
+        @inlinable public static
+        var trailer:UInt8? { nil }
     }
 }

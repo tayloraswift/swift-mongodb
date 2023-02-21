@@ -1,5 +1,3 @@
-import BSON
-
 extension BSON
 {
     @frozen public
@@ -17,8 +15,18 @@ extension BSON
 }
 extension BSON.Key
 {
+    @inlinable public
+    init(index:Int)
+    {
+        self.init(rawValue: index.description)
+    }
+    @inlinable public
+    init(_ other:some RawRepresentable<String>)
+    {
+        self.init(rawValue: other.rawValue)
+    }
     public
-    init(_ codingKey:CodingKey)
+    init(_ codingKey:some CodingKey)
     {
         self.init(rawValue: codingKey.stringValue)
     }

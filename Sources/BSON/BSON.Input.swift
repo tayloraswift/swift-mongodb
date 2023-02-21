@@ -160,7 +160,7 @@ extension BSON.Input
         where Frame:VariableLengthBSONFrame
     {
         let header:Int = .init(try self.parse(as: Int32.self))
-        let stride:Int = header - Frame.prefix
+        let stride:Int = header + Frame.skipped
         let count:Int = stride - Frame.suffix
         if  count < 0
         {

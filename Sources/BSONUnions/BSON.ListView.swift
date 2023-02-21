@@ -73,7 +73,7 @@ extension BSON.ListView:ExpressibleByArrayLiteral
         // of the document.
         let document:BSON.DocumentView<Bytes> = .init(fields: elements.enumerated().map
         {
-            ($0.0.description, $0.1)
+            (.init(index: $0.0), $0.1)
         })
         self.init(slice: document.slice)
     }

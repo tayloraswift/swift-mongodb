@@ -68,14 +68,9 @@ extension BSON.DocumentDecoder
         self.init()
         try bson.parse
         {
-            guard let key:CodingKey = .init(rawValue: $0)
-            else
+            if case _? = self.index.updateValue($1, forKey: $0)
             {
-                return
-            }
-            if case _? = self.index.updateValue($1, forKey: key)
-            {
-                throw BSON.DocumentKeyError<CodingKey>.duplicate(key)
+                throw BSON.DocumentKeyError<CodingKey>.duplicate($0)
             }
         }
     }

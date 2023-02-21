@@ -38,24 +38,30 @@ extension BSON.Output:Sendable where Destination:Sendable
 extension BSON.Output<[UInt8]>
 {
     @inlinable public mutating
-    func frame(_ body:(inout Self) -> ())
+    func serialize<Frame>(frame _:Frame.Type, around body:(inout Self) -> ())
+        where Frame:VariableLengthBSONFrame
     {
-        // make room for the length header
         let start:Int = self.destination.endIndex
 
+        // make room for the length header
         self.append(0x00)
         self.append(0x00)
         self.append(0x00)
         self.append(0x00)
 
         body(&self)
+
+        assert(self.destination.index(start, offsetBy: 4) <= self.destination.endIndex)
         
-        self.append(0x00)
+        if let trailer:UInt8 = Frame.trailer
+        {
+            self.append(trailer)
+        }
 
-        let end:Int = self.destination.endIndex
-        let length:Int32 = .init(self.destination.distance(from: start, to: end))
+        let written:Int = self.destination.distance(from: start,
+            to: self.destination.endIndex)
 
-        assert(length >= 5)
+        let length:Int32 = .init(written - Frame.skipped - 4)
 
         withUnsafeBytes(of: length.littleEndian)
         {
@@ -94,9 +100,9 @@ extension BSON.Output
     /// null byte. The `cString` must not contain null bytes. Use ``serialize(utf8:)`` 
     /// to serialize a string that contains interior null bytes.
     @inlinable public mutating
-    func serialize(key:String)
+    func serialize(cString:String)
     {
-        self.append(key.utf8)
+        self.append(cString.utf8)
         self.append(0x00)
     }
     /// Serializes a fixed-width integer in little-endian byte order.
@@ -148,7 +154,7 @@ extension BSON.Output
 extension BSON.Output<[UInt8]>
 {
     @inlinable public mutating
-    func with(key:String, do serialize:(inout BSON.Field) -> ())
+    func with(key:BSON.Key, do serialize:(inout BSON.Field) -> ())
     {
         var field:BSON.Field = .init(key: key, output: self)
         self = .init(preallocated: [])

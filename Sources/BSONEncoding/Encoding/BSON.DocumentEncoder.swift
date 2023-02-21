@@ -23,6 +23,6 @@ extension BSON.DocumentEncoder:BSONBuilder
     @inlinable public mutating
     func append(_ key:CodingKey, _ value:some BSONDSLEncodable)
     {
-        self.output.with(key: key.rawValue, do: value.encode(to:))
+        self.output.with(key: .init(key), do: value.encode(to:))
     }
 }

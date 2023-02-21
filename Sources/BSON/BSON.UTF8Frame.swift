@@ -7,10 +7,10 @@ extension BSON
     enum UTF8Frame:VariableLengthBSONFrame
     {
         /// A UTF-8 string’s length header does not count its own length.
-        public static
-        let prefix:Int = 0
+        @inlinable public static
+        var skipped:Int { 0 }
         /// A UTF-8 string always includes a trailing null byte when serialized.
-        public static
-        let suffix:Int = 1
+        @inlinable public static
+        var trailer:UInt8? { 0x00 }
     }
 }

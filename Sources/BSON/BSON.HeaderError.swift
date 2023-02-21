@@ -22,7 +22,7 @@ extension BSON.HeaderError:CustomStringConvertible
     {
         """
         length declared in header (\(self.length)) is less than \
-        the minimum for '\(Frame.self)' (\(Frame.prefix + Frame.suffix) bytes)
+        the minimum for '\(Frame.self)' (\(Frame.suffix - Frame.skipped) bytes)
         """
     }
 }

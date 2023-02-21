@@ -1,7 +1,7 @@
 extension BSON.Document
 {
     @inlinable public
-    init<Encodable>(fields:some Sequence<(key:String, value:Encodable)>)
+    init<Encodable>(fields:some Sequence<(key:BSON.Key, value:Encodable)>)
         where Encodable:BSONEncodable
     {
         self.init()
@@ -14,7 +14,7 @@ extension BSON.Document
 extension BSON.Document:BSONBuilder
 {
     @inlinable public mutating
-    func append(_ key:String, _ value:some BSONDSLEncodable)
+    func append(_ key:BSON.Key, _ value:some BSONDSLEncodable)
     {
         self.append(key, with: value.encode(to:))
     }

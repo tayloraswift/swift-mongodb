@@ -227,7 +227,7 @@ extension AnyBSON:ExpressibleByStringLiteral,
         self = .list(.init(elements: arrayLiteral))
     }
     @inlinable public
-    init(dictionaryLiteral:(String, Self)...)
+    init(dictionaryLiteral:(BSON.Key, Self)...)
     {
         self = .document(.init(fields: dictionaryLiteral))
     }

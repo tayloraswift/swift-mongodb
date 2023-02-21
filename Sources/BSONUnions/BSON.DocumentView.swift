@@ -20,14 +20,19 @@ extension BSON.DocumentView
     /// >   Complexity:
     ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
-    func parse(to decode:(_ key:String, _ value:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
+    func parse<CodingKey>(
+        to decode:(_ key:CodingKey, _ value:AnyBSON<Bytes.SubSequence>) throws -> ()) throws
+        where CodingKey:RawRepresentable<String>
     {
         var input:BSON.Input<Bytes> = .init(self.slice)
         while let code:UInt8 = input.next()
         {
             let type:BSON = try .init(code: code)
             let key:String = try input.parse(as: String.self)
-            try decode(key, try input.parse(variant: type))
+            if let key:CodingKey = .init(rawValue: key)
+            {
+                try decode(key, try input.parse(variant: type))
+            }
         }
     }
     /// Splits this document’s inline key-value pairs into an array.
@@ -38,8 +43,10 @@ extension BSON.DocumentView
     /// >   Complexity:
     ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
-    func parse<T>(
-        _ transform:(_ key:String, _ value:AnyBSON<Bytes.SubSequence>) throws -> T) throws -> [T]
+    func parse<CodingKey, T>(
+        _ transform:(_ key:CodingKey, _ value:AnyBSON<Bytes.SubSequence>) throws -> T)
+        throws -> [T]
+        where CodingKey:RawRepresentable<String>
     {
         var elements:[T] = []
         try self.parse
@@ -58,9 +65,9 @@ extension BSON.DocumentView:ExpressibleByDictionaryLiteral
     /// the list of fields in order to encode the output without reallocations.
     /// The order of the fields will be preserved.
     @inlinable public
-    init(fields:some Collection<(key:String, value:AnyBSON<some RandomAccessCollection<UInt8>>)>)
+    init(fields:some Collection<(key:BSON.Key, value:AnyBSON<some RandomAccessCollection<UInt8>>)>)
     {
-        let size:Int = fields.reduce(0) { $0 + 2 + $1.key.utf8.count + $1.value.size }
+        let size:Int = fields.reduce(0) { $0 + 2 + $1.key.rawValue.utf8.count + $1.value.size }
         var output:BSON.Output<Bytes> = .init(capacity: size)
             output.serialize(fields: fields)
         
@@ -72,14 +79,15 @@ extension BSON.DocumentView:ExpressibleByDictionaryLiteral
 
     /// Creates a document containing a single key-value pair.
     @inlinable public
-    init<Other>(key:String, value:AnyBSON<Other>)
+    init<Other>(key:BSON.Key, value:AnyBSON<Other>)
         where Other:RandomAccessCollection<UInt8>
     {
-        self.init(fields: CollectionOfOne<(key:String, value:AnyBSON<Other>)>.init((key, value)))
+        self.init(
+            fields: CollectionOfOne<(key:BSON.Key, value:AnyBSON<Other>)>.init((key, value)))
     }
 
     @inlinable public
-    init(dictionaryLiteral:(String, AnyBSON<Bytes>)...)
+    init(dictionaryLiteral:(BSON.Key, AnyBSON<Bytes>)...)
     {
         self.init(fields: dictionaryLiteral)
     }
@@ -103,16 +111,16 @@ extension BSON.DocumentView
     @inlinable public static
     func ~~ <Other>(lhs:Self, rhs:BSON.DocumentView<Other>) -> Bool
     {
-        if  let lhs:[(key:String, value:AnyBSON<Bytes.SubSequence>)] =
+        if  let lhs:[(key:BSON.Key, value:AnyBSON<Bytes.SubSequence>)] =
                 try? lhs.parse({ ($0, $1) }),
-            let rhs:[(key:String, value:AnyBSON<Other.SubSequence>)] =
+            let rhs:[(key:BSON.Key, value:AnyBSON<Other.SubSequence>)] =
                 try? rhs.parse({ ($0, $1) }),
                 rhs.count == lhs.count
         {
             for (lhs, rhs):
             (
-                (key:String, value:AnyBSON<Bytes.SubSequence>),
-                (key:String, value:AnyBSON<Other.SubSequence>)
+                (key:BSON.Key, value:AnyBSON<Bytes.SubSequence>),
+                (key:BSON.Key, value:AnyBSON<Other.SubSequence>)
             )
             in zip(lhs, rhs)
             {

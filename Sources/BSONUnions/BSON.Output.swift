@@ -36,8 +36,8 @@ extension BSON.Output
             self.serialize(integer: millisecond.value)
         
         case .regex(let regex):
-            self.serialize(key: regex.pattern)
-            self.serialize(key: regex.options.description)
+            self.serialize(cString: regex.pattern)
+            self.serialize(cString: regex.options.description)
         
         case .pointer(let database, let id):
             self.serialize(utf8: database)
@@ -75,17 +75,17 @@ extension BSON.Output
     /// the field key (with a trailing null byte), followed by the variant value
     /// itself.
     @inlinable public mutating
-    func serialize(key:String, value:AnyBSON<some RandomAccessCollection<UInt8>>)
+    func serialize(key:BSON.Key, value:AnyBSON<some RandomAccessCollection<UInt8>>)
     {
         self.serialize(type: value.type)
-        self.serialize(key: key)
+        self.serialize(cString: key.rawValue)
         self.serialize(variant: value)
     }
     @inlinable public mutating
-    func serialize<Bytes>(fields:some Sequence<(key:String, value:AnyBSON<Bytes>)>)
+    func serialize<Bytes>(fields:some Sequence<(key:BSON.Key, value:AnyBSON<Bytes>)>)
         where Bytes:RandomAccessCollection<UInt8>
     {
-        for (key, value):(String, AnyBSON<Bytes>) in fields
+        for (key, value):(BSON.Key, AnyBSON<Bytes>) in fields
         {
             self.serialize(key: key, value: value)
         }

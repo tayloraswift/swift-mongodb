@@ -12,9 +12,12 @@ extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
         self.init()
         try bson.parse
         {
-            if case _? = self.updateValue(try $0.decode(to: Value.self), forKey: $0.key)
+            (field:BSON.ExplicitField<BSON.Key, Bytes.SubSequence>) in
+
+            if case _? = self.updateValue(try field.decode(to: Value.self),
+                forKey: field.key.rawValue)
             {
-                throw BSON.DocumentKeyError<String>.duplicate($0.key)
+                throw BSON.DocumentKeyError<String>.duplicate(field.key.rawValue)
             }
         }
     }

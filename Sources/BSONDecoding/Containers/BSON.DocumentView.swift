@@ -7,7 +7,7 @@ extension BSON.DocumentView
     /// yields the key-value pairs as fields.
     @inlinable public
     func parse(
-        to decode:(_ field:BSON.ExplicitField<String, Bytes.SubSequence>) throws -> ()) throws
+        to decode:(_ field:BSON.ExplicitField<BSON.Key, Bytes.SubSequence>) throws -> ()) throws
     {
         try self.parse
         {
