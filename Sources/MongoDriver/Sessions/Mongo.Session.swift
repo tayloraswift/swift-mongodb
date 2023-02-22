@@ -528,13 +528,6 @@ extension Mongo.Session
         self.reuse = self.reuse && reuse
         self.combine(operationTime: operationTime)
         self.deployment.yield(clusterTime: clusterTime)
-
-        if  let operationTime:Mongo.Instant,
-            let clusterTime:Mongo.Instant = clusterTime?.time,
-                clusterTime < operationTime
-        {
-            print("WARNING: clusterTime < operationTime (\(clusterTime), \(operationTime))")
-        }
     }
     /// Update the session’s precondition time with an observed operation time.
     ///

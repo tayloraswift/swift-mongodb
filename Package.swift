@@ -248,6 +248,16 @@ let package:Package = .init(name: "swift-mongodb",
             ], 
             path: "Tests/BSONEncoding"),
         
+        .executableTarget(name: "BSONIntegrationTests",
+            dependencies:
+            [
+                .target(name: "BSONCanonicalization"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
+                .product(name: "Testing", package: "swift-hash"),
+            ], 
+            path: "Tests/BSONIntegration"),
+        
         
         .executableTarget(name: "OnlineCDFTests",
             dependencies:
