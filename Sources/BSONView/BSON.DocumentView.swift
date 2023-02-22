@@ -29,9 +29,12 @@ extension BSON.DocumentView
         {
             let type:BSON = try .init(code: code)
             let key:String = try input.parse(as: String.self)
+            //  We must parse the value always, even if we are ignoring the key
+            let value:BSON.AnyValue<Bytes.SubSequence> = try input.parse(variant: type)
+
             if let key:CodingKey = .init(rawValue: key)
             {
-                try decode(key, try input.parse(variant: type))
+                try decode(key, value)
             }
         }
     }
