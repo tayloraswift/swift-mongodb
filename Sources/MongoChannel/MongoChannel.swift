@@ -107,7 +107,7 @@ extension MongoChannel
                 // don’t leak the continuation!
                 if case .failure(let error) = $0
                 {
-                    continuation.resume(returning: .failure(.network(error: .other(error))))
+                    continuation.resume(returning: .failure(.network(error: .perished(error))))
                 }
             }
         }

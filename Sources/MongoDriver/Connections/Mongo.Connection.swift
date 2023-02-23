@@ -118,13 +118,13 @@ extension Mongo.Connection
         case .success(let message):
             return try .init(message: message)
         
-        case .failure(.network(error: let error)):
-            self.reuse = false
-            throw error
-        
         case .failure(.timeout):
             self.reuse = false
             throw Mongo.TimeoutError.driver(sent: true)
+        
+        case .failure(let error):
+            self.reuse = false
+            throw error
         }
     }
 }
