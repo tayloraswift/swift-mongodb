@@ -74,6 +74,11 @@ extension Mongo
 }
 extension Mongo.SessionPool
 {
+    public nonisolated
+    var logger:Mongo.Logger?
+    {
+        self.deployment.logger
+    }
     /// The total number of sessions stored in the session pool.
     public
     var count:Int

@@ -10,6 +10,7 @@ func TestCausalConsistency(_ tests:TestGroup,
 
     await tests.withTemporaryDatabase(named: "causal-consistency-tests",
         bootstrap: bootstrap,
+        logger: .init(level: .full),
         hosts: hosts)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in

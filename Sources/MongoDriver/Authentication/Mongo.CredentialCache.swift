@@ -4,6 +4,7 @@ import SHA2
 
 extension Mongo
 {
+    final
     actor CredentialCache
     {
         nonisolated

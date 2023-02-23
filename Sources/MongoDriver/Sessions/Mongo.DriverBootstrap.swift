@@ -62,28 +62,34 @@ extension Mongo.DriverBootstrap
     func withSessionPool<Success>(seedlist:Set<Mongo.Host>,
         heartbeatInterval:Milliseconds = 1000,
         timeout:Mongo.ConnectionTimeout = .init(milliseconds: 5000),
+        logger:Mongo.Logger? = nil,
         run body:(Mongo.SessionPool) async throws -> Success) async rethrows -> Success
     {
-        let monitor:Mongo.Monitor = .init(.init(hosts: seedlist),
+        let connector:Mongo.MonitorConnector = .init(
             heartbeatInterval: heartbeatInterval,
-            certificatePath: self.certificatePath,
-            application: self.application,
+            credentialCache: .init(application: application),
             credentials: self.credentials,
-            resolver: self.resolver,
-            executor: self.executor,
-            timeout: timeout)
+            parameters: .init(certificatePath: certificatePath,
+                resolver: resolver,
+                executor: executor),
+            pool: .init())
         
-        let pool:Mongo.SessionPool = .init(deployment: monitor.deployment)
+        let deployment:Mongo.Deployment = .init(timeout: timeout, logger: logger)
+        let monitor:Mongo.Monitor = .init(.init(hosts: seedlist),
+            deployment: deployment,
+            connector: connector)
+        
+        let pool:Mongo.SessionPool = .init(deployment: deployment)
         do
         {
             let success:Success = try await body(pool)
-            await monitor.deployment.end(sessions: await pool.drain())
+            await deployment.end(sessions: await pool.drain())
             await monitor.stop()
             return success
         }
         catch let error
         {
-            await monitor.deployment.end(sessions: await pool.drain())
+            await deployment.end(sessions: await pool.drain())
             await monitor.stop()
             throw error
         }

@@ -7,13 +7,10 @@ import OnlineCDF
 extension Mongo
 {
     /// A deployment topology monitor.
-    public final
+    final
     actor Monitor
     {
         private nonisolated
-        let credentials:CredentialCache
-        
-        public nonisolated
         let deployment:Deployment
 
         private
@@ -21,29 +18,13 @@ extension Mongo
         private
         var tasks:Int
         
-        init(_ seedlist:Mongo.Topology<Mongo.ConnectionPool>.Unknown,
-            heartbeatInterval:Milliseconds,
-            certificatePath:String?,
-            application:String?,
-            credentials:Mongo.Credentials?,
-            resolver:DNS.Connection?,
-            executor:any EventLoopGroup,
-            timeout:Mongo.ConnectionTimeout)
+        init(_ seedlist:Topology<ConnectionPool>.Unknown,
+            deployment:Deployment,
+            connector:MonitorConnector)
         {
-            self.credentials = .init(application: application)
+            self.deployment = deployment
 
-            let bootstrap:ConnectionPool.Bootstrap = .init(
-                heartbeatInterval: heartbeatInterval,
-                certificatePath: certificatePath,
-                credentials: credentials,
-                cache: self.credentials,
-                resolver: resolver,
-                executor: executor,
-                timeout: timeout)
-            
-            self.deployment = .init(timeout: timeout)
-
-            self.state = .monitoring(bootstrap, .unknown(seedlist))
+            self.state = .monitoring(connector, .unknown(seedlist))
             self.tasks = 0
 
             for host:Mongo.Host in seedlist.ghosts.keys
@@ -85,6 +66,19 @@ extension Mongo
                 fatalError("unreachable (deinitialized monitor while tasks are still running!)")
             }
         }
+    }
+}
+extension Mongo.Monitor
+{
+    private nonisolated
+    var timeout:Mongo.ConnectionTimeout
+    {
+        self.deployment.timeout
+    }
+    private nonisolated
+    var logger:Mongo.Logger?
+    {
+        self.deployment.logger
     }
 }
 extension Mongo.Monitor
@@ -166,13 +160,13 @@ extension Mongo.Monitor
         }
 
         var generation:UInt = 0
-        while case .monitoring(let bootstrap, _) = self.state
+        while case .monitoring(let connector, _) = self.state
         {
             // do not spam connections more than once per second
             async
             let cooldown:Void? = try? Task.sleep(for: .seconds(1))
 
-            switch await self.pool(generation: generation, bootstrap: bootstrap, host: host)
+            switch await self.pool(generation: generation, connector: connector, host: host)
             {
             case .reconnect:
                 generation += 1
@@ -186,15 +180,15 @@ extension Mongo.Monitor
     }
     private
     func pool(generation:UInt,
-        bootstrap:Mongo.ConnectionPool.Bootstrap,
+        connector:Mongo.MonitorConnector,
         host:Mongo.Host) async -> ExitStatus
     {
-        let deadline:Mongo.ConnectionDeadline = bootstrap.timeout.deadline(from: .now)
+        let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
 
         let connection:Mongo.MonitorConnection
         do
         {
-            connection = try await .init(using: bootstrap, for: host)
+            connection = try await connector.connect(to: host)
         }
         catch let error
         {
@@ -210,7 +204,7 @@ extension Mongo.Monitor
         do
         {
             hello = try await connection.run(hello: .init(
-                    client: .init(application: self.credentials.application),
+                    client: connector.client,
                     user: nil),
                 by: deadline)
         }
@@ -228,7 +222,9 @@ extension Mongo.Monitor
         
         let pool:Mongo.ConnectionPool = .init(generation: generation,
             signaling: connection.heartbeat.heart,
-            bootstrap: bootstrap,
+            connector: connector,
+            timeout: self.timeout,
+            logger: self.logger,
             host: host)
 
         let exit:ExitStatus
