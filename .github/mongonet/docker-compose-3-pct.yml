@@ -32,7 +32,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '1.00'
+                    cpus: '0.03'
                     memory: 500M
     mongo-1:
         image: mongo:latest
@@ -49,7 +49,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '1.00'
+                    cpus: '0.03'
                     memory: 500M
     mongo-2:
         image: mongo:latest
@@ -66,7 +66,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '1.00'
+                    cpus: '0.03'
                     memory: 500M
     mongo-3:
         image: mongo:latest
@@ -83,7 +83,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '1.00'
+                    cpus: '0.03'
                     memory: 500M
     mongo-4:
         image: mongo:latest
@@ -100,7 +100,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '1.00'
+                    cpus: '0.03'
                     memory: 500M
     mongo-5:
         image: mongo:latest
@@ -117,7 +117,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '1.00'
+                    cpus: '0.03'
                     memory: 500M
     mongo-6:
         image: mongo:latest
@@ -134,7 +134,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: '1.00'
+                    cpus: '0.03'
                     memory: 500M
 
 networks: 

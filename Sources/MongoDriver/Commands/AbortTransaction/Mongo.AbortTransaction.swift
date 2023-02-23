@@ -10,7 +10,8 @@ extension Mongo
     {
         let writeConcern:WriteConcern?
 
-        init(writeConcern:WriteConcern?)
+        init(writeConcern:WriteConcern?,
+            location:SourceLocation = (#fileID, #line))
         {
             self.writeConcern = writeConcern
         }

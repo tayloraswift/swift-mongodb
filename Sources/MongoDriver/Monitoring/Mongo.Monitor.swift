@@ -271,7 +271,7 @@ extension Mongo.Monitor
 
         for try await _:Void in connection.heartbeat
         {
-            let deadline:Mongo.ConnectionDeadline = pool.timeout.deadline(from: .now)
+            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
             
             let subsequent:HelloResult = try await connection.run(
                 hello: .init(user: nil),

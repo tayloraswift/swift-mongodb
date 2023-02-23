@@ -22,6 +22,8 @@ protocol MongoCommand<Response>:Sendable
     ///     and an undecoded message as a *reply*.
     associatedtype Response:Sendable
 
+    var stack:[(file:StaticString, line:Int)] { get }
+
     var writeConcernLabel:Mongo.WriteConcern? { get }
     var writeConcern:WriteConcern? { get }
 
@@ -55,6 +57,11 @@ protocol MongoCommand<Response>:Sendable
     static
     func decode(
         reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
+}
+extension MongoCommand
+{
+    @inlinable public
+    var stack:[(file:StaticString, line:Int)] { [] }
 }
 extension MongoCommand
 {

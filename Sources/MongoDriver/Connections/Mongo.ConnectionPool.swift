@@ -49,11 +49,6 @@ extension Mongo
         /// The size and width of this connection pool.
         nonisolated
         let parameters:Parameters
-        /// The connection timeout used internally by the pool to create connections.
-        /// The service monitor also uses this to compute deadlines for server
-        /// monitoring operations.
-        nonisolated
-        let timeout:ConnectionTimeout
         
         /// The heartbeat controller for the monitoring task that created this pool.
         nonisolated
@@ -106,7 +101,6 @@ extension Mongo
         {
             self.generation = generation
             self.parameters = connector.pool
-            self.timeout = timeout
             self.heart = heart
             self.host = host
 
@@ -119,7 +113,8 @@ extension Mongo
             self.latency = .create(0)
 
             self.error = ConnectionCheckoutError.init()
-            self.state = .filling(.init(bootstrap: connector.parameters.bootstrap(for: host),
+            self.state = .filling(.init(timeout: timeout,
+                bootstrap: connector.parameters.bootstrap(for: host),
                 credentials: connector.credentials,
                 cache: connector.credentialCache,
                 host: host))
@@ -546,16 +541,13 @@ extension Mongo.ConnectionPool
     {
         do
         {
-            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(
-                from: .now)
-
             let connection:UInt = self.next.connection()
 
             self.connections.pending += 1
             self.log(.expanding(id: connection))
 
             let allocation:Mongo.ConnectionAllocation = .init(
-                channel: try await connector.channel(to: self.host, by: deadline),
+                channel: try await connector.channel(to: self.host),
                 id: connection)
 
             switch self.state
