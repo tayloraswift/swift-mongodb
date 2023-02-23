@@ -1,4 +1,4 @@
-extension MongoChannel
+extension MongoIO
 {
     @frozen public
     enum ExecutionError:Error
@@ -7,7 +7,7 @@ extension MongoChannel
         case network(error:NetworkError)
     }
 }
-extension MongoChannel.ExecutionError:CustomStringConvertible
+extension MongoIO.ExecutionError:CustomStringConvertible
 {
     public
     var description:String

@@ -31,9 +31,10 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "MongoBuiltins", targets: ["MongoBuiltins"]),
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoDSL", targets: ["MongoDSL"]),
-        .library(name: "MongoChannel", targets: ["MongoChannel"]),
         .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
+        .library(name: "MongoExecutor", targets: ["MongoExecutor"]),
+        .library(name: "MongoIO", targets: ["MongoIO"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
         .library(name: "SCRAM", targets: ["SCRAM"]),
@@ -143,25 +144,6 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "MessageAuthentication", package: "swift-hash"),
             ]),
 
-        // the mongo wire protocol. has no awareness of networking or
-        // driver-level concepts.
-        .target(name: "MongoWire",
-            dependencies: 
-            [
-                .target(name: "BSONStream"),
-                .target(name: "BSONView"),
-                .product(name: "CRC", package: "swift-hash"),
-            ]),
-
-        .target(name: "MongoChannel",
-            dependencies: 
-            [
-                .target(name: "BSONDecoding"),
-                .target(name: "BSONEncoding"),
-                .target(name: "MongoWire"),
-                .product(name: "NIOCore", package: "swift-nio"),
-            ]),
-
         .target(name: "MongoDSL",
             dependencies:
             [
@@ -201,7 +183,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "Durations_Atomics"),
                 .target(name: "Heartbeats"),
                 .target(name: "Mongo"),
-                .target(name: "MongoChannel"),
+                .target(name: "MongoExecutor"),
                 .target(name: "OnlineCDF"),
                 .target(name: "SCRAM"),
                 .product(name: "SHA2", package: "swift-hash"),
@@ -220,6 +202,29 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDriver"),
+            ]),
+
+        .target(name: "MongoExecutor",
+            dependencies: 
+            [
+                .target(name: "MongoIO"),
+            ]),
+
+        .target(name: "MongoIO",
+            dependencies: 
+            [
+                .target(name: "MongoWire"),
+                .product(name: "NIOCore", package: "swift-nio"),
+            ]),
+
+        // the mongo wire protocol. has no awareness of networking or
+        // driver-level concepts.
+        .target(name: "MongoWire",
+            dependencies: 
+            [
+                .target(name: "BSONStream"),
+                .target(name: "BSONView"),
+                .product(name: "CRC", package: "swift-hash"),
             ]),
 
         .executableTarget(name: "BSONTests",

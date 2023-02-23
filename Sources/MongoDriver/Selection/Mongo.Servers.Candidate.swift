@@ -1,5 +1,4 @@
 import Durations
-import MongoChannel
 
 extension Mongo.Servers
 {

@@ -12,7 +12,7 @@ extension Mongo
         let message:SCRAM.Message
     }
 }
-extension Mongo.SASLContinue:MongoChannelCommand
+extension Mongo.SASLContinue:MongoDriverCommand
 {
     /// The string [`"saslContinue"`]().
     static

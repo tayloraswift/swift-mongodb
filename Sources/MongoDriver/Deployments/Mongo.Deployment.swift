@@ -327,7 +327,7 @@ extension Mongo.Deployment
             let connection:Mongo.Connection = try await .init(from: connections,
                 by: deadline)
             
-            let reply:Mongo.Reply = try await connection.channel.run(command: command,
+            let reply:Mongo.Reply = try await connection.allocation.run(command: command,
                 against: .admin,
                 by: deadline.instant)
             

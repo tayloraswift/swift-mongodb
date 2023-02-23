@@ -1,7 +1,5 @@
-import MongoChannel
 import NIOCore
 import NIOPosix
-import NIOSSL
 
 extension Mongo
 {
@@ -38,22 +36,26 @@ extension Mongo
 }
 extension Mongo.Connector
 {
-    func channel(to host:Mongo.Host) async throws -> MongoChannel
+    func connect(id:UInt, to host:Mongo.Host) async throws -> Mongo.ConnectionAllocation
     {
         let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(
             from: .now)
         // TODO: apply deadline to NIO channel construction
-        let channel:MongoChannel = .init(try await self.bootstrap.connect(
-            host: host.name,
-            port: host.port).get())
+        let connection:Mongo.ConnectionAllocation = .init(
+            channel: try await self.bootstrap.connect(
+                host: host.name,
+                port: host.port).get(),
+            id: id)
         
-        switch await self.cache.establish(channel, credentials: self.credentials, by: deadline)
+        switch await self.cache.establish(connection,
+            credentials: self.credentials,
+            by: deadline)
         {
         case .success(_):
-            return channel
+            return connection
         
         case .failure(let error):
-            await channel.close()
+            await connection.close()
             throw error
         }
     }

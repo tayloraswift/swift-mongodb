@@ -1,4 +1,5 @@
-import MongoChannel
+import MongoIO
+import NIOCore
 
 extension Mongo
 {
@@ -9,16 +10,16 @@ extension Mongo
         /// Connections that are currently free to be allocated,
         /// and are believed to be healthy.
         private
-        var released:[Connection.ID: MongoChannel]
+        var released:[Connection.ID: any Channel]
         /// Connections that are currently allocated and are 
         /// believed to be healthy.
         private
-        var retained:[Connection.ID: MongoChannel]
+        var retained:[Connection.ID: any Channel]
         /// Connections that are currently allocated but are *not*
         /// believed to be healthy.
         /// Does not contribute to the total connection ``count``.
         private
-        var perished:[Connection.ID: MongoChannel]
+        var perished:[Connection.ID: any Channel]
 
         /// Additional channels that have no other way of being
         /// represented in this structure. Contributes to the total
@@ -169,7 +170,7 @@ extension Mongo.Connections
     mutating
     func checkout() -> Mongo.ConnectionAllocation?
     {
-        guard let (id, channel):(Mongo.Connection.ID, MongoChannel) = self.released.popFirst()
+        guard let (id, channel):(Mongo.Connection.ID, any Channel) = self.released.popFirst()
         else
         {
             return nil
@@ -187,15 +188,18 @@ extension Mongo.Connections
     /// Clears and returns the set of released channels. Currently-retained
     /// channels, including perished channels, are unaffected.
     mutating
-    func shrink() -> [MongoChannel]
+    func shrink() -> [Mongo.ConnectionAllocation]
     {
         defer { self.released = [:] }
-        return .init(self.released.values)
+        return self.released.map { .init(channel: $0.value, id: $0.key) }
     }
     /// Interrupts all currently-retained channels. Currently-released
     /// channels, and perished channels, are unaffected.
     func interrupt()
     {
-        self.retained.values.interrupt()
+        for channel:any Channel in self.retained.values
+        {
+            channel.writeAndFlush(MongoIO.Action.interrupt, promise: nil)
+        }
     }
 }

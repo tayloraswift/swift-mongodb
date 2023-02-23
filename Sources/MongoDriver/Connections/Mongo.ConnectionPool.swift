@@ -1,9 +1,7 @@
 import Atomics
-import BSON
 import Durations
 import Durations_Atomics
 import Heartbeats
-import MongoChannel
 import MongoMonitoring
 
 //  these are extensions on the ``MongoMonitoringDelegate`` so they
@@ -266,7 +264,7 @@ extension Mongo.ConnectionPool
 
         //  move channels that we can directly close
         //  (as opposed to waiting for a client to release them)
-        let released:[MongoChannel] = self.connections.shrink()
+        let released:[Mongo.ConnectionAllocation] = self.connections.shrink()
         
         //  this check is needed because we can only succeed the continuation
         //  when total channel count crosses from 1 to 0. so if the inventory
@@ -430,7 +428,7 @@ extension Mongo.ConnectionPool
             guard reindex
             else
             {
-                await allocation.channel.close()
+                await allocation.close()
                 self.connections.remove(allocation)
                 // pool lifecycle stage may have changed
                 break
@@ -451,7 +449,7 @@ extension Mongo.ConnectionPool
             //  it from the retained list, because a re-entrant call to this
             //  method might observe `self.count == 0` while the channel is
             //  still open.
-            await allocation.channel.close()
+            await allocation.close()
             self.connections.remove(allocation)
         }
 
@@ -546,14 +544,14 @@ extension Mongo.ConnectionPool
             self.connections.pending += 1
             self.log(.expanding(id: connection))
 
-            let allocation:Mongo.ConnectionAllocation = .init(
-                channel: try await connector.channel(to: self.host),
-                id: connection)
+            let allocation:Mongo.ConnectionAllocation = try await connector.connect(
+                id: connection,
+                to: self.host)
 
             switch self.state
             {
             case .filling:
-                allocation.channel.whenClosed
+                allocation.channel.closeFuture.whenComplete
                 {
                     self.log(.perished(id: connection, because: $0))
 
@@ -591,7 +589,7 @@ extension Mongo.ConnectionPool
                 return
             
             case .draining:
-                await allocation.channel.close()
+                await allocation.close()
                 self.connections.pending -= 1
             }
 

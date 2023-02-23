@@ -1,8 +1,7 @@
 import Atomics
 import BSON
-import BSONStream
 import Durations
-import MongoChannel
+import MongoExecutor
 import MongoWire
 import NIOCore
 
@@ -16,7 +15,7 @@ extension Mongo
     public final
     class Connection:Identifiable
     {
-        private
+        @usableFromInline internal
         let allocation:ConnectionAllocation
 
         @usableFromInline internal
@@ -49,11 +48,6 @@ extension Mongo.Connection
     var id:UInt
     {
         self.allocation.id
-    }
-    @usableFromInline internal
-    var channel:MongoChannel
-    {
-        self.allocation.channel
     }
 }
 extension Mongo.Connection
@@ -90,7 +84,7 @@ extension Mongo.Connection
     public
     func interrupt()
     {
-        self.channel.interrupt()
+        self.allocation.interrupt()
         self.reuse = false
     }
 }
@@ -113,7 +107,7 @@ extension Mongo.Connection
             throw Mongo.TimeoutError.driver(sent: false)
         }
 
-        switch await self.channel.run(command: command, by: deadline)
+        switch await self.allocation.request(deadline: deadline, message: command)
         {
         case .success(let message):
             return try .init(message: message)

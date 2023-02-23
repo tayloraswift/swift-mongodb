@@ -17,7 +17,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Hello:MongoChannelCommand
+extension Mongo.Hello:MongoDriverCommand
 {
     /// The string [`"hello"`]().
     @inlinable public static

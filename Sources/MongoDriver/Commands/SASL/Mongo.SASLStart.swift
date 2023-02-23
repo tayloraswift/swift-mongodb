@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.SASLStart:MongoChannelCommand
+extension Mongo.SASLStart:MongoDriverCommand
 {
     /// The string [`"saslStart"`]().
     static

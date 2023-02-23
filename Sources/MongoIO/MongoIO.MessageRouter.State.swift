@@ -1,13 +1,13 @@
 import MongoWire
 import NIOCore
 
-extension MongoChannel.MessageRouter
+extension MongoIO.MessageRouter
 {
     enum State
     {
         case perished
         case awaiting(CheckedContinuation<
-            Result<MongoWire.Message<ByteBufferView>, MongoChannel.ExecutionError>,
+            Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>,
             Never>?)
     }
 }

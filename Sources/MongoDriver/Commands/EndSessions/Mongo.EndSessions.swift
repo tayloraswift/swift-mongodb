@@ -23,7 +23,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.EndSessions:MongoChannelCommand
+extension Mongo.EndSessions:MongoDriverCommand
 {
     /// The string [`"endSessions"`]().
     @inlinable public static

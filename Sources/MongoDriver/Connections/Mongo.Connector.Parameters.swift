@@ -1,4 +1,4 @@
-import MongoChannel
+import MongoIO
 import NIOCore
 import NIOPosix
 import NIOSSL
@@ -37,8 +37,8 @@ extension Mongo.Connector.Parameters
         { 
             (channel:any Channel) in
 
-            let decoder:ByteToMessageHandler<MongoChannel.MessageDecoder> = .init(.init())
-            let router:MongoChannel.MessageRouter = .init()
+            let decoder:ByteToMessageHandler<MongoIO.MessageDecoder> = .init(.init())
+            let router:MongoIO.MessageRouter = .init()
 
             guard let certificatePath:String = self._certificatePath
             else

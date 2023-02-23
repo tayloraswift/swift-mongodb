@@ -31,7 +31,7 @@ extension ByteBuffer
     }
 }
 
-extension MongoChannel
+extension MongoIO
 {
     public
     struct MessageDecoder 
@@ -49,7 +49,7 @@ extension MongoChannel
         }
     }
 }
-extension MongoChannel.MessageDecoder:ByteToMessageDecoder
+extension MongoIO.MessageDecoder:ByteToMessageDecoder
 {
     public mutating 
     func decode(context:ChannelHandlerContext, 

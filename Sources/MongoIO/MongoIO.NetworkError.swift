@@ -1,6 +1,6 @@
 import MongoWire
 
-extension MongoChannel
+extension MongoIO
 {
     @frozen public
     enum NetworkError:Error

@@ -1,6 +1,6 @@
 import MongoWire
 
-extension MongoChannel
+extension MongoIO
 {
     public
     struct MessageRoutingError:Error
@@ -13,7 +13,7 @@ extension MongoChannel
         }
     }
 }
-extension MongoChannel.MessageRoutingError:CustomStringConvertible
+extension MongoIO.MessageRoutingError:CustomStringConvertible
 {
     public
     var description:String

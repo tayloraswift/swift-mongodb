@@ -1,6 +1,5 @@
 import Durations
 import Heartbeats
-import MongoChannel
 import NIOCore
 import OnlineCDF
 

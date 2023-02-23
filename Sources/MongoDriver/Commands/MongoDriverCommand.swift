@@ -1,12 +1,12 @@
 import BSONEncoding
 import MongoWire
 
-protocol MongoChannelCommand:BSONDocumentEncodable<BSON.Key>, Sendable
+protocol MongoDriverCommand:BSONDocumentEncodable<BSON.Key>, Sendable
 {
     /// The type of database this command can be run against.
     associatedtype Database:MongoCommandDatabase = Mongo.Database
 }
-extension MongoChannelCommand
+extension MongoDriverCommand
 {
     /// Encodes this command to a BSON document, adding the given database
     /// as a field with the key [`"$db"`]().

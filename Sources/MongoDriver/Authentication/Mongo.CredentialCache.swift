@@ -1,4 +1,3 @@
-import MongoChannel
 import SCRAM
 import SHA2
 
@@ -57,7 +56,7 @@ extension Mongo.CredentialCache
     /// if possible. If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
     nonisolated
-    func establish(_ channel:MongoChannel,
+    func establish(_ connection:Mongo.ConnectionAllocation,
         credentials:Mongo.Credentials?,
         by deadline:Mongo.ConnectionDeadline) async -> Result<Void, any Error>
     {
@@ -77,7 +76,7 @@ extension Mongo.CredentialCache
         let response:Mongo.Authentication.HelloResponse
         do
         {
-            response = try await channel.run(hello: .init(
+            response = try await connection.run(hello: .init(
                     client: .init(application: self.application),
                     user: user),
                 by: deadline)
@@ -91,7 +90,7 @@ extension Mongo.CredentialCache
         {
             do
             {
-                try await self.authenticate(channel, with: credentials,
+                try await self.authenticate(connection, credentials: credentials,
                     mechanisms: response.mechanisms,
                     by: deadline)
             }
@@ -109,7 +108,8 @@ extension Mongo.CredentialCache
 extension Mongo.CredentialCache
 {
     private nonisolated
-    func authenticate(_ channel:MongoChannel, with credentials:Mongo.Credentials,
+    func authenticate(_ connection:Mongo.ConnectionAllocation,
+        credentials:Mongo.Credentials,
         mechanisms:Set<Mongo.Authentication.SASL>?,
         by deadline:Mongo.ConnectionDeadline) async throws
     {
@@ -151,7 +151,7 @@ extension Mongo.CredentialCache
         switch sasl
         {
         case .sha256:
-            try await self.authenticate(channel, sasl: .sha256,
+            try await self.authenticate(connection, sasl: .sha256,
                 database: credentials.database,
                 username: credentials.username,
                 password: credentials.password,
@@ -167,14 +167,15 @@ extension Mongo.CredentialCache
         }
     } 
     private nonisolated
-    func authenticate(_ channel:MongoChannel, sasl mechanism:Mongo.Authentication.SASL, 
+    func authenticate(_ connection:Mongo.ConnectionAllocation,
+        sasl mechanism:Mongo.Authentication.SASL, 
         database:Mongo.Database, 
         username:String, 
         password:String,
         by deadline:Mongo.ConnectionDeadline) async throws 
     {
         let start:SCRAM.Start = .init(username: username)
-        let first:Mongo.SASLResponse = try await channel.run(
+        let first:Mongo.SASLResponse = try await connection.run(
             saslStart: .init(mechanism: mechanism, scram: start),
             against: database,
             by: deadline)
@@ -202,7 +203,7 @@ extension Mongo.CredentialCache
             password: password,
             received: first.message,
             sent: start)
-        let second:Mongo.SASLResponse = try await channel.run(
+        let second:Mongo.SASLResponse = try await connection.run(
             saslContinue: first.command(message: client.message),
             against: database,
             by: deadline)
@@ -220,7 +221,7 @@ extension Mongo.CredentialCache
             return
         }
         
-        let third:Mongo.SASLResponse = try await channel.run(
+        let third:Mongo.SASLResponse = try await connection.run(
             saslContinue: second.command(message: .init("")),
             against: database,
             by: deadline)

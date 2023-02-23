@@ -1,9 +1,7 @@
-import BSON
-import BSONStream
 import MongoWire
 import NIOCore
 
-extension MongoChannel
+extension MongoIO
 {
     public
     enum Action

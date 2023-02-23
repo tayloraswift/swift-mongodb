@@ -1,9 +1,6 @@
 import Durations
 import Heartbeats
-import MongoChannel
 import NIOCore
-import NIOPosix
-import NIOSSL
 
 extension Mongo
 {
@@ -44,11 +41,11 @@ extension Mongo.MonitorConnector
     func connect(to host:Mongo.Host) async throws -> Mongo.MonitorConnection
     {
         let heartbeat:Heartbeat = .init(interval: .milliseconds(self.heartbeatInterval))
-        let channel:MongoChannel = .init(try await self.parameters.bootstrap(for: host).connect(
+        let channel:any Channel = try await self.parameters.bootstrap(for: host).connect(
             host: host.name,
-            port: host.port).get())
+            port: host.port).get()
         
-        channel.whenClosed
+        channel.closeFuture.whenComplete
         {
             //  when the checker task is cancelled, it will also close the
             //  connection again, which will be a no-op.
@@ -61,6 +58,6 @@ extension Mongo.MonitorConnector
             }
         }
 
-        return .init(heartbeat: heartbeat, channel:  channel)
+        return .init(heartbeat: heartbeat, channel: channel)
     }
 }

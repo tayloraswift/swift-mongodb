@@ -1,6 +1,4 @@
 import Durations
-import Heartbeats
-import MongoChannel
 import NIOCore
 
 extension Mongo

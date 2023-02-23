@@ -1,4 +1,6 @@
-extension Sequence<MongoChannel>
+import NIOCore
+
+extension Sequence where Element:MongoExecutor
 {
     /// Closes all channels in this sequence (concurrently), returning when
     /// every channel has been closed.
@@ -9,22 +11,15 @@ extension Sequence<MongoChannel>
         {
             (tasks:inout TaskGroup<Void>) in
 
-            for channel:MongoChannel in self
+            for executor:Element in self
             {
+                let channel:any Channel = executor.channel
+
                 tasks.addTask
                 {
-                    await channel.close()
+                    Element.interrupt(channel)
                 }
             }
-        }
-    }
-    /// Interrupts all channels in this sequence.
-    @inlinable public
-    func interrupt()
-    {
-        for channel:MongoChannel in self
-        {
-            channel.interrupt()
         }
     }
 }

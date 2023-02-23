@@ -1,8 +1,9 @@
-import BSONEncoding
+import BSON
+import BSONStream
 import MongoWire
 import NIOCore
 
-extension MongoChannel
+extension MongoIO
 {
     public final
     class MessageRouter
@@ -29,9 +30,9 @@ extension MongoChannel
         }
     }
 }
-extension MongoChannel.MessageRouter
+extension MongoIO.MessageRouter
 {
-    func perish(throwing error:MongoChannel.ExecutionError)
+    func perish(throwing error:MongoIO.ExecutionError)
     {
         switch self.state
         {
@@ -44,7 +45,7 @@ extension MongoChannel.MessageRouter
         }
     }
 }
-extension MongoChannel.MessageRouter:ChannelInboundHandler
+extension MongoIO.MessageRouter:ChannelInboundHandler
 {
     public
     typealias InboundIn = MongoWire.Message<ByteBufferView>
@@ -70,7 +71,7 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
         
         case .awaiting(nil):
             self.state = .perished
-            context.fireErrorCaught(MongoChannel.MessageRoutingError.init(
+            context.fireErrorCaught(MongoIO.MessageRoutingError.init(
                 unknown: message.header.request))
         
         case .perished:
@@ -92,10 +93,10 @@ extension MongoChannel.MessageRouter:ChannelInboundHandler
         context.fireChannelInactive()
     }
 }
-extension MongoChannel.MessageRouter:ChannelOutboundHandler
+extension MongoIO.MessageRouter:ChannelOutboundHandler
 {
     public
-    typealias OutboundIn = MongoChannel.Action
+    typealias OutboundIn = MongoIO.Action
     public
     typealias OutboundOut = ByteBuffer
 
