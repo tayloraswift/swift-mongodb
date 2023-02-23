@@ -5,13 +5,14 @@ extension TestGroup
 {
     func withTemporaryDatabase(named database:Mongo.Database,
         bootstrap:Mongo.DriverBootstrap,
+        logger:Mongo.Logger? = nil,
         hosts:Set<Mongo.Host>,
         run body:(Mongo.SessionPool, Mongo.Database) async throws -> ()) async
     {
         let environment:TestGroup = self / "environment"
         await environment.do
         {
-            try await bootstrap.withSessionPool(seedlist: hosts)
+            try await bootstrap.withSessionPool(seedlist: hosts, logger: logger)
             {
                 (pool:Mongo.SessionPool) in
 

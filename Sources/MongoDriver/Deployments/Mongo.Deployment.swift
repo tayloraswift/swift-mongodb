@@ -22,12 +22,16 @@ extension Mongo
     /// types like ``Session`` and ``SessionPool`` don’t need to interact with
     /// the service monitor, and service monitoring computations don’t block requests
     /// for information about deployment state.
-    public final
+    @usableFromInline internal final
     actor Deployment
     {
         /// The combined connection and operation timeout for driver operations.
-        public nonisolated
+        @usableFromInline internal nonisolated
         let timeout:ConnectionTimeout
+        //  Right now, we don’t do anything with this from this type. But other
+        //  types use it through their deployment pointers.
+        internal nonisolated
+        let logger:Logger?
 
         private
         var selectionRequests:[UInt: SelectionRequest]
@@ -46,9 +50,10 @@ extension Mongo
         private
         var snapshot:Servers
 
-        init(timeout:ConnectionTimeout)
+        init(timeout:ConnectionTimeout, logger:Logger?)
         {
             self.timeout = timeout
+            self.logger = logger
             
             self.atomic.sessions = .create(.init(ttl: 0))
             self.atomic.time = .create(nil)

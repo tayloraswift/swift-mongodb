@@ -14,33 +14,47 @@ extension Mongo
     /// as a reference type. The connection will be returned to its pool on
     /// `deinit`.
     public final
-    class Connection
+    class Connection:Identifiable
     {
-        @usableFromInline
-        let channel:MongoChannel
-        @usableFromInline
+        private
+        let allocation:ConnectionAllocation
+
+        @usableFromInline internal
         let pool:ConnectionPool
 
-        @usableFromInline
+        @usableFromInline internal
         var reuse:Bool
 
         private
-        init(channel:MongoChannel, pool:Mongo.ConnectionPool)
+        init(allocation:ConnectionAllocation, pool:Mongo.ConnectionPool)
         {
-            self.channel = channel
+            self.allocation = allocation
             self.pool = pool
 
             self.reuse = true
         }
         deinit
         {
-            self.pool.destroy(channel, reuse: self.reuse)
+            self.pool.destroy(allocation, reuse: self.reuse)
         }
     }
 }
 @available(*, unavailable, message: "connections are mutable move-only types.")
 extension Mongo.Connection:Sendable
 {
+}
+extension Mongo.Connection
+{
+    public
+    var id:UInt
+    {
+        self.allocation.id
+    }
+    @usableFromInline internal
+    var channel:MongoChannel
+    {
+        self.allocation.channel
+    }
 }
 extension Mongo.Connection
 {
@@ -57,7 +71,7 @@ extension Mongo.Connection
     public convenience
     init(from pool:Mongo.ConnectionPool, by deadline:Mongo.ConnectionDeadline) async throws
     {
-        self.init(channel: try await pool.create(by: deadline), pool: pool)
+        self.init(allocation: try await pool.create(by: deadline), pool: pool)
     }
 }
 extension Mongo.Connection
@@ -104,13 +118,13 @@ extension Mongo.Connection
         case .success(let message):
             return try .init(message: message)
         
-        case .failure(.network(error: let error)):
-            self.reuse = false
-            throw error
-        
         case .failure(.timeout):
             self.reuse = false
             throw Mongo.TimeoutError.driver(sent: true)
+        
+        case .failure(let error):
+            self.reuse = false
+            throw error
         }
     }
 }

@@ -4,7 +4,7 @@ extension Mongo.ConnectionPool
     enum State
     {
         /// The connection pool is active and can create new connections.
-        case filling(Mongo.Connection.Bootstrap)
+        case filling(Mongo.Connector)
         /// The connection pool is inactive and cannot create new connections.
         case draining(CheckedContinuation<Void, Never>?)
     }

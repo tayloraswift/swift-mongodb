@@ -33,42 +33,38 @@ extension Mongo
     ///
     /// Create (or await) a connection with ``create(by:)``. Destroy a connection
     /// with ``destroy(_:)``, which returns it to the pool and (possibly) makes
-    /// it available to other tasks. The pool expects *all* connections to be
-    /// eventually destroyed, even if the underlying channel errors or closes.
-    /// A call to ``drain`` will not unblock until every connection created by
-    /// that pool has been destroyed.
+    /// it available to other tasks.
     ///
     /// Typically, a monitoring task will create a connection pool alongside a
     /// monitoring channel, and align its lifetime with the lifetime of the
     /// monitoring channel. If the monitoring channel collapses, the pool will
     /// be drained, and a new one may be created to replace it.
-    public
+    public final
     actor ConnectionPool
     {
         /// The generation number of this connection pool. The pool attaches this
         /// token to every connection created from it.
         nonisolated
         let generation:UInt
+        /// The size and width of this connection pool.
+        nonisolated
+        let parameters:Parameters
         /// The connection timeout used internally by the pool to create connections.
         /// The service monitor also uses this to compute deadlines for server
         /// monitoring operations.
         nonisolated
         let timeout:ConnectionTimeout
+        
         /// The heartbeat controller for the monitoring task that created this pool.
         nonisolated
         let heart:Heart
         /// The host this pool creates connections to.
         nonisolated
         let host:Host
-        /// The target size of this connection pool. The pool will attempt to expand
-        /// until it contains at least the minimum number of connections, and it will
-        /// never exceed the maximum connection count.
-        nonisolated
-        let size:ClosedRange<Int>
-        /// The maximum number of connections this pool can establish concurrently.
-        nonisolated
-        let rate:Int
 
+        private nonisolated
+        let logger:Logger?
+        
         /// The connections stored in this pool.
         private
         var connections:Connections
@@ -76,11 +72,7 @@ extension Mongo
         let releasing:UnsafeAtomic<Int>
         /// All requests currently awaiting connections, identified by `UInt`.
         private
-        var requests:[UInt: CheckedContinuation<MongoChannel, any Error>]
-        /// A monotonically-increasing counter used to generate request
-        /// identifiers.
-        private
-        var counter:UInt
+        var requests:[UInt: CheckedContinuation<ConnectionAllocation, any Error>]
 
         private nonisolated
         let latency:UnsafeAtomic<Nanoseconds>
@@ -98,39 +90,47 @@ extension Mongo
         /// connections perish.
         private
         var state:State
+        /// Monotonically-increasing counters used to generate request
+        /// and connection identifiers.
+        private
+        var next:Counters
 
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
-        init(generation:UInt, signaling heart:Heart,
-            bootstrap:Bootstrap,
-            host:Mongo.Host,
-            size:ClosedRange<Int> = 0 ... 100,
-            rate:Int = 2)
+        init(generation:UInt,
+            signaling heart:Heart,
+            connector:MonitorConnector,
+            timeout:ConnectionTimeout,
+            logger:Logger?,
+            host:Host)
         {
             self.generation = generation
-            self.timeout = bootstrap.timeout
+            self.parameters = connector.pool
+            self.timeout = timeout
             self.heart = heart
             self.host = host
-            self.size = 0 ... 100
-            self.rate = 2
+
+            self.logger = logger
 
             self.connections = .init()
             self.releasing = .create(0)
             self.requests = [:]
-            self.counter = 0
 
             self.latency = .create(0)
 
             self.error = ConnectionCheckoutError.init()
-            self.state = .filling(.init(channel: bootstrap.bootstrap(for: host),
-                credentials: bootstrap.credentials,
-                cache: bootstrap.cache,
+            self.state = .filling(.init(bootstrap: connector.parameters.bootstrap(for: host),
+                credentials: connector.credentials,
+                cache: connector.credentialCache,
                 host: host))
+            self.next = .init()
 
             let _:Task<Void, Never> = .init
             {
                 await self.fill()
             }
+
+            self.log(.creating(self.parameters))
         }
         deinit
         {
@@ -160,8 +160,8 @@ extension Mongo.ConnectionPool
     /// The number of non-perished connections, including pending connections,
     /// currently in the pool.
     ///
-    /// Connection count is regulated by the pool’s ``size`` and ``rate``
-    /// parameters.
+    /// Connection count is regulated by the pool’s ``Parameters size`` and
+    /// ``Parameters rate`` parameters.
     public
     var count:Int
     {
@@ -197,22 +197,15 @@ extension Mongo.ConnectionPool
 }
 extension Mongo.ConnectionPool
 {
-    /// Mints a new request identifier.
-    private
-    func request() -> UInt
-    {
-        self.counter += 1
-        return self.counter
-    }
     /// Unblocks an awaiting request with the given channel, if one exists.
     ///
     /// -   Returns:
     ///     [`true`]() if there was a request that was unblocked by this call,
     ///     [`false`]() otherwise.
     private
-    func yield(_ channel:MongoChannel) -> Bool
+    func yield(_ allocation:Mongo.ConnectionAllocation) -> Bool
     {
-        if case ()? = self.requests.popFirst()?.value.resume(returning: channel)
+        if case ()? = self.requests.popFirst()?.value.resume(returning: allocation)
         {
             return true
         }
@@ -230,11 +223,19 @@ extension Mongo.ConnectionPool
     {
         //  will throw ``CancellationError`` if request succeeds
         try await Task.sleep(until: deadline.instant, clock: .continuous)
-        if  let continuation:CheckedContinuation<MongoChannel, any Error> =
+        if  let continuation:CheckedContinuation<Mongo.ConnectionAllocation, any Error> =
                 self.requests.removeValue(forKey: request)
         {
             continuation.resume(throwing: Mongo.ConnectionCheckoutError.init())
         }
+    }
+
+    private nonisolated
+    func log(_ event:Event)
+    {
+        self.logger?.yield(level: .full, event: .pool(host: self.host,
+            generation: self.generation,
+            event: event))
     }
 }
 extension Mongo.ConnectionPool
@@ -252,12 +253,17 @@ extension Mongo.ConnectionPool
     /// channels are already closed.
     func drain(because error:Mongo.MonitorRemovedError) async
     {
+        defer
+        {
+            self.log(.drained)
+        }
         if case .draining(_?) = self.state
         {
             fatalError("unreachable (draining connection pool that is already being drained!)")
         }
 
-        for request:CheckedContinuation<MongoChannel, any Error> in self.requests.values
+        for request:CheckedContinuation<Mongo.ConnectionAllocation, any Error>
+            in self.requests.values
         {
             request.resume(throwing: error)
         }
@@ -265,7 +271,7 @@ extension Mongo.ConnectionPool
 
         //  move channels that we can directly close
         //  (as opposed to waiting for a client to release them)
-        let released:Set<MongoChannel> = self.connections.shrink()
+        let released:[MongoChannel] = self.connections.shrink()
         
         //  this check is needed because we can only succeed the continuation
         //  when total channel count crosses from 1 to 0. so if the inventory
@@ -300,12 +306,17 @@ extension Mongo.ConnectionPool
     private
     func close(because error:any Error)
     {
+        defer
+        {
+            self.log(.draining(because: error))
+        }
         switch self.state
         {
         case .filling:
             self.stopMonitoring()
             self.error = error
-            for request:CheckedContinuation<MongoChannel, any Error> in self.requests.values
+            for request:CheckedContinuation<Mongo.ConnectionAllocation, any Error>
+                in self.requests.values
             {
                 request.resume(throwing: error)
             }
@@ -326,38 +337,38 @@ extension Mongo.ConnectionPool
 }
 extension Mongo.ConnectionPool
 {
-    /// Returns an existing channel in the pool if one is available, creating it
-    /// if the pool has capacity for additional connections. Otherwise, blocks
+    /// Returns an existing allocation in the pool if one is available, creating
+    /// it if the pool has capacity for additional connections. Otherwise, blocks
     /// until one of those conditions is met, or the specified deadline passes.
     ///
     /// The deadline is not enforced if a connection is already available in the
     /// pool when the actor services the request.
     ///
     /// If the deadline passes while the pool is creating a connection for the
-    /// caller, the call will return [`nil`](), but the channel will still be
+    /// caller, the call will return [`nil`](), but the allocation will still be
     /// created and added to the pool, and may be used to complete a different
     /// request.
-    func create(by deadline:Mongo.ConnectionDeadline) async throws -> MongoChannel
+    func create(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionAllocation
     {
-        while case .filling(let bootstrap) = self.state
+        while case .filling(let connector) = self.state
         {
-            if  let channel:MongoChannel = self.connections.checkout()
+            if  let allocation:Mongo.ConnectionAllocation = self.connections.checkout()
             {
-                return channel
+                return allocation
             }
-            if  self.connections.pending < self.rate,
-                self.connections.count < self.size.upperBound,
+            if  self.connections.pending < self.parameters.rate,
+                self.connections.count < self.parameters.size.upperBound,
                 self.releasing.load(ordering: .relaxed) <= self.requests.count
             {
                 // note: this checks for awaiting requests, and may use the
                 // newly-established connection to succeed a different request.
                 // so it is not guaranteed that the next iteration of the loop
                 // will yield a channel.
-                await self.expand(using: bootstrap)
+                await self.expand(using: connector)
             }
             else
             {
-                let request:UInt = self.request()
+                let request:UInt = self.next.request()
 
                 #if compiler(<5.8)
                 async
@@ -400,7 +411,7 @@ extension Mongo.ConnectionPool
     /// because replacement is performed when the underlying channel closes,
     /// which may take place before the wrapping connection is destroyed. 
     nonisolated
-    func destroy(_ channel:MongoChannel, reuse:Bool)
+    func destroy(_ allocation:Mongo.ConnectionAllocation, reuse:Bool)
     {
         if  reuse
         {
@@ -408,11 +419,11 @@ extension Mongo.ConnectionPool
         }
         let _:Task<Void, Never> = .init
         {
-            await self.destroy(channel, reindex: reuse)
+            await self.destroy(allocation, reindex: reuse)
         }
     }
     private
-    func destroy(_ channel:MongoChannel, reindex:Bool) async
+    func destroy(_ allocation:Mongo.ConnectionAllocation, reindex:Bool) async
     {
         if  reindex
         {
@@ -424,19 +435,19 @@ extension Mongo.ConnectionPool
             guard reindex
             else
             {
-                await channel.close()
-                self.connections.remove(channel)
+                await allocation.channel.close()
+                self.connections.remove(allocation)
                 // pool lifecycle stage may have changed
                 break
             }
-            if  self.yield(channel)
+            if  self.yield(allocation)
             {
                 // channel was handed-off directly to the next request
                 return
             }
             else
             {
-                self.connections.checkin(channel)
+                self.connections.checkin(allocation)
                 return
             }
         
@@ -445,8 +456,8 @@ extension Mongo.ConnectionPool
             //  it from the retained list, because a re-entrant call to this
             //  method might observe `self.count == 0` while the channel is
             //  still open.
-            await channel.close()
-            self.connections.remove(channel)
+            await allocation.channel.close()
+            self.connections.remove(allocation)
         }
 
         if  self.connections.isEmpty,
@@ -462,13 +473,13 @@ extension Mongo.ConnectionPool
     /// the connection count to zero, calling this method may unblock a call to
     /// ``drain``.
     private
-    func replace(perished channel:MongoChannel) async
+    func replace(perished allocation:Mongo.ConnectionAllocation) async
     {
-        self.connections.perish(channel)
+        self.connections.perish(allocation)
         switch self.state
         {
-        case .filling(let bootstrap):
-            await self.fill(using: bootstrap)
+        case .filling(let connector):
+            await self.fill(using: connector)
         
         case .draining(let continuation?):
             if  self.connections.isEmpty
@@ -486,9 +497,9 @@ extension Mongo.ConnectionPool
     private
     func fill() async
     {
-        if  case .filling(let bootstrap) = self.state
+        if  case .filling(let connector) = self.state
         {
-            await self.fill(using: bootstrap)
+            await self.fill(using: connector)
         }
     }
     /// Dispatches to ``expand(using:)``, but only if the pool ought to be
@@ -500,21 +511,21 @@ extension Mongo.ConnectionPool
     /// The ``Mongo/Connection/Bootstrap`` type is not ``Sendable``, which
     /// should prevent some of the more-common reentrancy mistakes.
     private
-    func fill(using bootstrap:Mongo.Connection.Bootstrap) async
+    func fill(using connector:Mongo.Connector) async
     {
-        guard   self.connections.pending < self.rate
+        guard   self.connections.pending < self.parameters.rate
         else
         {
             return
         }
-        if      self.connections.count < self.size.lowerBound
+        if      self.connections.count < self.parameters.size.lowerBound
         {
-            await self.expand(using: bootstrap)
+            await self.expand(using: connector)
         }
-        else if self.connections.count < self.size.upperBound,
+        else if self.connections.count < self.parameters.size.upperBound,
                 self.unallocated < self.requests.count
         {
-            await self.expand(using: bootstrap)
+            await self.expand(using: connector)
         }
     }
     /// Tries to create and add a new connection to the pool. If anything goes wrong
@@ -531,41 +542,50 @@ extension Mongo.ConnectionPool
     /// Because a pending connection still contributes to connection count, this may
     /// unblock a call to ``drain``.
     private
-    func expand(using bootstrap:Mongo.Connection.Bootstrap) async
+    func expand(using connector:Mongo.Connector) async
     {
         do
         {
-            self.connections.pending += 1
+            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(
+                from: .now)
 
-            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
-            let channel:MongoChannel = try await bootstrap.channel(to: self.host, by: deadline)
+            let connection:UInt = self.next.connection()
+
+            self.connections.pending += 1
+            self.log(.expanding(id: connection))
+
+            let allocation:Mongo.ConnectionAllocation = .init(
+                channel: try await connector.channel(to: self.host, by: deadline),
+                id: connection)
 
             switch self.state
             {
             case .filling:
-                channel.whenClosed
+                allocation.channel.whenClosed
                 {
-                    _ in
+                    self.log(.perished(id: connection, because: $0))
+
                     let _:Task<Void, Never> = .init
                     {
-                        await self.replace(perished: channel)
+                        await self.replace(perished: allocation)
                     }
                 }
 
                 self.connections.pending -= 1
-                
-                if  self.yield(channel)
+                self.log(.expanded(id: connection))
+
+                if  self.yield(allocation)
                 {
-                    //  channel was given to an already-awaiting request.
-                    self.connections.insert(retained: channel)
+                    //  allocation was given to an already-awaiting request.
+                    self.connections.insert(retained: allocation)
                 }
                 else
                 {
-                    self.connections.insert(released: channel)
+                    self.connections.insert(released: allocation)
                 }
 
-                if  self.connections.count < self.size.lowerBound ||
-                    self.connections.count < self.size.upperBound &&
+                if  self.connections.count < self.parameters.size.lowerBound ||
+                    self.connections.count < self.parameters.size.upperBound &&
                     self.unallocated < self.requests.count
                 {
                     let _:Task<Void, Never> = .init
@@ -579,7 +599,7 @@ extension Mongo.ConnectionPool
                 return
             
             case .draining:
-                await channel.close()
+                await allocation.channel.close()
                 self.connections.pending -= 1
             }
 

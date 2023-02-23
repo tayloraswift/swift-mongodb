@@ -1,46 +1,30 @@
-import Durations
-import Heartbeats
 import MongoChannel
 import NIOCore
 import NIOPosix
 import NIOSSL
 
-extension Mongo.ConnectionPool
+extension Mongo.Connector
 {
-    struct Bootstrap:Sendable
+    struct Parameters
     {
-        let heartbeatInterval:Milliseconds
         // TODO: need a better way to handle TLS certificates,
         // should probably cache certificate loading...
         let _certificatePath:String?
 
-        let credentials:Mongo.Credentials?
-        let cache:Mongo.CredentialCache
-
         let resolver:DNS.Connection?,
             executor:any EventLoopGroup
         
-        let timeout:Mongo.ConnectionTimeout
-
-        init(heartbeatInterval:Milliseconds,
-            certificatePath:String?,
-            credentials:Mongo.Credentials?,
-            cache:Mongo.CredentialCache,
+        init(certificatePath:String?,
             resolver:DNS.Connection?,
-            executor:any EventLoopGroup,
-            timeout:Mongo.ConnectionTimeout)
+            executor:any EventLoopGroup)
         {
-            self.heartbeatInterval = heartbeatInterval
             self._certificatePath = certificatePath
-            self.credentials = credentials
-            self.cache = cache
             self.resolver = resolver
             self.executor = executor
-            self.timeout = timeout
         }
     }
 }
-extension Mongo.ConnectionPool.Bootstrap
+extension Mongo.Connector.Parameters
 {
     func bootstrap(for host:Mongo.Host) -> ClientBootstrap
     {

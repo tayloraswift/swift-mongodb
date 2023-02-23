@@ -9,16 +9,16 @@ extension Mongo
         /// Connections that are currently free to be allocated,
         /// and are believed to be healthy.
         private
-        var released:Set<MongoChannel>
+        var released:[Connection.ID: MongoChannel]
         /// Connections that are currently allocated and are 
         /// believed to be healthy.
         private
-        var retained:Set<MongoChannel>
+        var retained:[Connection.ID: MongoChannel]
         /// Connections that are currently allocated but are *not*
         /// believed to be healthy.
         /// Does not contribute to the total connection ``count``.
         private
-        var perished:Set<MongoChannel>
+        var perished:[Connection.ID: MongoChannel]
 
         /// Additional channels that have no other way of being
         /// represented in this structure. Contributes to the total
@@ -27,9 +27,9 @@ extension Mongo
 
         init()
         {
-            self.released = []
-            self.retained = []
-            self.perished = []
+            self.released = [:]
+            self.retained = [:]
+            self.perished = [:]
             self.pending = 0
         }
     }
@@ -63,9 +63,9 @@ extension Mongo.Connections
     ///
     /// Traps if the channel is already in the set of released channels.
     mutating
-    func insert(released channel:MongoChannel)
+    func insert(released allocation:Mongo.ConnectionAllocation)
     {
-        guard case nil = self.released.update(with: channel)
+        guard case nil = self.released.updateValue(allocation.channel, forKey: allocation.id)
         else
         {
             fatalError("unreachable (inserted a channel more than once!)")
@@ -76,9 +76,9 @@ extension Mongo.Connections
     ///
     /// Traps if the channel is already in the set of retained channels.
     mutating
-    func insert(retained channel:MongoChannel)
+    func insert(retained allocation:Mongo.ConnectionAllocation)
     {
-        guard case nil = self.retained.update(with: channel)
+        guard case nil = self.retained.updateValue(allocation.channel, forKey: allocation.id)
         else
         {
             fatalError("unreachable (inserted a channel more than once!)")
@@ -91,13 +91,13 @@ extension Mongo.Connections
     /// Traps if the channel is not in either set, even if the channel
     /// exists in the set of released channels.
     mutating
-    func remove(_ channel:MongoChannel)
+    func remove(_ allocation:Mongo.ConnectionAllocation)
     {
-        if      case _? = self.retained.remove(channel)
+        if      case _? = self.retained.removeValue(forKey: allocation.id)
         {
             return
         }
-        else if case _? = self.perished.remove(channel)
+        else if case _? = self.perished.removeValue(forKey: allocation.id)
         {
             return
         }
@@ -115,20 +115,20 @@ extension Mongo.Connections
     /// Traps if the channel already exists in the set of perished
     /// channels.
     mutating
-    func perish(_ channel:MongoChannel)
+    func perish(_ allocation:Mongo.ConnectionAllocation)
     {
-        guard case nil = self.released.remove(channel)
+        guard case nil = self.released.removeValue(forKey: allocation.id)
         else
         {
             return
         }
-        guard case  _? = self.retained.remove(channel)
+        guard case  _? = self.retained.removeValue(forKey: allocation.id)
         else
         {
             //  lost the race with ``remove(_:)``
             return
         }
-        guard case nil = self.perished.update(with: channel)
+        guard case nil = self.perished.updateValue(allocation.channel, forKey: allocation.id)
         else
         {
             fatalError("unreachable (perished a channel more than once!)")
@@ -143,14 +143,14 @@ extension Mongo.Connections
     ///
     /// Traps if neither operation could be performed.
     mutating
-    func checkin(_ channel:MongoChannel)
+    func checkin(_ allocation:Mongo.ConnectionAllocation)
     {
-        if      case  _? = self.perished.remove(channel)
+        if      case  _? = self.perished.removeValue(forKey: allocation.id)
         {
             return
         }
-        else if case  _? = self.retained.remove(channel),
-                case nil = self.released.update(with: channel)
+        else if case  _? = self.retained.removeValue(forKey: allocation.id),
+                case nil = self.released.updateValue(allocation.channel, forKey: allocation.id)
         {
             return
         }
@@ -167,16 +167,16 @@ extension Mongo.Connections
     ///
     /// Traps if the transfer could not be performed.
     mutating
-    func checkout() -> MongoChannel?
+    func checkout() -> Mongo.ConnectionAllocation?
     {
-        guard let channel:MongoChannel = self.released.popFirst()
+        guard let (id, channel):(Mongo.Connection.ID, MongoChannel) = self.released.popFirst()
         else
         {
             return nil
         }
-        if case nil = self.retained.update(with: channel)
+        if case nil = self.retained.updateValue(channel, forKey: id)
         {
-            return channel
+            return .init(channel: channel, id: id)
         }
         else
         {
@@ -187,15 +187,15 @@ extension Mongo.Connections
     /// Clears and returns the set of released channels. Currently-retained
     /// channels, including perished channels, are unaffected.
     mutating
-    func shrink() -> Set<MongoChannel>
+    func shrink() -> [MongoChannel]
     {
-        defer { self.released = [] }
-        return  self.released
+        defer { self.released = [:] }
+        return .init(self.released.values)
     }
     /// Interrupts all currently-retained channels. Currently-released
     /// channels, and perished channels, are unaffected.
     func interrupt()
     {
-        self.retained.interrupt()
+        self.retained.values.interrupt()
     }
 }
