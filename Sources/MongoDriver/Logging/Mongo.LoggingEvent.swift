@@ -21,45 +21,45 @@ extension Mongo.LoggingEvent:CustomStringConvertible
             description +=
             """
                 pool: \(host) (generation: \(generation))
-                
+
             """
             switch event
             {
             case .creating(_):
                 description +=
                 """
-                type: creating
+                    type: creating
                 """
-            case .draining:
+            case .draining(because: let error):
                 description +=
                 """
-                type: draining
+                    type: draining (because: \(error))
                 """
             case .drained:
                 description +=
                 """
-                type: drained
+                    type: drained
                 """
 
             case .expanding(id: let id):
                 description +=
                 """
-                type: expanding (id: \(id))
+                    type: expanding (id: \(id))
                 """
             case .expanded(id: let id):
                 description +=
                 """
-                type: expanded (id: \(id))
+                    type: expanded (id: \(id))
                 """
             case .perished(id: let id, because: _):
                 description +=
                 """
-                type: perished (id: \(id))
+                    type: perished (id: \(id))
                 """
             case .removed(id: let id):
                 description +=
                 """
-                type: removed (id: \(id))
+                    type: removed (id: \(id))
                 """
 
             case .creatingConnection:

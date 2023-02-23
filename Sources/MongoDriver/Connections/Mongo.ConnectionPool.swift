@@ -308,7 +308,7 @@ extension Mongo.ConnectionPool
     {
         defer
         {
-            self.log(.draining)
+            self.log(.draining(because: error))
         }
         switch self.state
         {

@@ -4,7 +4,7 @@ extension Mongo.ConnectionPool
     enum Event:Sendable
     {
         case creating(Parameters)
-        case draining
+        case draining(because:any Error)
         case drained
 
         case expanding(id:UInt)
