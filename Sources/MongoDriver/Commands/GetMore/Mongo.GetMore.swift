@@ -28,7 +28,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.GetMore:MongoCommand
+extension Mongo.GetMore:MongoSessionCommand
 {
     /// The string [`"getMore"`]().
     @inlinable public static

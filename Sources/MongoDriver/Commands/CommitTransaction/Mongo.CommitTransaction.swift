@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
+extension Mongo.CommitTransaction:MongoTransactableCommand, MongoSessionCommand
 {
     /// The string [`"commitTransaction"`]().
     @inlinable public static

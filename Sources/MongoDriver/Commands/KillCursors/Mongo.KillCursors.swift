@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.KillCursors:MongoCommand
+extension Mongo.KillCursors:MongoSessionCommand
 {
     /// The string [`"killCursors"`]().
     @inlinable public static

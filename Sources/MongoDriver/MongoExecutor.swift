@@ -1,3 +1,4 @@
+import BSONEncoding
 import MongoExecutor
 import MongoWire
 
@@ -12,7 +13,7 @@ extension MongoExecutor
     func run<Command>(command:__owned Command,
         against database:Command.Database,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
-        where Command:MongoDriverCommand
+        where Command:MongoCommand & BSONDocumentEncodable
     {
         guard   let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
                     database: database,

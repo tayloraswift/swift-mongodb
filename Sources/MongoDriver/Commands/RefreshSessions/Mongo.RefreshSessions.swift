@@ -31,7 +31,7 @@ extension Mongo
 extension Mongo.RefreshSessions:MongoTransactableCommand
 {
 }
-extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
+extension Mongo.RefreshSessions:MongoSessionCommand, MongoImplicitSessionCommand
 {
     /// The string [`"refreshSessions"`]().
     @inlinable public static

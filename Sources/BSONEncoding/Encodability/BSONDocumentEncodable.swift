@@ -16,19 +16,6 @@ extension BSONDocumentEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.frame(then: self.encode(to:))
-    }
-}
-extension BSONDocumentEncodable
-{
-    @inlinable public
-    func encode(to bson:inout BSON.Document)
-    {
-        var encoder:BSON.DocumentEncoder<CodingKeys> = .init(output: bson.output)
-        bson.output = .init(preallocated: [])
-
-        self.encode(to: &encoder)
-        
-        bson.output = encoder.output
+        field.with(BSON.DocumentEncoder<CodingKeys>.self, do: self.encode(to:))
     }
 }

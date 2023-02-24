@@ -2,7 +2,7 @@ import BSONDecoding
 import Durations
 
 public
-protocol MongoIterableCommand<Element>:MongoCommand
+protocol MongoIterableCommand<Element>:MongoSessionCommand
     where Response == Mongo.Cursor<Element>
 {
     associatedtype Element:BSONDecodable & Sendable

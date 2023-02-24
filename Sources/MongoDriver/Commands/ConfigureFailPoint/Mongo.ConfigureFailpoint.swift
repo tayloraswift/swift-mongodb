@@ -20,7 +20,7 @@ extension Mongo.ConfigureFailpoint
         .times(options, count: 1)
     }
 }
-extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
+extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoSessionCommand
 {
     /// The string [`"configureFailPoint"`](). Note that the capitalization
     /// is different from that of the command type.

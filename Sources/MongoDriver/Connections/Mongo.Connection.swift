@@ -95,7 +95,7 @@ extension Mongo.Connection
         against database:Command.Database,
         labels:Mongo.SessionLabels,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
-        where Command:MongoCommand
+        where Command:MongoSessionCommand
     {
         let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
         guard   let command:MongoWire.Message<[UInt8]>.Sections = command.encode(

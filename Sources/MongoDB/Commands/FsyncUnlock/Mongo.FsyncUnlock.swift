@@ -11,7 +11,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.FsyncUnlock:MongoImplicitSessionCommand, MongoCommand
+extension Mongo.FsyncUnlock:MongoImplicitSessionCommand, MongoSessionCommand
 {
     /// The string [`"fsyncUnlock"`]().
     @inlinable public static

@@ -13,7 +13,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ReplicaSetGetConfiguration:MongoCommand
+extension Mongo.ReplicaSetGetConfiguration:MongoSessionCommand
 {
     /// The string [`"replSetGetConfig"`]().
     @inlinable public static

@@ -17,7 +17,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Hello:MongoDriverCommand
+extension Mongo.Hello:MongoCommand
 {
     /// The string [`"hello"`]().
     @inlinable public static
@@ -29,7 +29,9 @@ extension Mongo.Hello:MongoDriverCommand
     /// `Hello` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin
-
+}
+extension Mongo.Hello:BSONDocumentEncodable
+{
     public
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {

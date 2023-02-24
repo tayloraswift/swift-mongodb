@@ -37,7 +37,7 @@ extension Mongo.ListDatabases.NameOnly
         try populate(&self)
     }
 }
-extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
+extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoSessionCommand
 {
     /// The string [`"listDatabases"`]().
     @inlinable public static

@@ -32,7 +32,7 @@ extension Mongo.Create
         self.init(writeConcern: writeConcern, fields: try .init(with: populate))
     }
 }
-extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
+extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoSessionCommand
 {
     /// The string [`"create"`]().
     @inlinable public static

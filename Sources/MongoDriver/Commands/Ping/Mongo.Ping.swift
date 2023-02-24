@@ -16,7 +16,7 @@ extension Mongo
 extension Mongo.Ping:MongoTransactableCommand
 {
 }
-extension Mongo.Ping:MongoImplicitSessionCommand, MongoCommand
+extension Mongo.Ping:MongoImplicitSessionCommand, MongoSessionCommand
 {
     /// The string [`"ping"`]().
     @inlinable public static

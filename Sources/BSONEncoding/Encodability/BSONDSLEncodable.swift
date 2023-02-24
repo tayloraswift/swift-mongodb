@@ -27,7 +27,7 @@ extension BSONStreamEncodable where Self:Sequence, Element:BSONStreamEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.frame(BSON.ListEncoder.self)
+        field.with(BSON.ListEncoder.self)
         {
             for element:Element in self
             {

@@ -1,4 +1,3 @@
-import MongoChannel
 import MongoDriver
 import NIOPosix
 import Testing

@@ -45,7 +45,7 @@ extension Mongo.Find
             fields: try .init(with: populate))
     }
 }
-extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
+extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, MongoSessionCommand
 {
     /// The string [`"find"`]().
     @inlinable public static
