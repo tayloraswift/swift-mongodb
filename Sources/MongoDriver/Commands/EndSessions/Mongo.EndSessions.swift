@@ -23,7 +23,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.EndSessions:MongoCommand
+extension Mongo.EndSessions
 {
     /// The string [`"endSessions"`]().
     @inlinable public static
@@ -31,10 +31,6 @@ extension Mongo.EndSessions:MongoCommand
     {
         "endSessions"
     }
-
-    /// `EndSessions` must be run against to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
 }
 extension Mongo.EndSessions:BSONDocumentEncodable
 {

@@ -1,24 +1,21 @@
-import MongoMonitoring
-
 extension Mongo
 {
     @frozen public
-    enum ServerDescription<Metadata, Pool> where Pool:AnyObject & MongoMonitoringDelegate
+    enum ServerDescription<Metadata, Owner> where Owner:AnyObject
     {
-        case monitoring(Metadata, Pool)
+        case connected(Metadata, Owner)
         case errored(any Error)
         case queued
     }
 }
-extension Mongo.ServerDescription:Sendable where Metadata:Sendable, Pool:Sendable
+extension Mongo.ServerDescription:Sendable where Metadata:Sendable, Owner:Sendable
 {
 }
 extension Mongo.ServerDescription
 {
-    @inlinable public
     var metadata:Metadata?
     {
-        if case .monitoring(let metadata, _) = self
+        if case .connected(let metadata, _) = self
         {
             return metadata
         }
@@ -27,12 +24,11 @@ extension Mongo.ServerDescription
             return nil
         }
     }
-    @inlinable public
-    var pool:Pool?
+    var owner:Owner?
     {
-        if case .monitoring(_, let pool) = self
+        if case .connected(_, let owner) = self
         {
-            return pool
+            return owner
         }
         else
         {
@@ -40,7 +36,6 @@ extension Mongo.ServerDescription
         }
     }
     /// Returns the stored error, if this descriptor currently has one.
-    @inlinable public
     var error:(any Error)?
     {
         if case .errored(let error) = self
@@ -55,42 +50,70 @@ extension Mongo.ServerDescription
 }
 extension Mongo.ServerDescription
 {
-    @inlinable public mutating
-    func update(with metadata:Metadata, pool:Pool)
+    mutating
+    func assign(metadata:__owned Metadata, owner:__owned Owner?) -> Mongo.TopologyUpdateResult
     {
-        self = .monitoring(metadata, pool)
+        if let owner:Owner
+        {
+            self = .connected(metadata, owner)
+            return .accepted
+        }
+        switch self
+        {
+        case .connected(_, let owner):
+            self = .connected(metadata, owner)
+            return .accepted
+        
+        case .errored, .queued:
+            return .dropped
+        }
     }
+
+    // @inlinable public mutating
+    // func update(metadata:Metadata) -> Mongo.TopologyUpdateResult?
+    // {
+    //     switch self
+    //     {
+    //     case .connected(_, let owner):
+    //         self = .connected(metadata, owner)
+    //         return .accepted
+        
+    //     case _:
+    //         return nil
+    //     }
+    // }
     /// Places this descriptor in an ``case errored(_:)`` or ``case queued``
     /// state. If `status` is [`nil`]() and the descriptor is already in
     /// an errored state, the descriptor will remain in that state, and the
     /// stored error will not be overwritten.
-    @inlinable public mutating
-    func clear(status:(any Error)?)
+    mutating
+    func assign(error status:(any Error)?) -> Mongo.TopologyUpdateResult
     {
         // only overwrite an existing error if we have a new one
         switch (status, self)
         {
         case (let error?, _):
             self = .errored(error)
-        case (nil, .monitoring):
+        case (nil, .connected):
             self = .queued
         case (nil, _):
             break
         }
+        return .accepted
     }
 }
 
-extension Optional
-{
-    /// Sends a termination signal to the monitoring thread for this
-    /// channel if non-[`nil`](), and sets this optional to [`nil`]()
-    /// afterwards, preventing further use of the state descriptor.
-    /// The optional will always be [`nil`]() after calling this method.
-    @inlinable public mutating
-    func remove<Member, Pool>()
-        where Wrapped == Mongo.ServerDescription<Member, Pool>
-    {
-        self?.pool?.stopMonitoring()
-        self = nil
-    }
-}
+// extension Optional
+// {
+//     /// Sends a termination signal to the monitoring thread for this
+//     /// channel if non-[`nil`](), and sets this optional to [`nil`]()
+//     /// afterwards, preventing further use of the state descriptor.
+//     /// The optional will always be [`nil`]() after calling this method.
+//     @inlinable public mutating
+//     func remove<Member, Pool>()
+//         where Wrapped == Mongo.ServerDescription<Member, Pool>
+//     {
+//         self?.pool?.stopMonitoring()
+//         self = nil
+//     }
+// }

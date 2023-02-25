@@ -159,7 +159,7 @@ extension Mongo.Session
     func run<Command>(command:Command, against database:Command.Database,
         on preference:Mongo.ReadPreference = .primary,
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
-        where Command:MongoSessionCommand
+        where Command:MongoCommand
     {
         if case _? = self.transaction.phase
         {
@@ -371,7 +371,7 @@ extension Mongo.Session
         over connection:Mongo.Connection,
         on preference:Mongo.ReadPreference,
         by deadline:ContinuousClock.Instant) async throws -> Command.Response
-        where Command:MongoSessionCommand
+        where Command:MongoCommand
     {
         let labels:Mongo.SessionLabels = self.labels(
             writeConcern: command.writeConcernLabel,

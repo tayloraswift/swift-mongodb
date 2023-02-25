@@ -17,7 +17,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.AbortTransaction:MongoTransactableCommand, MongoSessionCommand
+extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
 {
     /// The string [`"abortTransaction"`]().
     @inlinable public static

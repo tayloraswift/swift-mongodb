@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.SASLStart:MongoCommand
+extension Mongo.SASLStart
 {
     /// The string [`"saslStart"`]().
     static

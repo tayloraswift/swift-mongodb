@@ -1,27 +1,23 @@
-import Heartbeats
+import Durations
 import MongoExecutor
 import NIOCore
 
-extension Mongo
+extension Mongo.TopologyMonitor
 {
-    struct MonitorConnection:MongoExecutor
+    struct Connection:MongoExecutor
     {
-        let heartbeat:Heartbeat
         let channel:any Channel
 
-        init(heartbeat:Heartbeat, channel:any Channel)
+        init(channel:any Channel)
         {
-            self.heartbeat = heartbeat
             self.channel = channel
         }
     }
 }
-extension Mongo.MonitorConnection
+extension Mongo.TopologyMonitor.Connection
 {
-    /// Runs a ``Mongo/Hello`` command, and decodes a subset of its response
-    /// suitable for monitoring purposes.
     func run(hello command:__owned Mongo.Hello,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Monitor.HelloResult
+        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.HelloResult
     {
         //  Cannot use ``ContinousClock.measure(_:)``, because that API does not
         //  allow us to return values from the closure.
@@ -30,6 +26,12 @@ extension Mongo.MonitorConnection
             by: deadline.instant)
         let received:ContinuousClock.Instant = .now
         return .init(response: try .init(bson: reply()),
-            latency: received - sent)
+            latency: .init(received - sent))
+    }
+    func listen(granularity:Milliseconds) async throws -> Mongo.HelloResponse
+    {
+        let hello:Mongo.Hello = .init(await: granularity, user: nil)
+        return try .init(bson: try await self.run(command: hello, against: .admin,
+            by: .now.advanced(by: .milliseconds(granularity * 3 / 2)))())
     }
 }

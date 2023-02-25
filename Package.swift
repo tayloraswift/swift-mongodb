@@ -280,6 +280,14 @@ let package:Package = .init(name: "swift-mongodb",
             ], 
             path: "Tests/Heartbeats"),
         
+        .executableTarget(name: "MongoTests",
+            dependencies:
+            [
+                .target(name: "Mongo"),
+                .product(name: "Testing", package: "swift-hash"),
+            ], 
+            path: "Tests/Mongo"),
+        
         .executableTarget(name: "MongoDBTests",
             dependencies:
             [

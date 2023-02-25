@@ -11,10 +11,10 @@ extension Mongo
         public
         let behavior:Behavior?
         public
-        let types:[any MongoSessionCommand.Type]
+        let types:[any MongoCommand.Type]
 
         public
-        init(application:String?, behavior:Behavior?, types:[any MongoSessionCommand.Type])
+        init(application:String?, behavior:Behavior?, types:[any MongoCommand.Type])
         {
             self.application = application
             self.behavior = behavior

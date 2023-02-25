@@ -7,5 +7,6 @@ extension Mongo
         case secondary(Replica)
         case arbiter
         case other
+        case ghost
     }
 }

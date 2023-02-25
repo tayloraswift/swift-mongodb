@@ -43,8 +43,8 @@ extension Mongo.Reply
     {
         switch self.result
         {
-        case .success(let dictionary):
-            return dictionary
+        case .success(let bson):
+            return bson
         
         case .failure(let error):
             if  let code:Mongo.ServerError.Code = error.code,

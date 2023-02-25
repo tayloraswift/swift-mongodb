@@ -2,7 +2,7 @@
 struct Heartbeat
 {
     private
-    let stream:AsyncThrowingStream<Void, any Error>
+    let stream:AsyncStream<Void>
     public
     let heart:Heart
 
@@ -23,7 +23,7 @@ struct Heartbeat
         var heart:Heart? = nil
         self.stream = .init(bufferingPolicy: .bufferingOldest(1))
         {
-            (continuation:AsyncThrowingStream<Void, any Error>.Continuation) in
+            (continuation:AsyncStream<Void>.Continuation) in
 
             heart = .init(yieldingTo: continuation, every: interval)
         }
@@ -36,7 +36,7 @@ extension Heartbeat:AsyncSequence
     typealias Element = Void
 
     public
-    func makeAsyncIterator() -> AsyncThrowingStream<Void, any Error>.Iterator
+    func makeAsyncIterator() -> AsyncStream<Void>.Iterator
     {
         self.stream.makeAsyncIterator()
     }

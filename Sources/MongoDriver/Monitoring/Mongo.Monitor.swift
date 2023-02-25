@@ -17,7 +17,7 @@ extension Mongo
         private
         var tasks:Int
         
-        init(_ seedlist:Topology<ConnectionPool>.Unknown,
+        init(_ seedlist:Topology<MonitorTask>.Unknown,
             deployment:Deployment,
             connector:MonitorConnector)
         {
@@ -34,7 +34,7 @@ extension Mongo
 
         func stop() async
         {
-            guard case .monitoring(_, var topology) = self.state
+            guard case .monitoring = self.state
             else
             {
                 fatalError("unreachable (stopping monitor that is not running!)")
@@ -47,7 +47,8 @@ extension Mongo
             }
             await withCheckedContinuation
             {
-                topology.removeAll()
+                //  Overwriting the topology in ``state`` will also release
+                //  all the monitoring tasks owned by the topology.
                 self.state = .stopping($0)
             }
         }
@@ -83,50 +84,106 @@ extension Mongo.Monitor
 extension Mongo.Monitor
 {
     private
-    func sequence(error:any Error, host:Mongo.Host) async -> ExitStatus
+    func iterate(updates:AsyncStream<Mongo.MonitorUpdate>,
+        host:Mongo.Host) async -> Mongo.ConnectionPoolRefill
     {
-        if case .monitoring(let bootstrap, var topology) = self.state
+        for await update:Mongo.MonitorUpdate in updates
         {
-            self.state = .stopping(nil)
-
-            let accepted:Bool = topology.combine(error: error, host: host)
-            let snapshot:Mongo.Servers = .init(from: topology,
-                heartbeatInterval: bootstrap.heartbeatInterval)
-
-            self.state = .monitoring(bootstrap, topology)
-
-            await self.deployment.push(snapshot: snapshot)
-            return accepted ? .reconnect : .stop
+            switch update
+            {
+            case .topology(let update):
+                switch await self.combine(update: update, host: host)
+                {
+                case .accepted:
+                    continue
+                
+                case .dropped:
+                    return .refill
+                
+                case .rejected:
+                    return .none
+                }
+            
+            // case .latency(let latency):
+            //     pool.set(latency: latency)
+            }
         }
-        else
+
+        switch await self.combine(error: nil, host: host)
         {
-            return .stop
+        case .accepted, .dropped:
+            return .refill
+        
+        case .rejected:
+            return .none
         }
     }
+
     private
-    func sequence(update:Mongo.TopologyUpdate?,
-        sessions:Mongo.LogicalSessions,
-        pool:Mongo.ConnectionPool,
-        host:Mongo.Host) async -> ExitStatus?
+    func combine(update:Result<Mongo.TopologyMonitor.Update, any Error>,
+        host:Mongo.Host) async -> Mongo.TopologyUpdateResult
     {
-        if case .monitoring(let bootstrap, var topology) = self.state
+        switch update
         {
-            self.state = .stopping(nil)
-
-            let accepted:Bool = topology.combine(update: update, host: host, pool: pool,
-                add: self.monitor(host:))
-            let snapshot:Mongo.Servers = .init(from: topology,
-                heartbeatInterval: bootstrap.heartbeatInterval)
-
-            self.state = .monitoring(bootstrap, topology)
-
-            await self.deployment.push(snapshot: snapshot, sessions: sessions)
-            return accepted ? nil : .stop
+        case .success(let update):
+            return await self.combine(update: update.topology,
+                sessions: update.sessions,
+                owner: update.owner,
+                host: host)
+        
+        case .failure(let error):
+            return await self.combine(error: error, host: host)
         }
+    }
+
+    private
+    func combine(update:Mongo.TopologyUpdate,
+        sessions:Mongo.LogicalSessions,
+        owner:Mongo.MonitorTask?,
+        host:Mongo.Host) async -> Mongo.TopologyUpdateResult
+    {
+        guard case .monitoring(let bootstrap, var topology) = self.state
         else
         {
-            return .stop
+            return .rejected
         }
+        
+        self.state = .stopping(nil)
+
+        let result:Mongo.TopologyUpdateResult = topology.combine(update: update,
+            owner: owner,
+            host: host,
+            add: self.monitor(host:))
+        
+        let snapshot:Mongo.Servers = .init(from: topology,
+            heartbeatInterval: bootstrap.heartbeatInterval)
+
+        self.state = .monitoring(bootstrap, topology)
+
+        await self.deployment.push(snapshot: snapshot, sessions: sessions)
+        return result
+    }
+
+    private
+    func combine(error:(any Error)?, host:Mongo.Host) async -> Mongo.TopologyUpdateResult
+    {
+        guard case .monitoring(let bootstrap, var topology) = self.state
+        else
+        {
+            return .rejected
+        }
+
+        self.state = .stopping(nil)
+
+        let result:Mongo.TopologyUpdateResult = topology.combine(error: error, host: host)
+
+        let snapshot:Mongo.Servers = .init(from: topology,
+            heartbeatInterval: bootstrap.heartbeatInterval)
+
+        self.state = .monitoring(bootstrap, topology)
+
+        await self.deployment.push(snapshot: snapshot)
+        return result
     }
 }
 extension Mongo.Monitor
@@ -167,12 +224,12 @@ extension Mongo.Monitor
 
             switch await self.pool(generation: generation, connector: connector, host: host)
             {
-            case .reconnect:
+            case .refill:
                 generation += 1
                 await cooldown
                 continue
             
-            case .stop:
+            case .none:
                 return
             }
         }
@@ -180,18 +237,25 @@ extension Mongo.Monitor
     private
     func pool(generation:UInt,
         connector:Mongo.MonitorConnector,
-        host:Mongo.Host) async -> ExitStatus
+        host:Mongo.Host) async -> Mongo.ConnectionPoolRefill
     {
         let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
 
-        let connection:Mongo.MonitorConnection
+        let topologyConnection:Mongo.TopologyMonitor.Connection
+        let latencyConnection:Mongo.LatencyMonitor.Connection
         do
         {
-            connection = try await connector.connect(to: host)
+            topologyConnection = try await connector.connect(to: host)
         }
         catch let error
         {
-            return await self.sequence(error: error, host: host)
+            switch await self.combine(error: error, host: host)
+            {
+            case .accepted, .dropped:
+                return .refill
+            case .rejected:
+                return .none
+            }
         }
 
         //  '''
@@ -199,10 +263,10 @@ extension Mongo.Monitor
         //  include SCRAM mechanism negotiation (i.e. saslSupportedMechs), as
         //  doing so would make monitoring checks more expensive for the server.
         //  '''
-        let hello:HelloResult
+        let hello:Mongo.HelloResult
         do
         {
-            hello = try await connection.run(hello: .init(
+            hello = try await topologyConnection.run(hello: .init(
                     client: connector.client,
                     user: nil),
                 by: deadline)
@@ -210,90 +274,137 @@ extension Mongo.Monitor
         catch let error
         {
             async
-            let checker:Void = connection.close()
+            let checker:Void = topologyConnection.close()
 
-            let exit:ExitStatus = await self.sequence(error: error, host: host)
+            let result:Mongo.TopologyUpdateResult = await self.combine(error: error,
+                host: host)
 
             await checker
 
-            return exit
+            switch result
+            {
+            case .accepted, .dropped:
+                return .refill
+            case .rejected:
+                return .none
+            }
         }
         
-        let pool:Mongo.ConnectionPool = .init(generation: generation,
-            signaling: connection.heartbeat.heart,
+        var consumer:AsyncStream<Mongo.MonitorUpdate>.Continuation? = nil
+        let updates:AsyncStream<Mongo.MonitorUpdate> = .init
+        {
+            consumer = $0
+        }
+
+        guard let consumer:AsyncStream<Mongo.MonitorUpdate>.Continuation
+        else
+        {
+            fatalError("unreachable")
+        }
+
+        let topology:Mongo.TopologyMonitor = .init(consumer,
+            using: topologyConnection)
+        
+        let latency:Mongo.LatencyMonitor = .init(consumer,
+            using: latencyConnection)
+        
+        let pool:Mongo.ConnectionPool = .init(consumer,
+            generation: generation,
             connector: connector,
             timeout: self.timeout,
             logger: self.logger,
             host: host)
+        
+        consumer.yield(.topology(.success(.init(topology: hello.response.update,
+            sessions: hello.response.sessions,
+            owner: .init(consumer)))))
+        pool.set(latency: .init(truncating: hello.latency.duration))
 
-        let exit:ExitStatus
-        do
-        {
-            exit = try await self.check(host: host,
-                initialHello: hello,
-                over: connection,
-                pool: pool)
-            async
-            let pool:Void = pool.drain(because: .init())
+        async let topologyMonitor:Void = topology.monitor()
+        async let latencyMonitor:Void = latency.monitor(seed: hello.latency, pool: pool)
 
-            await connection.close()
-            await pool
-        }
-        catch let error
-        {
-            async
-            let checker:Void = connection.close()
-            async
-            let pool:Void = pool.drain(because: .init(because: error))
+        let policy:Mongo.ConnectionPoolRefill = await self.iterate(updates: updates,
+            host: host)
 
-            exit = await self.sequence(error: error, host: host)
+        topology.stop()
+        latency.stop()
 
-            await checker
-            await pool
-        }
-        return exit
+        await pool.drain(because: .init())
+
+        await topologyMonitor
+        await latencyMonitor
+
+        return policy
+
+        // let exit:ExitStatus
+        // do
+        // {
+        //     exit = try await self.check(host: host,
+        //         initialHello: hello,
+        //         over: connection,
+        //         pool: pool)
+        //     async
+        //     let pool:Void = pool.drain(because: .init())
+
+        //     await connection.close()
+        //     await pool
+        // }
+        // catch let error
+        // {
+        //     async
+        //     let checker:Void = connection.close()
+        //     async
+        //     let pool:Void = pool.drain(because: .init(because: error))
+
+        //     exit = await self.sequence(error: error, host: host)
+
+        //     await checker
+        //     await pool
+        // }
+        // return exit
     }
-    private
-    func check(host:Mongo.Host, initialHello initial:HelloResult,
-        over connection:Mongo.MonitorConnection,
-        pool:Mongo.ConnectionPool) async throws -> ExitStatus
-    {
-        if  let exit:ExitStatus = await self.sequence(update: initial.response.update,
-                sessions: initial.response.sessions,
-                pool: pool,
-                host: host)
-        {
-            return exit
-        }
 
-        var latency:Mongo.LatencyCDF = .init(seed: initial.latency, notifying: pool)
+    // private
+    // func check(host:Mongo.Host, initialHello initial:HelloResult,
+    //     over connection:Mongo.MonitorConnection,
+    //     pool:Mongo.ConnectionPool) async throws -> ExitStatus
+    // {
+    //     if  let exit:ExitStatus = await self.sequence(update: initial.response.update,
+    //             sessions: initial.response.sessions,
+    //             pool: pool,
+    //             host: host)
+    //     {
+    //         return exit
+    //     }
 
-        for try await _:Void in connection.heartbeat
-        {
-            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
+    //     var latency:Mongo.LatencyCDF = .init(seed: initial.latency, notifying: pool)
+
+    //     for try await _:Void in connection.heartbeat
+    //     {
+    //         let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
             
-            let subsequent:HelloResult = try await connection.run(
-                hello: .init(user: nil),
-                by: deadline)
-            if  subsequent.response.token != initial.response.token
-            {
-                throw Mongo.ConnectionTokenError.init(recorded: initial.response.token,
-                    invalid: subsequent.response.token)
-            }
-            if  let exit:ExitStatus = await self.sequence(update: subsequent.response.update,
-                    sessions: subsequent.response.sessions,
-                    pool: pool,
-                    host: host)
-            {
-                return exit
-            }
+    //         let subsequent:HelloResult = try await connection.run(
+    //             hello: .init(user: nil),
+    //             by: deadline)
+    //         if  subsequent.response.token != initial.response.token
+    //         {
+    //             throw Mongo.ConnectionTokenError.init(recorded: initial.response.token,
+    //                 invalid: subsequent.response.token)
+    //         }
+    //         if  let exit:ExitStatus = await self.sequence(update: subsequent.response.update,
+    //                 sessions: subsequent.response.sessions,
+    //                 pool: pool,
+    //                 host: host)
+    //         {
+    //             return exit
+    //         }
 
-            latency.insert(subsequent.latency, notifying: pool)
-        }
-        //  a variety of errors can happen while checking a server.
-        //  but if the checker stops without an error, that means
-        //  that monitoring was explicitly halted. so we never try
-        //  to reconnect on this path.
-        return .stop
-    }
+    //         latency.insert(subsequent.latency, notifying: pool)
+    //     }
+    //     //  a variety of errors can happen while checking a server.
+    //     //  but if the checker stops without an error, that means
+    //     //  that monitoring was explicitly halted. so we never try
+    //     //  to reconnect on this path.
+    //     return .stop
+    // }
 }

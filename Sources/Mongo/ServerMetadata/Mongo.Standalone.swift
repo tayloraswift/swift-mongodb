@@ -1,11 +1,8 @@
 extension Mongo
 {
     public
-    struct Standalone:Sendable
+    enum Standalone:Sendable
     {
-        public
-        init()
-        {
-        }
+        case standalone
     }
 }

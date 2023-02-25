@@ -1,11 +1,8 @@
 extension Mongo
 {
     public
-    struct Router:Sendable
+    enum Router:Sendable
     {
-        public
-        init()
-        {
-        }
+        case router
     }
 }

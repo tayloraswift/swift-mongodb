@@ -1,27 +1,25 @@
 import Atomics
 import Durations
 import Durations_Atomics
-import Heartbeats
-import MongoMonitoring
 
 //  these are extensions on the ``MongoMonitoringDelegate`` so they
 //  only appear as public API if you import that module explicitly.
-extension MongoMonitoringDelegate where Self == Mongo.ConnectionPool
-{
-    public nonisolated
-    func requestRecheck()
-    {
-        self.heart.beat()
-    }
-    public nonisolated
-    func stopMonitoring()
-    {
-        self.heart.stop()
-    }
-}
-extension Mongo.ConnectionPool:MongoMonitoringDelegate
-{
-}
+// extension MongoMonitoringDelegate where Self == Mongo.ConnectionPool
+// {
+//     public nonisolated
+//     func requestRecheck()
+//     {
+//         self.heart.beat()
+//     }
+//     public nonisolated
+//     func stopMonitoring()
+//     {
+//         self.heart.stop()
+//     }
+// }
+// extension Mongo.ConnectionPool:MongoMonitoringDelegate
+// {
+// }
 
 extension Mongo
 {
@@ -47,22 +45,24 @@ extension Mongo
         /// The size and width of this connection pool.
         nonisolated
         let parameters:Parameters
-        
-        /// The heartbeat controller for the monitoring task that created this pool.
-        nonisolated
-        let heart:Heart
+
         /// The host this pool creates connections to.
         nonisolated
         let host:Host
 
+        private nonisolated
+        let monitor:AsyncStream<Mongo.MonitorUpdate>.Continuation
         private nonisolated
         let logger:Logger?
         
         /// The connections stored in this pool.
         private
         var connections:Connections
+        /// The number of connections that this pool knows have been released,
+        /// but has not been able to re-index yet.
         private nonisolated
         let releasing:UnsafeAtomic<Int>
+
         /// All requests currently awaiting connections, identified by `UInt`.
         private
         var requests:[UInt: CheckedContinuation<ConnectionAllocation, any Error>]
@@ -90,8 +90,8 @@ extension Mongo
 
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
-        init(generation:UInt,
-            signaling heart:Heart,
+        init(_ monitor:AsyncStream<Mongo.MonitorUpdate>.Continuation,
+            generation:UInt,
             connector:MonitorConnector,
             timeout:ConnectionTimeout,
             logger:Logger?,
@@ -99,9 +99,9 @@ extension Mongo
         {
             self.generation = generation
             self.parameters = connector.pool
-            self.heart = heart
             self.host = host
 
+            self.monitor = monitor
             self.logger = logger
 
             self.connections = .init()
@@ -306,7 +306,7 @@ extension Mongo.ConnectionPool
         switch self.state
         {
         case .filling:
-            self.stopMonitoring()
+            self.monitor.finish()
             self.error = error
             for request:CheckedContinuation<Mongo.ConnectionAllocation, any Error>
                 in self.requests.values

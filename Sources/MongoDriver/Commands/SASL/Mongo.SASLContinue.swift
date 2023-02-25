@@ -12,7 +12,7 @@ extension Mongo
         let message:SCRAM.Message
     }
 }
-extension Mongo.SASLContinue:MongoCommand
+extension Mongo.SASLContinue
 {
     /// The string [`"saslContinue"`]().
     static

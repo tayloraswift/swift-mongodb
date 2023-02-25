@@ -17,11 +17,11 @@ extension MongoExecutor
     /// therefore it is the responsibility of the calling code to check if the
     /// deadline is sensible.
     @inlinable public
-    func request(deadline:ContinuousClock.Instant,
-        message:__owned MongoWire.Message<[UInt8]>.Sections)
+    func request(sections:__owned MongoWire.Message<[UInt8]>.Sections,
+        deadline:ContinuousClock.Instant)
         async -> Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>
     {
-        await Self.request(self.channel, deadline: deadline, message: message)
+        await Self.request(self.channel, sections: sections, deadline: deadline)
     }
 
     /// Interrupts this channel, forcing it to close (asynchronously), but
@@ -53,8 +53,9 @@ extension MongoExecutor
     /// therefore it is the responsibility of the calling code to check if the
     /// deadline is sensible.
     @usableFromInline internal static
-    func request(_ channel:any Channel, deadline:ContinuousClock.Instant,
-        message:__owned MongoWire.Message<[UInt8]>.Sections)
+    func request(_ channel:any Channel, 
+        sections:__owned MongoWire.Message<[UInt8]>.Sections,
+        deadline:ContinuousClock.Instant)
         async -> Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>
     {
         #if compiler(<5.8)
@@ -71,7 +72,7 @@ extension MongoExecutor
                 Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>,
                 Never>) in
 
-            channel.writeAndFlush(MongoIO.Action.request(message, continuation))
+            channel.writeAndFlush(MongoIO.Action.request(sections, continuation))
                 .whenComplete
             {
                 // don’t leak the continuation!

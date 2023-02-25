@@ -26,12 +26,19 @@ extension Mongo.Topology.Unknown
 extension Mongo.Topology.Unknown
 {
     mutating
-    func combine(error status:(any Error)?, host:Mongo.Host) -> Bool
+    func combine(error status:(any Error)?, host:Mongo.Host) -> Mongo.TopologyUpdateResult
     {
-        self.ghosts[host]?.clear(status: status) ?? false
+        if case ()? = self.ghosts[host]?.clear(status: status)
+        {
+            return .accepted
+        }
+        else
+        {
+            return .rejected
+        }
     }
     func topology<Metadata>(
-        of _:Metadata.Type) -> [Mongo.Host: Mongo.ServerDescription<Metadata, Pool>]
+        of _:Metadata.Type) -> [Mongo.Host: Mongo.ServerDescription<Metadata, Owner>]
     {
         self.ghosts.mapValues
         {

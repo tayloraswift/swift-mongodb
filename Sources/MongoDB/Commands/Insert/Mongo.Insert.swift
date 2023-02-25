@@ -63,7 +63,7 @@ extension Mongo.Insert
         try populate(&self)
     }
 }
-extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, MongoSessionCommand
+extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
     /// The string [`"insert"`]().
     @inlinable public static

@@ -1,7 +1,7 @@
 extension Mongo.TopologyUpdate
 {
     /// An update about about a replica set member that believes it
-    /// is not the ``case Member.primary(_:)``.
+    /// is a slave.
     @frozen public
     enum Slave:Sendable
     {

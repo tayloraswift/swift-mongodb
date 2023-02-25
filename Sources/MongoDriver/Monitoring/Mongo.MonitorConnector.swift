@@ -38,7 +38,8 @@ extension Mongo.MonitorConnector
 {
     /// Sets up a TCP channel to the given host alongside a heartbeat that
     /// will stop if the channel is closed (for any reason).
-    func connect(to host:Mongo.Host) async throws -> Mongo.MonitorConnection
+    func connect(to host:Mongo.Host,
+        timeout:Mongo.LatencyMonitor.Timeout) async throws -> Mongo.LatencyMonitor.Connection
     {
         let heartbeat:Heartbeat = .init(interval: .milliseconds(self.heartbeatInterval))
         let channel:any Channel = try await self.parameters.bootstrap(for: host).connect(
@@ -49,15 +50,17 @@ extension Mongo.MonitorConnector
         {
             //  when the checker task is cancelled, it will also close the
             //  connection again, which will be a no-op.
-            switch $0
-            {
-            case .success(()):
-                heartbeat.heart.stop()
-            case .failure(let error):
-                heartbeat.heart.stop(throwing: error)
-            }
+            _ in heartbeat.heart.stop()
         }
 
-        return .init(heartbeat: heartbeat, channel: channel)
+        return .init(heartbeat: heartbeat, channel: channel, timeout: timeout)
+    }
+    func connect(to host:Mongo.Host) async throws -> Mongo.TopologyMonitor.Connection
+    {
+        let channel:any Channel = try await self.parameters.bootstrap(for: host).connect(
+            host: host.name,
+            port: host.port).get()
+
+        return .init(channel: channel)
     }
 }

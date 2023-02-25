@@ -59,9 +59,20 @@ extension Mongo.Peerlist
     {
         // primary should already be in `self.hosts`
         var peers:Set<Mongo.Host> = []
-            peers.formUnion(self.arbiters)
-            peers.formUnion(self.passives)
-            peers.formUnion(self.hosts)
+        for host:Mongo.Host in [self.arbiters, self.passives, self.hosts].joined()
+        {
+            peers.insert(host)
+        }
         return peers
+    }
+    func peers(besides existing:Dictionary<Mongo.Host, some Any>.Keys) -> Set<Mongo.Host>
+    {
+        var inserted:Set<Mongo.Host> = []
+        for host:Mongo.Host in [self.arbiters, self.passives, self.hosts].joined()
+            where !existing.contains(host)
+        {
+            inserted.insert(host)
+        }
+        return inserted
     }
 }

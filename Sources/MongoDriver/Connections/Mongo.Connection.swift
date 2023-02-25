@@ -95,7 +95,7 @@ extension Mongo.Connection
         against database:Command.Database,
         labels:Mongo.SessionLabels,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
-        where Command:MongoSessionCommand
+        where Command:MongoCommand
     {
         let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
         guard   let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
@@ -107,7 +107,7 @@ extension Mongo.Connection
             throw Mongo.TimeoutError.driver(sent: false)
         }
 
-        switch await self.allocation.request(deadline: deadline, message: command)
+        switch await self.allocation.request(sections: command, deadline: deadline)
         {
         case .success(let message):
             return try .init(message: message)

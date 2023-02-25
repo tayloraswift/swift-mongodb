@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.DropDatabase:MongoImplicitSessionCommand, MongoSessionCommand
+extension Mongo.DropDatabase:MongoImplicitSessionCommand, MongoCommand
 {
     /// The string [`"dropDatabase"`]().
     @inlinable public static

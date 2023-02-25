@@ -1,3 +1,4 @@
+import BSONDecoding
 import MongoExecutor
 import NIOCore
 
@@ -40,9 +41,12 @@ extension Mongo.ConnectionAllocation
     /// Runs a ``Mongo/Hello`` command, and decodes a subset of its response
     /// suitable for authentication purposes.
     func run(hello command:__owned Mongo.Hello,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Authentication.HelloResponse
+        by deadline:Mongo.ConnectionDeadline) async throws -> Set<Mongo.Authentication.SASL>?
     {
-        try .init(bson: try await self.run(command: command, against: .admin,
-            by: deadline.instant)())
+        let bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView> = try await self.run(
+            command: command,
+            against: .admin,
+            by: deadline.instant)()
+        return try bson["saslSupportedMechs"]?.decode(to: Set<Mongo.Authentication.SASL>.self)
     }
 }

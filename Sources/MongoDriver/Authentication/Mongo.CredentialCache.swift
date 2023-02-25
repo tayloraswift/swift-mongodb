@@ -73,10 +73,10 @@ extension Mongo.CredentialCache
             user = nil
         }
 
-        let response:Mongo.Authentication.HelloResponse
+        let mechanisms:Set<Mongo.Authentication.SASL>?
         do
         {
-            response = try await connection.run(hello: .init(
+            mechanisms = try await connection.run(hello: .init(
                     client: .init(application: self.application),
                     user: user),
                 by: deadline)
@@ -91,7 +91,7 @@ extension Mongo.CredentialCache
             do
             {
                 try await self.authenticate(connection, credentials: credentials,
-                    mechanisms: response.mechanisms,
+                    mechanisms: mechanisms,
                     by: deadline)
             }
             catch let error

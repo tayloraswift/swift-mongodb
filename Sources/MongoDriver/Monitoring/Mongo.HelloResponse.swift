@@ -3,7 +3,7 @@ import BSON_Durations
 import Durations
 import MongoWire
 
-extension Mongo.Monitor
+extension Mongo
 {
     struct HelloResponse
     {
@@ -41,12 +41,11 @@ extension Mongo.Monitor
         let sessions:Mongo.LogicalSessions
 
         /// Type-specific information about the server which can be used to
-        /// update a topology model. This is [`nil`]() if the server type is
-        /// unknown, which is expected of replica set ghosts.
-        let update:Mongo.TopologyUpdate?
+        /// update a topology model.
+        let update:Mongo.TopologyUpdate
     }
 }
-extension Mongo.Monitor.HelloResponse:BSONDocumentDecodable
+extension Mongo.HelloResponse:BSONDocumentDecodable
 {
     init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
@@ -94,7 +93,7 @@ extension Mongo.Monitor.HelloResponse:BSONDocumentDecodable
                 let replica:Mongo.Replica = .init(
                     timings: try bson["lastWrite"].decode(to: Mongo.Replica.Timings.self),
                     tags: tags ?? [:])
-                self.update = .master(.init(replica: replica, term: .init(
+                self.update = .primary(.init(replica: replica, term: .init(
                         election: try bson["electionId"].decode(to: BSON.Identifier.self),
                         version: try bson["setVersion"].decode(to: Int64.self))),
                     peerlist)
@@ -119,15 +118,15 @@ extension Mongo.Monitor.HelloResponse:BSONDocumentDecodable
         {
             if      case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
             {
-                self.update = nil
+                self.update = .ghost
             }
             else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
             {
-                self.update = .router(.init())
+                self.update = .router(.router)
             }
             else
             {
-                self.update = .standalone(.init())
+                self.update = .standalone(.standalone)
             }
         }
     }

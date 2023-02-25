@@ -15,7 +15,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Fsync:MongoImplicitSessionCommand, MongoSessionCommand
+extension Mongo.Fsync:MongoImplicitSessionCommand, MongoCommand
 {
     /// The string [`"fsync"`]().
     @inlinable public static

@@ -99,7 +99,7 @@ extension Mongo.ListCollections:MongoIterableCommand
 }
 extension Mongo.ListCollections:MongoImplicitSessionCommand,
     MongoTransactableCommand,
-    MongoSessionCommand
+    MongoCommand
 {
     /// The string [`"listCollections"`]().
     @inlinable public static

@@ -1,16 +1,16 @@
 @frozen public
 struct Heart:Sendable
 {
-    let continuation:AsyncThrowingStream<Void, any Error>.Continuation
+    let continuation:AsyncStream<Void>.Continuation
 
-    init(_ continuation:AsyncThrowingStream<Void, any Error>.Continuation)
+    init(_ continuation:AsyncStream<Void>.Continuation)
     {
         self.continuation = continuation
     }
 }
 extension Heart
 {
-    init(yieldingTo continuation:AsyncThrowingStream<Void, any Error>.Continuation,
+    init(yieldingTo continuation:AsyncStream<Void>.Continuation,
         every interval:Duration)
     {
         self.init(continuation)
@@ -42,8 +42,8 @@ extension Heart
         self.continuation.yield()
     }
     public
-    func stop(throwing error:(any Error)? = nil)
+    func stop()
     {
-        self.continuation.finish(throwing: error)
+        self.continuation.finish()
     }
 }
