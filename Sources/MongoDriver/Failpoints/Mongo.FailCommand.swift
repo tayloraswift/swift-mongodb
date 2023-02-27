@@ -7,17 +7,17 @@ extension Mongo
     struct FailCommand:Sendable
     {
         public
-        let application:String?
-        public
         let behavior:Behavior?
+        public
+        let appname:String?
         public
         let types:[any MongoCommand.Type]
 
         public
-        init(application:String?, behavior:Behavior?, types:[any MongoCommand.Type])
+        init(behavior:Behavior?, appname:String?, types:[any MongoCommand.Type])
         {
-            self.application = application
             self.behavior = behavior
+            self.appname = appname
             self.types = types
         }
     }
@@ -37,7 +37,7 @@ extension Mongo.FailCommand:BSONEncodable, BSONDocumentEncodable
     public
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        bson["appName"] = self.application
+        bson["appName"] = self.appname
         bson["failCommands"] = self.types.map { $0.name }
 
         switch self.behavior

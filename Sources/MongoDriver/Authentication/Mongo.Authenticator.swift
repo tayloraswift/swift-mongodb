@@ -3,67 +3,32 @@ import SHA2
 
 extension Mongo
 {
-    final
-    actor CredentialCache
+    struct Authenticator:Sendable
     {
-        nonisolated
-        let application:String?
-
+        let credentials:Credentials?
         private
-        var sha256:[SCRAM.Challenge.CacheIdentifier: SCRAM.ClientResponse<SHA256>.Keys]
+        let cache:Cache
 
-        init(application:String?)
+        init(credentials:Credentials?)
         {
-            self.application = application
-            self.sha256 = [:]
+            self.credentials = credentials
+            self.cache = .init()
         }
     }
 }
-extension Mongo.CredentialCache
+extension Mongo.Authenticator
 {
-    private
-    func store(_ keys:SCRAM.ClientResponse<SHA256>.Keys, for id:SCRAM.Challenge.CacheIdentifier)
-    {
-        self.sha256[id] = keys
-    }
-}
-extension Mongo.CredentialCache
-{
-    private nonisolated
-    func sha256(challenge:SCRAM.Challenge, password:String,
-        received:SCRAM.Message,
-        sent:SCRAM.Start) async throws -> SCRAM.ClientResponse<SHA256>
-    {
-        let id:SCRAM.Challenge.CacheIdentifier = challenge.id(password: password)
-        // this computation can take a long time, don’t do this on the actor loop.
-        // instead we copy to a local and write it back to the cache when we are done.
-        var keys:SCRAM.ClientResponse<SHA256>.Keys? = await self.sha256[id]
-        let response:SCRAM.ClientResponse<SHA256> = try .init(cached: &keys,
-            challenge: challenge,
-            password: password,
-            received: received,
-            sent: sent)
-        if  let keys:SCRAM.ClientResponse<SHA256>.Keys
-        {
-            await self.store(keys, for: id)
-        }
-        return response
-    }
-}
-extension Mongo.CredentialCache
-{
-    /// Establishes a connection, performing authentication with the given credentials,
-    /// if possible. If establishment fails, the connection’s TCP channel will *not*
+    /// Establishes a connection, performing authentication if possible.
+    /// If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
-    nonisolated
     func establish(_ connection:Mongo.ConnectionAllocation,
-        credentials:Mongo.Credentials?,
+        client:Mongo.Hello.ClientMetadata,
         by deadline:Mongo.ConnectionDeadline) async -> Result<Void, any Error>
     {
         let user:Mongo.Namespaced<String>?
         // if we don’t have an explicit authentication mode, ask the server
         // what it supports (for the current user).
-        if  let credentials:Mongo.Credentials,
+        if  let credentials:Mongo.Credentials = self.credentials,
             case nil = credentials.authentication
         {
             user = credentials.user
@@ -76,9 +41,8 @@ extension Mongo.CredentialCache
         let mechanisms:Set<Mongo.Authentication.SASL>?
         do
         {
-            mechanisms = try await connection.run(hello: .init(
-                    client: .init(application: self.application),
-                    user: user),
+            mechanisms = try await connection.run(
+                hello: .init(client: client, user: user),
                 by: deadline)
         }
         catch let error
@@ -104,8 +68,7 @@ extension Mongo.CredentialCache
         return .success(())
     }
 }
-
-extension Mongo.CredentialCache
+extension Mongo.Authenticator
 {
     private nonisolated
     func authenticate(_ connection:Mongo.ConnectionAllocation,
@@ -198,7 +161,7 @@ extension Mongo.CredentialCache
             throw Mongo.PolicyError.sha256Iterations(challenge.iterations)
         }
 
-        let client:SCRAM.ClientResponse<SHA256> = try await self.sha256(
+        let client:SCRAM.ClientResponse<SHA256> = try await self.cache.sha256(
             challenge: challenge,
             password: password,
             received: first.message,

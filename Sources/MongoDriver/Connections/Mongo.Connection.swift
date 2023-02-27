@@ -82,9 +82,9 @@ extension Mongo.Connection
     /// Interrupts this connection’s IO channel, and marks it as
     /// non-reusable.
     public
-    func interrupt()
+    func cancel()
     {
-        self.allocation.interrupt()
+        self.allocation.cancel()
         self.reuse = false
     }
 }
@@ -112,7 +112,7 @@ extension Mongo.Connection
         case .success(let message):
             return try .init(message: message)
         
-        case .failure(.timeout):
+        case .failure(.cancellation(.timeout)):
             self.reuse = false
             throw Mongo.TimeoutError.driver(sent: true)
         

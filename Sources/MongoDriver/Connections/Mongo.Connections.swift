@@ -185,21 +185,11 @@ extension Mongo.Connections
         }
     }
 
-    /// Clears and returns the set of released channels. Currently-retained
-    /// channels, including perished channels, are unaffected.
-    mutating
-    func shrink() -> [Mongo.ConnectionAllocation]
+    func cancel()
     {
-        defer { self.released = [:] }
-        return self.released.map { .init(channel: $0.value, id: $0.key) }
-    }
-    /// Interrupts all currently-retained channels. Currently-released
-    /// channels, and perished channels, are unaffected.
-    func interrupt()
-    {
-        for channel:any Channel in self.retained.values
+        for channel:any Channel in [self.retained.values, self.released.values].joined()
         {
-            channel.writeAndFlush(MongoIO.Action.interrupt, promise: nil)
+            channel.writeAndFlush(MongoIO.Action.cancel(.cancel), promise: nil)
         }
     }
 }

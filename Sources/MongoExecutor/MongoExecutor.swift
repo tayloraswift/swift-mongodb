@@ -9,17 +9,23 @@ protocol MongoExecutor
 }
 extension MongoExecutor
 {
+    /// @import(MongoIO)
     /// Sends the given command document over this connection, unchanged, and
     /// awaits its message-response.
     ///
-    /// If the deadline passes without a reply from the server, the channel
-    /// will be closed. This will happen even if the deadline has already passed;
-    /// therefore it is the responsibility of the calling code to check if the
-    /// deadline is sensible.
-    @inlinable public
+    /// If the task the caller of this function is running on gets cancelled,
+    /// this function will close ``channel`` and return failure. This function
+    /// does not check for cancellation before sending the request; it is the
+    /// responsibility of the caller to check for cancellation.
+    ///
+    /// If the deadline passes without a reply from the server, this function
+    /// will close ``channel`` and return failure. This function does not check
+    /// if the deadline has already passed before sending the request; it is
+    /// the responsibility of the caller to check if the deadline is sensible.
+    public
     func request(sections:__owned MongoWire.Message<[UInt8]>.Sections,
         deadline:ContinuousClock.Instant)
-        async -> Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>
+        async -> Result<MongoWire.Message<ByteBufferView>, MongoIO.ChannelError>
     {
         await Self.request(self.channel, sections: sections, deadline: deadline)
     }
@@ -27,17 +33,14 @@ extension MongoExecutor
     /// Interrupts this channel, forcing it to close (asynchronously), but
     /// returning without waiting for the channel to complete its shutdown
     /// procedure.
-    ///
-    /// If a heartbeat controller was attached to this channel, this method
-    /// will also terminate the associated stream of heartbeats.
-    @inlinable public
-    func interrupt()
+    public
+    func cancel()
     {
-        Self.interrupt(self.channel)
+        Self.cancel(self.channel)
     }
 
     /// Closes this channel, returning when the channel has been closed.
-    @inlinable public
+    public
     func close() async
     {
         await Self.close(self.channel)
@@ -45,6 +48,12 @@ extension MongoExecutor
 }
 extension MongoExecutor
 {
+    private static
+    func timeout(_ channel:any Channel, by deadline:ContinuousClock.Instant) async throws
+    {
+        try await Task.sleep(until: deadline, clock: .continuous)
+        Self.cancel(channel, because: .timeout)
+    }
     /// Sends the given command document over this connection, unchanged, and
     /// awaits its message-response.
     ///
@@ -52,11 +61,11 @@ extension MongoExecutor
     /// will be closed. This will happen even if the deadline has already passed;
     /// therefore it is the responsibility of the calling code to check if the
     /// deadline is sensible.
-    @usableFromInline internal static
+    private static
     func request(_ channel:any Channel, 
         sections:__owned MongoWire.Message<[UInt8]>.Sections,
         deadline:ContinuousClock.Instant)
-        async -> Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>
+        async -> Result<MongoWire.Message<ByteBufferView>, MongoIO.ChannelError>
     {
         #if compiler(<5.8)
         async
@@ -66,36 +75,38 @@ extension MongoExecutor
         let _:Void = Self.timeout(channel, by: deadline)
         #endif
 
-        return await withCheckedContinuation
+        return await withTaskCancellationHandler
         {
-            (continuation:CheckedContinuation<
-                Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>,
-                Never>) in
-
-            channel.writeAndFlush(MongoIO.Action.request(sections, continuation))
-                .whenComplete
+            await withCheckedContinuation
             {
-                // don’t leak the continuation!
-                if case .failure(let error) = $0
+                (continuation:CheckedContinuation<
+                    Result<MongoWire.Message<ByteBufferView>, MongoIO.ChannelError>,
+                    Never>) in
+
+                channel.writeAndFlush(MongoIO.Action.request(sections, continuation))
+                    .whenComplete
                 {
-                    continuation.resume(returning: .failure(.network(error: .perished(error))))
+                    // don’t leak the continuation!
+                    if case .failure(let error) = $0
+                    {
+                        continuation.resume(returning: .failure(.network(error, sent: false)))
+                    }
                 }
             }
         }
+        onCancel:
+        {
+            Self.cancel(channel)
+        }
     }
-    private static
-    func timeout(_ channel:any Channel, by deadline:ContinuousClock.Instant) async throws
-    {
-        try await Task.sleep(until: deadline, clock: .continuous)
-        channel.writeAndFlush(MongoIO.Action.timeout, promise: nil)
-    }
+
 }
 extension MongoExecutor
 {
     @usableFromInline internal static
-    func interrupt(_ channel:any Channel)
+    func cancel(_ channel:any Channel, because reason:MongoIO.CancellationError = .cancel)
     {
-        channel.writeAndFlush(MongoIO.Action.interrupt, promise: nil)
+        channel.writeAndFlush(MongoIO.Action.cancel(reason), promise: nil)
     }
 
     @usableFromInline internal static

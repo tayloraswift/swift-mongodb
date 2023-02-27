@@ -1,6 +1,6 @@
-extension Mongo
+extension Mongo.Monitor
 {
-    enum ConnectionPoolRefill
+    enum RefillPolicy
     {
         case refill
         case none

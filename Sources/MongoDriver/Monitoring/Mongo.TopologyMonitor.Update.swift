@@ -1,9 +1,9 @@
 extension Mongo.TopologyMonitor
 {
-    struct Update
+    struct Update:Sendable
     {
         let topology:Mongo.TopologyUpdate
         let sessions:Mongo.LogicalSessions
-        let owner:Mongo.MonitorTask?
+        let canary:Canary?
     }
 }

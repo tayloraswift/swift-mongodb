@@ -1,8 +1,23 @@
 extension Mongo.Monitor
 {
-    enum State
+    struct State:Sendable
     {
-        case monitoring(Mongo.MonitorConnector, Mongo.Topology<Mongo.MonitorTask>)
-        case stopping(CheckedContinuation<Void, Never>?)
+        let connectionPoolSettings:Mongo.ConnectionPool.Settings
+        let connectorFactory:Mongo.ConnectorFactory
+        let authenticator:Mongo.Authenticator
+
+        var topology:Mongo.Topology<Mongo.TopologyMonitor.Canary>
+
+        init(connectionPoolSettings:Mongo.ConnectionPool.Settings,
+            connectorFactory:Mongo.ConnectorFactory,
+            authenticator:Mongo.Authenticator,
+            topology:Mongo.Topology<Mongo.TopologyMonitor.Canary>)
+        {
+            self.connectionPoolSettings = connectionPoolSettings
+            self.connectorFactory = connectorFactory
+            self.authenticator = authenticator
+            
+            self.topology = topology
+        }
     }
 }

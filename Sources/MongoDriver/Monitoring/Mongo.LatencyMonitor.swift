@@ -1,6 +1,5 @@
 import Durations
-import Heartbeats
-import MongoExecutor
+import OnlineCDF
 
 extension Mongo
 {
@@ -8,11 +7,12 @@ extension Mongo
     {
         private
         let connection:Connection
+        
         private
-        let consumer:AsyncStream<MonitorUpdate>.Continuation
+        let consumer:AsyncThrowingStream<TopologyMonitor.Update, any Error>.Continuation
 
-        init(_ consumer:AsyncStream<MonitorUpdate>.Continuation,
-            using connection:Connection)
+        init(_ consumer:AsyncThrowingStream<TopologyMonitor.Update, any Error>.Continuation,
+            connection:Connection)
         {
             self.connection = connection
             self.consumer = consumer
@@ -21,21 +21,34 @@ extension Mongo
 }
 extension Mongo.LatencyMonitor
 {
-    func stop()
+    func monitor(every interval:Milliseconds,
+        seed:Mongo.Latency,
+        for pool:Mongo.ConnectionPool) async
     {
-        self.connection.heartbeat.heart.stop()
-        self.connection.interrupt()
-    }
-    func monitor(seed:Mongo.Latency) async
-    {
-        var latency:Mongo.LatencyCDF = .init(seed: seed, notifying: pool)
-        defer
+        do
+        {
+            let interval:Duration = .milliseconds(interval)
+            var cdf:OnlineCDF = .init(resolution: 16, seed: seed.nanoseconds)
+
+            while true
+            {
+                async
+                let cooldown:Void = Task.sleep(for: interval)
+                let deadline:ContinuousClock.Instant = .now.advanced(by: interval)
+
+                let sample:Mongo.Latency = try await self.connection.sample(by: deadline)
+                cdf.insert(sample.nanoseconds)
+
+                let estimate:Nanoseconds = .nanoseconds(.init(cdf.estimate(quantile: 0.9)))
+                pool.set(latency: estimate)
+
+                try await cooldown
+            }
+        }
+        catch
         {
             self.consumer.finish()
-        }
-        for await _:Void in self.connection.heartbeat
-        {
-            self.consumer.yield(.latency(try await self.connection.sample())
+            await self.connection.close()
         }
     }
 }

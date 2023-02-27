@@ -1,7 +1,5 @@
 import Durations
-import Heartbeats
 import NIOCore
-import OnlineCDF
 
 extension Mongo
 {
@@ -12,18 +10,30 @@ extension Mongo
         private nonisolated
         let deployment:Deployment
 
+        /// The monitoring interval, in milliseconds.
+        private nonisolated
+        let interval:Milliseconds
+
         private
-        var state:State
+        var phase:Phase
         private
         var tasks:Int
         
-        init(_ seedlist:Topology<MonitorTask>.Unknown,
+        init(_ seedlist:Topology<Mongo.TopologyMonitor.Canary>.Unknown,
+            connectionPoolSettings:ConnectionPool.Settings,
+            connectorFactory:ConnectorFactory,
+            authenticator:Authenticator,
             deployment:Deployment,
-            connector:MonitorConnector)
+            interval:Milliseconds)
         {
             self.deployment = deployment
+            self.interval = interval
 
-            self.state = .monitoring(connector, .unknown(seedlist))
+            self.phase = .active(.init(connectionPoolSettings: connectionPoolSettings,
+                connectorFactory: connectorFactory,
+                authenticator: authenticator,
+                topology: .unknown(seedlist)))
+            
             self.tasks = 0
 
             for host:Mongo.Host in seedlist.ghosts.keys
@@ -34,7 +44,7 @@ extension Mongo
 
         func stop() async
         {
-            guard case .monitoring = self.state
+            guard case .active = self.phase
             else
             {
                 fatalError("unreachable (stopping monitor that is not running!)")
@@ -42,20 +52,20 @@ extension Mongo
             guard self.tasks != 0
             else
             {
-                self.state = .stopping(nil)
+                self.phase = .stopped
                 return
             }
             await withCheckedContinuation
             {
                 //  Overwriting the topology in ``state`` will also release
                 //  all the monitoring tasks owned by the topology.
-                self.state = .stopping($0)
+                self.phase = .stopping($0)
             }
         }
 
         deinit
         {
-            guard case .stopping(nil) = self.state
+            guard case .stopped = self.phase
             else
             {
                 fatalError("unreachable (deinitialized monitor that has not been stopped!)")
@@ -83,111 +93,6 @@ extension Mongo.Monitor
 }
 extension Mongo.Monitor
 {
-    private
-    func iterate(updates:AsyncStream<Mongo.MonitorUpdate>,
-        host:Mongo.Host) async -> Mongo.ConnectionPoolRefill
-    {
-        for await update:Mongo.MonitorUpdate in updates
-        {
-            switch update
-            {
-            case .topology(let update):
-                switch await self.combine(update: update, host: host)
-                {
-                case .accepted:
-                    continue
-                
-                case .dropped:
-                    return .refill
-                
-                case .rejected:
-                    return .none
-                }
-            
-            // case .latency(let latency):
-            //     pool.set(latency: latency)
-            }
-        }
-
-        switch await self.combine(error: nil, host: host)
-        {
-        case .accepted, .dropped:
-            return .refill
-        
-        case .rejected:
-            return .none
-        }
-    }
-
-    private
-    func combine(update:Result<Mongo.TopologyMonitor.Update, any Error>,
-        host:Mongo.Host) async -> Mongo.TopologyUpdateResult
-    {
-        switch update
-        {
-        case .success(let update):
-            return await self.combine(update: update.topology,
-                sessions: update.sessions,
-                owner: update.owner,
-                host: host)
-        
-        case .failure(let error):
-            return await self.combine(error: error, host: host)
-        }
-    }
-
-    private
-    func combine(update:Mongo.TopologyUpdate,
-        sessions:Mongo.LogicalSessions,
-        owner:Mongo.MonitorTask?,
-        host:Mongo.Host) async -> Mongo.TopologyUpdateResult
-    {
-        guard case .monitoring(let bootstrap, var topology) = self.state
-        else
-        {
-            return .rejected
-        }
-        
-        self.state = .stopping(nil)
-
-        let result:Mongo.TopologyUpdateResult = topology.combine(update: update,
-            owner: owner,
-            host: host,
-            add: self.monitor(host:))
-        
-        let snapshot:Mongo.Servers = .init(from: topology,
-            heartbeatInterval: bootstrap.heartbeatInterval)
-
-        self.state = .monitoring(bootstrap, topology)
-
-        await self.deployment.push(snapshot: snapshot, sessions: sessions)
-        return result
-    }
-
-    private
-    func combine(error:(any Error)?, host:Mongo.Host) async -> Mongo.TopologyUpdateResult
-    {
-        guard case .monitoring(let bootstrap, var topology) = self.state
-        else
-        {
-            return .rejected
-        }
-
-        self.state = .stopping(nil)
-
-        let result:Mongo.TopologyUpdateResult = topology.combine(error: error, host: host)
-
-        let snapshot:Mongo.Servers = .init(from: topology,
-            heartbeatInterval: bootstrap.heartbeatInterval)
-
-        self.state = .monitoring(bootstrap, topology)
-
-        await self.deployment.push(snapshot: snapshot)
-        return result
-    }
-}
-extension Mongo.Monitor
-{
     private nonisolated
     func monitor(host:Mongo.Host)
     {
@@ -208,21 +113,25 @@ extension Mongo.Monitor
             self.tasks -= 1
 
             if  self.tasks == 0,
-                case .stopping(let continuation?) = self.state
+                case .stopping(let continuation) = self.phase
             {
                 continuation.resume()
-                self.state = .stopping(nil)
+                self.phase = .stopped
             }
         }
 
         var generation:UInt = 0
-        while case .monitoring(let connector, _) = self.state
+        while case .active(let state) = self.phase
         {
             // do not spam connections more than once per second
             async
             let cooldown:Void? = try? Task.sleep(for: .seconds(1))
 
-            switch await self.pool(generation: generation, connector: connector, host: host)
+            switch await self.pool(connectorFactory: state.connectorFactory,
+                authenticator: state.authenticator,
+                generation: generation,
+                settings: state.connectionPoolSettings,
+                host: host)
             {
             case .refill:
                 generation += 1
@@ -235,17 +144,22 @@ extension Mongo.Monitor
         }
     }
     private
-    func pool(generation:UInt,
-        connector:Mongo.MonitorConnector,
-        host:Mongo.Host) async -> Mongo.ConnectionPoolRefill
+    func pool(connectorFactory:Mongo.ConnectorFactory,
+        authenticator:Mongo.Authenticator,
+        generation:UInt,
+        settings:Mongo.ConnectionPool.Settings,
+        host:Mongo.Host) async -> RefillPolicy
     {
-        let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
+        let connector:Mongo.Connector<Never?> = connectorFactory(authenticator: nil,
+            timeout: self.timeout,
+            host: host)
 
-        let topologyConnection:Mongo.TopologyMonitor.Connection
-        let latencyConnection:Mongo.LatencyMonitor.Connection
+        let updates:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>
+        let tasks:Mongo.MonitorTasks
+
         do
         {
-            topologyConnection = try await connector.connect(to: host)
+            (tasks, updates) = try await connector.monitors(interval: self.interval)
         }
         catch let error
         {
@@ -257,154 +171,108 @@ extension Mongo.Monitor
                 return .none
             }
         }
+        
+        let pool:Mongo.ConnectionPool = tasks.pool(generation: generation,
+            settings: settings,
+            logger: self.logger)
+        
+        async
+        let _:Void = tasks.start(connectionTimeout: self.timeout,
+            connectorFactory: connectorFactory,
+            authenticator: authenticator,
+            pool: pool)
 
-        //  '''
-        //  Drivers MUST NOT authenticate on sockets used for monitoring nor
-        //  include SCRAM mechanism negotiation (i.e. saslSupportedMechs), as
-        //  doing so would make monitoring checks more expensive for the server.
-        //  '''
-        let hello:Mongo.HelloResult
+        return await self.iterate(updates: updates, host: host)
+    }
+    
+    private
+    func iterate(updates:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>,
+        host:Mongo.Host) async -> RefillPolicy
+    {
         do
         {
-            hello = try await topologyConnection.run(hello: .init(
-                    client: connector.client,
-                    user: nil),
-                by: deadline)
-        }
-        catch let error
-        {
-            async
-            let checker:Void = topologyConnection.close()
-
-            let result:Mongo.TopologyUpdateResult = await self.combine(error: error,
-                host: host)
-
-            await checker
-
-            switch result
+            for try await update:Mongo.TopologyMonitor.Update in updates
+            {
+                switch await self.combine(update: update, host: host)
+                {
+                case .accepted:
+                    continue
+                
+                case .dropped:
+                    return .refill
+                
+                case .rejected:
+                    return .none
+                }
+            }
+            switch await self.combine(error: nil, host: host)
             {
             case .accepted, .dropped:
                 return .refill
+            
             case .rejected:
                 return .none
             }
         }
-        
-        var consumer:AsyncStream<Mongo.MonitorUpdate>.Continuation? = nil
-        let updates:AsyncStream<Mongo.MonitorUpdate> = .init
+        catch let error
         {
-            consumer = $0
+            switch await self.combine(error: error, host: host)
+            {
+            case .accepted, .dropped:
+                return .refill
+            
+            case .rejected:
+                return .none
+            }
         }
-
-        guard let consumer:AsyncStream<Mongo.MonitorUpdate>.Continuation
-        else
-        {
-            fatalError("unreachable")
-        }
-
-        let topology:Mongo.TopologyMonitor = .init(consumer,
-            using: topologyConnection)
-        
-        let latency:Mongo.LatencyMonitor = .init(consumer,
-            using: latencyConnection)
-        
-        let pool:Mongo.ConnectionPool = .init(consumer,
-            generation: generation,
-            connector: connector,
-            timeout: self.timeout,
-            logger: self.logger,
-            host: host)
-        
-        consumer.yield(.topology(.success(.init(topology: hello.response.update,
-            sessions: hello.response.sessions,
-            owner: .init(consumer)))))
-        pool.set(latency: .init(truncating: hello.latency.duration))
-
-        async let topologyMonitor:Void = topology.monitor()
-        async let latencyMonitor:Void = latency.monitor(seed: hello.latency, pool: pool)
-
-        let policy:Mongo.ConnectionPoolRefill = await self.iterate(updates: updates,
-            host: host)
-
-        topology.stop()
-        latency.stop()
-
-        await pool.drain(because: .init())
-
-        await topologyMonitor
-        await latencyMonitor
-
-        return policy
-
-        // let exit:ExitStatus
-        // do
-        // {
-        //     exit = try await self.check(host: host,
-        //         initialHello: hello,
-        //         over: connection,
-        //         pool: pool)
-        //     async
-        //     let pool:Void = pool.drain(because: .init())
-
-        //     await connection.close()
-        //     await pool
-        // }
-        // catch let error
-        // {
-        //     async
-        //     let checker:Void = connection.close()
-        //     async
-        //     let pool:Void = pool.drain(because: .init(because: error))
-
-        //     exit = await self.sequence(error: error, host: host)
-
-        //     await checker
-        //     await pool
-        // }
-        // return exit
     }
 
-    // private
-    // func check(host:Mongo.Host, initialHello initial:HelloResult,
-    //     over connection:Mongo.MonitorConnection,
-    //     pool:Mongo.ConnectionPool) async throws -> ExitStatus
-    // {
-    //     if  let exit:ExitStatus = await self.sequence(update: initial.response.update,
-    //             sessions: initial.response.sessions,
-    //             pool: pool,
-    //             host: host)
-    //     {
-    //         return exit
-    //     }
+    private
+    func combine(update:Mongo.TopologyMonitor.Update,
+        host:Mongo.Host) async -> Mongo.TopologyUpdateResult
+    {
+        guard case .active(var state) = self.phase
+        else
+        {
+            return .rejected
+        }
+        
+        self.phase = .stopped
 
-    //     var latency:Mongo.LatencyCDF = .init(seed: initial.latency, notifying: pool)
+        let result:Mongo.TopologyUpdateResult = state.topology.combine(update: update.topology,
+            owner: update.canary,
+            host: host,
+            add: self.monitor(host:))
+        
+        let snapshot:Mongo.Servers = .init(from: state.topology,
+            heartbeatInterval: self.interval)
 
-    //     for try await _:Void in connection.heartbeat
-    //     {
-    //         let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
-            
-    //         let subsequent:HelloResult = try await connection.run(
-    //             hello: .init(user: nil),
-    //             by: deadline)
-    //         if  subsequent.response.token != initial.response.token
-    //         {
-    //             throw Mongo.ConnectionTokenError.init(recorded: initial.response.token,
-    //                 invalid: subsequent.response.token)
-    //         }
-    //         if  let exit:ExitStatus = await self.sequence(update: subsequent.response.update,
-    //                 sessions: subsequent.response.sessions,
-    //                 pool: pool,
-    //                 host: host)
-    //         {
-    //             return exit
-    //         }
+        self.phase = .active(state)
 
-    //         latency.insert(subsequent.latency, notifying: pool)
-    //     }
-    //     //  a variety of errors can happen while checking a server.
-    //     //  but if the checker stops without an error, that means
-    //     //  that monitoring was explicitly halted. so we never try
-    //     //  to reconnect on this path.
-    //     return .stop
-    // }
+        await self.deployment.push(snapshot: snapshot, sessions: update.sessions)
+        return result
+    }
+
+    private
+    func combine(error:(any Error)?, host:Mongo.Host) async -> Mongo.TopologyUpdateResult
+    {
+        guard case .active(var state) = self.phase
+        else
+        {
+            return .rejected
+        }
+
+        self.phase = .stopped
+
+        let result:Mongo.TopologyUpdateResult = state.topology.combine(error: error,
+            host: host)
+
+        let snapshot:Mongo.Servers = .init(from: state.topology,
+            heartbeatInterval: self.interval)
+
+        self.phase = .active(state)
+
+        await self.deployment.push(snapshot: snapshot)
+        return result
+    }
 }

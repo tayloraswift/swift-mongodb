@@ -105,7 +105,7 @@ func TestConnectionPool(_ tests:TestGroup,
                 //  interrupt ten of those connections.
                 for connection:Mongo.Connection in connections.prefix(10)
                 {
-                    connection.interrupt()
+                    connection.cancel()
                 }
                 //  even though we haven’t returned the perished connections
                 //  to the pool, it should still be able to re-create ten

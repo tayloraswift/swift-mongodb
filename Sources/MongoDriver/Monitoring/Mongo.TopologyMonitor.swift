@@ -7,10 +7,10 @@ extension Mongo
         private
         let connection:Connection
         private
-        let consumer:AsyncStream<MonitorUpdate>.Continuation
+        let consumer:AsyncThrowingStream<Update, any Error>.Continuation
 
-        init(_ consumer:AsyncStream<MonitorUpdate>.Continuation,
-            using connection:Connection)
+        init(_ consumer:AsyncThrowingStream<Update, any Error>.Continuation,
+            connection:Connection)
         {
             self.connection = connection
             self.consumer = consumer
@@ -19,30 +19,28 @@ extension Mongo
 }
 extension Mongo.TopologyMonitor
 {
-    func stop()
+    func monitor(every interval:Milliseconds, seed:Mongo.TopologyVersion) async
     {
-        self.connection.interrupt()
-    }
-    func monitor() async
-    {
-        defer
-        {
-            self.consumer.finish()
-        }
+        var version:Mongo.TopologyVersion = seed
         while true
         {
             do
             {
-                let response:Mongo.HelloResponse = try await self.connection.listen(
-                    granularity: .milliseconds(1000))
+                let response:Mongo.HelloResponse = try await self.connection.run(
+                    hello: .init(topologyVersion: version,
+                        milliseconds: interval))
                 
-                self.consumer.yield(.topology(.success(.init(topology: response.update,
+                version = response.topologyVersion
+                
+                self.consumer.yield(.init(
+                    topology: response.topologyUpdate,
                     sessions: response.sessions,
-                    owner: nil))))
+                    canary: nil))
             }
             catch let error
             {
-                self.consumer.yield(.topology(.failure(error)))
+                self.consumer.finish(throwing: error)
+                await self.connection.close()
                 return
             }
         }

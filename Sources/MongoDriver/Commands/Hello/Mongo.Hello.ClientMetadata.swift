@@ -1,18 +1,18 @@
 import BSONEncoding
 
-extension Mongo
+extension Mongo.Hello
 {
-    struct ClientMetadata
+    struct ClientMetadata:Sendable
     {
-        let application:String?
+        let appname:String?
 
-        init(application:String?)
+        init(appname:String?)
         {
-            self.application = application
+            self.appname = appname
         }
     }
 }
-extension Mongo.ClientMetadata
+extension Mongo.Hello.ClientMetadata
 {
     private static
     var os:String
@@ -28,15 +28,15 @@ extension Mongo.ClientMetadata
         #endif
     }
 }
-extension Mongo.ClientMetadata:BSONEncodable, BSONDocumentEncodable
+extension Mongo.Hello.ClientMetadata:BSONEncodable, BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        if let application:String = self.application
+        if let appname:String = self.appname
         {
             bson["application"] = .init
             {
-                $0["name"] = application
+                $0["name"] = appname
             }
         }
         bson["driver"] = .init

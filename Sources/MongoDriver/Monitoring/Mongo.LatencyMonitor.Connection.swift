@@ -1,4 +1,4 @@
-import Heartbeats
+import Durations
 import MongoExecutor
 import NIOCore
 
@@ -6,23 +6,18 @@ extension Mongo.LatencyMonitor
 {
     struct Connection:MongoExecutor
     {
-        let heartbeat:Heartbeat
         let channel:any Channel
-        let timeout:Timeout
 
-        init(heartbeat:Heartbeat, channel:any Channel, timeout:Timeout)
+        init(channel:any Channel)
         {
-            self.heartbeat = heartbeat
             self.channel = channel
-            self.timeout = timeout
         }
     }
 }
 extension Mongo.LatencyMonitor.Connection
 {
-    func sample() async throws -> Mongo.Latency
+    func sample(by deadline:ContinuousClock.Instant) async throws -> Mongo.Latency
     {
-        let deadline:ContinuousClock.Instant = self.timeout.deadline()
         let hello:Mongo.Hello = .init(user: nil)
         //  Cannot use ``ContinousClock.measure(_:)``, because that API does not
         //  allow us to return values from the closure.

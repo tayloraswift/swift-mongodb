@@ -32,7 +32,7 @@ extension MongoIO
 }
 extension MongoIO.MessageRouter
 {
-    func perish(throwing error:MongoIO.ExecutionError)
+    func perish(throwing error:MongoIO.ChannelError)
     {
         switch self.state
         {
@@ -79,18 +79,18 @@ extension MongoIO.MessageRouter:ChannelInboundHandler
         }
     }
     public
-    func errorCaught(context:ChannelHandlerContext, error:any Error)
-    {
-        self.perish(throwing: .network(error: .other(error)))
-        
-        context.fireErrorCaught(error)
-    }
-    public
     func channelInactive(context:ChannelHandlerContext)
     {
-        self.perish(throwing: .network(error: .disconnected))
+        self.perish(throwing: .network(ChannelError.outputClosed, sent: true))
 
         context.fireChannelInactive()
+    }
+    public
+    func errorCaught(context:ChannelHandlerContext, error:any Error)
+    {
+        self.perish(throwing: .network(error, sent: true))
+        
+        context.fireErrorCaught(error)
     }
 }
 extension MongoIO.MessageRouter:ChannelOutboundHandler
@@ -105,13 +105,8 @@ extension MongoIO.MessageRouter:ChannelOutboundHandler
     {
         switch self.unwrapOutboundIn(data)
         {
-        case .interrupt:
-            self.perish(throwing: .network(error: .interrupted))
-
-            context.channel.close(mode: .all, promise: nil)
-        
-        case .timeout:
-            self.perish(throwing: .timeout)
+        case .cancel(let reason):
+            self.perish(throwing: .cancellation(reason))
 
             context.channel.close(mode: .all, promise: nil)
         
@@ -125,7 +120,8 @@ extension MongoIO.MessageRouter:ChannelOutboundHandler
             switch self.state
             {
             case .perished:
-                continuation.resume(returning: .failure(.network(error: .disconnected)))
+                continuation.resume(returning: .failure(.network(ChannelError.alreadyClosed,
+                    sent: true)))
                 return
             
             case .awaiting(_?):

@@ -25,6 +25,14 @@ extension Mongo.Topology.Single:Sendable where Owner:Sendable
 extension Mongo.Topology.Single
 {
     public
+    var item:(key:Mongo.Host, value:Mongo.ServerDescription<Mongo.Standalone, Owner>)?
+    {
+        self.value.map { (self.host, $0) }
+    }
+}
+extension Mongo.Topology.Single
+{
+    public
     subscript(host:Mongo.Host) -> Mongo.ServerDescription<Mongo.Standalone, Owner>?
     {
         get

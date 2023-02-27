@@ -3,35 +3,59 @@ import NIOCore
 import NIOPosix
 import NIOSSL
 
-extension Mongo.Connector
+extension Mongo
 {
-    struct Parameters
+    struct ConnectorFactory:Sendable
     {
         // TODO: need a better way to handle TLS certificates,
         // should probably cache certificate loading...
+        private
         let _certificatePath:String?
-
-        let resolver:DNS.Connection?,
-            executor:any EventLoopGroup
+        private
+        let executor:any EventLoopGroup
+        private
+        let resolver:DNS.Connection?
+        
+        /// The name of the application.
+        let appname:String?
         
         init(certificatePath:String?,
+            executor:any EventLoopGroup,
             resolver:DNS.Connection?,
-            executor:any EventLoopGroup)
+            appname:String?)
         {
             self._certificatePath = certificatePath
             self.resolver = resolver
             self.executor = executor
+            self.appname = appname
         }
     }
 }
-extension Mongo.Connector.Parameters
+extension Mongo.ConnectorFactory
 {
-    func bootstrap(for host:Mongo.Host) -> ClientBootstrap
+    func callAsFunction<Authenticator>(authenticator:Authenticator,
+        timeout:Mongo.ConnectionTimeout,
+        host:Mongo.Host) -> Mongo.Connector<Authenticator>
+    {
+        .init(authenticator: authenticator,
+            bootstrap: self.bootstrap(timeout: timeout, host: host),
+            timeout: timeout,
+            appname: appname,
+            host: host)
+    }
+}
+extension Mongo.ConnectorFactory
+{
+    private
+    func bootstrap(timeout:Mongo.ConnectionTimeout, host:Mongo.Host) -> ClientBootstrap
     {
         .init(group: self.executor)
             .resolver(self.resolver)
-            .channelOption(
-                ChannelOptions.socket(SocketOptionLevel.init(SOL_SOCKET), SO_REUSEADDR), 
+            .channelOption(ChannelOptions.Types.ConnectTimeoutOption.init(), 
+                value: .milliseconds(timeout.milliseconds.rawValue))
+            .channelOption(ChannelOptions.Types.SocketOption.init(
+                    level: Int.init(SOL_SOCKET),
+                    name: SO_REUSEADDR), 
                 value: 1)
             .channelInitializer
         { 

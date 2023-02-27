@@ -3,7 +3,7 @@ extension Mongo.ConnectionPool
     @frozen public
     enum Event:Sendable
     {
-        case creating(Parameters)
+        case creating(Settings)
         case draining(because:any Error)
         case drained
 

@@ -8,15 +8,21 @@ extension MongoExecutor
     /// as a field with the key [`"$db"`](), sends it over this channel, and
     /// awaits its reply.
     ///
-    /// If the deadline has already passed before the command can be encoded,
-    /// this method will throw a ``TimeoutError``, but the channel will not
-    /// be closed. In all other scenarios, the channel will be closed on
-    /// timeout.
+    /// If the deadline passes before this function can start executing, this
+    /// method will not close the channel or send anything over it.
+    ///
+    /// If the task the caller is running on gets cancelled before this
+    /// function can start executing, this method will not close the channel
+    /// or send anything over it.
+    ///
+    /// In all other scenarios, the channel will be closed on failure.
     func run<Command>(command:__owned Command,
         against database:Mongo.Database,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
         where Command:BSONDocumentEncodable
     {
+        try Task.checkCancellation()
+        
         let now:ContinuousClock.Instant = .now
         let sections:MongoWire.Message<[UInt8]>.Sections
 
@@ -36,7 +42,7 @@ extension MongoExecutor
         case .success(let message):
             return try .init(message: message)
         
-        case .failure(.timeout):
+        case .failure(.cancellation(.timeout)):
             throw Mongo.TimeoutError.driver(sent: true)
         
         case .failure(let error):

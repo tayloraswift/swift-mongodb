@@ -17,7 +17,7 @@ extension Sequence where Element:MongoExecutor
 
                 tasks.addTask
                 {
-                    Element.interrupt(channel)
+                    await Element.close(channel)
                 }
             }
         }

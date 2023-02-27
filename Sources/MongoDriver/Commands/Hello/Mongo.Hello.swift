@@ -1,4 +1,3 @@
-import Durations
 import BSONEncoding
 
 extension Mongo
@@ -9,15 +8,12 @@ extension Mongo
     struct Hello:Sendable
     {
         let client:ClientMetadata?
-        let await:Milliseconds?
         let user:Mongo.Namespaced<String>?
 
         init(client:ClientMetadata? = nil,
-            await:Milliseconds? = nil,
             user:Mongo.Namespaced<String>?)
         {
             self.client = client
-            self.await = `await`
             self.user = user
         }
     }
@@ -38,7 +34,6 @@ extension Mongo.Hello:BSONDocumentEncodable
     {
         bson[Self.name] = true
         bson["client"] = self.client
-        bson["maxAwaitTimeMS"] = self.await
         bson["saslSupportedMechs"] = self.user
     }
 }

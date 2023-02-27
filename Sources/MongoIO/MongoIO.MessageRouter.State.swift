@@ -7,7 +7,7 @@ extension MongoIO.MessageRouter
     {
         case perished
         case awaiting(CheckedContinuation<
-            Result<MongoWire.Message<ByteBufferView>, MongoIO.ExecutionError>,
+            Result<MongoWire.Message<ByteBufferView>, MongoIO.ChannelError>,
             Never>?)
     }
 }

@@ -89,7 +89,7 @@ extension Mongo.Servers.Members
             self.init(unreachables: unreachables, undesirables: undesirables)
         }
     }
-    init(from topology:__shared Mongo.Topology<Mongo.ConnectionPool>.Replicated,
+    init(from topology:__shared Mongo.Topology<Mongo.TopologyMonitor.Canary>.Replicated,
         heartbeatInterval:Milliseconds)
     {
         var unreachables:[Mongo.Host: Mongo.Unreachable] = [:],
@@ -100,17 +100,17 @@ extension Mongo.Servers.Members
         for (host, state):
         (
             Mongo.Host, 
-            Mongo.ServerDescription<Mongo.ReplicaSetMember?, Mongo.ConnectionPool>
+            Mongo.ServerDescription<Mongo.ReplicaSetMember, Mongo.TopologyMonitor.Canary>
         )
-            in topology.members
+            in topology
         {
-            let member:Mongo.ReplicaSetMember?
+            let member:Mongo.ReplicaSetMember
             let pool:Mongo.ConnectionPool
             switch state
             {
-            case .monitoring(let metadata, let delegate):
+            case .connected(let metadata, let owner):
                 member = metadata
-                pool = delegate
+                pool = owner.pool
             
             case .errored(let error):
                 unreachables[host] = .errored(error)
@@ -123,19 +123,19 @@ extension Mongo.Servers.Members
 
             switch member
             {
-            case .primary(let metadata)?:
+            case .primary(let metadata):
                 primary = .init(metadata: metadata, pool: pool)
             
-            case .secondary(let metadata)?:
+            case .secondary(let metadata):
                 secondaries.append(.init(metadata: metadata, pool: pool))
             
-            case .arbiter?:
+            case .arbiter:
                 undesirables[host] = .arbiter
             
-            case .other?:
+            case .other:
                 undesirables[host] = .other
             
-            case nil:
+            case .ghost:
                 undesirables[host] = .ghost
             }
         }

@@ -19,20 +19,20 @@ extension Mongo.Servers
 }
 extension Mongo.Servers.Routers
 {
-    init(from topology:__shared Mongo.Topology<Mongo.ConnectionPool>.Sharded)
+    init(from topology:__shared Mongo.Topology<Mongo.TopologyMonitor.Canary>.Sharded)
     {
         self.init()
         for (host, state):
         (
             Mongo.Host, 
-            Mongo.ServerDescription<Mongo.Router, Mongo.ConnectionPool>
+            Mongo.ServerDescription<Mongo.Router, Mongo.TopologyMonitor.Canary>
         )
-            in topology.routers
+            in topology
         {
             switch state
             {
-            case .monitoring(let metadata, let pool):
-                self.candidates.append(.init(metadata: metadata, pool: pool))
+            case .connected(let metadata, let owner):
+                self.candidates.append(.init(metadata: metadata, pool: owner.pool))
             
             case .errored(let error):
                 self.unreachables[host] = .errored(error)

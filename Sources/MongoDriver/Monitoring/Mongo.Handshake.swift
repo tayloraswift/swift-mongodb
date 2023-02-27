@@ -1,6 +1,6 @@
 extension Mongo
 {
-    struct HelloResult:Sendable
+    struct Handshake:Sendable
     {
         let response:HelloResponse
         let latency:Latency

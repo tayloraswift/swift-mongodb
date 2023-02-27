@@ -1,5 +1,5 @@
 public
-protocol BSONDocumentEncodable<CodingKeys>:BSONStreamEncodable
+protocol BSONDocumentEncodable<CodingKeys>:BSONEncodable
 {
     associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.Key
 

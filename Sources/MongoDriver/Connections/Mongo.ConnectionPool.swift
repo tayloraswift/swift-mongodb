@@ -2,25 +2,6 @@ import Atomics
 import Durations
 import Durations_Atomics
 
-//  these are extensions on the ``MongoMonitoringDelegate`` so they
-//  only appear as public API if you import that module explicitly.
-// extension MongoMonitoringDelegate where Self == Mongo.ConnectionPool
-// {
-//     public nonisolated
-//     func requestRecheck()
-//     {
-//         self.heart.beat()
-//     }
-//     public nonisolated
-//     func stopMonitoring()
-//     {
-//         self.heart.stop()
-//     }
-// }
-// extension Mongo.ConnectionPool:MongoMonitoringDelegate
-// {
-// }
-
 extension Mongo
 {
     /// A thread-safe reference type that maintains connections to a particular
@@ -44,14 +25,14 @@ extension Mongo
         let generation:UInt
         /// The size and width of this connection pool.
         nonisolated
-        let parameters:Parameters
+        let settings:Settings
 
         /// The host this pool creates connections to.
         nonisolated
         let host:Host
 
         private nonisolated
-        let monitor:AsyncStream<Mongo.MonitorUpdate>.Continuation
+        let monitor:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>.Continuation
         private nonisolated
         let logger:Logger?
         
@@ -70,10 +51,6 @@ extension Mongo
         private nonisolated
         let latency:UnsafeAtomic<Nanoseconds>
 
-        /// The error that will be reported if a connection cannot be created.
-        /// This is initially a ``ConnectionCheckoutError``.
-        private
-        var error:any Error
         /// The current stage of the pool’s lifecycle. Pools start out in the
         /// “filling” state, and eventually transition to the “draining” state,
         /// which is terminal. There are no “in-between” states.
@@ -82,7 +59,7 @@ extension Mongo
         /// count can only decrease during the filling stage if individual
         /// connections perish.
         private
-        var state:State
+        var phase:Phase
         /// Monotonically-increasing counters used to generate request
         /// and connection identifiers.
         private
@@ -90,15 +67,15 @@ extension Mongo
 
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
-        init(_ monitor:AsyncStream<Mongo.MonitorUpdate>.Continuation,
+        init(
+            _ monitor:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>.Continuation,
             generation:UInt,
-            connector:MonitorConnector,
-            timeout:ConnectionTimeout,
+            settings:Settings,
             logger:Logger?,
             host:Host)
         {
             self.generation = generation
-            self.parameters = connector.pool
+            self.settings = settings
             self.host = host
 
             self.monitor = monitor
@@ -110,20 +87,8 @@ extension Mongo
 
             self.latency = .create(0)
 
-            self.error = ConnectionCheckoutError.init()
-            self.state = .filling(.init(timeout: timeout,
-                bootstrap: connector.parameters.bootstrap(for: host),
-                credentials: connector.credentials,
-                cache: connector.credentialCache,
-                host: host))
+            self.phase = .drained(.init(because: Mongo.ConnectionPoolDrainedError.init()))
             self.next = .init()
-
-            let _:Task<Void, Never> = .init
-            {
-                await self.fill()
-            }
-
-            self.log(.creating(self.parameters))
         }
         deinit
         {
@@ -140,10 +105,49 @@ extension Mongo
             {
                 fatalError("unreachable (deinitialized connection pool while pool contains connections!)")
             }
-            guard case .draining(nil) = self.state
+            guard case .drained = self.phase
             else
             {
                 fatalError("unreachable (deinitialized connection pool that has not been drained!)")
+            }
+        }
+    }
+}
+extension Mongo.ConnectionPool
+{
+    func start(connectionTimeout:Mongo.ConnectionTimeout,
+        connectorFactory:Mongo.ConnectorFactory,
+        authenticator:__owned Mongo.Authenticator) async
+    {
+        await withTaskCancellationHandler
+        {
+            await withCheckedContinuation
+            {
+                let connector:Mongo.Connector = connectorFactory(authenticator: authenticator,
+                    timeout: connectionTimeout,
+                    host: host)
+                
+                if case .drained = self.phase
+                {
+                    self.phase = .filling($0, connector)
+                }
+                else
+                {
+                    fatalError("unreachable (filling connection pool that is already active!)")
+                }
+
+                let _:Task<Void, Never> = .init
+                {
+                    self.log(.creating(self.settings))
+                    await self.fill()
+                }
+            }
+        }
+        onCancel:
+        {
+            Task<Void, Never>.init
+            {
+                await self.drain(because: CancellationError.init())
             }
         }
     }
@@ -219,7 +223,7 @@ extension Mongo.ConnectionPool
         if  let continuation:CheckedContinuation<Mongo.ConnectionAllocation, any Error> =
                 self.requests.removeValue(forKey: request)
         {
-            continuation.resume(throwing: Mongo.ConnectionCheckoutError.init())
+            continuation.resume(throwing: Mongo.ConnectionPoolTimeoutError.init())
         }
     }
 
@@ -234,59 +238,6 @@ extension Mongo.ConnectionPool
 extension Mongo.ConnectionPool
 {
     /// Transitions the pool to its draining state (if it is not already in that
-    /// state), unblocks all awaiting connection requests, closes all unallocated
-    /// connections, interrupts all (non-perished) allocated connections, and waits
-    /// for all allocated connections to be returned to the pool via ``destroy(_:)``.
-    ///
-    /// The pool will only directly close and await unallocated connections. It is
-    /// the responsibility of tasks that hold connections to destroy them so that
-    /// a call to this method can unblock.
-    ///
-    /// No interrupt signal will be sent to perished connections, since their
-    /// channels are already closed.
-    func drain(because error:Mongo.MonitorRemovedError) async
-    {
-        defer
-        {
-            self.log(.drained)
-        }
-        if case .draining(_?) = self.state
-        {
-            fatalError("unreachable (draining connection pool that is already being drained!)")
-        }
-
-        for request:CheckedContinuation<Mongo.ConnectionAllocation, any Error>
-            in self.requests.values
-        {
-            request.resume(throwing: error)
-        }
-        self.requests = [:]
-
-        //  move channels that we can directly close
-        //  (as opposed to waiting for a client to release them)
-        let released:[Mongo.ConnectionAllocation] = self.connections.shrink()
-        
-        //  this check is needed because we can only succeed the continuation
-        //  when total channel count crosses from 1 to 0. so if the inventory
-        //  is already empty, we won’t observe a cross-over.
-        if  self.connections.isEmpty
-        {
-            self.state = .draining(nil)
-            await released.close()
-            return
-        }
-
-        async
-        let direct:Void = released.close()
-        await withCheckedContinuation
-        {
-            self.state = .draining($0)
-            self.connections.interrupt()
-        }
-        await direct
-    }
-
-    /// Transitions the pool to its draining state (if it is not already in that
     /// state), sends an interrupt signal to its associated monitoring task, and
     /// unblocks all awaiting connection requests by throwing them the given error.
     /// The error will also be stored in ``error``, so that new connection
@@ -297,34 +248,46 @@ extension Mongo.ConnectionPool
     /// unblocks the awaiter accordingly. (This allows us to use this method as an
     /// epilogue to a failed ``expand(using:)`` call.)
     private
-    func close(because error:any Error)
+    func drain(because reason:any Error)
     {
         defer
         {
-            self.log(.draining(because: error))
+            self.log(.draining(because: reason))
         }
-        switch self.state
+
+        switch self.phase
         {
-        case .filling:
+        case .filling(let continuation, _):
             self.monitor.finish()
-            self.error = error
+
+            let error:Mongo.ConnectionPoolStateError = .init(because: reason)
             for request:CheckedContinuation<Mongo.ConnectionAllocation, any Error>
                 in self.requests.values
             {
                 request.resume(throwing: error)
             }
             self.requests = [:]
-            self.state = .draining(nil)
-        
-        case .draining(nil):
-            break
-        
-        case .draining(let continuation?):
+
             if  self.connections.isEmpty
             {
                 continuation.resume()
-                self.state = .draining(nil)
+                self.phase = .drained(error)
             }
+            else
+            {
+                self.connections.cancel()
+                self.phase = .draining(continuation, error)
+            }
+        
+        case .draining(let continuation, let error):
+            if  self.connections.isEmpty
+            {
+                continuation.resume()
+                self.phase = .drained(error)
+            }
+        
+        case .drained:
+            break
         }
     }
 }
@@ -343,42 +306,47 @@ extension Mongo.ConnectionPool
     /// request.
     func create(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionAllocation
     {
-        while case .filling(let connector) = self.state
+        while true
         {
-            if  let allocation:Mongo.ConnectionAllocation = self.connections.checkout()
+            switch self.phase
             {
-                return allocation
-            }
-            if  self.connections.pending < self.parameters.rate,
-                self.connections.count < self.parameters.size.upperBound,
-                self.releasing.load(ordering: .relaxed) <= self.requests.count
-            {
-                // note: this checks for awaiting requests, and may use the
-                // newly-established connection to succeed a different request.
-                // so it is not guaranteed that the next iteration of the loop
-                // will yield a channel.
-                await self.expand(using: connector)
-            }
-            else
-            {
-                let request:UInt = self.next.request()
-
-                #if compiler(<5.8)
-                async
-                let __:Void = self.fail(request, by: deadline)
-                #else
-                async
-                let _:Void = self.fail(request, by: deadline)
-                #endif
-
-                return try await withCheckedThrowingContinuation
+            case .filling(_, let connector):
+                if  let allocation:Mongo.ConnectionAllocation = self.connections.checkout()
                 {
-                    self.requests.updateValue($0, forKey: request)
+                    return allocation
                 }
+                if  self.connections.pending < self.settings.rate,
+                    self.connections.count < self.settings.size.upperBound,
+                    self.releasing.load(ordering: .relaxed) <= self.requests.count
+                {
+                    // note: this checks for awaiting requests, and may use the
+                    // newly-established connection to succeed a different request.
+                    // so it is not guaranteed that the next iteration of the loop
+                    // will yield a channel.
+                    await self.expand(using: connector)
+                }
+                else
+                {
+                    let request:UInt = self.next.request()
+
+                    #if compiler(<5.8)
+                    async
+                    let __:Void = self.fail(request, by: deadline)
+                    #else
+                    async
+                    let _:Void = self.fail(request, by: deadline)
+                    #endif
+
+                    return try await withCheckedThrowingContinuation
+                    {
+                        self.requests.updateValue($0, forKey: request)
+                    }
+                }
+            
+            case .draining(_, let error), .drained(let error):
+                throw error
             }
         }
-
-        throw self.error
     }
     /// Synchronously notifies the pool that a connection is being returned
     /// to it, and asynchronously re-indexes the connection.
@@ -422,7 +390,7 @@ extension Mongo.ConnectionPool
         {
             self.releasing.wrappingDecrement(ordering: .relaxed)
         }
-        switch self.state
+        switch self.phase
         {
         case .filling:
             guard reindex
@@ -444,7 +412,7 @@ extension Mongo.ConnectionPool
                 return
             }
         
-        case .draining:
+        case .draining, .drained:
             //  we have to wait for the channel to close before removing
             //  it from the retained list, because a re-entrant call to this
             //  method might observe `self.count == 0` while the channel is
@@ -454,10 +422,10 @@ extension Mongo.ConnectionPool
         }
 
         if  self.connections.isEmpty,
-            case .draining(let continuation?) = self.state
+            case .draining(let continuation, let error) = self.phase
         {
             continuation.resume()
-            self.state = .draining(nil)
+            self.phase = .drained(error)
         }
     }
     /// Marks the given channel as “perished”, and replaces it (by dispatching
@@ -469,19 +437,19 @@ extension Mongo.ConnectionPool
     func replace(perished allocation:Mongo.ConnectionAllocation) async
     {
         self.connections.perish(allocation)
-        switch self.state
+        switch self.phase
         {
-        case .filling(let connector):
+        case .filling(_, let connector):
             await self.fill(using: connector)
         
-        case .draining(let continuation?):
+        case .draining(let continuation, let error):
             if  self.connections.isEmpty
             {
                 continuation.resume()
-                self.state = .draining(nil)
+                self.phase = .drained(error)
             }
         
-        case .draining(nil):
+        case .drained:
             break
         }
     }
@@ -490,7 +458,7 @@ extension Mongo.ConnectionPool
     private
     func fill() async
     {
-        if  case .filling(let connector) = self.state
+        if  case .filling(_, let connector) = self.phase
         {
             await self.fill(using: connector)
         }
@@ -504,18 +472,18 @@ extension Mongo.ConnectionPool
     /// The ``Mongo/Connection/Bootstrap`` type is not ``Sendable``, which
     /// should prevent some of the more-common reentrancy mistakes.
     private
-    func fill(using connector:Mongo.Connector) async
+    func fill(using connector:Mongo.Connector<Mongo.Authenticator>) async
     {
-        guard   self.connections.pending < self.parameters.rate
+        guard   self.connections.pending < self.settings.rate
         else
         {
             return
         }
-        if      self.connections.count < self.parameters.size.lowerBound
+        if      self.connections.count < self.settings.size.lowerBound
         {
             await self.expand(using: connector)
         }
-        else if self.connections.count < self.parameters.size.upperBound,
+        else if self.connections.count < self.settings.size.upperBound,
                 self.unallocated < self.requests.count
         {
             await self.expand(using: connector)
@@ -535,7 +503,7 @@ extension Mongo.ConnectionPool
     /// Because a pending connection still contributes to connection count, this may
     /// unblock a call to ``drain``.
     private
-    func expand(using connector:Mongo.Connector) async
+    func expand(using connector:Mongo.Connector<Mongo.Authenticator>) async
     {
         do
         {
@@ -545,10 +513,9 @@ extension Mongo.ConnectionPool
             self.log(.expanding(id: connection))
 
             let allocation:Mongo.ConnectionAllocation = try await connector.connect(
-                id: connection,
-                to: self.host)
+                id: connection)
 
-            switch self.state
+            switch self.phase
             {
             case .filling:
                 allocation.channel.closeFuture.whenComplete
@@ -574,8 +541,8 @@ extension Mongo.ConnectionPool
                     self.connections.insert(released: allocation)
                 }
 
-                if  self.connections.count < self.parameters.size.lowerBound ||
-                    self.connections.count < self.parameters.size.upperBound &&
+                if  self.connections.count < self.settings.size.lowerBound ||
+                    self.connections.count < self.settings.size.upperBound &&
                     self.unallocated < self.requests.count
                 {
                     let _:Task<Void, Never> = .init
@@ -588,22 +555,22 @@ extension Mongo.ConnectionPool
 
                 return
             
-            case .draining:
+            case .draining, .drained:
                 await allocation.close()
                 self.connections.pending -= 1
             }
 
             if  self.connections.isEmpty,
-                case .draining(let continuation?) = self.state
+                case .draining(let continuation, let error) = self.phase
             {
                 continuation.resume()
-                self.state = .draining(nil)
+                self.phase = .drained(error)
             }
         }
         catch let error
         {
             self.connections.pending -= 1
-            self.close(because: error)
+            self.drain(because: error)
         }
     }
 }

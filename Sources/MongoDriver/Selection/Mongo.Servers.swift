@@ -24,7 +24,7 @@ extension Mongo.Servers
 }
 extension Mongo.Servers
 {
-    init(from topology:__shared Mongo.Topology<Mongo.MonitorTask>,
+    init(from topology:__shared Mongo.Topology<Mongo.TopologyMonitor.Canary>,
         heartbeatInterval:Milliseconds)
     {
         switch topology
@@ -33,16 +33,19 @@ extension Mongo.Servers
             self = .none(unknown.ghosts)
         
         case .single(let single):
-            switch single.state
+            switch single.item
             {
-            case .monitoring(let metadata, let pool):
-                self = .single(.init(metadata: metadata, pool: pool))
+            case (_, .connected(let metadata, let owner))?:
+                self = .single(.init(metadata: metadata, pool: owner.pool))
             
-            case .errored(let error):
-                self = .none([single.host: .errored(error)])
+            case (let host, .errored(let error))?:
+                self = .none([host: .errored(error)])
             
-            case .queued:
-                self = .none([single.host: .queued])
+            case (let host, .queued)?:
+                self = .none([host: .queued])
+            
+            case nil:
+                self = .none
             }
         
         case .sharded(let sharded):

@@ -16,44 +16,6 @@ extension Mongo.Topology:Sendable where Owner:Sendable
 }
 extension Mongo.Topology
 {
-    /// Places this topology in a ``case terminated`` state and sends shutdown
-    /// signals to all currently-active heartbeats registered with it.
-    @available(*, deprecated)
-    public mutating
-    func removeAll()
-    {
-        self = .unknown(.init())
-        // defer
-        // {
-        //     self = .unknown(.init())
-        // }
-        // switch self
-        // {
-        // case .unknown(_):
-        //     break
-        
-        // case .single:
-        //     //topology.state.pool?.stopMonitoring()
-        //     break
-        
-        // case .sharded:
-        //     for router:Mongo.ServerDescription<Mongo.Router, Pool>
-        //         in topology.routers.values
-        //     {
-        //         router.pool?.stopMonitoring()
-        //     }
-        
-        // case .replicated(let topology):
-        //     for member:Mongo.ServerDescription<Mongo.ReplicaSetMember, Pool>
-        //         in topology.members.values
-        //     {
-        //         member.pool?.stopMonitoring()
-        //     }
-        // }
-    }
-}
-extension Mongo.Topology
-{
     private
     init?(host:Mongo.Host, with update:Mongo.TopologyUpdate, owner:Owner,
         from unknown:inout Unknown,

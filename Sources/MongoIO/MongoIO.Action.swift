@@ -6,10 +6,9 @@ extension MongoIO
     public
     enum Action
     {
-        case interrupt
-        case timeout
         case request(MongoWire.Message<[UInt8]>.Sections, CheckedContinuation<
-            Result<MongoWire.Message<ByteBufferView>, ExecutionError>,
+            Result<MongoWire.Message<ByteBufferView>, ChannelError>,
             Never>)
+        case cancel(CancellationError)
     }
 }
