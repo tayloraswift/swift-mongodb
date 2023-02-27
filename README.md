@@ -67,15 +67,11 @@ This package vends the following library products:
 
     A standard overlay module declaring `AtomicValue` conformances for the various quantized duration types.
 
-1.  [**`Heartbeats`**](Sources/Heartbeats)
-
-    Vends a `Heartbeat` type.
-
 1.  [**`MongoDSL`**](Sources/MongoDSL) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding))
 
     Implements the MongoDB aggregation expression DSL.
 
-1.  [**`Mongo`**](Sources/Mongo) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`Durations`](Sources/Durations), [`MongoMonitoring`](Sources/MongoMonitoring), [`TraceableErrors`](Sources/TraceableErrors))
+1.  [**`Mongo`**](Sources/Mongo) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`Durations`](Sources/Durations), [`TraceableErrors`](Sources/TraceableErrors))
 
     A single-namespace module that implements the topology model and state-transition operations used by the driver’s service discovery and monitoring components.
 

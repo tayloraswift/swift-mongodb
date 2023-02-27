@@ -1,5 +1,3 @@
-import MongoMonitoring
-
 extension Mongo
 {
     @frozen public

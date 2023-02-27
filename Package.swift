@@ -25,8 +25,6 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "Durations", targets: ["Durations"]),
         .library(name: "Durations_Atomics", targets: ["Durations_Atomics"]),
 
-        .library(name: "Heartbeats", targets: ["Heartbeats"]),
-
         .library(name: "Mongo", targets: ["Mongo"]),
         .library(name: "MongoBuiltins", targets: ["MongoBuiltins"]),
         .library(name: "MongoDB", targets: ["MongoDB"]),
@@ -135,8 +133,6 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Atomics", package: "swift-atomics"),
             ]),
         
-        .target(name: "Heartbeats"),
-        
         .target(name: "SCRAM",
             dependencies: 
             [
@@ -151,18 +147,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONEncoding"),
             ]),
 
-        .target(name: "MongoMonitoring",
-            dependencies:
-            [
-            ]),
-
         .target(name: "Mongo",
             dependencies:
             [
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
                 .target(name: "Durations"),
-                .target(name: "MongoMonitoring"),
                 .product(name: "TraceableErrors", package: "swift-grammar"),
             ]),
 
@@ -181,7 +171,6 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
                 .target(name: "Durations_Atomics"),
-                .target(name: "Heartbeats"),
                 .target(name: "Mongo"),
                 .target(name: "MongoExecutor"),
                 .target(name: "OnlineCDF"),
@@ -271,14 +260,6 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/OnlineCDF"),
-        
-        .executableTarget(name: "HeartbeatsTests",
-            dependencies:
-            [
-                .target(name: "Heartbeats"),
-                .product(name: "Testing", package: "swift-hash"),
-            ], 
-            path: "Tests/Heartbeats"),
         
         .executableTarget(name: "MongoTests",
             dependencies:
