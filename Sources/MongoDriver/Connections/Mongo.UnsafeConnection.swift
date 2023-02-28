@@ -5,7 +5,7 @@ import NIOCore
 extension Mongo
 {
     @usableFromInline internal
-    struct ConnectionAllocation:MongoExecutor, Sendable
+    struct UnsafeConnection:MongoExecutor, Sendable
     {
         @usableFromInline internal
         let channel:any Channel
@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ConnectionAllocation
+extension Mongo.UnsafeConnection
 {
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.

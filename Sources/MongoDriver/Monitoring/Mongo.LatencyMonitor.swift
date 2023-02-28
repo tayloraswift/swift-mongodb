@@ -11,24 +11,31 @@ extension Mongo
         private
         let consumer:AsyncThrowingStream<TopologyMonitor.Update, any Error>.Continuation
 
+        private
+        let interval:Milliseconds,
+            seed:Mongo.Latency
+
         init(_ consumer:AsyncThrowingStream<TopologyMonitor.Update, any Error>.Continuation,
-            connection:Connection)
+            connection:Connection,
+            interval:Milliseconds,
+            seed:Mongo.Latency)
         {
-            self.connection = connection
             self.consumer = consumer
+
+            self.connection = connection
+            self.interval = interval
+            self.seed = seed
         }
     }
 }
 extension Mongo.LatencyMonitor
 {
-    func monitor(every interval:Milliseconds,
-        seed:Mongo.Latency,
-        for pool:Mongo.ConnectionPool) async
+    func monitor(for pool:Mongo.ConnectionPool) async
     {
         do
         {
-            let interval:Duration = .milliseconds(interval)
-            var cdf:OnlineCDF = .init(resolution: 16, seed: seed.nanoseconds)
+            let interval:Duration = .milliseconds(self.interval)
+            var cdf:OnlineCDF = .init(resolution: 16, seed: self.seed.nanoseconds)
 
             while true
             {

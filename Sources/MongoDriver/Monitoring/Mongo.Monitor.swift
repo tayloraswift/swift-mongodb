@@ -155,11 +155,11 @@ extension Mongo.Monitor
             host: host)
 
         let updates:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>
-        let tasks:Mongo.MonitorTasks
+        let monitors:Mongo.MonitorTasks
 
         do
         {
-            (tasks, updates) = try await connector.monitors(interval: self.interval)
+            (monitors, updates) = try await connector.monitors(interval: self.interval)
         }
         catch let error
         {
@@ -172,15 +172,15 @@ extension Mongo.Monitor
             }
         }
         
-        let pool:Mongo.ConnectionPool = tasks.pool(generation: generation,
+        let pool:Mongo.ConnectionPool = monitors.pool(connectionTimeout: self.timeout,
+            connectorFactory: connectorFactory,
+            authenticator: authenticator,
+            generation: generation,
             settings: settings,
             logger: self.logger)
         
         async
-        let _:Void = tasks.start(connectionTimeout: self.timeout,
-            connectorFactory: connectorFactory,
-            authenticator: authenticator,
-            pool: pool)
+        let _:Void = pool.start(with: monitors)
 
         return await self.iterate(updates: updates, host: host)
     }

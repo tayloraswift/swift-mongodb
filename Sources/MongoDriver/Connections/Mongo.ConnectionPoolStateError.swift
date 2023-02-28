@@ -1,28 +1,12 @@
-import TraceableErrors
-
 extension Mongo
 {
+    /// A connection pool had not been started before making a request to it.
     public
-    struct ConnectionPoolStateError:Error
+    struct ConnectionPoolInactiveError:Error, Equatable, Sendable
     {
-        let reason:any Error
-
-        init(because reason:any Error)
+        public
+        init()
         {
-            self.reason = reason
         }
-    }
-}
-extension Mongo.ConnectionPoolStateError:TraceableError
-{
-    public
-    var underlying:any Error
-    {
-        Mongo.ConnectionPoolDrainedError.init() as any Error
-    }
-    public
-    var notes:[String]
-    {
-        ["Pool was originally drained because of '\(self.reason)'"]
     }
 }

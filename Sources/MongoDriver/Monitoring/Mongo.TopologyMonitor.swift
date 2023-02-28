@@ -9,26 +9,34 @@ extension Mongo
         private
         let consumer:AsyncThrowingStream<Update, any Error>.Continuation
 
+        private
+        let interval:Milliseconds,
+            seed:Mongo.TopologyVersion
+
         init(_ consumer:AsyncThrowingStream<Update, any Error>.Continuation,
-            connection:Connection)
+            connection:Connection,
+            interval:Milliseconds,
+            seed:Mongo.TopologyVersion)
         {
             self.connection = connection
             self.consumer = consumer
+            self.interval = interval
+            self.seed = seed
         }
     }
 }
 extension Mongo.TopologyMonitor
 {
-    func monitor(every interval:Milliseconds, seed:Mongo.TopologyVersion) async
+    func monitor() async
     {
-        var version:Mongo.TopologyVersion = seed
+        var version:Mongo.TopologyVersion = self.seed
         while true
         {
             do
             {
                 let response:Mongo.HelloResponse = try await self.connection.run(
                     hello: .init(topologyVersion: version,
-                        milliseconds: interval))
+                        milliseconds: self.interval))
                 
                 version = response.topologyVersion
                 

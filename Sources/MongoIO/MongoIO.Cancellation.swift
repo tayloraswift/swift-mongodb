@@ -1,7 +1,7 @@
 extension MongoIO
 {
     @frozen public
-    enum CancellationError:Equatable, Error, Sendable
+    enum Cancellation:Equatable, Sendable
     {
         case timeout
         case cancel

@@ -16,7 +16,7 @@ extension Mongo
     class Connection:Identifiable
     {
         @usableFromInline internal
-        let allocation:ConnectionAllocation
+        let allocation:UnsafeConnection
 
         @usableFromInline internal
         let pool:ConnectionPool
@@ -25,7 +25,7 @@ extension Mongo
         var reuse:Bool
 
         private
-        init(allocation:ConnectionAllocation, pool:Mongo.ConnectionPool)
+        init(allocation:UnsafeConnection, pool:Mongo.ConnectionPool)
         {
             self.allocation = allocation
             self.pool = pool

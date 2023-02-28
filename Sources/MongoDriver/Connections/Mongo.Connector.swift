@@ -111,11 +111,11 @@ extension Mongo.Connector<Never?>
 }
 extension Mongo.Connector<Mongo.Authenticator>
 {
-    func connect(id:UInt) async throws -> Mongo.ConnectionAllocation
+    func connect(id:UInt) async throws -> Mongo.UnsafeConnection
     {
         let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(
             from: .now)
-        let connection:Mongo.ConnectionAllocation = .init(
+        let connection:Mongo.UnsafeConnection = .init(
             channel: try await self.channel(),
             id: id)
         

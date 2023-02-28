@@ -105,8 +105,8 @@ extension MongoIO.MessageRouter:ChannelOutboundHandler
     {
         switch self.unwrapOutboundIn(data)
         {
-        case .cancel(let reason):
-            self.perish(throwing: .cancellation(reason))
+        case .cancel(let error):
+            self.perish(throwing: error)
 
             context.channel.close(mode: .all, promise: nil)
         

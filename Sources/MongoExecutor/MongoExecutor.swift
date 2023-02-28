@@ -34,9 +34,9 @@ extension MongoExecutor
     /// returning without waiting for the channel to complete its shutdown
     /// procedure.
     public
-    func cancel()
+    func crosscancel(throwing error:any Error)
     {
-        Self.cancel(self.channel)
+        Self.crosscancel(self.channel, throwing: error)
     }
 
     /// Closes this channel, returning when the channel has been closed.
@@ -52,7 +52,8 @@ extension MongoExecutor
     func timeout(_ channel:any Channel, by deadline:ContinuousClock.Instant) async throws
     {
         try await Task.sleep(until: deadline, clock: .continuous)
-        Self.cancel(channel, because: .timeout)
+        channel.writeAndFlush(MongoIO.Action.cancel(throwing: .cancelled(.timeout)),
+            promise: nil)
     }
     /// Sends the given command document over this connection, unchanged, and
     /// awaits its message-response.
@@ -96,7 +97,8 @@ extension MongoExecutor
         }
         onCancel:
         {
-            Self.cancel(channel)
+            channel.writeAndFlush(MongoIO.Action.cancel(throwing: .cancelled(.cancel)),
+                promise: nil)
         }
     }
 
@@ -104,9 +106,10 @@ extension MongoExecutor
 extension MongoExecutor
 {
     @usableFromInline internal static
-    func cancel(_ channel:any Channel, because reason:MongoIO.CancellationError = .cancel)
+    func crosscancel(_ channel:any Channel, throwing error:any Error)
     {
-        channel.writeAndFlush(MongoIO.Action.cancel(reason), promise: nil)
+        channel.writeAndFlush(MongoIO.Action.cancel(throwing: .crosscancelled(error)),
+            promise: nil)
     }
 
     @usableFromInline internal static

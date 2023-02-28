@@ -1,11 +1,27 @@
+import TraceableErrors
+
 extension Mongo
 {
     public
-    struct ConnectionPoolDrainedError:Error, Equatable, Sendable
+    struct ConnectionPoolDrainedError:Error
     {
         public
-        init()
+        let underlying:any Error
+
+        init(because error:any Error)
         {
+            self.underlying = error
         }
+    }
+}
+extension Mongo.ConnectionPoolDrainedError:TraceableError
+{
+    public
+    var notes:[String]
+    {
+        [
+            """
+            """
+        ]
     }
 }

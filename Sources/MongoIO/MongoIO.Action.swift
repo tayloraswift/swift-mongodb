@@ -9,6 +9,6 @@ extension MongoIO
         case request(MongoWire.Message<[UInt8]>.Sections, CheckedContinuation<
             Result<MongoWire.Message<ByteBufferView>, ChannelError>,
             Never>)
-        case cancel(CancellationError)
+        case cancel(throwing:MongoIO.ChannelError)
     }
 }
