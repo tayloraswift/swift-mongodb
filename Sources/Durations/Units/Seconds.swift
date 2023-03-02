@@ -12,6 +12,9 @@ struct Seconds:RawRepresentable, Hashable, Sendable
 }
 extension Seconds:QuantizedDuration
 {
+    @inlinable public static
+    var unit:String { "s" }
+    
     @inlinable public
     init(truncating duration:Duration)
     {

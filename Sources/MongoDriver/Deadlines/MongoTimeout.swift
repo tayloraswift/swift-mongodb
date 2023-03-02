@@ -10,6 +10,12 @@ protocol MongoTimeout<Deadline>:QuantizedDuration
 }
 extension MongoTimeout where Self:RawRepresentable
 {
+    @inlinable public static
+    var unit:String
+    {
+        Milliseconds.unit
+    }
+    
     @inlinable public
     var rawValue:Milliseconds.RawValue
     {
