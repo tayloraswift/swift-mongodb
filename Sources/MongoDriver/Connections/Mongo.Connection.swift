@@ -59,7 +59,7 @@ extension Mongo.Connection
     /// caller, the call will error, but the connection will still be created
     /// and added to the pool, and may be used to complete a different request.
     public convenience
-    init(from pool:Mongo.ConnectionPool, by deadline:Mongo.ConnectionDeadline) async throws
+    init(from pool:Mongo.ConnectionPool, by deadline:ContinuousClock.Instant) async throws
     {
         self.init(allocation: try await pool.create(by: deadline), pool: pool)
     }
@@ -107,11 +107,11 @@ extension Mongo.Connection
         {
         case .success(let message):
             return try .init(message: message)
-        
+
         case .failure(.cancelled(.timeout)):
             self.reuse = false
             throw Mongo.TimeoutError.driver(sent: true)
-        
+
         case .failure(let error):
             self.reuse = false
             throw error

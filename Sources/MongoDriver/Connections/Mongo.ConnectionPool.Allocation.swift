@@ -24,29 +24,27 @@ extension Mongo.ConnectionPool.Allocation
     /// and decodes its response.
     func run(saslStart command:__owned Mongo.SASLStart,
         against database:Mongo.Database,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.SASLResponse
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.SASLResponse
     {
-        try .init(bson: try await self.run(command: command, against: database,
-            by: deadline.instant)())
+        try .init(bson: try await self.run(command: command, against: database, by: deadline)())
     }
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.
     func run(saslContinue command:__owned Mongo.SASLContinue,
         against database:Mongo.Database,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.SASLResponse
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.SASLResponse
     {
-        try .init(bson: try await self.run(command: command, against: database,
-            by: deadline.instant)())
+        try .init(bson: try await self.run(command: command, against: database, by: deadline)())
     }
     /// Runs a ``Mongo/Hello`` command, and decodes a subset of its response
     /// suitable for authentication purposes.
     func run(hello command:__owned Mongo.Hello,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Set<Mongo.Authentication.SASL>?
+        by deadline:ContinuousClock.Instant) async throws -> Set<Mongo.Authentication.SASL>?
     {
         let bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView> = try await self.run(
             command: command,
             against: .admin,
-            by: deadline.instant)()
+            by: deadline)()
         return try bson["saslSupportedMechs"]?.decode(to: Set<Mongo.Authentication.SASL>.self)
     }
 }

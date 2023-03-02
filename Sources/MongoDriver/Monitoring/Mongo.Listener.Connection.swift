@@ -17,13 +17,13 @@ extension Mongo.Listener
 extension Mongo.Listener.Connection
 {
     func run(hello:__owned Mongo.Hello,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Handshake
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.Handshake
     {
         //  Cannot use ``ContinousClock.measure(_:)``, because that API does not
         //  allow us to return values from the closure.
         let sent:ContinuousClock.Instant = .now
         let reply:Mongo.Reply = try await self.run(command: hello, against: .admin,
-            by: deadline.instant)
+            by: deadline)
         let received:ContinuousClock.Instant = .now
         return .init(response: try .init(bson: reply()),
             latency: .init(truncating: received - sent))

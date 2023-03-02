@@ -51,19 +51,6 @@ extension Mongo
 }
 extension Mongo.MonitorPool
 {
-    private nonisolated
-    var timeout:Mongo.ConnectionTimeout
-    {
-        self.deployment.timeout
-    }
-    private nonisolated
-    var logger:Mongo.Logger?
-    {
-        self.deployment.logger
-    }
-}
-extension Mongo.MonitorPool
-{
     func start(interval:Milliseconds, seedlist:Set<Mongo.Host>) async
     {
         await withTaskCancellationHandler
@@ -149,8 +136,9 @@ extension Mongo.MonitorPool
     private
     func monitor(host:Mongo.Host, generation:UInt, interval:Milliseconds) async -> Replacement
     {
+        let connectionTimeout:Milliseconds = self.deployment.timeout.default
         let connector:Mongo.Connector<Never?> = self.connectorFactory(authenticator: nil,
-            timeout: self.timeout,
+            timeout: connectionTimeout,
             host: host)
 
         let services:Mongo.Services
@@ -189,12 +177,12 @@ extension Mongo.MonitorPool
                 bufferingPolicy: .bufferingOldest(1))
             {
                 let pool:Mongo.ConnectionPool = .init(alongside: .init($0),
-                    connectionTimeout: self.timeout,
+                    connectionTimeout: connectionTimeout,
                     connectorFactory: self.connectorFactory,
                     authenticator: self.authenticator,
                     generation: generation,
                     settings: self.connectionPoolSettings,
-                    logger: self.logger,
+                    logger: self.deployment.logger,
                     host: host)
                 
                 pool.set(latency: services.handshake.latency)

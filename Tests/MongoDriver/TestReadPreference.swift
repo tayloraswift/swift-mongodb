@@ -9,7 +9,7 @@ func TestReadPreference(_ tests:TestGroup,
     await tests.do
     {
         try await bootstrap.withSessionPool(seedlist: .init(members),
-            timeout: .init(milliseconds: 250))
+            connectionTimeout: .milliseconds(250))
         {
             let session:Mongo.Session = try await .init(from: $0)
             for (name, preference):(String, Mongo.ReadPreference) in

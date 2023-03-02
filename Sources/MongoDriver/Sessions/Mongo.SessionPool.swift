@@ -100,11 +100,10 @@ extension Mongo.SessionPool
     /// executing database operations.
     public nonisolated
     func connect(to preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline? = nil) async throws -> Mongo.ConnectionPool
+        by deadline:ContinuousClock.Instant? = nil) async throws -> Mongo.ConnectionPool
     {
-        let connect:Mongo.ConnectionDeadline = deadline ??
-            self.deployment.timeout.deadline(from: .now)
-        return try await self.deployment.pool(preference: preference, by: connect)
+        try await self.deployment.pool(preference: preference,
+            by: deadline ?? self.deployment.timeout.deadline())
     }
 }
 extension Mongo.SessionPool
@@ -124,23 +123,22 @@ extension Mongo.SessionPool
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand
     {
-        let started:ContinuousClock.Instant = .now
+        let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(clamping: deadline)
 
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: started,
-            clamping: deadline)
         let connections:Mongo.ConnectionPool = try await self.deployment.pool(
             preference: preference,
-            by: connect)
+            by: deadlines.connection)
         //  this creates the connection before creating the session, because
         //  connections are limited but sessions are unlimited. so ordering it
         //  like this 
-        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
+        let connection:Mongo.Connection = try await .init(from: connections,
+            by: deadlines.connection)
         let session:Mongo.Session = try await .init(from: self)
 
         return try await session.run(command: command, against: database,
             over: connection,
             on: preference,
-            by: deadline ?? connect.instant)
+            by:  deadlines.operation)
     }
 }
 extension Mongo.SessionPool
@@ -186,10 +184,10 @@ extension Mongo.SessionPool
     /// or move-only type, such as ``Session``, which destroys the session metadata
     /// on its `deinit`.
     nonisolated
-    func create() async throws -> Mongo.SessionMetadata
+    func create(by deadline:ContinuousClock.Instant?) async throws -> Mongo.SessionMetadata
     {
-        let deadline:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(clamping: nil)
-        let sessions:Mongo.LogicalSessions = try await self.deployment.sessions(by: deadline)
+        let sessions:Mongo.LogicalSessions = try await self.deployment.sessions(
+            by: deadline ?? self.deployment.timeout.deadline())
         return await self.create(ttl: sessions.ttl)
     }
     /// Destroy (unsafe) session metadata. The session will re-indexed by the

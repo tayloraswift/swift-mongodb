@@ -53,7 +53,7 @@ func TestAuthentication(_ tests:TestGroup,
             host: standalone))
         {
             try await bootstrap.withSessionPool(seedlist: [standalone],
-                timeout: .init(milliseconds: 500))
+                connectionTimeout: .milliseconds(500))
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await session.refresh()
@@ -78,7 +78,7 @@ func TestAuthentication(_ tests:TestGroup,
             host: standalone))
         {
             try await bootstrap.withSessionPool(seedlist: [standalone],
-                timeout: .init(milliseconds: 500))
+                connectionTimeout: .milliseconds(500))
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await session.refresh()

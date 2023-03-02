@@ -1,10 +1,12 @@
+import Durations
+
 extension Mongo
 {
     public
     enum CursorLifecycle
     {
         /// The timeout used for ``GetMore`` operations on the relevant cursor.
-        case iterable(Mongo.OperationTimeout?)
+        case iterable(Milliseconds?)
         case expires(ContinuousClock.Instant)
     }
 }

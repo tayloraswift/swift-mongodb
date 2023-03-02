@@ -61,19 +61,20 @@ extension Mongo.DriverBootstrap
     /// been deinitialized.
     public
     func withSessionPool<Success>(seedlist:Set<Mongo.Host>,
-        heartbeatInterval:Milliseconds = 1000,
-        timeout:Mongo.ConnectionTimeout = .init(milliseconds: 5000),
+        connectionTimeout:Milliseconds = 5000,
+        monitorInterval:Milliseconds = 1000,
         logger:Mongo.Logger? = nil,
         run body:(Mongo.SessionPool) async throws -> Success) async rethrows -> Success
     {
-        let deployment:Mongo.Deployment = .init(timeout: timeout, logger: logger)
+        let deployment:Mongo.Deployment = .init(connectionTimeout: connectionTimeout,
+            logger: logger)
         let monitors:Mongo.MonitorPool = .init(connectionPoolSettings: .init(),
             connectorFactory: self.connectorFactory,
             authenticator: self.authenticator,
             deployment: deployment)
         
         async
-        let _:Void = monitors.start(interval: heartbeatInterval, seedlist: seedlist)
+        let _:Void = monitors.start(interval: monitorInterval, seedlist: seedlist)
         
         let sessions:Mongo.SessionPool = .init(deployment: deployment)
         do

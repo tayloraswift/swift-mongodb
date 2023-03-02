@@ -11,7 +11,7 @@ extension Mongo
         private
         let bootstrap:ClientBootstrap
         private
-        let timeout:ConnectionTimeout
+        let timeout:Milliseconds
         private
         let appname:String?
 
@@ -20,7 +20,7 @@ extension Mongo
         
         init(authenticator:Authenticator,
             bootstrap:ClientBootstrap,
-            timeout:ConnectionTimeout,
+            timeout:Milliseconds,
             appname:String?,
             host:Host)
         {
@@ -55,7 +55,7 @@ extension Mongo.Connector<Never?>
         //  include SCRAM mechanism negotiation (i.e. saslSupportedMechs), as
         //  doing so would make monitoring checks more expensive for the server.
         //  '''
-        let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
+        let deadline:ContinuousClock.Instant = .now.advanced(by: .milliseconds(self.timeout))
         let hello:Mongo.Hello = .init(client: self.client, user: nil)
 
         let listener:Mongo.Listener.Connection = .init(
@@ -98,8 +98,8 @@ extension Mongo.Connector<Mongo.Authenticator>
 {
     func connect(id:UInt) async throws -> Mongo.ConnectionPool.Allocation
     {
-        let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(
-            from: .now)
+        let deadline:ContinuousClock.Instant = .now.advanced(
+            by: .milliseconds(self.timeout))
         let connection:Mongo.ConnectionPool.Allocation = .init(
             channel: try await self.channel(),
             id: id)

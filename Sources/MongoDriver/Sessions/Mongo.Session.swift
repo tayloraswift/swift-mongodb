@@ -92,9 +92,9 @@ extension Mongo.Session
     /// from the scope that yielded the pool, because doing so will prevent
     /// the pool from draining on scope exit.
     public convenience
-    init(from pool:Mongo.SessionPool) async throws
+    init(from pool:Mongo.SessionPool, by deadline:ContinuousClock.Instant? = nil) async throws
     {
-        self.init(metadata: try await pool.create(), pool: pool)
+        self.init(metadata: try await pool.create(by: deadline), pool: pool)
     }
     /// Creates a session from a session pool, which is causally-consistent
     /// with another session. Operations on the newly-created session will
@@ -104,9 +104,10 @@ extension Mongo.Session
     /// Calling this initializer is roughly equivalent to creating a
     /// unforked session and immediately calling ``synchronize(with:)``.
     public convenience
-    init(from pool:Mongo.SessionPool, forking original:__shared Mongo.Session) async throws
+    init(from pool:Mongo.SessionPool, by deadline:ContinuousClock.Instant? = nil,
+        forking original:__shared Mongo.Session) async throws
     {
-        self.init(metadata: try await pool.create(), pool: pool,
+        self.init(metadata: try await pool.create(by: deadline), pool: pool,
             fork: original.preconditionTime)
     }
     /// Fast-forwards this session’s precondition time to the other session’s
@@ -165,16 +166,19 @@ extension Mongo.Session
         {
             fatalError(Self.transactionUnpinnedErrorMessage)
         }
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
-            clamping: deadline)
+
+        let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(clamping: deadline)
+
         let connections:Mongo.ConnectionPool = try await self.deployment.pool(
             preference: preference,
-            by: connect)
-        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
+            by: deadlines.connection)
+        let connection:Mongo.Connection = try await .init(from: connections,
+            by: deadlines.connection)
+        
         return try await self.run(command: command, against: database,
             over: connection,
             on: preference,
-            by: deadline ?? connect.instant)
+            by: deadlines.operation)
     }
 
     /// Runs an iterable command against the specified database, on a server selected
@@ -206,23 +210,68 @@ extension Mongo.Session
         async throws -> Success
         where Query:MongoIterableCommand
     {
+        let batches:Mongo.Batches<Query.Element> = try await self.begin(query: command,
+            against: database,
+            on: preference,
+            by: deadline)
+        do
+        {
+            let success:Success = try await consumer(batches)
+            await batches.destroy()
+            return success
+        }
+        catch let error
+        {
+            await batches.destroy()
+            throw error
+        }
+    }
+
+    @inlinable public
+    func begin<Query>(query:Query,
+        against database:Query.Database,
+        on preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant?) async throws -> Mongo.Batches<Query.Element>
+        where Query:MongoIterableCommand
+    {
         if case _? = self.transaction.phase
         {
             fatalError(Self.transactionUnpinnedErrorMessage)
         }
 
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
-            clamping: deadline)
+        let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(clamping: deadline)
+        
+        let connections:Mongo.ConnectionPool = try await self.deployment.pool(
+            preference: preference,
+            by: deadlines.connection)
+        
+        return try await self.begin(query: query, against: database,
+            over: connections,
+            on: preference,
+            by: deadlines)
+    }
+    @inlinable public
+    func begin<Query>(query:Query,
+        against database:Query.Database,
+        over connections:Mongo.ConnectionPool,
+        on preference:Mongo.ReadPreference,
+        by deadlines:Mongo.Deadlines) async throws -> Mongo.Batches<Query.Element>
+        where Query:MongoIterableCommand
+    {
+        let connection:Mongo.Connection = try await .init(from: connections,
+            by: deadlines.connection)
 
-        return try await self.run(command: command, against: database, on: preference,
-            by: deadline ?? connect.instant,
-            with: consumer)
-        {
-            let connections:Mongo.ConnectionPool = try await self.deployment.pool(
-                preference: preference,
-                by: connect)
-            return try await .init(from: connections, by: connect)
-        }
+        return .create(preference: preference,
+            lifecycle: query.tailing.map { .iterable($0.timeout) } ??
+                .expires(deadlines.operation),
+            timeout: self.deployment.timeout.default,
+            initial: try await self.run(command: query,
+                against: database,
+                over: connection,
+                on: preference,
+                by: deadlines.operation),
+            stride: query.stride,
+            pinned: (connection, self))
     }
 }
 extension Mongo.Session
@@ -284,12 +333,11 @@ extension Mongo.Session
         run body:(Mongo.Transaction) async throws -> Success)
         async -> Mongo.TransactionResult<Success>
     {
-        let deadline:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now)
         let connections:Mongo.ConnectionPool
         //  Transactions can only be performed on the primary/master, and moreover,
         //  must be pinned to a specific server. (This means primary stepdown is not
         //  allowed.)
-        switch await self.deployment.select(.primary, by: deadline)
+        switch await self.deployment.select(.primary, by: self.deployment.timeout.deadline())
         {
         case .failure(let error):
             return .unavailable(error)
@@ -390,46 +438,6 @@ extension Mongo.Session
             sent: sent)
 
         return try Command.decode(reply: try reply())
-    }
-
-    @inlinable public
-    func run<Query, Success>(command:Query, against database:Query.Database,
-        on preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant,
-        with consumer:(Mongo.Batches<Query.Element>) async throws -> Success,
-        connection:() async throws -> Mongo.Connection) async throws -> Success
-        where Query:MongoIterableCommand
-    {
-        let batches:Mongo.Batches<Query.Element>
-        do
-        {
-            //  limit lifetime of this binding so that the connection stays uniquely
-            //  referenced.
-            let connection:Mongo.Connection = try await connection()
-
-            batches = .create(preference: preference,
-                lifecycle: command.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
-                timeout: .init(
-                    milliseconds: self.deployment.timeout.milliseconds),
-                initial: try await self.run(command: command,
-                    against: database,
-                    over: connection,
-                    on: preference,
-                    by: deadline),
-                stride: command.stride,
-                pinned: (connection, self))
-        }
-        do
-        {
-            let success:Success = try await consumer(batches)
-            await batches.destroy()
-            return success
-        }
-        catch let error
-        {
-            await batches.destroy()
-            throw error
-        }
     }
 }
 extension Mongo.Session

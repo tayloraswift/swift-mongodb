@@ -23,9 +23,9 @@ func TestConnectionPool(_ tests:TestGroup,
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                let midpoint:Mongo.ConnectionDeadline = .now.advanced(
+                let midpoint:ContinuousClock.Instant = .now.advanced(
                     by: .milliseconds(500))
-                let deadline:Mongo.ConnectionDeadline = midpoint.advanced(
+                let deadline:ContinuousClock.Instant = midpoint.advanced(
                     by: .milliseconds(500))
 
                 let pool:Mongo.ConnectionPool = try await $0.connect(to: .primary,
@@ -40,7 +40,7 @@ func TestConnectionPool(_ tests:TestGroup,
                         {
                             let connection:Mongo.Connection = try await .init(from: pool,
                                 by: deadline)
-                            try await Task.sleep(until: midpoint.instant,
+                            try await Task.sleep(until: midpoint,
                                     clock: .continuous)
                             withExtendedLifetime(connection)
                             {
@@ -67,7 +67,7 @@ func TestConnectionPool(_ tests:TestGroup,
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(500))
+                let deadline:ContinuousClock.Instant = .now.advanced(by: .milliseconds(500))
                 let pool:Mongo.ConnectionPool = try await $0.connect(to: .primary,
                     by: deadline)
                 for _:Int in 0 ..< 50
@@ -90,7 +90,7 @@ func TestConnectionPool(_ tests:TestGroup,
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(3000))
+                let deadline:ContinuousClock.Instant = .now.advanced(by: .milliseconds(3000))
                 let pool:Mongo.ConnectionPool = try await $0.connect(to: .primary,
                     by: deadline)
                 //  use up the pool’s entire capacity by hoarding connections.

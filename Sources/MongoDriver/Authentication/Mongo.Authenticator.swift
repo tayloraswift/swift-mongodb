@@ -23,7 +23,7 @@ extension Mongo.Authenticator
     /// be closed.
     func establish(_ connection:Mongo.ConnectionPool.Allocation,
         client:Mongo.Hello.ClientMetadata,
-        by deadline:Mongo.ConnectionDeadline) async -> Result<Void, any Error>
+        by deadline:ContinuousClock.Instant) async -> Result<Void, any Error>
     {
         let user:Mongo.Namespaced<String>?
         // if we don’t have an explicit authentication mode, ask the server
@@ -74,7 +74,7 @@ extension Mongo.Authenticator
     func authenticate(_ connection:Mongo.ConnectionPool.Allocation,
         credentials:Mongo.Credentials,
         mechanisms:Set<Mongo.Authentication.SASL>?,
-        by deadline:Mongo.ConnectionDeadline) async throws
+        by deadline:ContinuousClock.Instant) async throws
     {
         let sasl:Mongo.Authentication.SASL
         switch credentials.authentication
@@ -135,7 +135,7 @@ extension Mongo.Authenticator
         database:Mongo.Database, 
         username:String, 
         password:String,
-        by deadline:Mongo.ConnectionDeadline) async throws 
+        by deadline:ContinuousClock.Instant) async throws 
     {
         let start:SCRAM.Start = .init(username: username)
         let first:Mongo.SASLResponse = try await connection.run(

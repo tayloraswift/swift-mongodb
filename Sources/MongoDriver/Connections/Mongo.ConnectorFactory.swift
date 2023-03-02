@@ -1,3 +1,4 @@
+import Durations
 import MongoIO
 import NIOCore
 import NIOPosix
@@ -34,7 +35,7 @@ extension Mongo
 extension Mongo.ConnectorFactory
 {
     func callAsFunction<Authenticator>(authenticator:Authenticator,
-        timeout:Mongo.ConnectionTimeout,
+        timeout:Milliseconds,
         host:Mongo.Host) -> Mongo.Connector<Authenticator>
     {
         .init(authenticator: authenticator,
@@ -47,12 +48,12 @@ extension Mongo.ConnectorFactory
 extension Mongo.ConnectorFactory
 {
     private
-    func bootstrap(timeout:Mongo.ConnectionTimeout, host:Mongo.Host) -> ClientBootstrap
+    func bootstrap(timeout:Milliseconds, host:Mongo.Host) -> ClientBootstrap
     {
         .init(group: self.executor)
             .resolver(self.resolver)
             .channelOption(ChannelOptions.Types.ConnectTimeoutOption.init(), 
-                value: .milliseconds(timeout.milliseconds.rawValue))
+                value: .milliseconds(timeout.rawValue))
             .channelOption(ChannelOptions.Types.SocketOption.init(
                     level: Int.init(SOL_SOCKET),
                     name: SO_REUSEADDR), 

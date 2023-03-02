@@ -51,7 +51,7 @@ extension Mongo
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
         init(alongside monitor:MonitorDelegate,
-            connectionTimeout:ConnectionTimeout,
+            connectionTimeout:Milliseconds,
             connectorFactory:__shared ConnectorFactory,
             authenticator:Authenticator,
             generation:UInt,
@@ -189,10 +189,10 @@ extension Mongo.ConnectionPool
     /// call will be shortened via task cancellation if the request succeeds
     /// before the deadline.
     private
-    func fail(request id:UInt, by deadline:Mongo.ConnectionDeadline) async throws
+    func fail(request id:UInt, by deadline:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: deadline.instant, clock: .continuous)
+        try await Task.sleep(until: deadline, clock: .continuous)
         self.allocations.fail(request: id, throwing: Mongo.ConnectionPoolTimeoutError.init(
             host: self.host))
     }
@@ -210,7 +210,7 @@ extension Mongo.ConnectionPool
     /// caller, the call will return [`nil`](), but the allocation will still be
     /// created and added to the pool, and may be used to complete a different
     /// request.
-    func create(by deadline:Mongo.ConnectionDeadline) async throws -> Allocation
+    func create(by deadline:ContinuousClock.Instant) async throws -> Allocation
     {
         while true
         {

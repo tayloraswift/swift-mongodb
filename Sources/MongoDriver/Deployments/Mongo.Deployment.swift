@@ -25,9 +25,9 @@ extension Mongo
     @usableFromInline internal final
     actor Deployment
     {
-        /// The combined connection and operation timeout for driver operations.
+        /// The default timeout for driver operations.
         @usableFromInline internal nonisolated
-        let timeout:ConnectionTimeout
+        let timeout:Timeout
         //  Right now, we don’t do anything with this from this type. But other
         //  types use it through their deployment pointers.
         internal nonisolated
@@ -50,9 +50,9 @@ extension Mongo
         private
         var snapshot:Servers
 
-        init(timeout:ConnectionTimeout, logger:Logger?)
+        init(connectionTimeout:Milliseconds, logger:Logger?)
         {
-            self.timeout = timeout
+            self.timeout = .init(default: connectionTimeout)
             self.logger = logger
             
             self.atomic.sessions = .create(.init(ttl: 0))
@@ -197,12 +197,12 @@ extension Mongo.Deployment
     /// a session pool, because the pool did not have time to connect to any
     /// servers yet.
     public nonisolated
-    func sessions(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.LogicalSessions
+    func sessions(by deadline:ContinuousClock.Instant) async throws -> Mongo.LogicalSessions
     {
         try await self.sessions(by: deadline).get()
     }
     private nonisolated
-    func sessions(by deadline:Mongo.ConnectionDeadline) async -> SessionsResponse
+    func sessions(by deadline:ContinuousClock.Instant) async -> SessionsResponse
     {
         if  let sessions:Mongo.LogicalSessions = self.sessions
         {
@@ -215,7 +215,7 @@ extension Mongo.Deployment
     }
     private
     func sessionsAvailable(
-        by deadline:Mongo.ConnectionDeadline) async -> SessionsResponse
+        by deadline:ContinuousClock.Instant) async -> SessionsResponse
     {
         let id:UInt = self.request()
 
@@ -234,10 +234,10 @@ extension Mongo.Deployment
         }
     }
     private
-    func sessionsUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
+    func sessionsUnavailable(for id:UInt, once deadline:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: deadline.instant, clock: .continuous)
+        try await Task.sleep(until: deadline, clock: .continuous)
         self.sessionsRequests[id].fail(diagnosing: self.snapshot)
     }
 }
@@ -245,12 +245,12 @@ extension Mongo.Deployment
 {
     @usableFromInline
     func pool(preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionPool
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.ConnectionPool
     {
         try await self.select(preference, by: deadline).get()
     }
     func select(_ preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline) async -> SelectionResponse
+        by deadline:ContinuousClock.Instant) async -> SelectionResponse
     {
         if  let pool:Mongo.ConnectionPool = self.snapshot[preference]
         {
@@ -263,7 +263,7 @@ extension Mongo.Deployment
     }
     private
     func selectionAvailable(_ preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline) async -> SelectionResponse
+        by deadline:ContinuousClock.Instant) async -> SelectionResponse
     {
         let id:UInt = self.request()
 
@@ -282,10 +282,10 @@ extension Mongo.Deployment
         }
     }
     private
-    func selectionUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
+    func selectionUnavailable(for id:UInt, once deadline:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: deadline.instant, clock: .continuous)
+        try await Task.sleep(until: deadline, clock: .continuous)
         self.selectionRequests[id].fail(diagnosing: self.snapshot)
     }
 }
@@ -319,7 +319,7 @@ extension Mongo.Deployment
         }
         do
         {
-            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
+            let deadline:ContinuousClock.Instant = self.timeout.deadline()
 
             let connections:Mongo.ConnectionPool = try await self.pool(
                 preference: .primaryPreferred,
@@ -329,7 +329,7 @@ extension Mongo.Deployment
             
             let reply:Mongo.Reply = try await connection.allocation.run(command: command,
                 against: .admin,
-                by: deadline.instant)
+                by: deadline)
             
             return reply.ok
         }
