@@ -1,9 +1,5 @@
-import Atomics
-import BSON
-import Durations
 import MongoExecutor
 import MongoWire
-import NIOCore
 
 extension Mongo
 {
@@ -16,7 +12,7 @@ extension Mongo
     class Connection:Identifiable
     {
         @usableFromInline internal
-        let allocation:UnsafeConnection
+        let allocation:ConnectionPool.Allocation
 
         @usableFromInline internal
         let pool:ConnectionPool
@@ -25,7 +21,7 @@ extension Mongo
         var reuse:Bool
 
         private
-        init(allocation:UnsafeConnection, pool:Mongo.ConnectionPool)
+        init(allocation:ConnectionPool.Allocation, pool:ConnectionPool)
         {
             self.allocation = allocation
             self.pool = pool
@@ -82,9 +78,9 @@ extension Mongo.Connection
     /// Interrupts this connection’s IO channel, and marks it as
     /// non-reusable.
     public
-    func cancel()
+    func crosscancel(throwing error:any Error)
     {
-        self.allocation.cancel()
+        self.allocation.crosscancel(throwing: error)
         self.reuse = false
     }
 }
@@ -112,7 +108,7 @@ extension Mongo.Connection
         case .success(let message):
             return try .init(message: message)
         
-        case .failure(.cancellation(.timeout)):
+        case .failure(.cancelled(.timeout)):
             self.reuse = false
             throw Mongo.TimeoutError.driver(sent: true)
         

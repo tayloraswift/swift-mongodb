@@ -24,7 +24,7 @@ extension Mongo.Servers
 }
 extension Mongo.Servers
 {
-    init(from topology:__shared Mongo.Topology<Mongo.TopologyMonitor.Canary>,
+    init(from topology:__shared Mongo.Topology<Mongo.TopologyModel.Canary>,
         heartbeatInterval:Milliseconds)
     {
         switch topology

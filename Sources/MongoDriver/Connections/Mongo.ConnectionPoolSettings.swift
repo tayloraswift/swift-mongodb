@@ -1,9 +1,9 @@
 import Durations
 
-extension Mongo.ConnectionPool
+extension Mongo
 {
     @frozen public
-    struct Settings:Equatable, Sendable
+    struct ConnectionPoolSettings:Equatable, Sendable
     {
         /// The target size of a connection pool. The pool will attempt to expand
         /// until it contains at least the minimum number of connections, and it will

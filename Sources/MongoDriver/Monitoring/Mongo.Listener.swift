@@ -2,55 +2,56 @@ import Durations
 
 extension Mongo
 {
-    struct TopologyMonitor:Sendable
+    struct Listener:Sendable
     {
         private
         let connection:Connection
-        private
-        let consumer:AsyncThrowingStream<Update, any Error>.Continuation
 
         private
         let interval:Milliseconds,
-            seed:Mongo.TopologyVersion
+            seed:TopologyVersion
 
-        init(_ consumer:AsyncThrowingStream<Update, any Error>.Continuation,
-            connection:Connection,
+        init(connection:Connection,
             interval:Milliseconds,
-            seed:Mongo.TopologyVersion)
+            seed:TopologyVersion)
         {
             self.connection = connection
-            self.consumer = consumer
             self.interval = interval
             self.seed = seed
         }
     }
 }
-extension Mongo.TopologyMonitor
+extension Mongo.Listener
 {
-    func monitor() async
+    func start(alongside pool:Mongo.ConnectionPool,
+        updating stream:AsyncThrowingStream<Mongo.MonitorPool.Update, any Error>.Continuation)
+        async
     {
         var version:Mongo.TopologyVersion = self.seed
-        while true
+        do
         {
-            do
+            while true
             {
                 let response:Mongo.HelloResponse = try await self.connection.run(
                     hello: .init(topologyVersion: version,
                         milliseconds: self.interval))
                 
                 version = response.topologyVersion
+
+                pool.log(listenerEvent: .updated(version))
                 
-                self.consumer.yield(.init(
+                stream.yield(.init(
                     topology: response.topologyUpdate,
-                    sessions: response.sessions,
-                    canary: nil))
+                    sessions: response.sessions))
             }
-            catch let error
-            {
-                self.consumer.finish(throwing: error)
-                await self.connection.close()
-                return
-            }
+        }
+        catch let error
+        {
+            pool.monitor.resume(from: .listener)
+            pool.log(listenerEvent: .errored(error))
+
+            stream.finish(throwing: error)
+            await self.connection.close()
         }
     }
 }

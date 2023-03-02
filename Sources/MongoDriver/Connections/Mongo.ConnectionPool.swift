@@ -25,14 +25,15 @@ extension Mongo
         let generation:UInt
         /// The size and width of this connection pool.
         nonisolated
-        let settings:Settings
+        let settings:ConnectionPoolSettings
 
         /// The host this pool creates connections to.
         nonisolated
         let host:Host
 
-        private nonisolated
-        let monitor:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>.Continuation
+        /// A handle for communicating back to the initiator of this pool.
+        nonisolated
+        let monitor:MonitorDelegate
         private nonisolated
         let logger:Logger?
         
@@ -49,13 +50,12 @@ extension Mongo
 
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
-        init(
-            _ monitor:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>.Continuation,
-            connectionTimeout:Mongo.ConnectionTimeout,
-            connectorFactory:__shared Mongo.ConnectorFactory,
-            authenticator:Mongo.Authenticator,
+        init(alongside monitor:MonitorDelegate,
+            connectionTimeout:ConnectionTimeout,
+            connectorFactory:__shared ConnectorFactory,
+            authenticator:Authenticator,
             generation:UInt,
-            settings:Settings,
+            settings:ConnectionPoolSettings,
             logger:Logger?,
             host:Host)
         {
@@ -72,6 +72,7 @@ extension Mongo
             
             self.releasing = .create(0)
             self.latency = .create(0)
+
         }
         deinit
         {
@@ -84,49 +85,30 @@ extension Mongo
 }
 extension Mongo.ConnectionPool
 {
-    func start(with monitors:Mongo.MonitorTasks) async
-    {
-        await withTaskGroup(of: Void.self)
-        {
-            (tasks:inout TaskGroup<Void>) in
-
-            tasks.addTask
-            {
-                await monitors.topology.monitor()
-            }
-            tasks.addTask
-            {
-                await monitors.latency.monitor(for: self)
-            }
-
-            await self.start()
-        }
-    }
-    private
     func start() async
     {
         await withTaskCancellationHandler
         {
-            let _:Task<Void, Never> = .init
-            {
-                await self.fill()
-            }
-
-            self.log(.creating(self.settings))
-
             await withCheckedContinuation
             {
                 self.allocations.whenEmpty(resume: $0)
+
+                let _:Task<Void, Never> = .init
+                {
+                    await self.fill()
+                }
+
+                self.log(.creating(self.settings))
             }
         }
         onCancel:
         {
-            self.monitor.finish()
+            self.monitor.resume(from: .pool)
 
             let error:CancellationError = .init()
             let _:Task<Void, Never> = .init
             {
-                await self.drain(throwing: .init(because: error))
+                await self.drain(throwing: .init(because: error, host: self.host))
             }
 
             self.log(.draining(because: error))
@@ -154,7 +136,7 @@ extension Mongo.ConnectionPool
 extension Mongo.ConnectionPool
 {
     /// Sets the round-trip latency tracked by this pool.
-    public nonisolated
+    nonisolated
     func set(latency:Nanoseconds)
     {
         self.latency.store(latency, ordering: .relaxed)
@@ -169,8 +151,30 @@ extension Mongo.ConnectionPool
 }
 extension Mongo.ConnectionPool
 {
+    nonisolated
+    func log(samplerEvent:Mongo.SamplerEvent)
+    {
+        self.logger?.yield(level: .full, event: .sampler(host: self.host,
+            generation: self.generation,
+            event: samplerEvent))
+    }
+    nonisolated
+    func log(listenerEvent:Mongo.ListenerEvent)
+    {
+        self.logger?.yield(level: .full, event: .listener(host: self.host,
+            generation: self.generation,
+            event: listenerEvent))
+    }
+    nonisolated
+    func log(topologyEvent:Mongo.TopologyModelEvent)
+    {
+        self.logger?.yield(level: .full, event: .topology(host: self.host,
+            generation: self.generation,
+            event: topologyEvent))
+    }
+    
     private nonisolated
-    func log(_ event:Event)
+    func log(_ event:Mongo.ConnectionPoolEvent)
     {
         self.logger?.yield(level: .full, event: .pool(host: self.host,
             generation: self.generation,
@@ -178,6 +182,21 @@ extension Mongo.ConnectionPool
     }
 }
 
+extension Mongo.ConnectionPool
+{
+    /// Sleeps until the specified deadline, then fails the specified connection
+    /// request if it is still awaiting. It is expected that the duration of this
+    /// call will be shortened via task cancellation if the request succeeds
+    /// before the deadline.
+    private
+    func fail(request id:UInt, by deadline:Mongo.ConnectionDeadline) async throws
+    {
+        //  will throw ``CancellationError`` if request succeeds
+        try await Task.sleep(until: deadline.instant, clock: .continuous)
+        self.allocations.fail(request: id, throwing: Mongo.ConnectionPoolTimeoutError.init(
+            host: self.host))
+    }
+}
 extension Mongo.ConnectionPool
 {
     /// Returns an existing allocation in the pool if one is available, creating
@@ -191,7 +210,7 @@ extension Mongo.ConnectionPool
     /// caller, the call will return [`nil`](), but the allocation will still be
     /// created and added to the pool, and may be used to complete a different
     /// request.
-    func create(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.UnsafeConnection
+    func create(by deadline:Mongo.ConnectionDeadline) async throws -> Allocation
     {
         while true
         {
@@ -228,18 +247,6 @@ extension Mongo.ConnectionPool
             }
         }
     }
-    /// Sleeps until the specified deadline, then fails the specified connection
-    /// request if it is still awaiting. It is expected that the duration of this
-    /// call will be shortened via task cancellation if the request succeeds
-    /// before the deadline.
-    private
-    func fail(request id:UInt, by deadline:Mongo.ConnectionDeadline) async throws
-    {
-        //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: deadline.instant, clock: .continuous)
-        self.allocations.fail(request: id, throwing: Mongo.ConnectionPoolTimeoutError.init(
-            host: self.host))
-    }
     /// Synchronously notifies the pool that a connection is being returned
     /// to it, and asynchronously re-indexes the connection.
     ///
@@ -264,7 +271,7 @@ extension Mongo.ConnectionPool
     /// because replacement is performed when the underlying channel closes,
     /// which may take place before the wrapping connection is destroyed. 
     nonisolated
-    func destroy(_ allocation:Mongo.UnsafeConnection, reuse:Bool)
+    func destroy(_ allocation:Allocation, reuse:Bool)
     {
         if  reuse
         {
@@ -276,7 +283,7 @@ extension Mongo.ConnectionPool
         }
     }
     private
-    func destroy(_ allocation:Mongo.UnsafeConnection, reindex:Bool) async
+    func destroy(_ allocation:Allocation, reindex:Bool) async
     {
         if  reindex
         {
@@ -310,7 +317,7 @@ extension Mongo.ConnectionPool
     /// the connection count to zero, calling this method may unblock a call to
     /// ``drain``.
     private
-    func replace(perished allocation:Mongo.UnsafeConnection) async
+    func replace(perished allocation:Allocation) async
     {
         if  let reservation:Reservation = self.allocations.replace(allocation.id,
                 releasing: self.releasing.load(ordering: .relaxed),
@@ -336,7 +343,7 @@ extension Mongo.ConnectionPool
     {
         self.log(.expanding(id: reservation.id))
 
-        let allocation:Mongo.UnsafeConnection
+        let allocation:Allocation
         
         do
         {
@@ -344,9 +351,9 @@ extension Mongo.ConnectionPool
         }
         catch let error
         {
-            self.monitor.finish()
+            self.monitor.resume(from: .pool)
 
-            self.allocations.drain(throwing: .init(because: error),
+            self.allocations.drain(throwing: .init(because: error, host: self.host),
                 erase: true)
 
             self.log(.draining(because: error))

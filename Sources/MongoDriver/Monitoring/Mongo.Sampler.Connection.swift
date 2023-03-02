@@ -2,7 +2,7 @@ import Durations
 import MongoExecutor
 import NIOCore
 
-extension Mongo.LatencyMonitor
+extension Mongo.Sampler
 {
     struct Connection:MongoExecutor
     {
@@ -14,9 +14,9 @@ extension Mongo.LatencyMonitor
         }
     }
 }
-extension Mongo.LatencyMonitor.Connection
+extension Mongo.Sampler.Connection
 {
-    func sample(by deadline:ContinuousClock.Instant) async throws -> Mongo.Latency
+    func sample(by deadline:ContinuousClock.Instant) async throws -> Duration
     {
         let hello:Mongo.Hello = .init(user: nil)
         //  Cannot use ``ContinousClock.measure(_:)``, because that API does not
@@ -25,6 +25,6 @@ extension Mongo.LatencyMonitor.Connection
         let _:Mongo.Reply = try await self.run(command: hello, against: .admin,
             by: deadline)
         let received:ContinuousClock.Instant = .now
-        return .init(received - sent)
+        return received - sent
     }
 }

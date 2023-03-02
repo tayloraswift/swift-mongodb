@@ -7,11 +7,24 @@ extension Mongo
     {
         public
         let underlying:any Error
+        public
+        let host:Host
 
-        init(because error:any Error)
+        public
+        init(because error:any Error, host:Host)
         {
             self.underlying = error
+            self.host = host
         }
+    }
+}
+extension Mongo.ConnectionPoolDrainedError:Equatable
+{
+    public static
+    func == (lhs:Self, rhs:Self) -> Bool
+    {
+        lhs.host == rhs.host &&
+        lhs.underlying == rhs.underlying
     }
 }
 extension Mongo.ConnectionPoolDrainedError:TraceableError
@@ -21,6 +34,7 @@ extension Mongo.ConnectionPoolDrainedError:TraceableError
     {
         [
             """
+            while filling connection pool for '\(self.host)'
             """
         ]
     }

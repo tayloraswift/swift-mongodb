@@ -46,9 +46,11 @@ func TestAuthentication(_ tests:TestGroup,
                 password: password),
             executor: executor)
 
-        await tests.do(catching: Mongo.AuthenticationError.init(
-                Mongo.AuthenticationUnsupportedError.init(.x509),
-            credentials: bootstrap.credentials!))
+        await tests.do(catching: Mongo.ConnectionPoolDrainedError.init(
+            because: Mongo.AuthenticationError.init(
+                    Mongo.AuthenticationUnsupportedError.init(.x509),
+                credentials: bootstrap.credentials!),
+            host: standalone))
         {
             try await bootstrap.withSessionPool(seedlist: [standalone],
                 timeout: .init(milliseconds: 500))
@@ -69,9 +71,11 @@ func TestAuthentication(_ tests:TestGroup,
                 password: "1234"),
             executor: executor)
 
-        await tests.do(catching: Mongo.AuthenticationError.init(Mongo.ServerError.init(18,
-                message: "Authentication failed."),
-            credentials: bootstrap.credentials!))
+        await tests.do(catching: Mongo.ConnectionPoolDrainedError.init(
+            because: Mongo.AuthenticationError.init(Mongo.ServerError.init(18,
+                    message: "Authentication failed."),
+                credentials: bootstrap.credentials!),
+            host: standalone))
         {
             try await bootstrap.withSessionPool(seedlist: [standalone],
                 timeout: .init(milliseconds: 500))

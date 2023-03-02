@@ -42,7 +42,7 @@ extension MongoExecutor
         case .success(let message):
             return try .init(message: message)
         
-        case .failure(.cancellation(.timeout)):
+        case .failure(.cancelled(.timeout)):
             throw Mongo.TimeoutError.driver(sent: true)
         
         case .failure(let error):

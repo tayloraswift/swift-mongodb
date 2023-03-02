@@ -48,11 +48,7 @@ extension Mongo.Connector
 }
 extension Mongo.Connector<Never?>
 {
-    func monitors(interval:Milliseconds) async throws ->
-    (
-        producer:Mongo.MonitorTasks,
-        updates:AsyncThrowingStream<Mongo.TopologyMonitor.Update, any Error>
-    )
+    func connect(interval:Milliseconds) async throws -> Mongo.Services
     {
         //  '''
         //  Drivers MUST NOT authenticate on sockets used for monitoring nor
@@ -62,48 +58,37 @@ extension Mongo.Connector<Never?>
         let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
         let hello:Mongo.Hello = .init(client: self.client, user: nil)
 
-        let topology:Mongo.TopologyMonitor.Connection = .init(
+        let listener:Mongo.Listener.Connection = .init(
             channel: try await self.channel())
-        let latency:Mongo.LatencyMonitor.Connection
+        let sampler:Mongo.Sampler.Connection
 
         async
-        let handshake:Mongo.Handshake = topology.run(hello: hello, by: deadline)
+        let handshake:Mongo.Handshake = listener.run(hello: hello, by: deadline)
 
         do
         {
-            latency = .init(channel: try await self.channel())
+            sampler = .init(channel: try await self.channel())
         }
         catch let error
         {
-            await topology.close()
+            await listener.close()
             throw error
         }
 
         do
         {
-            let handshake:Mongo.Handshake = try await handshake
-
-            var consumer:AsyncThrowingStream<
-                Mongo.TopologyMonitor.Update, any Error>.Continuation? = nil
-            let updates:AsyncThrowingStream<
-                Mongo.TopologyMonitor.Update, any Error> = .init
-            {
-                consumer = $0
-            }
-            return (.init(consumer: consumer!,
-                topologyMonitorConnection: topology,
-                latencyMonitorConnection: latency,
-                handshake: handshake,
-                interval: interval,
-                host: self.host), updates)
+            return .init(listenerConnection: listener,
+                samplerConnection: sampler,
+                handshake: try await handshake,
+                interval: interval)
         }
         catch let error
         {
             async
-            let latency:Void = latency.close()
+            let sampler:Void = sampler.close()
 
-            await topology.close()
-            await latency
+            await listener.close()
+            await sampler
 
             throw error
         }
@@ -111,11 +96,11 @@ extension Mongo.Connector<Never?>
 }
 extension Mongo.Connector<Mongo.Authenticator>
 {
-    func connect(id:UInt) async throws -> Mongo.UnsafeConnection
+    func connect(id:UInt) async throws -> Mongo.ConnectionPool.Allocation
     {
         let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(
             from: .now)
-        let connection:Mongo.UnsafeConnection = .init(
+        let connection:Mongo.ConnectionPool.Allocation = .init(
             channel: try await self.channel(),
             id: id)
         

@@ -21,7 +21,7 @@ extension Mongo.Authenticator
     /// Establishes a connection, performing authentication if possible.
     /// If establishment fails, the connection’s TCP channel will *not*
     /// be closed.
-    func establish(_ connection:Mongo.UnsafeConnection,
+    func establish(_ connection:Mongo.ConnectionPool.Allocation,
         client:Mongo.Hello.ClientMetadata,
         by deadline:Mongo.ConnectionDeadline) async -> Result<Void, any Error>
     {
@@ -71,7 +71,7 @@ extension Mongo.Authenticator
 extension Mongo.Authenticator
 {
     private nonisolated
-    func authenticate(_ connection:Mongo.UnsafeConnection,
+    func authenticate(_ connection:Mongo.ConnectionPool.Allocation,
         credentials:Mongo.Credentials,
         mechanisms:Set<Mongo.Authentication.SASL>?,
         by deadline:Mongo.ConnectionDeadline) async throws
@@ -130,7 +130,7 @@ extension Mongo.Authenticator
         }
     } 
     private nonisolated
-    func authenticate(_ connection:Mongo.UnsafeConnection,
+    func authenticate(_ connection:Mongo.ConnectionPool.Allocation,
         sasl mechanism:Mongo.Authentication.SASL, 
         database:Mongo.Database, 
         username:String, 

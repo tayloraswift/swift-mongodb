@@ -19,13 +19,13 @@ extension Mongo.Servers
 }
 extension Mongo.Servers.Routers
 {
-    init(from topology:__shared Mongo.Topology<Mongo.TopologyMonitor.Canary>.Sharded)
+    init(from topology:__shared Mongo.Topology<Mongo.TopologyModel.Canary>.Sharded)
     {
         self.init()
         for (host, state):
         (
             Mongo.Host, 
-            Mongo.ServerDescription<Mongo.Router, Mongo.TopologyMonitor.Canary>
+            Mongo.ServerDescription<Mongo.Router, Mongo.TopologyModel.Canary>
         )
             in topology
         {

@@ -2,10 +2,10 @@ import BSONDecoding
 import MongoExecutor
 import NIOCore
 
-extension Mongo
+extension Mongo.ConnectionPool
 {
     @usableFromInline internal
-    struct UnsafeConnection:MongoExecutor, Sendable
+    struct Allocation:MongoExecutor, Sendable
     {
         @usableFromInline internal
         let channel:any Channel
@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.UnsafeConnection
+extension Mongo.ConnectionPool.Allocation
 {
     /// Runs an authentication command against the specified `database`,
     /// and decodes its response.

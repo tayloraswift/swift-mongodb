@@ -67,25 +67,24 @@ extension Mongo.DriverBootstrap
         run body:(Mongo.SessionPool) async throws -> Success) async rethrows -> Success
     {
         let deployment:Mongo.Deployment = .init(timeout: timeout, logger: logger)
-        let monitor:Mongo.Monitor = .init(.init(hosts: seedlist),
-            connectionPoolSettings: .init(),
+        let monitors:Mongo.MonitorPool = .init(connectionPoolSettings: .init(),
             connectorFactory: self.connectorFactory,
             authenticator: self.authenticator,
-            deployment: deployment,
-            interval: heartbeatInterval)
+            deployment: deployment)
         
-        let pool:Mongo.SessionPool = .init(deployment: deployment)
+        async
+        let _:Void = monitors.start(interval: heartbeatInterval, seedlist: seedlist)
+        
+        let sessions:Mongo.SessionPool = .init(deployment: deployment)
         do
         {
-            let success:Success = try await body(pool)
-            await deployment.end(sessions: await pool.drain())
-            await monitor.stop()
+            let success:Success = try await body(sessions)
+            await deployment.end(sessions: await sessions.drain())
             return success
         }
         catch let error
         {
-            await deployment.end(sessions: await pool.drain())
-            await monitor.stop()
+            await deployment.end(sessions: await sessions.drain())
             throw error
         }
     }

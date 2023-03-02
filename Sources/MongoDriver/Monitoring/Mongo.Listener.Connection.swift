@@ -2,7 +2,7 @@ import Durations
 import MongoExecutor
 import NIOCore
 
-extension Mongo.TopologyMonitor
+extension Mongo.Listener
 {
     struct Connection:MongoExecutor
     {
@@ -14,7 +14,7 @@ extension Mongo.TopologyMonitor
         }
     }
 }
-extension Mongo.TopologyMonitor.Connection
+extension Mongo.Listener.Connection
 {
     func run(hello:__owned Mongo.Hello,
         by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.Handshake
@@ -26,7 +26,7 @@ extension Mongo.TopologyMonitor.Connection
             by: deadline.instant)
         let received:ContinuousClock.Instant = .now
         return .init(response: try .init(bson: reply()),
-            latency: .init(received - sent))
+            latency: .init(truncating: received - sent))
     }
     func run(hello:__owned Mongo.AwaitableHello) async throws -> Mongo.HelloResponse
     {

@@ -1,9 +1,9 @@
-extension Mongo.ConnectionPool
+extension Mongo
 {
     @frozen public
-    enum Event:Sendable
+    enum ConnectionPoolEvent:Sendable
     {
-        case creating(Settings)
+        case creating(ConnectionPoolSettings)
         case draining(because:any Error)
         case drained
 

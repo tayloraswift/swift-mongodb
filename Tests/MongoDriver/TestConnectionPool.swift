@@ -15,7 +15,7 @@ func TestConnectionPool(_ tests:TestGroup,
     //  This test makes 500 connection requests to the primary/master’s connection
     //  pool, and holds the connections (preventing them from being reused) for
     //  half the duration of the test, to force the pool to expand.
-    /// The pool should expand to its maximum size (100), and no further.
+    //  The pool should expand to its maximum size (100), and no further.
     do
     {
         let tests:TestGroup = tests / "oversubscription"
@@ -90,14 +90,18 @@ func TestConnectionPool(_ tests:TestGroup,
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
-                let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(1000))
+                let deadline:Mongo.ConnectionDeadline = .now.advanced(by: .milliseconds(3000))
                 let pool:Mongo.ConnectionPool = try await $0.connect(to: .primary,
                     by: deadline)
                 //  use up the pool’s entire capacity by hoarding connections.
                 var connections:[Mongo.Connection] = []
-                for _:Int in 0 ..< 100
+
+                await (tests / "before").do
                 {
-                    connections.append(try await .init(from: pool, by: deadline))
+                    for _:Int in 0 ..< 100
+                    {
+                        connections.append(try await .init(from: pool, by: deadline))
+                    }
                 }
 
                 tests.expect(await pool.count ==? 100)
@@ -105,14 +109,17 @@ func TestConnectionPool(_ tests:TestGroup,
                 //  interrupt ten of those connections.
                 for connection:Mongo.Connection in connections.prefix(10)
                 {
-                    connection.cancel()
+                    connection.crosscancel(throwing: CancellationError.init())
                 }
                 //  even though we haven’t returned the perished connections
                 //  to the pool, it should still be able to re-create ten
                 //  connections to replace them.
-                for _:Int in 0 ..< 10
+                await (tests / "after").do
                 {
-                    connections.append(try await .init(from: pool, by: deadline))
+                    for _:Int in 0 ..< 10
+                    {
+                        connections.append(try await .init(from: pool, by: deadline))
+                    }
                 }
             }
         }

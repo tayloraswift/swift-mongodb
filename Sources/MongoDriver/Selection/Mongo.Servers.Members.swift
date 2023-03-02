@@ -89,7 +89,7 @@ extension Mongo.Servers.Members
             self.init(unreachables: unreachables, undesirables: undesirables)
         }
     }
-    init(from topology:__shared Mongo.Topology<Mongo.TopologyMonitor.Canary>.Replicated,
+    init(from topology:__shared Mongo.Topology<Mongo.TopologyModel.Canary>.Replicated,
         heartbeatInterval:Milliseconds)
     {
         var unreachables:[Mongo.Host: Mongo.Unreachable] = [:],
@@ -100,7 +100,7 @@ extension Mongo.Servers.Members
         for (host, state):
         (
             Mongo.Host, 
-            Mongo.ServerDescription<Mongo.ReplicaSetMember, Mongo.TopologyMonitor.Canary>
+            Mongo.ServerDescription<Mongo.ReplicaSetMember, Mongo.TopologyModel.Canary>
         )
             in topology
         {
