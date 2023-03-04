@@ -4,11 +4,13 @@ import Durations
 import MongoWire
 import NIOCore
 
-/// A type that can encode a MongoDB command document. All command types
-/// (and command protocols) eventually inherit from this protocol.
+/// A type that represents a MongoDB command. All public command types
+/// (and command protocols) ultimately inherit from this protocol.
 public
 protocol MongoCommand<Response>:Sendable
 {
+    associatedtype ExecutionPolicy:MongoExecutionPolicy = Mongo.Once
+
     associatedtype WriteConcern = Never
     associatedtype ReadConcern = Never
 
@@ -21,6 +23,8 @@ protocol MongoCommand<Response>:Sendable
     ///     By convention, the library refers to a decoded message as a *response*,
     ///     and an undecoded message as a *reply*.
     associatedtype Response:Sendable
+
+    var stack:[(file:StaticString, line:Int)] { get }
 
     var writeConcernLabel:Mongo.WriteConcern? { get }
     var writeConcern:WriteConcern? { get }
@@ -55,6 +59,11 @@ protocol MongoCommand<Response>:Sendable
     static
     func decode(
         reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
+}
+extension MongoCommand
+{
+    @inlinable public
+    var stack:[(file:StaticString, line:Int)] { [] }
 }
 extension MongoCommand
 {
@@ -112,6 +121,17 @@ extension MongoCommand where WriteConcern == Never
         nil
     }
 }
+extension MongoCommand
+{
+    /// Indicates if this command autocommits, meaning it supports
+    /// retryable writes.
+    @inlinable public static
+    var autocommits:Bool
+    {
+        WriteConcern.self is Mongo.WriteConcern.Type &&
+        ExecutionPolicy.self is Mongo.Retry.Type
+    }
+}
 
 extension MongoCommand<Void>
 {
@@ -131,6 +151,7 @@ extension MongoCommand where Response:BSONDocumentDecodable<BSON.Key>
         try .init(bson: reply)
     }
 }
+
 extension MongoCommand
 {
     /// Encodes this command to a BSON document, adding the given database
@@ -189,6 +210,9 @@ extension MongoCommand
             case nil:
                 break
             
+            case .autocommitting(let number)?:
+                bson["txnNumber"] = number
+
             case .starting(let number)?:
                 bson["startTransaction"] = true
                 fallthrough

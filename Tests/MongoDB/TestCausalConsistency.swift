@@ -1,5 +1,4 @@
 import MongoDB
-import MongoChannel
 import Testing
 
 func TestCausalConsistency(_ tests:TestGroup,

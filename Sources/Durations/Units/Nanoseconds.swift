@@ -12,6 +12,9 @@ struct Nanoseconds:RawRepresentable, Hashable, Sendable
 }
 extension Nanoseconds:QuantizedDuration
 {
+    @inlinable public static
+    var unit:String { "ns" }
+
     @inlinable public
     init(truncating duration:Duration)
     {

@@ -28,7 +28,7 @@ extension Mongo.Batches
     @usableFromInline static
     func create(preference:Mongo.ReadPreference,
         lifecycle:Mongo.CursorLifecycle,
-        timeout:Mongo.OperationTimeout,
+        timeout:Milliseconds,
         initial:Mongo.Cursor<BatchElement>,
         stride:Int,
         pinned:

@@ -65,13 +65,15 @@ extension Mongo
         let pool:SessionPool
 
         private
-        init(metadata:SessionMetadata, pool:SessionPool, fork:Mongo.Instant? = nil)
+        init(allocation:SessionPool.Allocation,
+            pool:SessionPool,
+            fork:Mongo.Instant? = nil)
         {
             self.preconditionTime = fork
-            self.transaction = metadata.transaction
-            self.touched = metadata.touched
+            self.transaction = allocation.transaction
+            self.touched = allocation.touched
             self.reuse = true
-            self.id = metadata.id
+            self.id = allocation.id
 
             self.deployment = pool.deployment
             self.pool = pool
@@ -91,23 +93,23 @@ extension Mongo.Session
     /// Creates a session from a session pool. Do not escape the session
     /// from the scope that yielded the pool, because doing so will prevent
     /// the pool from draining on scope exit.
-    public convenience
-    init(from pool:Mongo.SessionPool) async throws
-    {
-        self.init(metadata: try await pool.create(), pool: pool)
-    }
-    /// Creates a session from a session pool, which is causally-consistent
-    /// with another session. Operations on the newly-created session will
+    ///
+    /// If `original` is non-nil, operations on the newly-created session will
     /// reflect writes performed using the original session at the time of
     /// session creation, but the two sessions will be otherwise unrelated.
     ///
-    /// Calling this initializer is roughly equivalent to creating a
-    /// unforked session and immediately calling ``synchronize(with:)``.
+    /// If `original` is non-nil, calling this initializer is roughly
+    /// equivalent to creating an unforked session and immediately calling
+    /// ``synchronize(with:)``.
     public convenience
-    init(from pool:Mongo.SessionPool, forking original:__shared Mongo.Session) async throws
+    init(from pool:Mongo.SessionPool, forking original:__shared Mongo.Session? = nil,
+        by deadline:ContinuousClock.Instant? = nil) async throws
     {
-        self.init(metadata: try await pool.create(), pool: pool,
-            fork: original.preconditionTime)
+        self.init(allocation: await pool.create(
+                capabilities: try await pool.deployment.capabilities(
+                    by: deadline ?? pool.deployment.timeout.deadline())),
+            pool: pool,
+            fork: original?.preconditionTime)
     }
     /// Fast-forwards this session’s precondition time to the other session’s
     /// precondition time, if it is non-[`nil`]() and greater than this
@@ -122,22 +124,6 @@ extension Mongo.Session
 @available(*, unavailable, message: "sessions have reference semantics")
 extension Mongo.Session:Sendable
 {
-}
-extension Mongo.Session
-{
-    @usableFromInline static
-    let transactionUnpinnedErrorMessage:String =
-    """
-    MongoDB transaction misuse: \
-    cannot run commands on a session from outside of transaction \
-    context while a transaction is in progress!
-    """
-    @usableFromInline static
-    let transactionNestedErrorMessage:String =
-    """
-    MongoDB transaction misuse: \
-    cannot start a transaction from within another transaction!
-    """
 }
 extension Mongo.Session
 {
@@ -161,20 +147,46 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
         where Command:MongoCommand
     {
-        if case _? = self.transaction.phase
+        switch self.transaction.phase
         {
-            fatalError(Self.transactionUnpinnedErrorMessage)
+        case nil:
+            return try await Mongo.Once.retry(selecting: preference,
+                among: self.deployment,
+                until: deadline)
+            {
+                let connection:Mongo.Connection = try await .init(from: $0,
+                    by: $1.connection)
+                
+                return try await self.run(command: command, against: database,
+                    over: connection,
+                    on: preference,
+                    by: $1.operation)
+            }
+        
+        case .autocommitting?:
+            defer
+            {
+                if Command.autocommits
+                {
+                    self.transaction.number += 1
+                }
+            }
+            return try await Command.ExecutionPolicy.retry(selecting: preference,
+                among: self.deployment,
+                until: deadline)
+            {
+                let connection:Mongo.Connection = try await .init(from: $0,
+                    by: $1.connection)
+                
+                return try await self.run(command: command, against: database,
+                    over: connection,
+                    on: preference,
+                    by: $1.operation)
+            }
+        
+        case .starting, .started:
+            throw Mongo.TransactionInProgressError.init()
         }
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
-            clamping: deadline)
-        let connections:Mongo.ConnectionPool = try await self.deployment.pool(
-            preference: preference,
-            by: connect)
-        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
-        return try await self.run(command: command, against: database,
-            over: connection,
-            on: preference,
-            by: deadline ?? connect.instant)
     }
 
     /// Runs an iterable command against the specified database, on a server selected
@@ -206,23 +218,96 @@ extension Mongo.Session
         async throws -> Success
         where Query:MongoIterableCommand
     {
-        if case _? = self.transaction.phase
+        let batches:Mongo.Batches<Query.Element> = try await self.begin(query: command,
+            against: database,
+            on: preference,
+            by: deadline)
+        do
         {
-            fatalError(Self.transactionUnpinnedErrorMessage)
+            let success:Success = try await consumer(batches)
+            await batches.destroy()
+            return success
         }
-
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
-            clamping: deadline)
-
-        return try await self.run(command: command, against: database, on: preference,
-            by: deadline ?? connect.instant,
-            with: consumer)
+        catch let error
         {
-            let connections:Mongo.ConnectionPool = try await self.deployment.pool(
-                preference: preference,
-                by: connect)
-            return try await .init(from: connections, by: connect)
+            await batches.destroy()
+            throw error
         }
+    }
+}
+extension Mongo.Session
+{
+    @inlinable public
+    func begin<Query>(query:Query,
+        against database:Query.Database,
+        on preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant?) async throws -> Mongo.Batches<Query.Element>
+        where Query:MongoIterableCommand
+    {
+        switch self.transaction.phase
+        {
+        case nil:
+            return try await Mongo.Once.retry(selecting: preference,
+                among: self.deployment,
+                until: deadline)
+            {
+                (connections:Mongo.ConnectionPool, deadlines:Mongo.Deadlines) in
+
+                try await self.begin(query: query, against: database,
+                    over: connections,
+                    on: preference,
+                    by: deadlines)
+            }
+        
+        case .autocommitting?:
+            defer
+            {
+                //  There are currently no commands that are both iterable and
+                //  autocommit. But if there were, they would always increment
+                //  the transaction number after executing.
+                if  Query.autocommits
+                {
+                    self.transaction.number += 1
+                }
+            }
+            return try await Query.ExecutionPolicy.retry(selecting: preference,
+                among: self.deployment,
+                until: deadline)
+            {
+                (connections:Mongo.ConnectionPool, deadlines:Mongo.Deadlines) in
+
+                try await self.begin(query: query, against: database,
+                    over: connections,
+                    on: preference,
+                    by: deadlines)
+            }
+        
+        case .starting, .started:
+            throw Mongo.TransactionInProgressError.init()
+        }
+    }
+    @inlinable public
+    func begin<Query>(query:Query,
+        against database:Query.Database,
+        over connections:Mongo.ConnectionPool,
+        on preference:Mongo.ReadPreference,
+        by deadlines:Mongo.Deadlines) async throws -> Mongo.Batches<Query.Element>
+        where Query:MongoIterableCommand
+    {
+        let connection:Mongo.Connection = try await .init(from: connections,
+            by: deadlines.connection)
+
+        return .create(preference: preference,
+            lifecycle: query.tailing.map { .iterable($0.timeout) } ??
+                .expires(deadlines.operation),
+            timeout: self.deployment.timeout.default,
+            initial: try await self.run(command: query,
+                against: database,
+                over: connection,
+                on: preference,
+                by: deadlines.operation),
+            stride: query.stride,
+            pinned: (connection, self))
     }
 }
 extension Mongo.Session
@@ -284,31 +369,35 @@ extension Mongo.Session
         run body:(Mongo.Transaction) async throws -> Success)
         async -> Mongo.TransactionResult<Success>
     {
-        let deadline:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now)
         let connections:Mongo.ConnectionPool
         //  Transactions can only be performed on the primary/master, and moreover,
         //  must be pinned to a specific server. (This means primary stepdown is not
         //  allowed.)
-        switch await self.deployment.select(.primary, by: deadline)
+        //  Transactions are also only allowed on sharded or replicated deployments.
+        switch self.transaction.phase
+        {
+        case nil:
+            return .unsupported(.init())
+        
+        case .autocommitting?:
+            self.transaction.phase = .starting(readConcern)
+        
+        case .starting?, .started?:
+            return .rejection(.init())
+        }
+
+        defer
+        {
+            self.transaction.phase = .autocommitting
+        }
+
+        switch await self.deployment.select(.primary, by: self.deployment.timeout.deadline())
         {
         case .failure(let error):
             return .unavailable(error)
         
         case .success(let pool):
             connections = pool
-        }
-
-        if case nil = self.transaction.phase
-        {
-            self.transaction.phase = .starting(readConcern)
-        }
-        else
-        {
-            fatalError(Self.transactionNestedErrorMessage)
-        }
-        defer
-        {
-            self.transaction.phase = nil
         }
 
         let transaction:Mongo.Transaction = .init(session: self, pinned: connections)
@@ -376,7 +465,8 @@ extension Mongo.Session
         let labels:Mongo.SessionLabels = self.labels(
             writeConcern: command.writeConcernLabel,
             readConcern: command.readConcernLabel,
-            preference: preference)
+            preference: preference,
+            autocommit: Command.autocommits)
         
         let sent:ContinuousClock.Instant = .now
         let reply:Mongo.Reply = try await connection.run(command: command,
@@ -390,46 +480,6 @@ extension Mongo.Session
             sent: sent)
 
         return try Command.decode(reply: try reply())
-    }
-
-    @inlinable public
-    func run<Query, Success>(command:Query, against database:Query.Database,
-        on preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant,
-        with consumer:(Mongo.Batches<Query.Element>) async throws -> Success,
-        connection:() async throws -> Mongo.Connection) async throws -> Success
-        where Query:MongoIterableCommand
-    {
-        let batches:Mongo.Batches<Query.Element>
-        do
-        {
-            //  limit lifetime of this binding so that the connection stays uniquely
-            //  referenced.
-            let connection:Mongo.Connection = try await connection()
-
-            batches = .create(preference: preference,
-                lifecycle: command.tailing.map { .iterable($0.timeout) } ?? .expires(deadline),
-                timeout: .init(
-                    milliseconds: self.deployment.timeout.milliseconds),
-                initial: try await self.run(command: command,
-                    against: database,
-                    over: connection,
-                    on: preference,
-                    by: deadline),
-                stride: command.stride,
-                pinned: (connection, self))
-        }
-        do
-        {
-            let success:Success = try await consumer(batches)
-            await batches.destroy()
-            return success
-        }
-        catch let error
-        {
-            await batches.destroy()
-            throw error
-        }
     }
 }
 extension Mongo.Session
@@ -457,7 +507,8 @@ extension Mongo.Session
     /// See: https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#constructing-the-first-command-within-a-transaction
     @usableFromInline
     func labels(writeConcern:Mongo.WriteConcern?, readConcern:Mongo.ReadConcern??,
-        preference:Mongo.ReadPreference) -> Mongo.SessionLabels
+        preference:Mongo.ReadPreference,
+        autocommit:Bool) -> Mongo.SessionLabels
     {
         let writeOptions:Mongo.WriteConcern.Options? =
             writeConcern.map(Mongo.WriteConcern.Options.init(_:))
@@ -476,6 +527,13 @@ extension Mongo.Session
         case .started?:
             readOptions = nil
             transaction = .started(self.transaction.number)
+        
+        case .autocommitting?:
+            readOptions = readConcern.map
+            {
+                .init(level: $0?.level, after: self.preconditionTime)
+            }
+            transaction = autocommit ? .autocommitting(self.transaction.number + 1) : nil
         
         case nil:
             readOptions = readConcern.map

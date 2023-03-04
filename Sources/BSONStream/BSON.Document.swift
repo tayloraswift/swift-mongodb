@@ -40,9 +40,9 @@ extension BSON.Document
         self.output.append(other.bytes)
     }
     @inlinable public mutating
-    func append(_ key:String, with serialize:(inout BSON.Field) -> ())
+    func append(_ key:String, with encode:(inout BSON.Field) -> ())
     {
-        self.output.with(key: .init(rawValue: key), do: serialize)
+        self.output.with(key: .init(rawValue: key), do: encode)
     }
 }
 //  When adding overloads to any ``Optional`` whose ``Wrapped`` value

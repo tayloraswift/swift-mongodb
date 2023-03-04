@@ -1,5 +1,4 @@
 import MongoDB
-import MongoChannel
 import Testing
 
 func TestTransactions(_ tests:TestGroup,
@@ -23,7 +22,7 @@ func TestTransactions(_ tests:TestGroup,
 
         //  We should be able to observe that no transaction is currently in
         //  progress.
-        tests.expect(nil: session.transaction.phase)
+        tests.expect(session.transaction.phase ==? .autocommitting)
         //  We are using a virgin session, so its transaction number should be
         //  zero.
         tests.expect(session.transaction.number ==? 0)

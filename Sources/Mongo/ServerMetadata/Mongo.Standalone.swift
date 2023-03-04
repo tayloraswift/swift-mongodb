@@ -4,8 +4,12 @@ extension Mongo
     struct Standalone:Sendable
     {
         public
-        init()
+        let capabilities:ServerCapabilities
+
+        public
+        init(capabilities:ServerCapabilities)
         {
+            self.capabilities = capabilities
         }
     }
 }

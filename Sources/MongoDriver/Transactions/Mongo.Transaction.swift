@@ -64,15 +64,16 @@ extension Mongo.Transaction
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
         where Command:MongoTransactableCommand
     {
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
+        let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(
             clamping: deadline)
         
-        let connection:Mongo.Connection = try await .init(from: self.pinned, by: connect)
+        let connection:Mongo.Connection = try await .init(from: self.pinned,
+            by: deadlines.connection)
 
         return try await self.session.run(command: command, against: database,
             over: connection,
             on: .primary,
-            by: deadline ?? connect.instant)
+            by: deadlines.operation)
     }
     @inlinable public
     func run<Query, Success>(command:Query, against database:Query.Database,
@@ -82,14 +83,24 @@ extension Mongo.Transaction
         async throws -> Success
         where Query:MongoTransactableCommand & MongoIterableCommand
     {
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: .now,
+        let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(
             clamping: deadline)
 
-        return try await self.session.run(command: command, against: database, on: .primary,
-            by: deadline ?? connect.instant,
-            with: consumer)
+        let batches:Mongo.Batches<Query.Element> = try await self.session.begin(query: command,
+            against: database,
+            over: self.pinned,
+            on: preference,
+            by: deadlines)
+        do
         {
-            try await .init(from: self.pinned, by: connect)
+            let success:Success = try await consumer(batches)
+            await batches.destroy()
+            return success
+        }
+        catch let error
+        {
+            await batches.destroy()
+            throw error
         }
     }
 }

@@ -3,9 +3,10 @@ extension Mongo
     @frozen public
     enum TopologyUpdate:Sendable
     {
-        case standalone(Standalone)
-        case router(Router)
-        case master(Master, Peerlist)
+        case primary(Primary, Peerlist)
         case slave(Slave, Peerlist)
+        case ghost
+        case router(Router)
+        case standalone(Standalone)
     }
 }

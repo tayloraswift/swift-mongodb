@@ -1,4 +1,5 @@
 import BSONDecoding
+import BSONStream
 
 extension Mongo
 {

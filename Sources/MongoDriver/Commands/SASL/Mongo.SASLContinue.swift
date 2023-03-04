@@ -12,7 +12,7 @@ extension Mongo
         let message:SCRAM.Message
     }
 }
-extension Mongo.SASLContinue:MongoChannelCommand
+extension Mongo.SASLContinue
 {
     /// The string [`"saslContinue"`]().
     static
@@ -20,7 +20,9 @@ extension Mongo.SASLContinue:MongoChannelCommand
     {
         "saslContinue"
     }
-
+}
+extension Mongo.SASLContinue:BSONDocumentEncodable
+{
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson[Self.name] = true

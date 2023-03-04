@@ -10,14 +10,15 @@ extension Mongo
         let client:ClientMetadata?
         let user:Mongo.Namespaced<String>?
 
-        init(client:ClientMetadata? = nil, user:Mongo.Namespaced<String>?)
+        init(client:ClientMetadata? = nil,
+            user:Mongo.Namespaced<String>?)
         {
             self.client = client
             self.user = user
         }
     }
 }
-extension Mongo.Hello:MongoChannelCommand
+extension Mongo.Hello
 {
     /// The string [`"hello"`]().
     @inlinable public static
@@ -25,11 +26,9 @@ extension Mongo.Hello:MongoChannelCommand
     {
         "hello"
     }
-
-    /// `Hello` must be run against to the `admin` database.
-    public
-    typealias Database = Mongo.Database.Admin
-
+}
+extension Mongo.Hello:BSONDocumentEncodable
+{
     public
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {

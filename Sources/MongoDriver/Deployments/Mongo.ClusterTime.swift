@@ -19,12 +19,12 @@ extension Mongo
 }
 extension Mongo.ClusterTime
 {
-    //  Writing this function in terms of ``AtomicTime`` prevents us
+    //  Writing this function in terms of ``AtomicState<Self>`` prevents us
     //  from allocating a new object in the common case where the
     //  max cluster time has not changed.
-    func combined(with other:Mongo.AtomicTime?) -> Mongo.AtomicTime
+    func combined(with other:Mongo.AtomicState<Self>?) -> Mongo.AtomicState<Self>
     {
-        guard let other:Mongo.AtomicTime
+        guard let other:Mongo.AtomicState<Self>
         else
         {
             return .init(self)

@@ -12,6 +12,9 @@ struct Milliseconds:RawRepresentable, Hashable, Sendable
 }
 extension Milliseconds:QuantizedDuration
 {
+    @inlinable public static
+    var unit:String { "ms" }
+
     @inlinable public
     init(truncating duration:Duration)
     {

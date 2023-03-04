@@ -19,7 +19,9 @@ extension Mongo.Batches
             guard case nil = self.cursor
             else
             {
-                fatalError("unreachable (deinitialized while cursor still open!)")
+                fatalError("""
+                MongoDB batch iterator misuse: deinitialized while cursor still open!
+                """)
             }
         }
     }

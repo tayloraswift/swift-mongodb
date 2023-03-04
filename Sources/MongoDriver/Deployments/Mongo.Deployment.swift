@@ -22,59 +22,70 @@ extension Mongo
     /// types like ``Session`` and ``SessionPool`` don’t need to interact with
     /// the service monitor, and service monitoring computations don’t block requests
     /// for information about deployment state.
-    @usableFromInline internal final
+    public final
     actor Deployment
     {
-        /// The combined connection and operation timeout for driver operations.
+        /// The default timeout for driver operations.
         @usableFromInline internal nonisolated
-        let timeout:ConnectionTimeout
+        let timeout:Timeout
         //  Right now, we don’t do anything with this from this type. But other
         //  types use it through their deployment pointers.
         internal nonisolated
         let logger:Logger?
 
         private
-        var selectionRequests:[UInt: SelectionRequest]
+        var capabilityRequests:[UInt: CapabilityRequest]
         private
-        var sessionsRequests:[UInt: SessionsRequest]
+        var selectionRequests:[UInt: SelectionRequest]
         private
         var counter:UInt
 
-        private nonisolated
-        let atomic:
-        (
-            sessions:UnsafeAtomic<LogicalSessions>,
-            time:UnsafeAtomic<AtomicTime?>
-        )
-
         private
-        var snapshot:Servers
+        var servers:ServerTable
 
-        init(timeout:ConnectionTimeout, logger:Logger?)
+        private nonisolated
+        let _capabilities:UnsafeAtomic<DeploymentCapabilities.BitPattern>
+        private nonisolated
+        let _clusterTime:UnsafeAtomic<AtomicState<ClusterTime>?>
+
+        init(connectionTimeout:Milliseconds, logger:Logger?)
         {
-            self.timeout = timeout
+            self.timeout = .init(default: connectionTimeout)
             self.logger = logger
             
-            self.atomic.sessions = .create(.init(ttl: 0))
-            self.atomic.time = .create(nil)
-            self.snapshot = .none
+            self._capabilities = .create(.init(nil))
+            self._clusterTime = .create(nil)
 
+            self.capabilityRequests = [:]
             self.selectionRequests = [:]
-            self.sessionsRequests = [:]
             self.counter = 0
+
+            self.servers = .none
+        }
+
+        /// The current largest-seen cluster time, if any.
+        public nonisolated
+        var clusterTime:Mongo.ClusterTime?
+        {
+            self._clusterTime.load(ordering: .relaxed)?.value
+        }
+        public nonisolated
+        var capabilities:Mongo.DeploymentCapabilities?
+        {
+            .init(bitPattern: self._capabilities.load(ordering: .relaxed))
         }
 
         deinit
         {
-            self.atomic.sessions.destroy()
-            self.atomic.time.destroy()
+            self._capabilities.destroy()
+            self._clusterTime.destroy()
 
             guard self.selectionRequests.isEmpty
             else
             {
                 fatalError("unreachable (deinitialized while selection requests are awaiting!)")
             }
-            guard self.sessionsRequests.isEmpty
+            guard self.capabilityRequests.isEmpty
             else
             {
                 fatalError("unreachable (deinitialized while session requests are awaiting!)")
@@ -83,21 +94,6 @@ extension Mongo
     }
 }
 
-extension Mongo.Deployment
-{
-    public nonisolated
-    var sessions:Mongo.LogicalSessions?
-    {
-        let sessions:Mongo.LogicalSessions = self.atomic.sessions.load(ordering: .relaxed)
-        return sessions.ttl == 0 ? nil : sessions
-    }
-    /// The current largest-seen cluster time, if any.
-    public nonisolated
-    var clusterTime:Mongo.ClusterTime?
-    {
-        self.atomic.time.load(ordering: .relaxed)?.value
-    }
-}
 extension Mongo.Deployment
 {
     /// Synchronously yield an observed cluster time to this deployment model.
@@ -129,14 +125,15 @@ extension Mongo.Deployment
     private
     func combine(_ clusterTime:Mongo.ClusterTime)
     {
-        let current:Mongo.AtomicTime? = self.atomic.time.load(ordering: .relaxed)
-        self.atomic.time.store(clusterTime.combined(with: current), ordering: .relaxed)
+        let current:Mongo.AtomicState<Mongo.ClusterTime>? = self._clusterTime.load(
+            ordering: .relaxed)
+        self._clusterTime.store(clusterTime.combined(with: current),
+            ordering: .relaxed)
     }
 }
 extension Mongo.Deployment
 {
-    /// Pushes a topology snapshot to the deployment model, along with information
-    /// about the deployment’s logical sessions support.
+    /// Pushes a server table to the deployment model.
     ///
     /// Unlike the cluster time, topology updates are computationally intensive, and
     /// so they are not calculated on the deployment model’s actor loop, to avoid
@@ -145,35 +142,25 @@ extension Mongo.Deployment
     /// This method should only be called from a single task or actor context, and
     /// the caller should always wait for the call to complete in order to ensure
     /// sequential consistency.
-    func push(snapshot:Mongo.Servers, sessions:Mongo.LogicalSessions? = nil)
+    func push(table servers:Mongo.ServerTable)
     {
-        self.snapshot = snapshot
+        self._capabilities.store(.init(servers.capabilities), ordering: .relaxed)
+        self.servers = servers
 
         for (id, request):(UInt, SelectionRequest) in self.selectionRequests
         {
-            if  let pool:Mongo.ConnectionPool = self.snapshot[request.preference]
+            if  let pool:Mongo.ConnectionPool = self.servers[request.preference]
             {
                 self.selectionRequests[id].fulfill(with: pool)
             }
         }
 
-        guard let sessions:Mongo.LogicalSessions
-        else
+        if let capabilities:Mongo.DeploymentCapabilities = servers.capabilities
         {
-            return
-        }
-
-        switch self.sessions.map({ sessions.ttl < $0.ttl })
-        {
-        case nil, true?:
-            self.atomic.sessions.store(sessions, ordering: .relaxed)
-        case false?:
-            break
-        }
-
-        for id:UInt in self.sessionsRequests.keys
-        {
-            self.sessionsRequests[id].fulfill(with: sessions)
+            for id:UInt in self.capabilityRequests.keys
+            {
+                self.capabilityRequests[id].fulfill(with: capabilities)
+            }
         }
     }
 }
@@ -196,83 +183,72 @@ extension Mongo.Deployment
     /// This method often suspends if it is called immediately after initializing
     /// a session pool, because the pool did not have time to connect to any
     /// servers yet.
-    public nonisolated
-    func sessions(by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.LogicalSessions
+    nonisolated
+    func capabilities(
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.DeploymentCapabilities
     {
-        try await self.sessions(by: deadline).get()
-    }
-    private nonisolated
-    func sessions(by deadline:Mongo.ConnectionDeadline) async -> SessionsResponse
-    {
-        if  let sessions:Mongo.LogicalSessions = self.sessions
+        if  let capabilities:Mongo.DeploymentCapabilities = self.capabilities
         {
-            return .success(sessions)
+            return capabilities
         }
         else
         {
-            return await self.sessionsAvailable(by: deadline)
+            return try await self.capabilities(by: deadline).get()
         }
     }
     private
-    func sessionsAvailable(
-        by deadline:Mongo.ConnectionDeadline) async -> SessionsResponse
+    func capabilities(
+        by deadline:ContinuousClock.Instant) async -> CapabilityResponse
     {
         let id:UInt = self.request()
 
         #if compiler(<5.8)
         async
-        let __:Void = self.sessionsUnavailable(for: id, once: deadline)
+        let __:Void = self.fail(capabilityRequest: id, once: deadline)
         #else
         async
-        let _:Void = self.sessionsUnavailable(for: id, once: deadline)
+        let _:Void = self.fail(capabilityRequest: id, once: deadline)
         #endif
 
         return await withCheckedContinuation
         {
-            self.sessionsRequests.updateValue(.init(promise: $0),
+            self.capabilityRequests.updateValue(.init(promise: $0),
                 forKey: id)
         }
     }
     private
-    func sessionsUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
+    func fail(capabilityRequest id:UInt,
+        once deadline:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: deadline.instant, clock: .continuous)
-        self.sessionsRequests[id].fail(diagnosing: self.snapshot)
+        try await Task.sleep(until: deadline, clock: .continuous)
+        self.capabilityRequests[id].fail(diagnosing: self.servers)
     }
 }
 extension Mongo.Deployment
 {
-    @usableFromInline
-    func pool(preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline) async throws -> Mongo.ConnectionPool
+    @usableFromInline internal
+    func pool(selecting preference:Mongo.ReadPreference,
+        by deadline:ContinuousClock.Instant) async throws -> Mongo.ConnectionPool
     {
         try await self.select(preference, by: deadline).get()
     }
     func select(_ preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline) async -> SelectionResponse
+        by deadline:ContinuousClock.Instant) async -> SelectionResponse
     {
-        if  let pool:Mongo.ConnectionPool = self.snapshot[preference]
+        if  let pool:Mongo.ConnectionPool = self.servers[preference]
         {
             return .success(pool)
         }
-        else
-        {
-            return await self.selectionAvailable(preference, by: deadline)
-        }
-    }
-    private
-    func selectionAvailable(_ preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline) async -> SelectionResponse
-    {
+
         let id:UInt = self.request()
 
         #if compiler(<5.8)
         async
-        let __:Void = self.selectionUnavailable(for: id, once: deadline)
+        let __:Void = self.fail(selectionRequest: id, once: deadline)
         #else
         async
-        let _:Void = self.selectionUnavailable(for: id, once: deadline)
+        let _:Void = self.fail(selectionRequest: id, once: deadline)
         #endif
 
         return await withCheckedContinuation
@@ -282,11 +258,11 @@ extension Mongo.Deployment
         }
     }
     private
-    func selectionUnavailable(for id:UInt, once deadline:Mongo.ConnectionDeadline) async throws
+    func fail(selectionRequest id:UInt, once deadline:ContinuousClock.Instant) async throws
     {
         //  will throw ``CancellationError`` if request succeeds
-        try await Task.sleep(until: deadline.instant, clock: .continuous)
-        self.selectionRequests[id].fail(diagnosing: self.snapshot)
+        try await Task.sleep(until: deadline, clock: .continuous)
+        self.selectionRequests[id].fail(diagnosing: self.servers)
     }
 }
 extension Mongo.Deployment
@@ -319,17 +295,17 @@ extension Mongo.Deployment
         }
         do
         {
-            let deadline:Mongo.ConnectionDeadline = self.timeout.deadline(from: .now)
+            let deadline:ContinuousClock.Instant = self.timeout.deadline()
 
             let connections:Mongo.ConnectionPool = try await self.pool(
-                preference: .primaryPreferred,
+                selecting: .primaryPreferred,
                 by: deadline)
             let connection:Mongo.Connection = try await .init(from: connections,
                 by: deadline)
             
-            let reply:Mongo.Reply = try await connection.channel.run(command: command,
+            let reply:Mongo.Reply = try await connection.allocation.run(command: command,
                 against: .admin,
-                by: deadline.instant)
+                by: deadline)
             
             return reply.ok
         }

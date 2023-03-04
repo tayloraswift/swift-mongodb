@@ -46,9 +46,14 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
         Mongo.ListDatabases.name
     }
 
+    /// `ListDatabases` supports retryable reads.
+    public
+    typealias ExecutionPolicy = Mongo.ListDatabases.ExecutionPolicy
+    
     /// ``ListDatabases`` must be run against the `admin` database.
     public
-    typealias Database = Mongo.Database.Admin
+    typealias Database = Mongo.ListDatabases.Database
+
     public
     typealias Response = [Mongo.Database]
 

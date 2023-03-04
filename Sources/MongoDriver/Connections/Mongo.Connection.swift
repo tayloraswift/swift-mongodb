@@ -1,10 +1,5 @@
-import Atomics
-import BSON
-import BSONStream
-import Durations
-import MongoChannel
+import MongoExecutor
 import MongoWire
-import NIOCore
 
 extension Mongo
 {
@@ -16,8 +11,8 @@ extension Mongo
     public final
     class Connection:Identifiable
     {
-        private
-        let allocation:ConnectionAllocation
+        @usableFromInline internal
+        let allocation:ConnectionPool.Allocation
 
         @usableFromInline internal
         let pool:ConnectionPool
@@ -26,7 +21,7 @@ extension Mongo
         var reuse:Bool
 
         private
-        init(allocation:ConnectionAllocation, pool:Mongo.ConnectionPool)
+        init(allocation:ConnectionPool.Allocation, pool:ConnectionPool)
         {
             self.allocation = allocation
             self.pool = pool
@@ -50,11 +45,6 @@ extension Mongo.Connection
     {
         self.allocation.id
     }
-    @usableFromInline internal
-    var channel:MongoChannel
-    {
-        self.allocation.channel
-    }
 }
 extension Mongo.Connection
 {
@@ -69,7 +59,7 @@ extension Mongo.Connection
     /// caller, the call will error, but the connection will still be created
     /// and added to the pool, and may be used to complete a different request.
     public convenience
-    init(from pool:Mongo.ConnectionPool, by deadline:Mongo.ConnectionDeadline) async throws
+    init(from pool:Mongo.ConnectionPool, by deadline:ContinuousClock.Instant) async throws
     {
         self.init(allocation: try await pool.create(by: deadline), pool: pool)
     }
@@ -88,9 +78,9 @@ extension Mongo.Connection
     /// Interrupts this connection’s IO channel, and marks it as
     /// non-reusable.
     public
-    func interrupt()
+    func crosscancel(throwing error:any Error)
     {
-        self.channel.interrupt()
+        self.allocation.crosscancel(throwing: error)
         self.reuse = false
     }
 }
@@ -110,21 +100,17 @@ extension Mongo.Connection
                     by: deadline)
         else
         {
-            throw Mongo.TimeoutError.driver(sent: false)
+            throw Mongo.TimeoutError.driver(written: false)
         }
 
-        switch await self.channel.run(command: command, by: deadline)
+        switch await self.allocation.request(sections: command, deadline: deadline)
         {
         case .success(let message):
             return try .init(message: message)
-        
-        case .failure(.timeout):
-            self.reuse = false
-            throw Mongo.TimeoutError.driver(sent: true)
-        
+
         case .failure(let error):
             self.reuse = false
-            throw error
+            throw try Mongo.NetworkError.init(triaging: error)
         }
     }
 }

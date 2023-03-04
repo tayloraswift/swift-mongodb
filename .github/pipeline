@@ -4,7 +4,6 @@ swift run   -c release BSONTests &&
 swift run   -c release BSONDecodingTests &&
 swift run   -c release BSONEncodingTests &&
 swift run   -c release BSONIntegrationTests &&
-swift run   -c release HeartbeatsTests &&
 swift run   -c release OnlineCDFTests &&
 swift run   -c release MongoDriverTests &&
 swift run   -c release MongoDBTests &&

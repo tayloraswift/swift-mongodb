@@ -18,7 +18,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.SASLStart:MongoChannelCommand
+extension Mongo.SASLStart
 {
     /// The string [`"saslStart"`]().
     static
@@ -26,7 +26,9 @@ extension Mongo.SASLStart:MongoChannelCommand
     {
         "saslStart"
     }
-
+}
+extension Mongo.SASLStart:BSONDocumentEncodable
+{
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson[Self.name] = true

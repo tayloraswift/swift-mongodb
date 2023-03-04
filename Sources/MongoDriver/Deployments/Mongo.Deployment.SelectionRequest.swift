@@ -21,7 +21,7 @@ extension Mongo.Deployment
 extension Mongo.Deployment.SelectionRequest?
 {
     mutating
-    func fail(diagnosing servers:Mongo.Servers)
+    func fail(diagnosing servers:Mongo.ServerTable)
     {
         guard let request:Wrapped = self
         else

@@ -1,6 +1,4 @@
 import Durations
-import Heartbeats
-import MongoChannel
 import NIOCore
 
 extension Mongo
@@ -13,32 +11,35 @@ extension Mongo
     public
     struct DriverBootstrap:Sendable
     {
-        let certificatePath:String?
-
-        public
-        let application:String?
-        public
-        let credentials:Credentials?
-
-        let resolver:DNS.Connection?
-        let executor:any EventLoopGroup
+        private
+        let connectorFactory:ConnectorFactory
+        private
+        let authenticator:Authenticator
 
         public
         init(certificatePath:String? = nil,
-            application:String? = nil,
             credentials:Credentials?,
+            executor:any EventLoopGroup,
             resolver:DNS.Connection? = nil,
-            executor:any EventLoopGroup)
+            appname:String? = nil)
         {
-            self.certificatePath = certificatePath
-            self.application = application
-            self.credentials = credentials
-            self.resolver = resolver
-            self.executor = executor
+            self.connectorFactory = .init(certificatePath: certificatePath,
+                executor: executor,
+                resolver: resolver,
+                appname: appname)
+            self.authenticator = .init(credentials: credentials)
         }
     }
 }
 
+extension Mongo.DriverBootstrap
+{
+    public
+    var credentials:Mongo.Credentials?
+    {
+        self.authenticator.credentials
+    }
+}
 extension Mongo.DriverBootstrap
 {
     /// Sets up a session pool and executes the given closure passing the pool
@@ -60,37 +61,31 @@ extension Mongo.DriverBootstrap
     /// been deinitialized.
     public
     func withSessionPool<Success>(seedlist:Set<Mongo.Host>,
-        heartbeatInterval:Milliseconds = 1000,
-        timeout:Mongo.ConnectionTimeout = .init(milliseconds: 5000),
+        connectionTimeout:Milliseconds = 5000,
+        monitorInterval:Milliseconds = 1000,
         logger:Mongo.Logger? = nil,
         run body:(Mongo.SessionPool) async throws -> Success) async rethrows -> Success
     {
-        let connector:Mongo.MonitorConnector = .init(
-            heartbeatInterval: heartbeatInterval,
-            credentialCache: .init(application: application),
-            credentials: self.credentials,
-            parameters: .init(certificatePath: certificatePath,
-                resolver: resolver,
-                executor: executor),
-            pool: .init())
+        let deployment:Mongo.Deployment = .init(connectionTimeout: connectionTimeout,
+            logger: logger)
+        let monitors:Mongo.MonitorPool = .init(connectionPoolSettings: .init(),
+            connectorFactory: self.connectorFactory,
+            authenticator: self.authenticator,
+            deployment: deployment)
         
-        let deployment:Mongo.Deployment = .init(timeout: timeout, logger: logger)
-        let monitor:Mongo.Monitor = .init(.init(hosts: seedlist),
-            deployment: deployment,
-            connector: connector)
+        async
+        let _:Void = monitors.start(interval: monitorInterval, seedlist: seedlist)
         
-        let pool:Mongo.SessionPool = .init(deployment: deployment)
+        let sessions:Mongo.SessionPool = .init(deployment: deployment)
         do
         {
-            let success:Success = try await body(pool)
-            await deployment.end(sessions: await pool.drain())
-            await monitor.stop()
+            let success:Success = try await body(sessions)
+            await deployment.end(sessions: await sessions.drain())
             return success
         }
         catch let error
         {
-            await deployment.end(sessions: await pool.drain())
-            await monitor.stop()
+            await deployment.end(sessions: await sessions.drain())
             throw error
         }
     }

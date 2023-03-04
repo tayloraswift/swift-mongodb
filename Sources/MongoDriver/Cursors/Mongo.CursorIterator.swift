@@ -27,7 +27,7 @@ extension Mongo
         /// operation timeout used for ``GetMore`` for tailable cursors without
         /// an explicit timeout set.
         @usableFromInline
-        let timeout:Mongo.OperationTimeout
+        let timeout:Milliseconds
         /// The maximum size of each batch retrieved by this batch sequence.
         public
         let stride:Int
@@ -45,7 +45,7 @@ extension Mongo
             preference:ReadPreference,
             namespace:Namespaced<Mongo.Collection>,
             lifecycle:CursorLifecycle,
-            timeout:Mongo.OperationTimeout,
+            timeout:Milliseconds,
             stride:Int,
             pinned:
             (
@@ -71,7 +71,8 @@ extension Mongo.CursorIterator
         switch self.lifecycle
         {
         case .iterable(let timeout):
-            return (timeout ?? self.timeout).deadline()
+            return .now.advanced(by: .milliseconds(timeout ?? self.timeout))
+        
         case .expires(let deadline):
             return deadline
         }
@@ -122,6 +123,6 @@ extension Mongo.CursorIterator
             over: self.pinned.connection,
             on: self.preference,
             //  ``KillCursors`` always refreshes the timeout
-            by: self.timeout.deadline())
+            by: .now.advanced(by: .milliseconds(self.timeout)))
     }
 }

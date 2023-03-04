@@ -7,10 +7,10 @@ func TestFailpoints(_ tests:TestGroup,
     seedlist:Set<Mongo.Host>,
     on executor:MultiThreadedEventLoopGroup) async
 {
-    let application:String = "swift-mongodb-tests"
-    let bootstrap:Mongo.DriverBootstrap = .init(application: application,
-        credentials: credentials,
-        executor: executor)
+    let appname:String = "swift-mongodb-tests"
+    let bootstrap:Mongo.DriverBootstrap = .init(credentials: credentials,
+        executor: executor,
+        appname: appname)
     
     let tests:TestGroup = tests / "failpoints"
 
@@ -22,8 +22,8 @@ func TestFailpoints(_ tests:TestGroup,
         {
             try await pool.run(
                 command: Mongo.ConfigureFailpoint<Mongo.FailCommand>.once(.init(
-                    application: application,
                     behavior: .blockConnection(then: .error(9999)),
+                    appname: appname,
                     types: [Mongo.Ping.self])),
                 against: .admin,
                 on: .primary)

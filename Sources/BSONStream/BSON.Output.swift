@@ -207,11 +207,11 @@ extension BSON.Output
 extension BSON.Output<[UInt8]>
 {
     @inlinable public mutating
-    func with(key:BSON.Key, do serialize:(inout BSON.Field) -> ())
+    func with(key:BSON.Key, do encode:(inout BSON.Field) -> ())
     {
         var field:BSON.Field = .init(key: key, output: self)
         self = .init(preallocated: [])
-        serialize(&field)
+        encode(&field)
         self = field.output
     }
     @inlinable public mutating

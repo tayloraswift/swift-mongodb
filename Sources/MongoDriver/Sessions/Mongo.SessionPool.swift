@@ -29,16 +29,18 @@ extension Mongo
         private
         var retained:Set<SessionIdentifier>
         private
-        var released:Deque<SessionMetadata>
+        var released:Deque<Allocation>
 
         /// All requests currently awaiting sessions.
         /// Entering this should be very rare, because session requests can
         /// only block while the pool is re-indexing released sessions.
         private
-        var requests:Deque<CheckedContinuation<SessionMetadata, Never>>
+        var requests:Deque<CheckedContinuation<Allocation, Never>>
 
         private
-        var state:State
+        var observers:Observers
+        private
+        var phase:Phase
 
         init(deployment:Deployment) 
         {
@@ -47,7 +49,8 @@ extension Mongo
             self.released = []
             self.retained = []
             self.requests = []
-            self.state = .filling
+            self.observers = .none
+            self.phase = .filling
         }
 
         deinit
@@ -64,7 +67,7 @@ extension Mongo
             {
                 fatalError("unreachable (deinitialized session pool while pool contains sessions!)")
             }
-            guard case .draining(nil) = self.state
+            guard case .draining = self.phase
             else
             {
                 fatalError("unreachable (deinitialized session pool that has not been drained!)")
@@ -100,11 +103,10 @@ extension Mongo.SessionPool
     /// executing database operations.
     public nonisolated
     func connect(to preference:Mongo.ReadPreference,
-        by deadline:Mongo.ConnectionDeadline? = nil) async throws -> Mongo.ConnectionPool
+        by deadline:ContinuousClock.Instant? = nil) async throws -> Mongo.ConnectionPool
     {
-        let connect:Mongo.ConnectionDeadline = deadline ??
-            self.deployment.timeout.deadline(from: .now)
-        return try await self.deployment.pool(preference: preference, by: connect)
+        try await self.deployment.pool(selecting: preference,
+            by: deadline ?? self.deployment.timeout.deadline())
     }
 }
 extension Mongo.SessionPool
@@ -124,23 +126,22 @@ extension Mongo.SessionPool
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
         where Command:MongoImplicitSessionCommand
     {
-        let started:ContinuousClock.Instant = .now
+        let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(clamping: deadline)
 
-        let connect:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(from: started,
-            clamping: deadline)
         let connections:Mongo.ConnectionPool = try await self.deployment.pool(
-            preference: preference,
-            by: connect)
+            selecting: preference,
+            by: deadlines.connection)
         //  this creates the connection before creating the session, because
         //  connections are limited but sessions are unlimited. so ordering it
         //  like this 
-        let connection:Mongo.Connection = try await .init(from: connections, by: connect)
+        let connection:Mongo.Connection = try await .init(from: connections,
+            by: deadlines.connection)
         let session:Mongo.Session = try await .init(from: self)
 
         return try await session.run(command: command, against: database,
             over: connection,
             on: preference,
-            by: deadline ?? connect.instant)
+            by: deadlines.operation)
     }
 }
 extension Mongo.SessionPool
@@ -154,10 +155,7 @@ extension Mongo.SessionPool
     ///     them to already be expired, or sessions that were discarded on destruction.
     func drain() async -> [Mongo.SessionIdentifier]
     {
-        if case .draining(_?) = self.state
-        {
-            fatalError("unreachable (draining session pool that is already being drained!)")
-        }
+        self.phase = .draining
 
         defer
         {
@@ -165,46 +163,16 @@ extension Mongo.SessionPool
         }
         if  self.retained.isEmpty
         {
-            self.state = .draining(nil)
+            self.observers.resume()
         }
         else
         {
             await withCheckedContinuation
             {
-                self.state = .draining($0)
+                self.observers.append($0)
             }
         }
         return self.released.map(\.id)
-    }
-}
-extension Mongo.SessionPool
-{
-    /// Create (unsafe) session metadata. A successful call to this method must
-    /// be paired with a later call to ``destroy(_:reuse:)``.
-    ///
-    /// Expected usage is to immediately wrap the session metadata in a reference
-    /// or move-only type, such as ``Session``, which destroys the session metadata
-    /// on its `deinit`.
-    nonisolated
-    func create() async throws -> Mongo.SessionMetadata
-    {
-        let deadline:Mongo.ConnectionDeadline = self.deployment.timeout.deadline(clamping: nil)
-        let sessions:Mongo.LogicalSessions = try await self.deployment.sessions(by: deadline)
-        return await self.create(ttl: sessions.ttl)
-    }
-    /// Destroy (unsafe) session metadata. The session will re-indexed by the
-    /// pool if `reuse` is true, otherwise it will be discarded.
-    nonisolated
-    func destroy(_ session:Mongo.SessionMetadata, reuse:Bool)
-    {
-        if  reuse
-        {
-            self.releasing.wrappingIncrement(ordering: .relaxed)
-        }
-        let _:Task<Void, Never> = .init
-        {
-            await self.destroy(session, reindex: reuse)
-        }
     }
 }
 extension Mongo.SessionPool
@@ -215,9 +183,9 @@ extension Mongo.SessionPool
     ///     [`true`]() if there was a request that was unblocked by this call,
     ///     [`false`]() otherwise.
     private
-    func yield(_ session:Mongo.SessionMetadata) -> Bool
+    func yield(_ allocation:Allocation) -> Bool
     {
-        if case ()? = self.requests.popFirst()?.resume(returning: session)
+        if case ()? = self.requests.popFirst()?.resume(returning: allocation)
         {
             return true
         }
@@ -229,10 +197,15 @@ extension Mongo.SessionPool
 }
 extension Mongo.SessionPool
 {
-    private
-    func create(ttl:Minutes) async -> Mongo.SessionMetadata
+    /// Create (unsafe) session metadata. A successful call to this method must
+    /// be paired with a later call to ``destroy(_:reuse:)``.
+    ///
+    /// Expected usage is to immediately wrap the session metadata in a reference
+    /// or move-only type, such as ``Session``, which destroys the session metadata
+    /// on its `deinit`.
+    func create(capabilities:Mongo.DeploymentCapabilities) async -> Allocation
     {
-        guard case .filling = self.state
+        guard case .filling = self.phase
         else
         {
             fatalError("unreachable (checking out a session while pool is being drained!)")
@@ -241,22 +214,22 @@ extension Mongo.SessionPool
         let now:ContinuousClock.Instant = .now
 
         //  prune expired sessions from the front of the deque
-        while   let session:Mongo.SessionMetadata = self.released.first,
-                    session.expiration(ttl: ttl) <= now
+        while   let allocation:Allocation = self.released.first,
+                    allocation.expiration(ttl: capabilities.sessions.ttl) <= now
         {
             self.released.removeFirst()
         }
         //  find a non-expired session at the end of the deque
-        while let session:Mongo.SessionMetadata = self.released.popLast()
+        while let allocation:Allocation = self.released.popLast()
         {
-            guard now < session.expiration(ttl: ttl)
+            guard now < allocation.expiration(ttl: capabilities.sessions.ttl)
             else
             {
                 continue
             }
-            if case nil = self.retained.update(with: session.id)
+            if case nil = self.retained.update(with: allocation.id)
             {
-                return session
+                return allocation
             }
             else
             {
@@ -283,18 +256,35 @@ extension Mongo.SessionPool
             let id:Mongo.SessionIdentifier = .random()
             if case nil = self.retained.update(with: id)
             {
-                return .init(transaction: .init(), touched: now, id: id)
+                return .init(
+                    transaction: .init(capabilities.transactions.map { _ in .autocommitting }),
+                    touched: now,
+                    id: id)
             }
         }
     }
+    /// Destroy (unsafe) session metadata. The session will re-indexed by the
+    /// pool if `reuse` is true, otherwise it will be discarded.
+    nonisolated
+    func destroy(_ allocation:Allocation, reuse:Bool)
+    {
+        if  reuse
+        {
+            self.releasing.wrappingIncrement(ordering: .relaxed)
+        }
+        let _:Task<Void, Never> = .init
+        {
+            await self.destroy(allocation, reindex: reuse)
+        }
+    }
     private
-    func destroy(_ session:Mongo.SessionMetadata, reindex:Bool)
+    func destroy(_ allocation:Allocation, reindex:Bool)
     {
         if  reindex
         {
             self.releasing.wrappingDecrement(ordering: .relaxed)
         }
-        switch self.state
+        switch self.phase
         {
         case .filling:
             guard reindex
@@ -302,25 +292,24 @@ extension Mongo.SessionPool
             {
                 // dirty sessions do not use `endSessions`, per
                 // https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#why-don-t-drivers-run-the-endsessions-command-to-cleanup-dirty-server-sessions
-                self.retained.remove(session.id)
+                self.retained.remove(allocation.id)
                 return
             }
-            guard self.yield(session)
+            guard self.yield(allocation)
             else
             {
-                self.retained.remove(session.id)
-                self.released.append(session)
+                self.retained.remove(allocation.id)
+                self.released.append(allocation)
                 return
             }
         
-        case .draining(let continuation):
-            self.retained.remove(session.id)
-            self.released.append(session)
+        case .draining:
+            self.retained.remove(allocation.id)
+            self.released.append(allocation)
 
-            if self.retained.isEmpty
+            if  self.retained.isEmpty
             {
-                continuation?.resume()
-                self.state = .draining(nil)
+                self.observers.resume()
             }
         }
     }

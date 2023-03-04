@@ -21,12 +21,12 @@ extension Mongo
         let pool:SessionPool
 
         private
-        init(snapshotTime:Mongo.Instant, metadata:SessionMetadata, pool:SessionPool)
+        init(snapshotTime:Mongo.Instant, allocation:SessionPool.Allocation, pool:SessionPool)
         {
             self.snapshotTime = snapshotTime
-            self.transaction = metadata.transaction
-            self.touched = metadata.touched
-            self.id = metadata.id
+            self.transaction = allocation.transaction
+            self.touched = allocation.touched
+            self.id = allocation.id
 
             self.deployment = pool.deployment
             self.pool = pool

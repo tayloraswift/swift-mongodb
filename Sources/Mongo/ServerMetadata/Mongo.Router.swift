@@ -4,8 +4,12 @@ extension Mongo
     struct Router:Sendable
     {
         public
-        init()
+        let capabilities:ServerCapabilities
+
+        public
+        init(capabilities:ServerCapabilities)
         {
+            self.capabilities = capabilities
         }
     }
 }

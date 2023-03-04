@@ -6,12 +6,12 @@ extension Mongo
     struct Tailing:Hashable, Sendable
     {
         public
-        let timeout:OperationTimeout?
+        let timeout:Milliseconds?
         public
         let awaits:Bool
 
         @inlinable public
-        init(timeout:OperationTimeout?, awaits:Bool)
+        init(timeout:Milliseconds?, awaits:Bool)
         {
             self.timeout = timeout
             self.awaits = awaits

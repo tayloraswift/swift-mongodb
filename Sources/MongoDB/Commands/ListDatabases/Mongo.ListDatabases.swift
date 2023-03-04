@@ -45,8 +45,13 @@ extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
         "listDatabases"
     }
 
+    /// `ListDatabases` supports retryable reads.
+    public
+    typealias ExecutionPolicy = Mongo.Retry
+
     public
     typealias Database = Mongo.Database.Admin
+
     public
     typealias Response =
     (

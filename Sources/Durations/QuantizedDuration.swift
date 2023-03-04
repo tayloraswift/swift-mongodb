@@ -1,10 +1,25 @@
 public
-protocol QuantizedDuration<RawValue>:DurationProtocol, RawRepresentable, Hashable, Sendable
+protocol QuantizedDuration<RawValue>:DurationProtocol,
+    CustomStringConvertible,
+    RawRepresentable,
+    Hashable,
+    Sendable
     where RawValue:BinaryInteger
 {
+    static
+    var unit:String { get }
+
     init(rawValue:RawValue)
     /// Rounds the given attosecond-resolution duration towards zero.
     init(truncating duration:Duration)
+}
+extension QuantizedDuration
+{
+    @inlinable public
+    var description:String
+    {
+        "\(self.rawValue) \(Self.unit)"
+    }
 }
 extension QuantizedDuration where RawValue:FixedWidthInteger
 {

@@ -88,6 +88,10 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
 }
 extension Mongo.ListCollections:MongoIterableCommand
 {
+    /// `ListCollections` supports retryable reads.
+    public
+    typealias ExecutionPolicy = Mongo.Retry
+
     public
     typealias Response = Mongo.Cursor<Element>
     
