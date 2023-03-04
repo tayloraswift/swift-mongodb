@@ -12,13 +12,13 @@ extension Mongo
             Mongo.ServerError>
 
         @usableFromInline
-        let operationTime:Instant?
+        let operationTime:Timestamp?
         @usableFromInline
         let clusterTime:ClusterTime?
 
         init(result:Result<BSON.DocumentDecoder<BSON.Key, ByteBufferView>,
                 Mongo.ServerError>,
-            operationTime:Instant?,
+            operationTime:Timestamp?,
             clusterTime:ClusterTime?)
         {
             self.result = result
@@ -69,8 +69,8 @@ extension Mongo.Reply
         let status:Status = try bson["ok"].decode(
             to: Status.self)
 
-        let operationTime:Mongo.Instant? = try bson["operationTime"]?.decode(
-            to: Mongo.Instant.self)
+        let operationTime:Mongo.Timestamp? = try bson["operationTime"]?.decode(
+            to: Mongo.Timestamp.self)
         let clusterTime:Mongo.ClusterTime? = try bson["$clusterTime"]?.decode(
             to: Mongo.ClusterTime.self)
         

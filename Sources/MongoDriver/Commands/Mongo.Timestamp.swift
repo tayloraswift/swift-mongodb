@@ -15,7 +15,7 @@ extension Mongo
     /// duration. MongoDB timestamps can only be compared for
     /// ordering or equality.
     @frozen public
-    struct Instant:Hashable, Sendable
+    struct Timestamp:Hashable, Sendable
     {
         /// The raw BSON timestamp value.
         public
@@ -28,7 +28,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Instant:Comparable
+extension Mongo.Timestamp:MongoInstant, Comparable
 {
     @inlinable public static
     func < (lhs:Self, rhs:Self) -> Bool
@@ -36,7 +36,7 @@ extension Mongo.Instant:Comparable
         lhs.timestamp < rhs.timestamp
     }
 }
-extension Mongo.Instant:BSONDecodable
+extension Mongo.Timestamp:BSONDecodable
 {
     /// Attempts to cast a BSON variant backed by some storage type to a
     /// MongoDB timestamp. The conversion is not a integer case, and will
@@ -57,7 +57,7 @@ extension Mongo.Instant:BSONDecodable
         })
     }
 }
-extension Mongo.Instant:BSONEncodable
+extension Mongo.Timestamp:BSONEncodable
 {
     /// Encodes this timestamp as a ``BSON.uint64``.
     @inlinable public
@@ -66,7 +66,7 @@ extension Mongo.Instant:BSONEncodable
         field.encode(uint64: self.timestamp)
     }
 }
-extension Mongo.Instant:CustomStringConvertible
+extension Mongo.Timestamp:CustomStringConvertible
 {
     public
     var description:String

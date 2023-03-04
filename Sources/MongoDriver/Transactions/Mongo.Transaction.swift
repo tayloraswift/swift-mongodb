@@ -33,7 +33,7 @@ extension Mongo.Transaction
 extension Mongo.Transaction
 {
     @inlinable public
-    var preconditionTime:Mongo.Instant?
+    var preconditionTime:Mongo.Timestamp?
     {
         self.session.preconditionTime
     }

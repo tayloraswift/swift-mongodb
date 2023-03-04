@@ -48,7 +48,7 @@ func TestCausalConsistency(_ tests:TestGroup,
 
         //  We should be able to observe a precondition time after performing the
         //  initialization.
-        guard var head:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        guard var head:Mongo.Timestamp = tests.expect(value: session.preconditionTime)
         else
         {
             return
@@ -115,7 +115,7 @@ func TestCausalConsistency(_ tests:TestGroup,
         //  We should still be able to observe a precondition time, and the
         //  value of that time should be greater than it was before we inserted
         //  the letter `b` into the collection.
-        if let time:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        if let time:Mongo.Timestamp = tests.expect(value: session.preconditionTime)
         {
             tests.expect(true: head < time)
             head = time
@@ -137,7 +137,7 @@ func TestCausalConsistency(_ tests:TestGroup,
             tests.expect(response ==? .init(inserted: 1))
         }
 
-        if let time:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        if let time:Mongo.Timestamp = tests.expect(value: session.preconditionTime)
         {
             tests.expect(true: head < time)
             head = time
@@ -160,7 +160,7 @@ func TestCausalConsistency(_ tests:TestGroup,
             tests.expect(response ==? .init(inserted: 1))
         }
 
-        if let time:Mongo.Instant = tests.expect(value: session.preconditionTime)
+        if let time:Mongo.Timestamp = tests.expect(value: session.preconditionTime)
         {
             tests.expect(true: head < time)
             head = time
@@ -244,7 +244,7 @@ func TestCausalConsistency(_ tests:TestGroup,
                 against: database,
                 on: secondary)
             
-            guard let time:Mongo.Instant = tests.expect(value: other.preconditionTime)
+            guard let time:Mongo.Timestamp = tests.expect(value: other.preconditionTime)
             else
             {
                 return

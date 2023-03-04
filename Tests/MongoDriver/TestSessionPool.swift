@@ -131,7 +131,7 @@ func TestSessionPool(_ tests:TestGroup,
 
                 if seedlist.count > 1
                 {
-                    let _:Mongo.Instant? = tests.expect(value: b.preconditionTime)
+                    let _:Mongo.Timestamp? = tests.expect(value: b.preconditionTime)
                 }
 
                 try await a.refresh()

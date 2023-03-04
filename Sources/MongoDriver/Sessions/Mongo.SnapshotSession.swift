@@ -4,7 +4,7 @@ extension Mongo
     class SnapshotSession:Identifiable
     {
         public private(set)
-        var snapshotTime:Mongo.Instant
+        var snapshotTime:Timestamp
         public private(set)
         var transaction:TransactionState
         private
@@ -21,7 +21,7 @@ extension Mongo
         let pool:SessionPool
 
         private
-        init(snapshotTime:Mongo.Instant, allocation:SessionPool.Allocation, pool:SessionPool)
+        init(snapshotTime:Timestamp, allocation:SessionPool.Allocation, pool:SessionPool)
         {
             self.snapshotTime = snapshotTime
             self.transaction = allocation.transaction

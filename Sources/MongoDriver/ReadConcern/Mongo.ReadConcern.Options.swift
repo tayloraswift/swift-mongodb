@@ -17,12 +17,12 @@ extension Mongo.ReadConcern
 }
 extension Mongo.ReadConcern.Options
 {
-    init(level:Mongo.ReadConcern.Level?, after clusterTime:Mongo.Instant?)
+    init(level:Mongo.ReadConcern.Level?, after clusterTime:Mongo.Timestamp?)
     {
         self.init(ordering: clusterTime.map(Mongo.ReadConcern.Ordering.after(_:)),
             level: level)
     }
-    init(level:Mongo.ReadConcern.Level?, at clusterTime:Mongo.Instant?)
+    init(level:Mongo.ReadConcern.Level?, at clusterTime:Mongo.Timestamp?)
     {
         self.init(ordering: clusterTime.map(Mongo.ReadConcern.Ordering.at(_:)),
             level: level)

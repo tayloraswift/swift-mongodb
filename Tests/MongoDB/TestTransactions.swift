@@ -72,7 +72,7 @@ func TestTransactions(_ tests:TestGroup,
                 //  We should be able to observe a precondition time associated with
                 //  this transaction, because we have used its underlying session
                 //  before.
-                let _:Mongo.Instant? = tests.expect(value: transaction.preconditionTime)
+                let _:Mongo.Timestamp? = tests.expect(value: transaction.preconditionTime)
                 //  We should be able to start a transaction with a write command,
                 //  even though it also has a non-[`nil`]() precondition time.
                 await (tests / "insert").do

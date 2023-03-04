@@ -37,7 +37,9 @@ extension Mongo
         /// This is simply a long-winded way of saying that time never moves
         /// backward when running commands on a session.
         public private(set)
-        var preconditionTime:Mongo.Instant?
+        var preconditionTime:Timestamp?
+
+        var notarizedTime:ClusterTime?
         /// The current transaction state of this session.
         public private(set)
         var transaction:TransactionState
@@ -67,9 +69,11 @@ extension Mongo
         private
         init(allocation:SessionPool.Allocation,
             pool:SessionPool,
-            fork:Mongo.Instant? = nil)
+            fork:__shared Mongo.Session?)
         {
-            self.preconditionTime = fork
+            self.preconditionTime = fork?.preconditionTime
+            self.notarizedTime = fork?.notarizedTime
+
             self.transaction = allocation.transaction
             self.touched = allocation.touched
             self.reuse = true
@@ -109,7 +113,7 @@ extension Mongo.Session
                 capabilities: try await pool.deployment.capabilities(
                     by: deadline ?? pool.deployment.timeout.deadline())),
             pool: pool,
-            fork: original?.preconditionTime)
+            fork: original)
     }
     /// Fast-forwards this session’s precondition time to the other session’s
     /// precondition time, if it is non-[`nil`]() and greater than this
@@ -118,7 +122,7 @@ extension Mongo.Session
     public
     func synchronize(with other:Mongo.Session)
     {
-        self.combine(operationTime: other.preconditionTime)
+        other.preconditionTime?.combine(into: &self.preconditionTime)
     }
 }
 @available(*, unavailable, message: "sessions have reference semantics")
@@ -543,13 +547,18 @@ extension Mongo.Session
             transaction = nil
         }
 
-        let clusterTime:Mongo.ClusterTime? = self.deployment.clusterTime
-
-        if  let preconditionTime:Mongo.Instant = self.preconditionTime,
-            let clusterTime:Mongo.Instant = clusterTime?.time,
-                clusterTime < preconditionTime
+        let clusterTime:Mongo.ClusterTime?
+        switch (self.deployment.clusterTime, self.notarizedTime)
         {
-            print("WARNING: clusterTime < preconditionTime (\(clusterTime), \(preconditionTime))")
+        case    (nil, nil):
+            clusterTime = nil
+        
+        case    (let value?, nil),
+                (nil, let value?):
+            clusterTime = value
+        
+        case (let global?, let local?):
+            clusterTime = global < local ? local : global
         }
 
         return .init(clusterTime: clusterTime,
@@ -577,14 +586,17 @@ extension Mongo.Session
     ///         of this session, and is used by the driver to estimate its
     ///         freshness.
     @usableFromInline
-    func combine(operationTime:Mongo.Instant?,
+    func combine(operationTime:Mongo.Timestamp?,
         clusterTime:Mongo.ClusterTime?,
         reuse:Bool,
         sent:ContinuousClock.Instant)
     {
         self.touched = sent
         self.reuse = self.reuse && reuse
-        self.combine(operationTime: operationTime)
+
+        operationTime?.combine(into: &self.preconditionTime)
+        clusterTime?.combine(into: &self.notarizedTime)
+
         self.deployment.yield(clusterTime: clusterTime)
     }
     /// Update the session’s precondition time with an observed operation time.
@@ -594,21 +606,4 @@ extension Mongo.Session
     /// to enforce causal consistency, this method only updates the precondition
     /// time if the operation time is non-[`nil`]() and greater than the current
     /// precondition time.
-    private
-    func combine(operationTime:Mongo.Instant?)
-    {
-        guard let operationTime:Mongo.Instant
-        else
-        {
-            return
-        }
-        if let preconditionTime:Mongo.Instant = self.preconditionTime
-        {
-            self.preconditionTime = max(preconditionTime, operationTime)
-        }
-        else
-        {
-            self.preconditionTime = operationTime
-        }
-    }
 }

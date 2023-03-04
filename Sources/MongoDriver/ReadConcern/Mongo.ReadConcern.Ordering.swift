@@ -2,7 +2,7 @@ extension Mongo.ReadConcern
 {
     enum Ordering:Sendable
     {
-        case after(Mongo.Instant)
-        case at(Mongo.Instant)
+        case after(Mongo.Timestamp)
+        case at(Mongo.Timestamp)
     }
 }
