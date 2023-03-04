@@ -73,8 +73,13 @@ extension Mongo.DriverBootstrap
             authenticator: self.authenticator,
             deployment: deployment)
         
+        #if compiler(<5.8)
+        async
+        let __:Void = monitors.start(interval: monitorInterval, seedlist: seedlist)
+        #else
         async
         let _:Void = monitors.start(interval: monitorInterval, seedlist: seedlist)
+        #endif
         
         let sessions:Mongo.SessionPool = .init(deployment: deployment)
         do
