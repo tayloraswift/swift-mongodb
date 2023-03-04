@@ -14,10 +14,10 @@ jobs:
         strategy:
             matrix:
                 image:
-                -   nightly-5.8-amazonlinux2
-                -   nightly-5.8-jammy
-                -   5.7.3-amazonlinux2
-                -   5.7.3-jammy
+                -   swiftlang/swift:nightly-5.8-amazonlinux2
+                -   swiftlang/swift:nightly-5.8-jammy
+                -   swift:5.7.3-amazonlinux2
+                -   swift:5.7.3-jammy
 
         steps:
             -   name: checkout repository
@@ -38,5 +38,5 @@ jobs:
                         --name mongonet-environment \
                         -v $PWD:/swift-mongodb \
                         -w /swift-mongodb \
-                        swiftlang/swift:${{ matrix.image }} \
+                        ${{ matrix.image }} \
                         /bin/bash $(echo .github/pipeline)
