@@ -6,37 +6,24 @@ extension Mongo
     public
     struct ClusterTime:Sendable
     {
+        public
+        let timestamp:Timestamp
         let signature:BSON.Document
-        let time:Instant
 
         @usableFromInline
-        init(signature:BSON.Document, time:Instant)
+        init(timestamp:Timestamp, signature:BSON.Document)
         {
             self.signature = signature
-            self.time = time
+            self.timestamp = timestamp
         }
     }
 }
-extension Mongo.ClusterTime
+extension Mongo.ClusterTime:MongoInstant
 {
-    //  Writing this function in terms of ``AtomicState<Self>`` prevents us
-    //  from allocating a new object in the common case where the
-    //  max cluster time has not changed.
-    func combined(with other:Mongo.AtomicState<Self>?) -> Mongo.AtomicState<Self>
+    @inlinable public static
+    func < (lhs:Self, rhs:Self) -> Bool
     {
-        guard let other:Mongo.AtomicState<Self>
-        else
-        {
-            return .init(self)
-        }
-        if  other.value.time < self.time
-        {
-            return .init(self)
-        }
-        else
-        {
-            return other
-        }
+        lhs.timestamp < rhs.timestamp
     }
 }
 extension Mongo.ClusterTime
@@ -54,7 +41,7 @@ extension Mongo.ClusterTime:BSONEncodable, BSONDocumentEncodable
     func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
         bson[.signature, elide: false] = self.signature
-        bson[.clusterTime] = self.time
+        bson[.clusterTime] = self.timestamp
     }
 }
 extension Mongo.ClusterTime:BSONDecodable, BSONDocumentDecodable
@@ -62,7 +49,7 @@ extension Mongo.ClusterTime:BSONDecodable, BSONDocumentDecodable
     @inlinable public
     init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(signature: try bson[.signature].decode(to: BSON.Document.self),
-            time: try bson[.clusterTime].decode(to: Mongo.Instant.self))
+        self.init(timestamp: try bson[.clusterTime].decode(to: Mongo.Timestamp.self),
+            signature: try bson[.signature].decode(to: BSON.Document.self))
     }
 }
