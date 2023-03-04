@@ -100,7 +100,7 @@ extension Mongo.Connection
                     by: deadline)
         else
         {
-            throw Mongo.TimeoutError.driver(sent: false)
+            throw Mongo.TimeoutError.driver(written: false)
         }
 
         switch await self.allocation.request(sections: command, deadline: deadline)
@@ -108,13 +108,9 @@ extension Mongo.Connection
         case .success(let message):
             return try .init(message: message)
 
-        case .failure(.cancelled(.timeout)):
-            self.reuse = false
-            throw Mongo.TimeoutError.driver(sent: true)
-
         case .failure(let error):
             self.reuse = false
-            throw error
+            throw try Mongo.NetworkError.init(triaging: error)
         }
     }
 }

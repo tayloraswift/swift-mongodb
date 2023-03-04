@@ -4,11 +4,11 @@ import AtomicReference
 extension Mongo
 {
     final
-    class AtomicTime:Sendable, AtomicReference
+    class AtomicState<T>:AtomicReference, Sendable where T:Sendable
     {
-        let value:ClusterTime
+        let value:T
 
-        init(_ value:ClusterTime)
+        init(_ value:T)
         {
             self.value = value
         }

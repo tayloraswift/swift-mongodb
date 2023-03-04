@@ -14,13 +14,14 @@ func TestInsert(_ tests:TestGroup,
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
         let collection:Mongo.Collection = "ordinals"
+        let session:Mongo.Session = try await .init(from: pool)
         do
         {
             let tests:TestGroup = tests / "one"
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 1)
-                let response:Mongo.InsertResponse = try await pool.run(
+                let response:Mongo.InsertResponse = try await session.run(
                     command: Mongo.Insert.init(collection: collection,
                         elements: Ordinals.init(identifiers: 0 ..< 1)),
                     against: database)
@@ -34,7 +35,7 @@ func TestInsert(_ tests:TestGroup,
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 15)
-                let response:Mongo.InsertResponse = try await pool.run(
+                let response:Mongo.InsertResponse = try await session.run(
                     command: Mongo.Insert.init(collection: collection,
                         elements: Ordinals.init(identifiers: 1 ..< 16)),
                     against: database)
@@ -58,7 +59,7 @@ func TestInsert(_ tests:TestGroup,
                             """,
                             code: 11000),
                     ])
-                let response:Mongo.InsertResponse = try await pool.run(
+                let response:Mongo.InsertResponse = try await session.run(
                     command: Mongo.Insert.init(collection: collection,
                         elements: Ordinals.init(identifiers: 0 ..< 1)),
                     against: database)
@@ -82,7 +83,7 @@ func TestInsert(_ tests:TestGroup,
                             """,
                             code: 11000),
                     ])
-                let response:Mongo.InsertResponse = try await pool.run(
+                let response:Mongo.InsertResponse = try await session.run(
                     command: Mongo.Insert.init(collection: collection,
                         elements: Ordinals.init(identifiers: -8 ..< 32)),
                     against: database)
@@ -106,7 +107,7 @@ func TestInsert(_ tests:TestGroup,
                             """,
                             code: 11000)
                     })
-                let response:Mongo.InsertResponse = try await pool.run(
+                let response:Mongo.InsertResponse = try await session.run(
                     command: Mongo.Insert.init(collection: collection,
                         elements: Ordinals.init(identifiers: -16 ..< 32))
                     {

@@ -1,7 +1,7 @@
 extension Mongo
 {
     public
-    struct LogicalSessionsError:Equatable, Error
+    struct SessionsUnsupportedError:Equatable, Error
     {
         public
         init()
@@ -9,7 +9,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.LogicalSessionsError:CustomStringConvertible
+extension Mongo.SessionsUnsupportedError:CustomStringConvertible
 {
     public
     var description:String

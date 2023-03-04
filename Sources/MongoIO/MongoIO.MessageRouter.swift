@@ -81,14 +81,14 @@ extension MongoIO.MessageRouter:ChannelInboundHandler
     public
     func channelInactive(context:ChannelHandlerContext)
     {
-        self.perish(throwing: .network(ChannelError.outputClosed, sent: true))
+        self.perish(throwing: .io(ChannelError.outputClosed, written: true))
 
         context.fireChannelInactive()
     }
     public
     func errorCaught(context:ChannelHandlerContext, error:any Error)
     {
-        self.perish(throwing: .network(error, sent: true))
+        self.perish(throwing: .io(error, written: true))
         
         context.fireErrorCaught(error)
     }
@@ -120,8 +120,8 @@ extension MongoIO.MessageRouter:ChannelOutboundHandler
             switch self.state
             {
             case .perished:
-                continuation.resume(returning: .failure(.network(ChannelError.alreadyClosed,
-                    sent: true)))
+                continuation.resume(returning: .failure(.io(ChannelError.alreadyClosed,
+                    written: true)))
                 return
             
             case .awaiting(_?):

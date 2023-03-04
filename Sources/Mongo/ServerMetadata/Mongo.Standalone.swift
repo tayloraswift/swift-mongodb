@@ -1,8 +1,15 @@
 extension Mongo
 {
     public
-    enum Standalone:Sendable
+    struct Standalone:Sendable
     {
-        case standalone
+        public
+        let capabilities:ServerCapabilities
+
+        public
+        init(capabilities:ServerCapabilities)
+        {
+            self.capabilities = capabilities
+        }
     }
 }

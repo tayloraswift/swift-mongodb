@@ -136,7 +136,7 @@ extension Mongo.ReadPreference:BSONEncodable, BSONDocumentEncodable
 }
 extension Mongo.ReadPreference
 {
-    func diagnose(servers:Mongo.Servers) -> Mongo.SelectionDiagnostics
+    func diagnose(servers:Mongo.ServerTable) -> Mongo.SelectionDiagnostics
     {
         switch servers
         {
@@ -150,7 +150,7 @@ extension Mongo.ReadPreference
                 return .init()
             
             case .secondary:
-                return .init(undesirable: [standalone.host: .standalone])
+                return .init(undesirable: [standalone.server.host: .standalone])
             }
         
         case .sharded(let routers):

@@ -185,11 +185,9 @@ extension Mongo.MonitorPool
                     logger: self.deployment.logger,
                     host: host)
                 
-                pool.set(latency: services.handshake.latency)
+                pool.set(latency: services.initialLatency)
 
-                monitor.yield(.init(
-                    topology: services.handshake.response.topologyUpdate,
-                    sessions: services.handshake.response.sessions,
+                monitor.yield(.init(topology: services.initialTopologyUpdate,
                     canary: .init(pool: pool)))
 
                 tasks.addTask
@@ -273,8 +271,9 @@ extension Mongo.MonitorPool
         case nil:
             return .rejected
 
-        case (let result, let model)?:
-            await self.deployment.push(snapshot: model, sessions: update.sessions)
+        case (let result, let table)?:
+            
+            await self.deployment.push(table: table)
             return result
         }
     }
@@ -287,8 +286,8 @@ extension Mongo.MonitorPool
         case nil:
             return .rejected
         
-        case (let result, let model)?:
-            await self.deployment.push(snapshot: model)
+        case (let result, let table)?:
+            await self.deployment.push(table: table)
             return result
         }
     }

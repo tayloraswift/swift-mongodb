@@ -26,3 +26,11 @@ extension Mongo.ServerError:NamedError
         self.code.map { "ServerError (\($0))" } ?? "ServerError"
     }
 }
+extension Mongo.ServerError:MongoRetryableError
+{
+    public
+    var isRetryable:Bool
+    {
+        self.code?.indicatesRetryability ?? false
+    }
+}

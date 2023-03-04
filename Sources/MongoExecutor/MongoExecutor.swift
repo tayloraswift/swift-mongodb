@@ -90,7 +90,7 @@ extension MongoExecutor
                     // don’t leak the continuation!
                     if case .failure(let error) = $0
                     {
-                        continuation.resume(returning: .failure(.network(error, sent: false)))
+                        continuation.resume(returning: .failure(.io(error, written: false)))
                     }
                 }
             }
@@ -101,7 +101,6 @@ extension MongoExecutor
                 promise: nil)
         }
     }
-
 }
 extension MongoExecutor
 {

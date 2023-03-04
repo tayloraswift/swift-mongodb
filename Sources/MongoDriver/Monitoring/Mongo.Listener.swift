@@ -40,9 +40,7 @@ extension Mongo.Listener
 
                 pool.log(listenerEvent: .updated(version))
                 
-                stream.yield(.init(
-                    topology: response.topologyUpdate,
-                    sessions: response.sessions))
+                stream.yield(.init(topology: response.topologyUpdate))
             }
         }
         catch let error

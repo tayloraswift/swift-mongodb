@@ -9,10 +9,10 @@ extension Mongo
         var phase:TransactionPhase?
 
         @inlinable public
-        init()
+        init(_ phase:TransactionPhase?)
         {
             self.number = 0
-            self.phase = nil
+            self.phase = phase
         }
     }
 }

@@ -39,3 +39,8 @@ extension Mongo.ConnectionPoolDrainedError:TraceableError
         ]
     }
 }
+extension Mongo.ConnectionPoolDrainedError:MongoRetryableError
+{
+    public
+    var isRetryable:Bool { true }
+}

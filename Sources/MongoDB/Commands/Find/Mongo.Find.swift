@@ -54,6 +54,10 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
         "find"
     }
 
+    /// `Find` supports retryable reads.
+    public
+    typealias ExecutionPolicy = Mongo.Retry
+
     public
     typealias Response = Mode.Response
 

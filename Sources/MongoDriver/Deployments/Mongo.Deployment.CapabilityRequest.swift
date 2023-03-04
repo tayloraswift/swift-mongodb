@@ -1,24 +1,24 @@
 extension Mongo.Deployment
 {
-    typealias SessionsResponse =
-        Result<Mongo.LogicalSessions, Mongo.DeploymentStateError<Mongo.LogicalSessionsError>>
+    typealias CapabilityResponse = Result<Mongo.DeploymentCapabilities,
+        Mongo.DeploymentStateError<Mongo.SessionsUnsupportedError>>
 }
 extension Mongo.Deployment
 {
-    struct SessionsRequest
+    struct CapabilityRequest
     {
-        let promise:CheckedContinuation<SessionsResponse, Never>
+        let promise:CheckedContinuation<CapabilityResponse, Never>
 
-        init(promise:CheckedContinuation<SessionsResponse, Never>)
+        init(promise:CheckedContinuation<CapabilityResponse, Never>)
         {
             self.promise = promise
         }
     }
 }
-extension Mongo.Deployment.SessionsRequest?
+extension Mongo.Deployment.CapabilityRequest?
 {
     mutating
-    func fail(diagnosing servers:Mongo.Servers)
+    func fail(diagnosing servers:Mongo.ServerTable)
     {
         guard let request:Wrapped = self
         else
@@ -35,11 +35,11 @@ extension Mongo.Deployment.SessionsRequest?
             failure: .init())))
     }
     mutating
-    func fulfill(with sessions:Mongo.LogicalSessions)
+    func fulfill(with capabilities:Mongo.DeploymentCapabilities)
     {
         if  let request:Wrapped = self
         {
-            request.promise.resume(returning: .success(sessions))
+            request.promise.resume(returning: .success(capabilities))
             self = nil
         }
     }

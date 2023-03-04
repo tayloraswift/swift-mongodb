@@ -23,7 +23,7 @@ extension Mongo.Timeout
         start.advanced(by: .milliseconds(self.default))
     }
 
-    @inlinable public
+    public
     func deadlines(from started:ContinuousClock.Instant = .now,
         clamping deadline:ContinuousClock.Instant?) -> Mongo.Deadlines
     {

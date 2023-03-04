@@ -8,6 +8,7 @@ extension Mongo
         let listenerConnection:Listener.Connection,
             samplerConnection:Sampler.Connection
 
+        private
         let handshake:Handshake
 
         private
@@ -23,6 +24,17 @@ extension Mongo
             self.handshake = handshake
             self.interval = interval
         }
+    }
+}
+extension Mongo.Services
+{
+    var initialTopologyUpdate:Mongo.TopologyUpdate
+    {
+        self.handshake.response.topologyUpdate
+    }
+    var initialLatency:Nanoseconds
+    {
+        self.handshake.latency
     }
 }
 extension Mongo.Services

@@ -1,18 +1,18 @@
 import Durations
 
-extension Mongo
+extension Mongo.SessionPool
 {
-    /// Session metadata encompasses session state that persists across
+    /// A session allocation encompasses session state that persists across
     /// re-used server sessions.
-    struct SessionMetadata:Identifiable, Sendable
+    struct Allocation:Identifiable, Sendable
     {
-        var transaction:TransactionState
+        var transaction:Mongo.TransactionState
         var touched:ContinuousClock.Instant
-        let id:SessionIdentifier
+        let id:Mongo.SessionIdentifier
 
-        init(transaction:TransactionState,
+        init(transaction:Mongo.TransactionState,
             touched:ContinuousClock.Instant,
-            id:SessionIdentifier)
+            id:Mongo.SessionIdentifier)
         {
             self.transaction = transaction
             self.touched = touched
@@ -20,7 +20,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.SessionMetadata
+extension Mongo.SessionPool.Allocation
 {
     /// Returns the driver-side expiration time of this session, which is
     /// defined to be [`ttl - 1`]() minutes after the instant when this

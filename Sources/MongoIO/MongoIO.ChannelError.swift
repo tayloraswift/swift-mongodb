@@ -3,9 +3,9 @@ extension MongoIO
     @frozen public
     enum ChannelError:Error
     {
-        /// The channel experienced some sort of network error. The caller
-        /// generally should retry the request if desired.
-        case network(any Error, sent:Bool)
+        /// The channel experienced some sort of IO error. The caller
+        /// should generally retry the request if desired.
+        case io(any Error, written:Bool)
         /// The channel was closed because the task awaiting the relevant
         /// request was cancelled, either due to task cancellation, or
         /// network timeout.

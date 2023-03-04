@@ -34,19 +34,16 @@ extension MongoExecutor
         }
         else
         {
-            throw Mongo.TimeoutError.driver(sent: false)
+            throw Mongo.TimeoutError.driver(written: false)
         }
 
         switch await self.request(sections: sections, deadline: deadline)
         {
         case .success(let message):
             return try .init(message: message)
-        
-        case .failure(.cancelled(.timeout)):
-            throw Mongo.TimeoutError.driver(sent: true)
-        
+
         case .failure(let error):
-            throw error
+            throw try Mongo.NetworkError.init(triaging: error)
         }
     }
 }

@@ -2,19 +2,19 @@ import Durations
 
 extension Mongo
 {
-    enum Servers:Sendable
+    enum ServerTable:Sendable
     {
         /// No servers are reachable, desirable, or suitable. The
         /// ``case Mongo/Topology/.unknown(_:)`` topology always generates
         /// this value, but the ``case Mongo/Topology/.single(_:)`` topology
         /// can also generate if its sole server is unreachable.
         case none([Host: Unreachable])
-        case single(Server<Standalone>)
-        case sharded(Routers)
-        case replicated(Members)
+        case single(Single)
+        case sharded(Sharded)
+        case replicated(Replicated)
     }
 }
-extension Mongo.Servers
+extension Mongo.ServerTable
 {
     static
     var none:Self
@@ -22,7 +22,30 @@ extension Mongo.Servers
         .none([:])
     }
 }
-extension Mongo.Servers
+extension Mongo.ServerTable
+{
+    var unreachable:[Mongo.Host: Mongo.Unreachable]
+    {
+        switch self
+        {
+        case .none(let unreachable):        return unreachable
+        case .single(_):                    return [:]
+        case .sharded(let sharded):         return sharded.unreachables
+        case .replicated(let replicated):   return replicated.unreachables
+        }
+    }
+    var capabilities:Mongo.DeploymentCapabilities?
+    {
+        switch self
+        {
+        case .none:                         return nil
+        case .single(let single):           return single.capabilities
+        case .sharded(let sharded):         return sharded.capabilities
+        case .replicated(let replicated):   return replicated.capabilities
+        }
+    }
+}
+extension Mongo.ServerTable
 {
     init(from topology:__shared Mongo.Topology<Mongo.TopologyModel.Canary>,
         heartbeatInterval:Milliseconds)
@@ -36,7 +59,11 @@ extension Mongo.Servers
             switch single.item
             {
             case (_, .connected(let metadata, let owner))?:
-                self = .single(.init(metadata: metadata, pool: owner.pool))
+                self = .single(.init(capabilities: .init(
+                        transactions: nil,
+                        sessions: .init(
+                            rawValue: metadata.capabilities.logicalSessionTimeoutMinutes)),
+                    server: .init(metadata: metadata, pool: owner.pool)))
             
             case (let host, .errored(let error))?:
                 self = .none([host: .errored(error)])
@@ -56,20 +83,7 @@ extension Mongo.Servers
         }
     }
 }
-extension Mongo.Servers
-{
-    var unreachable:[Mongo.Host: Mongo.Unreachable]
-    {
-        switch self
-        {
-        case .none(let unreachable):    return unreachable
-        case .single(_):                return [:]
-        case .sharded(let routers):     return routers.unreachables
-        case .replicated(let members):  return members.unreachables
-        }
-    }
-}
-extension Mongo.Servers
+extension Mongo.ServerTable
 {
     subscript(preference:Mongo.ReadPreference) -> Mongo.ConnectionPool?
     {
@@ -82,7 +96,7 @@ extension Mongo.Servers
             switch preference
             {
             case .primary, .primaryPreferred, .nearest, .secondaryPreferred:
-                return standalone.pool
+                return standalone.server.pool
             case .secondary:
                 return nil
             }

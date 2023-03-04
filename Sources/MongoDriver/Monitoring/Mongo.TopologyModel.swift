@@ -31,26 +31,35 @@ extension Mongo.TopologyModel
     func combine(update:__owned Mongo.TopologyUpdate,
         owner:__owned Canary?,
         host:Mongo.Host,
-        add:(Mongo.Host) -> ()) -> (result:Mongo.TopologyUpdateResult, model:Mongo.Servers)
+        add:(Mongo.Host) -> ()) ->
+    (
+        result:Mongo.TopologyUpdateResult,
+        table:Mongo.ServerTable
+    )
     {
         let result:Mongo.TopologyUpdateResult = self.topology.combine(update: update,
             owner: owner,
             host: host,
             add: add)
-        let model:Mongo.Servers = .init(from: self.topology,
+        
+        let table:Mongo.ServerTable = .init(from: self.topology,
             heartbeatInterval: self.interval)
         
-        return (result, model)
+        return (result, table)
     }
     mutating
     func combine(error:__owned (any Error)?,
-        host:Mongo.Host) -> (result:Mongo.TopologyUpdateResult, model:Mongo.Servers)
+        host:Mongo.Host) ->
+    (
+        result:Mongo.TopologyUpdateResult,
+        table:Mongo.ServerTable
+    )
     {
         let result:Mongo.TopologyUpdateResult = self.topology.combine(error: error,
             host: host)
-        let model:Mongo.Servers = .init(from: self.topology,
+        let table:Mongo.ServerTable = .init(from: self.topology,
             heartbeatInterval: self.interval)
         
-        return (result, model)
+        return (result, table)
     }
 }

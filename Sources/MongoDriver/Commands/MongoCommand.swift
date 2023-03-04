@@ -9,6 +9,8 @@ import NIOCore
 public
 protocol MongoCommand<Response>:Sendable
 {
+    associatedtype ExecutionPolicy:MongoExecutionPolicy = Mongo.Once
+
     associatedtype WriteConcern = Never
     associatedtype ReadConcern = Never
 
@@ -119,6 +121,17 @@ extension MongoCommand where WriteConcern == Never
         nil
     }
 }
+extension MongoCommand
+{
+    /// Indicates if this command autocommits, meaning it supports
+    /// retryable writes.
+    @inlinable public static
+    var autocommits:Bool
+    {
+        WriteConcern.self is Mongo.WriteConcern.Type &&
+        ExecutionPolicy.self is Mongo.Retry.Type
+    }
+}
 
 extension MongoCommand<Void>
 {
@@ -197,6 +210,9 @@ extension MongoCommand
             case nil:
                 break
             
+            case .autocommitting(let number)?:
+                bson["txnNumber"] = number
+
             case .starting(let number)?:
                 bson["startTransaction"] = true
                 fallthrough

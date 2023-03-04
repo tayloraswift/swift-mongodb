@@ -3,7 +3,7 @@ import BSONEncoding
 extension Mongo.ReadConcern
 {
     @frozen public
-    enum Level:Sendable
+    enum Level:Sendable, Equatable
     {
         case ratification(Mongo.ReadConcern)
         case snapshot

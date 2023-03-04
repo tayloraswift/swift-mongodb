@@ -23,12 +23,13 @@ extension Mongo
         /// token to every connection created from it.
         nonisolated
         let generation:UInt
+        
         /// The size and width of this connection pool.
-        nonisolated
+        public nonisolated
         let settings:ConnectionPoolSettings
 
         /// The host this pool creates connections to.
-        nonisolated
+        public nonisolated
         let host:Host
 
         /// A handle for communicating back to the initiator of this pool.

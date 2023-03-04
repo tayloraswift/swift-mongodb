@@ -13,6 +13,7 @@ extension Mongo.ServerDescription:Sendable where Metadata:Sendable, Owner:Sendab
 }
 extension Mongo.ServerDescription
 {
+    @inlinable public
     var metadata:Metadata?
     {
         if case .connected(let metadata, _) = self
@@ -24,6 +25,7 @@ extension Mongo.ServerDescription
             return nil
         }
     }
+    @inlinable public
     var owner:Owner?
     {
         if case .connected(_, let owner) = self
@@ -36,6 +38,7 @@ extension Mongo.ServerDescription
         }
     }
     /// Returns the stored error, if this descriptor currently has one.
+    @inlinable public
     var error:(any Error)?
     {
         if case .errored(let error) = self
@@ -69,19 +72,6 @@ extension Mongo.ServerDescription
         }
     }
 
-    // @inlinable public mutating
-    // func update(metadata:Metadata) -> Mongo.TopologyUpdateResult?
-    // {
-    //     switch self
-    //     {
-    //     case .connected(_, let owner):
-    //         self = .connected(metadata, owner)
-    //         return .accepted
-        
-    //     case _:
-    //         return nil
-    //     }
-    // }
     /// Places this descriptor in an ``case errored(_:)`` or ``case queued``
     /// state. If `status` is [`nil`]() and the descriptor is already in
     /// an errored state, the descriptor will remain in that state, and the
@@ -102,18 +92,3 @@ extension Mongo.ServerDescription
         return .accepted
     }
 }
-
-// extension Optional
-// {
-//     /// Sends a termination signal to the monitoring thread for this
-//     /// channel if non-[`nil`](), and sets this optional to [`nil`]()
-//     /// afterwards, preventing further use of the state descriptor.
-//     /// The optional will always be [`nil`]() after calling this method.
-//     @inlinable public mutating
-//     func remove<Member, Pool>()
-//         where Wrapped == Mongo.ServerDescription<Member, Pool>
-//     {
-//         self?.pool?.stopMonitoring()
-//         self = nil
-//     }
-// }

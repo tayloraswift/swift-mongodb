@@ -72,6 +72,10 @@ extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
         "insert"
     }
 
+    /// `Insert` supports retryable writes.
+    public
+    typealias ExecutionPolicy = Mongo.Retry
+
     public
     typealias Response = Mongo.InsertResponse
 

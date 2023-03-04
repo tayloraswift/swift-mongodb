@@ -14,40 +14,16 @@ extension Mongo
         let topologyVersion:TopologyVersion
         /// Type-specific information about the server and its role in a topology model.
         let topologyUpdate:TopologyUpdate
-
-        /// Indicates if the server you are talking to supports logical sessions.
-        /// The proof is the session timeout decoded from `logicalSessionTimeoutMinutes`.
-        let sessions:Mongo.LogicalSessions
-
-        /// The maximum number of write operations permitted in a write batch.
-        let maxWriteBatchCount:Int
-
-        /// The maximum permitted size of a BSON object in bytes for this
-        /// [mongod](https://www.mongodb.com/docs/manual/reference/program/mongod/#mongodb-binary-bin.mongod)
-        /// process.
-        let maxDocumentSize:Int
-
-        /// The maximum permitted size of a BSON wire protocol message. 
-        let maxMessageSize:Int
-
         /// Returns the local server time in UTC. This value is an
         /// [ISO date](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-ISODate).
         let localTime:BSON.Millisecond
 
         init(topologyVersion:TopologyVersion,
             topologyUpdate:TopologyUpdate,
-            sessions:Mongo.LogicalSessions,
-            maxWriteBatchCount:Int,
-            maxDocumentSize:Int,
-            maxMessageSize:Int,
             localTime:BSON.Millisecond)
         {
             self.topologyVersion = topologyVersion
             self.topologyUpdate = topologyUpdate
-            self.sessions = sessions
-            self.maxWriteBatchCount = maxWriteBatchCount
-            self.maxDocumentSize = maxDocumentSize
-            self.maxMessageSize = maxMessageSize
             self.localTime = localTime
         }
     }
@@ -69,6 +45,19 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
                 invalid: min(minWireVersion, maxWireVersion) ... maxWireVersion)
         }
 
+        func capabilities() throws -> Mongo.ServerCapabilities
+        {
+            .init(
+                logicalSessionTimeoutMinutes: try bson["logicalSessionTimeoutMinutes"].decode(
+                    to: UInt32.self),
+                maxWriteBatchCount: try bson["maxWriteBatchSize"]?.decode(
+                    to: Int.self) ?? 100_000,
+                maxDocumentSize: try bson["maxBsonObjectSize"]?.decode(
+                    to: Int.self) ?? 16 * 1024 * 1024,
+                maxMessageSize: try bson["maxMessageSizeBytes"]?.decode(
+                    to: Int.self) ?? 48_000_000)
+        }
+
         let topologyUpdate:Mongo.TopologyUpdate
 
         if  let set:String = try bson["setName"]?.decode(to: String.self)
@@ -86,7 +75,7 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
             if      case true? =
                     try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
             {
-                let replica:Mongo.Replica = .init(
+                let replica:Mongo.Replica = .init(capabilities: try capabilities(),
                     timings: try bson["lastWrite"].decode(to: Mongo.Replica.Timings.self),
                     tags: tags ?? [:])
                 topologyUpdate = .primary(.init(replica: replica, term: .init(
@@ -96,7 +85,7 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
             }
             else if case true? = try bson["secondary"]?.decode(to: Bool.self)
             {
-                let replica:Mongo.Replica = .init(
+                let replica:Mongo.Replica = .init(capabilities: try capabilities(),
                     timings: try bson["lastWrite"].decode(to: Mongo.Replica.Timings.self),
                     tags: tags ?? [:])
                 topologyUpdate = .slave(.secondary(replica), peerlist)
@@ -118,11 +107,13 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
             }
             else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
             {
-                topologyUpdate = .router(.router)
+                topologyUpdate = .router(.init(
+                    capabilities: try capabilities()))
             }
             else
             {
-                topologyUpdate = .standalone(.standalone)
+                topologyUpdate = .standalone(.init(
+                    capabilities: try capabilities()))
             }
         }
 
@@ -130,14 +121,6 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
             topologyVersion: try bson["topologyVersion"].decode(
                 to: Mongo.TopologyVersion.self),
             topologyUpdate: topologyUpdate,
-            sessions: .init(ttl: try bson["logicalSessionTimeoutMinutes"].decode(
-                to: Minutes.self)),
-            maxWriteBatchCount: try bson["maxWriteBatchSize"]?.decode(
-                to: Int.self) ?? 100_000,
-            maxDocumentSize: try bson["maxBsonObjectSize"]?.decode(
-                to: Int.self) ?? 16 * 1024 * 1024,
-            maxMessageSize: try bson["maxMessageSizeBytes"]?.decode(
-                to: Int.self) ?? 48_000_000,
             localTime: try bson["localTime"].decode(
                 to: BSON.Millisecond.self))
     }

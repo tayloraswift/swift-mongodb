@@ -1,25 +1,29 @@
 import Durations
 
-extension Mongo.Servers
+extension Mongo.ServerTable
 {
-    struct Members:Sendable
+    struct Replicated:Sendable
     {
+        let capabilities:Mongo.DeploymentCapabilities?
+
         let unreachables:[Mongo.Host: Mongo.Unreachable]
         let undesirables:[Mongo.Host: Mongo.Undesirable]
 
         let candidates:
         (
-            secondaries:[Mongo.Server<Candidate>],
-            replicas:[Mongo.Server<Candidate>],
-            primary:Mongo.Server<Candidate>?
+            secondaries:[Mongo.Server<ReplicaQuality>],
+            replicas:[Mongo.Server<ReplicaQuality>],
+            primary:Mongo.Server<ReplicaQuality>?
         )
 
         private
-        init(unreachables:[Mongo.Host: Mongo.Unreachable],
+        init(capabilities:Mongo.DeploymentCapabilities?,
+            unreachables:[Mongo.Host: Mongo.Unreachable],
             undesirables:[Mongo.Host: Mongo.Undesirable],
-            secondaries:[Mongo.Server<Candidate>] = [],
-            primary:Mongo.Server<Candidate>? = nil)
+            secondaries:[Mongo.Server<ReplicaQuality>] = [],
+            primary:Mongo.Server<ReplicaQuality>? = nil)
         {
+            self.capabilities = capabilities
             self.unreachables = unreachables
             self.undesirables = undesirables
             // TODO: sort this by latency
@@ -30,10 +34,11 @@ extension Mongo.Servers
         }
     }
 }
-extension Mongo.Servers.Members
+extension Mongo.ServerTable.Replicated
 {
     private
     init(heartbeatInterval:Milliseconds,
+        capabilities:Mongo.DeploymentCapabilities?,
         unreachables:[Mongo.Host: Mongo.Unreachable],
         undesirables:[Mongo.Host: Mongo.Undesirable],
         secondaries:[Mongo.Server<Mongo.Replica>],
@@ -43,7 +48,9 @@ extension Mongo.Servers.Members
         {
             let freshest:Mongo.Replica.PrimaryBaseline = .init(primary.metadata.timings)
             
-            self.init(unreachables: unreachables, undesirables: undesirables,
+            self.init(capabilities: capabilities,
+                unreachables: unreachables,
+                undesirables: undesirables,
                 secondaries: secondaries.map
                 {
                     $0.map
@@ -72,7 +79,9 @@ extension Mongo.Servers.Members
         {
             let freshest:Mongo.Replica.SecondaryBaseline = .init(secondary.metadata.timings)
 
-            self.init(unreachables: unreachables, undesirables: undesirables,
+            self.init(capabilities: capabilities,
+                unreachables: unreachables,
+                undesirables: undesirables,
                 secondaries: secondaries.map
                 {
                     $0.map
@@ -86,12 +95,16 @@ extension Mongo.Servers.Members
         {
             assert(secondaries.isEmpty)
             
-            self.init(unreachables: unreachables, undesirables: undesirables)
+            self.init(capabilities: capabilities,
+                unreachables: unreachables,
+                undesirables: undesirables)
         }
     }
     init(from topology:__shared Mongo.Topology<Mongo.TopologyModel.Canary>.Replicated,
         heartbeatInterval:Milliseconds)
     {
+        var logicalSessionTimeoutMinutes:UInt32 = .max
+
         var unreachables:[Mongo.Host: Mongo.Unreachable] = [:],
             undesirables:[Mongo.Host: Mongo.Undesirable] = [:],
             secondaries:[Mongo.Server<Mongo.Replica>] = [],
@@ -125,9 +138,15 @@ extension Mongo.Servers.Members
             {
             case .primary(let metadata):
                 primary = .init(metadata: metadata, pool: pool)
+                
+                logicalSessionTimeoutMinutes = min(logicalSessionTimeoutMinutes,
+                    metadata.capabilities.logicalSessionTimeoutMinutes)
             
             case .secondary(let metadata):
                 secondaries.append(.init(metadata: metadata, pool: pool))
+                
+                logicalSessionTimeoutMinutes = min(logicalSessionTimeoutMinutes,
+                    metadata.capabilities.logicalSessionTimeoutMinutes)
             
             case .arbiter:
                 undesirables[host] = .arbiter
@@ -141,13 +160,16 @@ extension Mongo.Servers.Members
         }
 
         self.init(heartbeatInterval: heartbeatInterval,
+            capabilities: logicalSessionTimeoutMinutes == .max ? nil : .init(
+                transactions: .supported,
+                sessions: .init(rawValue: logicalSessionTimeoutMinutes)),
             unreachables: unreachables,
             undesirables: undesirables,
             secondaries: secondaries,
             primary: primary)
     }
 }
-extension Mongo.Servers.Members
+extension Mongo.ServerTable.Replicated
 {
     var primary:Mongo.ConnectionPool?
     {

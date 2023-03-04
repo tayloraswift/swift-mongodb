@@ -28,7 +28,7 @@ extension Mongo.ReadPreference
 }
 extension Mongo.ReadPreference.Eligibility
 {
-    func diagnose(unsuitable candidates:[Mongo.Server<Mongo.Servers.Candidate>])
+    func diagnose(unsuitable candidates:[Mongo.Server<Mongo.ServerTable.ReplicaQuality>])
         -> [Mongo.Host: Mongo.Unsuitable]
     {
         if let maxStaleness:Milliseconds = self.maxStaleness?.milliseconds

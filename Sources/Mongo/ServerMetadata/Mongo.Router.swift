@@ -1,8 +1,15 @@
 extension Mongo
 {
     public
-    enum Router:Sendable
+    struct Router:Sendable
     {
-        case router
+        public
+        let capabilities:ServerCapabilities
+
+        public
+        init(capabilities:ServerCapabilities)
+        {
+            self.capabilities = capabilities
+        }
     }
 }
