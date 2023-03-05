@@ -5,7 +5,11 @@ func TestListCollections(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    let tests:TestGroup = tests / "list-collections"
+    guard let tests:TestGroup = tests / "list-collections"
+    else
+    {
+        return
+    }
 
     await tests.withTemporaryDatabase(named: "list-collections",
         bootstrap: bootstrap,
@@ -18,12 +22,12 @@ func TestListCollections(_ tests:TestGroup,
 
         do
         {
-            let tests:TestGroup = tests / "create"
+            let tests:TestGroup = tests ! "create"
             await tests.do
             {
                 for collection:Mongo.Collection in collections
                 {
-                    await (tests / collection.name).do
+                    await (tests ! collection.name).do
                     {
                         try await session.run(command: Mongo.Create<Mongo.Collection>.init(
                                 collection: collection), 
@@ -32,9 +36,8 @@ func TestListCollections(_ tests:TestGroup,
                 }
             }
         }
-        do
+        if  let tests:TestGroup = tests / "bindings"
         {
-            let tests:TestGroup = tests / "bindings"
             await tests.do
             {
                 try await session.run(
@@ -47,7 +50,7 @@ func TestListCollections(_ tests:TestGroup,
                         tests.expect(true: batch.count <= 10)
                         for binding:Mongo.CollectionBinding in batch
                         {
-                            let tests:TestGroup = tests / binding.collection.name
+                            let tests:TestGroup = tests ! binding.collection.name
 
                             tests.expect(value: collections.remove(binding.collection))
                             tests.expect(binding.type ==? .collection)
@@ -57,9 +60,8 @@ func TestListCollections(_ tests:TestGroup,
                 }
             }
         }
-        do
+        if  let tests:TestGroup = tests / "metadata"
         {
-            let tests:TestGroup = tests / "metadata"
             await tests.do
             {
                 try await session.run(
@@ -72,7 +74,7 @@ func TestListCollections(_ tests:TestGroup,
                         tests.expect(true: batch.count <= 10)
                         for metadata:Mongo.CollectionMetadata in batch
                         {
-                            let tests:TestGroup = tests / metadata.collection.name
+                            let tests:TestGroup = tests ! metadata.collection.name
 
                             tests.expect(value: collections.remove(metadata.collection))
                             tests.expect(metadata.type ==? .collection)

@@ -5,7 +5,12 @@ func TestReadPreference(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     members:[Mongo.Host]) async
 {
-    let tests:TestGroup = tests / "read-preferences"
+    guard let tests:TestGroup = tests / "read-preferences"
+    else
+    {
+        return
+    }
+
     await tests.do
     {
         try await bootstrap.withSessionPool(seedlist: .init(members),
@@ -130,7 +135,7 @@ func TestReadPreference(_ tests:TestGroup,
                 ),
             ]
             {
-                await (tests / name).do
+                await (tests / name)?.do
                 {
                     try await session.run(
                         command: Mongo.RefreshSessions.init(session.id),
@@ -157,8 +162,7 @@ func TestReadPreference(_ tests:TestGroup,
                 ),
             ]
             {
-                let tests:TestGroup = tests / name
-                await tests.do(
+                await (tests / name)?.do(
                     catching: Mongo.DeploymentStateError<Mongo.ReadPreferenceError>.init(
                         diagnostics: .init(
                             undesirable:
@@ -179,9 +183,8 @@ func TestReadPreference(_ tests:TestGroup,
                 }
             }
             // We should never be able to select a secondary with zero staleness.
-            do
+            if  let tests:TestGroup = tests / "secondary-staleness-zero"
             {
-                let tests:TestGroup = tests / "secondary-staleness-zero"
                 await tests.do(
                     catching: Mongo.DeploymentStateError<Mongo.ReadPreferenceError>.self)
                 {

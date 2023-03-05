@@ -9,7 +9,7 @@ extension TestGroup
         hosts:Set<Mongo.Host>,
         run body:(Mongo.SessionPool, Mongo.Database) async throws -> ()) async
     {
-        let environment:TestGroup = self / "environment"
+        let environment:TestGroup = self ! "environment"
         await environment.do
         {
             try await bootstrap.withSessionPool(seedlist: hosts, logger: logger)

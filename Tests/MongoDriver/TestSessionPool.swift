@@ -7,18 +7,21 @@ func TestSessionPool(_ tests:TestGroup,
     seedlist:Set<Mongo.Host>,
     on executor:MultiThreadedEventLoopGroup) async
 {
-    let tests:TestGroup = tests / "session-pools"
+    guard let tests:TestGroup = tests / "session-pools"
+    else
+    {
+        return
+    }
 
     let bootstrap:Mongo.DriverBootstrap = .init(
         credentials: credentials,
         executor: executor)
-    do
+    if  let tests:TestGroup = tests / "lifecycles"
     {
-        let tests:TestGroup = tests / "lifecycles"
         //  these tests ensure we do proper cleanup on all exit paths.
         //  they use no assertions, but should trip sanity checks within
         //  the driver’s `deinit`s if cleanup is not performed correctly.
-        await (tests / "seeded-once").do
+        await (tests / "seeded-once")?.do
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
@@ -29,7 +32,7 @@ func TestSessionPool(_ tests:TestGroup,
         }
         //  We should be able to initialize a new session pool immediately after
         //  draining the previous one.
-        await (tests / "seeded-twice").do
+        await (tests / "seeded-twice")?.do
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
             {
@@ -44,7 +47,7 @@ func TestSessionPool(_ tests:TestGroup,
         }
         //  We should be able to operate two session pools on the same deployment
         //  at the same time.
-        await (tests / "seeded-concurrently").do
+        await (tests / "seeded-concurrently")?.do
         {
             async
             let first:Void = bootstrap.withSessionPool(seedlist: seedlist)
@@ -66,7 +69,7 @@ func TestSessionPool(_ tests:TestGroup,
         }
         //  We should be able to tear down a session pool by throwing an error,
         //  even if operations are in progress.
-        await (tests / "error-pool").do
+        await (tests / "error-pool")?.do
         {
             do
             {
@@ -93,9 +96,8 @@ func TestSessionPool(_ tests:TestGroup,
             }
         }
     }
-    do
+    if  let tests:TestGroup = tests / "overlapping"
     {
-        let tests:TestGroup = tests / "overlapping"
         /// Two overlapping sessions should not re-use the same session.
         await tests.do
         {
@@ -113,9 +115,8 @@ func TestSessionPool(_ tests:TestGroup,
             }
         }
     }
-    do
+    if  let tests:TestGroup = tests / "forked"
     {
-        let tests:TestGroup = tests / "forked"
         /// Two forked sessions should not re-use the same session.
         await tests.do
         {
@@ -141,9 +142,8 @@ func TestSessionPool(_ tests:TestGroup,
             }
         }
     }
-    do
+    if  let tests:TestGroup = tests / "non-overlapping"
     {
-        let tests:TestGroup = tests / "non-overlapping"
         /// Two non-overlapping sessions should re-use the same session.
         await tests.do
         {
@@ -170,9 +170,8 @@ func TestSessionPool(_ tests:TestGroup,
             }
         }
     }
-    do
+    if  let tests:TestGroup = tests / "cohorts"
     {
-        let tests:TestGroup = tests / "cohorts"
         /// Session count should never exceed maximum logical width,
         /// even taking into account task execution latencies.
         await tests.do
@@ -192,9 +191,8 @@ func TestSessionPool(_ tests:TestGroup,
             }
         }
     }
-    do
+    if  let tests:TestGroup = tests / "implicit"
     {
-        let tests:TestGroup = tests / "implicit"
         /// Serialized usages of implcit sessions should never blow up the pool.
         await tests.do
         {

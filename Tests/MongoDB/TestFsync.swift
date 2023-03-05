@@ -5,7 +5,11 @@ func TestFsync(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    let tests:TestGroup = tests / "fsync-locking"
+    guard let tests:TestGroup = tests / "fsync-locking"
+    else
+    {
+        return
+    }
     
     await tests.withTemporaryDatabase(named: "fsync-tests",
         bootstrap: bootstrap,
@@ -26,7 +30,7 @@ func TestFsync(_ tests:TestGroup,
 
         //  We should always be able to run the ping command, even if the
         //  node is write-locked.
-        await (tests / "ping").do
+        await (tests ! "ping").do
         {
             try await pool.run(command: Mongo.Ping.init(),
                 against: .admin,

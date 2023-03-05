@@ -5,7 +5,11 @@ func TestInsert(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    let tests:TestGroup = tests / "insert"
+    guard let tests:TestGroup = tests / "insert"
+    else
+    {
+        return
+    }
     
     await tests.withTemporaryDatabase(named: "insert-tests",
         bootstrap: bootstrap,
@@ -17,7 +21,7 @@ func TestInsert(_ tests:TestGroup,
         let session:Mongo.Session = try await .init(from: pool)
         do
         {
-            let tests:TestGroup = tests / "one"
+            let tests:TestGroup = tests ! "one"
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 1)
@@ -31,7 +35,7 @@ func TestInsert(_ tests:TestGroup,
         }
         do
         {
-            let tests:TestGroup = tests / "multiple"
+            let tests:TestGroup = tests ! "multiple"
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 15)
@@ -45,7 +49,7 @@ func TestInsert(_ tests:TestGroup,
         }
         do
         {
-            let tests:TestGroup = tests / "duplicate-id"
+            let tests:TestGroup = tests ! "duplicate-id"
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 0,
@@ -69,7 +73,7 @@ func TestInsert(_ tests:TestGroup,
         }
         do
         {
-            let tests:TestGroup = tests / "ordered"
+            let tests:TestGroup = tests ! "ordered"
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 8,
@@ -93,7 +97,7 @@ func TestInsert(_ tests:TestGroup,
         }
         do
         {
-            let tests:TestGroup = tests / "unordered"
+            let tests:TestGroup = tests ! "unordered"
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 24,

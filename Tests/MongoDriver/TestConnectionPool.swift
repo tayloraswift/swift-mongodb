@@ -7,18 +7,22 @@ func TestConnectionPool(_ tests:TestGroup,
     seedlist:Set<Mongo.Host>,
     on executor:MultiThreadedEventLoopGroup) async
 {
+    guard let tests:TestGroup = tests / "connection-pools"
+    else
+    {
+        return
+    }
+
     let bootstrap:Mongo.DriverBootstrap = .init(
         credentials: credentials,
         executor: executor)
     
-    let tests:TestGroup = tests / "connection-pools"
     //  This test makes 500 connection requests to the primary/master’s connection
     //  pool, and holds the connections (preventing them from being reused) for
     //  half the duration of the test, to force the pool to expand.
     //  The pool should expand to its maximum size (100), and no further.
-    do
+    if  let tests:TestGroup = tests / "oversubscription"
     {
-        let tests:TestGroup = tests / "oversubscription"
         await tests.do
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
@@ -60,9 +64,8 @@ func TestConnectionPool(_ tests:TestGroup,
     //  pool in batches of 10 connections at a time. On each iteration, the old
     //  batch should become available for reuse, so the pool should not continue
     //  expanding.
-    do
+    if  let tests:TestGroup = tests / "cohorts"
     {
-        let tests:TestGroup = tests / "cohorts"
         await tests.do
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
@@ -83,9 +86,8 @@ func TestConnectionPool(_ tests:TestGroup,
             }
         }
     }
-    do
+    if  let tests:TestGroup = tests / "perishment"
     {
-        let tests:TestGroup = tests / "perishment"
         await tests.do
         {
             try await bootstrap.withSessionPool(seedlist: seedlist)
@@ -96,7 +98,7 @@ func TestConnectionPool(_ tests:TestGroup,
                 //  use up the pool’s entire capacity by hoarding connections.
                 var connections:[Mongo.Connection] = []
 
-                await (tests / "before").do
+                await (tests ! "before").do
                 {
                     for _:Int in 0 ..< 100
                     {
@@ -114,7 +116,7 @@ func TestConnectionPool(_ tests:TestGroup,
                 //  even though we haven’t returned the perished connections
                 //  to the pool, it should still be able to re-create ten
                 //  connections to replace them.
-                await (tests / "after").do
+                await (tests ! "after").do
                 {
                     for _:Int in 0 ..< 10
                     {

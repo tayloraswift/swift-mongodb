@@ -7,9 +7,8 @@ enum Main:SyncTests
     static
     func run(tests:Tests)
     {
-        do
+        if  let tests:TestGroup = tests / "literal-inference"
         {
-            let tests:TestGroup = tests / "literal-inference"
 
             TestEncoding(tests / "integer",
                 encoded: .init
@@ -113,9 +112,8 @@ enum Main:SyncTests
                     "d": .document(["a": 1, "b": 2, "c": 3]),
                 ])
         }
-        do
+        if  let tests:TestGroup = tests / "type-inference"
         {
-            let tests:TestGroup = tests / "type-inference"
 
             TestEncoding(tests / "binary",
                 encoded: .init
@@ -159,9 +157,8 @@ enum Main:SyncTests
                     "null": .null,
                 ])
         }
-        do
+        if  let tests:TestGroup = tests / "elided-collections"
         {
-            let tests:TestGroup = tests / "elided-collections"
 
             TestEncoding(tests / "string",
                 encoded: .init
@@ -214,10 +211,9 @@ enum Main:SyncTests
                     "d": [:],
                 ])
         }
-        do
+        if  let tests:TestGroup = tests / "elided-fields"
         {
             let _:BSON.Document = [:]
-            let tests:TestGroup = tests / "elided-fields"
 
             TestEncoding(tests / "null",
                 encoded: .init
@@ -254,9 +250,8 @@ enum Main:SyncTests
                     "uninhabited": .null,
                 ])
         }
-        do
+        if  let tests:TestGroup = tests / "duplicate-fields"
         {
-            let tests:TestGroup = tests / "duplicate-fields"
 
             TestEncoding(tests / "integer",
                 encoded: .init

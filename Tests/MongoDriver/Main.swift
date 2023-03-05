@@ -22,9 +22,8 @@ enum Main:AsyncTests
             .init(name: "mongo-6", port: 27017),
         ]
 
-        do
+        if  let tests:TestGroup = tests / "replicated-topology"
         {
-            let tests:TestGroup = tests / "replicated-topology"
 
             print("running tests for replicated topology (hosts: \(members))")
 
@@ -49,9 +48,8 @@ enum Main:AsyncTests
             await TestReadPreference(tests, bootstrap: bootstrap, members: members)
         }
 
-        do
+        if  let tests:TestGroup = tests / "single-topology"
         {
-            let tests:TestGroup = tests / "single-topology"
 
             print("running tests for single topology (host: \(standalone))")
 

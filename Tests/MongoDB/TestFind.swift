@@ -5,7 +5,11 @@ func TestFind(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    let tests:TestGroup = tests / "find"
+    guard let tests:TestGroup = tests / "find"
+    else
+    {
+        return
+    }
 
     await tests.withTemporaryDatabase(named: "find-tests",
         bootstrap: bootstrap,
@@ -18,7 +22,7 @@ func TestFind(_ tests:TestGroup,
 
         do
         {
-            let tests:TestGroup = tests / "initialize"
+            let tests:TestGroup = tests ! "initialize"
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 100)
@@ -30,9 +34,8 @@ func TestFind(_ tests:TestGroup,
                 tests.expect(response ==? expected)
             }
         }
-        do
+        if  let tests:TestGroup = tests / "single-batch"
         {
-            let tests:TestGroup = tests / "single-batch"
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
@@ -44,9 +47,8 @@ func TestFind(_ tests:TestGroup,
                 tests.expect(batch ..? ordinals.prefix(10))
             }
         }
-        do
+        if  let tests:TestGroup = tests / "single-batch-skip"
         {
-            let tests:TestGroup = tests / "single-batch-skip"
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
@@ -59,9 +61,8 @@ func TestFind(_ tests:TestGroup,
                 tests.expect(batch ..? ordinals[5 ..< 12])
             }
         }
-        do
+        if  let tests:TestGroup = tests / "single-batch-hint"
         {
-            let tests:TestGroup = tests / "single-batch-hint"
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
@@ -80,9 +81,8 @@ func TestFind(_ tests:TestGroup,
                 tests.expect(batch ..? ordinals[10 ..< 15])
             }
         }
-        do
+        if  let tests:TestGroup = tests / "single-batch-sort"
         {
-            let tests:TestGroup = tests / "single-batch-sort"
             await tests.do
             {
                 let batch:[Ordinal] = try await pool.run(
@@ -101,9 +101,8 @@ func TestFind(_ tests:TestGroup,
                 tests.expect(batch ..? ordinals[85 ..< 90].reversed())
             }
         }
-        do
+        if  let tests:TestGroup = tests / "multiple-batches"
         {
-            let tests:TestGroup = tests / "multiple-batches"
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
@@ -127,9 +126,8 @@ func TestFind(_ tests:TestGroup,
                 }
             }
         }
-        do
+        if  let tests:TestGroup = tests / "filtering"
         {
-            let tests:TestGroup = tests / "filtering"
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
@@ -163,9 +161,8 @@ func TestFind(_ tests:TestGroup,
                 }
             }
         }
-        do
+        if  let tests:TestGroup = tests / "projection"
         {
-            let tests:TestGroup = tests / "projection"
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
