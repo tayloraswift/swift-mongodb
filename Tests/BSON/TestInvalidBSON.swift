@@ -3,8 +3,14 @@ import BSON
 import BSONCanonicalization
 import Testing
 
-func TestInvalidBSON(_ tests:TestGroup, invalid:String, catching error:some Error & Equatable)
+func TestInvalidBSON(_ tests:TestGroup?, invalid:String, catching error:some Error & Equatable)
 {
+    guard let tests:TestGroup
+    else
+    {
+        return
+    }
+    
     let invalid:[UInt8] = Base16.decode(invalid.utf8)
 
     var input:BSON.Input<[UInt8]> = .init(invalid)

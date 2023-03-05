@@ -9,9 +9,8 @@ enum Main:SyncTests
     static
     func run(tests:Tests)
     {
-        do
+        if  let tests:TestGroup = tests / "enumerated-coding-keys"
         {
-            let tests:TestGroup = tests / "enumerated-coding-keys"
 
             struct Codable:BSONDocumentDecodable, BSONDocumentEncodable, Equatable
             {

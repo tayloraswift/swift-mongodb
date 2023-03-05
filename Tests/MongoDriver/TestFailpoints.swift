@@ -7,18 +7,23 @@ func TestFailpoints(_ tests:TestGroup,
     seedlist:Set<Mongo.Host>,
     on executor:MultiThreadedEventLoopGroup) async
 {
+    guard let tests:TestGroup = tests / "failpoints"
+    else
+    {
+        return
+    }
+
     let appname:String = "swift-mongodb-tests"
     let bootstrap:Mongo.DriverBootstrap = .init(credentials: credentials,
         executor: executor,
         appname: appname)
     
-    let tests:TestGroup = tests / "failpoints"
 
     await bootstrap.withSessionPool(seedlist: seedlist)
     {
         (pool:Mongo.SessionPool) in
 
-        await (tests / "configure").do
+        await (tests ! "configure").do
         {
             try await pool.run(
                 command: Mongo.ConfigureFailpoint<Mongo.FailCommand>.once(.init(
@@ -30,7 +35,7 @@ func TestFailpoints(_ tests:TestGroup,
         }
         //  We should be able to observe the ping command fail the first
         //  time we try to run it.
-        await (tests / "ping-first").do(catching: Mongo.ServerError.init(9999,
+        await (tests ! "ping-first").do(catching: Mongo.ServerError.init(9999,
             message: "Failing command via 'failCommand' failpoint"))
         {
             try await pool.run(command: Mongo.Ping.init(),
@@ -39,7 +44,7 @@ func TestFailpoints(_ tests:TestGroup,
         }
         //  We should be able to observe the ping command succeed the second
         //  time we try to run it.
-        await (tests / "ping-second").do
+        await (tests ! "ping-second").do
         {
             try await pool.run(command: Mongo.Ping.init(),
                 against: .admin,

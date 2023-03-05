@@ -5,7 +5,11 @@ func TestCursors(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    let tests:TestGroup = tests / "cursors"
+    guard let tests:TestGroup = tests / "cursors"
+    else
+    {
+        return
+    }
 
     await tests.withTemporaryDatabase(named: "cursor-tests",
         bootstrap: bootstrap,
@@ -20,7 +24,7 @@ func TestCursors(_ tests:TestGroup,
 
         do
         {
-            let tests:TestGroup = tests / "initialize"
+            let tests:TestGroup = tests ! "initialize"
             await tests.do
             {
                 //  We should be able to initialize the test collection with 100 ordinals
@@ -59,7 +63,12 @@ func TestCursors(_ tests:TestGroup,
 
         for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
         {
-            let tests:TestGroup = tests / name / "cursor-cleanup-normal"
+            guard let tests:TestGroup = tests / name / "cursor-cleanup-normal"
+            else
+            {
+                continue
+            }
+
             await tests.do
             {
                 //  We should be using a session that is causally-consistent with the
@@ -160,11 +169,19 @@ func TestCursors(_ tests:TestGroup,
         }
         for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
         {
-            let tests:TestGroup = tests / name
+            guard let tests:TestGroup = tests / name / "cursor-cleanup-interrupted"
+            else
+            {
+                continue
+            }
             for iterations:Int in 0 ... 2
             {
-                let tests:TestGroup = tests / "cursor-cleanup-interrupted" /
-                    iterations.description
+                guard let tests:TestGroup = tests / iterations.description
+                else
+                {
+                    continue
+                }
+
                 await tests.do
                 {
                     //  We should be using a session that is causally-consistent with the
@@ -223,7 +240,12 @@ func TestCursors(_ tests:TestGroup,
         }
         for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
         {
-            let tests:TestGroup = tests / name / "cursor-concurrent-commands"
+            guard let tests:TestGroup = tests / name / "cursor-concurrent-commands"
+            else
+            {
+                return
+            }
+
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool, forking: initializer)
@@ -237,7 +259,7 @@ func TestCursors(_ tests:TestGroup,
                     var counter:Int = 0
                     for try await batch:[Ordinal] in $0
                     {
-                        let tests:TestGroup = tests / counter.description
+                        let tests:TestGroup = tests ! counter.description
                         let names:[Mongo.Database] = try await initializer.run(
                             command: Mongo.ListDatabases.NameOnly.init(),
                             against: .admin,

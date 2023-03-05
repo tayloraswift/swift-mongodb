@@ -10,10 +10,8 @@ enum Main:AsyncTests
     {
         let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        do
+        if  let tests:TestGroup = tests / "replicated"
         {
-            let tests:TestGroup = tests / "replicated"
-
             let members:Set<Mongo.Host> =
             [
                 .init(name: "mongo-0", port: 27017),
@@ -43,9 +41,8 @@ enum Main:AsyncTests
             await TestCursors           (tests, bootstrap: bootstrap, hosts: members)
         }
 
-        do
+        if  let tests:TestGroup = tests / "single"
         {
-            let tests:TestGroup = tests / "single"
 
             let standalone:Mongo.Host = .init(name: "mongo-single", port: 27017)
 

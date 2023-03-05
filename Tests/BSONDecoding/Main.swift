@@ -16,7 +16,7 @@ enum Main:SyncTests
                 "min": .min,
             ]
 
-            (tests / "null").do
+            (tests / "null")?.do
             {
                 let bson:BSON.DocumentDecoder<BSON.Key, [UInt8]> = try .init(
                     parsing: bson)
@@ -31,9 +31,8 @@ enum Main:SyncTests
                 try $0["min"].decode(to: BSON.Min.self)
             }
         }
-        do
+        if  let tests:TestGroup = tests / "numeric"
         {
-            let tests:TestGroup = tests / "numeric"
 
             let bson:BSON.DocumentView<[UInt8]> =
             [
@@ -74,9 +73,8 @@ enum Main:SyncTests
             }
         }
 
-        do
+        if  let tests:TestGroup = tests / "tuple"
         {
-            let tests:TestGroup = tests / "tuple"
 
             let bson:BSON.DocumentView<[UInt8]> =
             [
@@ -183,9 +181,8 @@ enum Main:SyncTests
             }
         }
         
-        do
+        if  let tests:TestGroup = tests / "document"
         {
-            let tests:TestGroup = tests / "document"
 
             let degenerate:BSON.DocumentView<[UInt8]> =
             [
@@ -272,9 +269,8 @@ enum Main:SyncTests
             }
         }
 
-        do
+        if  let tests:TestGroup = tests / "binary" / "md5"
         {
-            let tests:TestGroup = tests / "binary" / "md5"
 
             let md5:BSON.BinaryView<[UInt8]> = .init(subtype: .md5,
                 slice: [0xff, 0xfe, 0xfd])
@@ -296,9 +292,8 @@ enum Main:SyncTests
             }
         }
 
-        do
+        if  let tests:TestGroup = tests / "losslessstringconvertible"
         {
-            let tests:TestGroup = tests / "losslessstringconvertible"
 
             let bson:BSON.DocumentView<[UInt8]> =
             [

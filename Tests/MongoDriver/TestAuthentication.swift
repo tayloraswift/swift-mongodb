@@ -8,7 +8,7 @@ func TestAuthentication(_ tests:TestGroup,
     password:String,
     on executor:MultiThreadedEventLoopGroup) async
 {
-    await (tests / "authentication" / "defaulted").do
+    await (tests / "authentication" / "defaulted")?.do
     {
         let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
                 authentication: nil,
@@ -22,7 +22,7 @@ func TestAuthentication(_ tests:TestGroup,
         }
     }
 
-    await (tests / "authentication" / "scram-sha256").do
+    await (tests / "authentication" / "scram-sha256")?.do
     {
         let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
                 authentication: .sasl(.sha256),
@@ -36,9 +36,8 @@ func TestAuthentication(_ tests:TestGroup,
         }
     }
 
-    do
+    if  let tests:TestGroup = tests / "authentication-unsupported"
     {
-        let tests:TestGroup = tests / "authentication-unsupported"
 
         let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
                 authentication: .x509,
@@ -61,9 +60,8 @@ func TestAuthentication(_ tests:TestGroup,
         }
     }
 
-    do
+    if  let tests:TestGroup = tests / "authentication-wrong-password"
     {
-        let tests:TestGroup = tests / "authentication-wrong-password"
 
         let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
                 authentication: .sasl(.sha256),

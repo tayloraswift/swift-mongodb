@@ -8,7 +8,12 @@ func TestMemberDiscovery(_ tests:TestGroup,
     //  we should be able to connect to the primary using any seed
     for seed:Mongo.Host in members
     {
-        let tests:TestGroup = tests / "discover-primary-from-\(seed.name)"
+        guard let tests:TestGroup = tests / "discover-primary-from-\(seed.name)"
+        else
+        {
+            continue
+        }
+        
         await tests.do
         {
             try await bootstrap.withSessionPool(seedlist: [seed],

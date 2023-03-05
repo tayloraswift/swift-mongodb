@@ -5,7 +5,11 @@ func TestDatabases(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    let tests:TestGroup = tests / "databases"
+    guard let tests:TestGroup = tests / "databases"
+    else
+    {
+        return
+    }
 
     await tests.withTemporaryDatabase(named: "database",
         bootstrap: bootstrap,
@@ -13,14 +17,14 @@ func TestDatabases(_ tests:TestGroup,
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
-        await (tests / "create-by-collection").do
+        await (tests ! "create-by-collection").do
         {
             try await pool.run(
                 command: Mongo.Create<Mongo.Collection>.init(collection: "placeholder"), 
                 against: database)
         }
 
-        let tests:TestGroup = tests / "list-databases"
+        let tests:TestGroup = tests ! "list-databases"
 
         await tests.do
         {

@@ -40,8 +40,8 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     dependencies: 
     [
-        .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.3.0")),
-        .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.4.6")),
+        .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.3.1")),
+        .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.5.0")),
         
         .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(from: "1.0.3")),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.0.4")),

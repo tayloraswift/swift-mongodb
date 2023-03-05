@@ -45,9 +45,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/boolean.json
-        do
+        if  let tests:TestGroup = tests / "bool"
         {
-            let tests:TestGroup = tests / "bool"
 
             TestValidBSON(tests / "true",
                 canonical: "090000000862000100",
@@ -66,9 +65,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/int32.json
-        do
+        if  let tests:TestGroup = tests / "int32"
         {
-            let tests:TestGroup = tests / "int32"
 
             TestValidBSON(tests / "min",
                 canonical: "0C0000001069000000008000",
@@ -96,9 +94,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/int32.json
-        do
+        if  let tests:TestGroup = tests / "int64"
         {
-            let tests:TestGroup = tests / "int64"
 
             TestValidBSON(tests / "min",
                 canonical: "10000000126100000000000000008000",
@@ -126,9 +123,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/timestamp.json
-        do
+        if  let tests:TestGroup = tests / "uint64"
         {
-            let tests:TestGroup = tests / "uint64"
 
             TestValidBSON(tests / "(123456789, 42)",
                 canonical: "100000001161002A00000015CD5B0700",
@@ -148,9 +144,8 @@ enum Main:SyncTests
         }
             
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/top.json
-        do
+        if  let tests:TestGroup = tests / "top"
         {
-            let tests:TestGroup = tests / "top"
 
             TestValidBSON(tests / "dollar-prefixed-key",
                 canonical: "0F00000010246B6579002A00000000",
@@ -228,9 +223,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/decimal128-1.json
-        do
+        if  let tests:TestGroup = tests / "decimal128"
         {
-            let tests:TestGroup = tests / "decimal128"
 
             TestValidBSON(tests / "positive-quiet-nan",
                 canonical: "180000001364000000000000000000000000000000007C00",
@@ -266,9 +260,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/datetime.json
-        do
+        if  let tests:TestGroup = tests / "millisecond"
         {
-            let tests:TestGroup = tests / "millisecond"
 
             TestValidBSON(tests / "epoch",
                 canonical: "10000000096100000000000000000000",
@@ -296,9 +289,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/double.json
-        do
+        if  let tests:TestGroup = tests / "double"
         {
-            let tests:TestGroup = tests / "double"
 
             TestValidBSON(tests / "+1.0",
                 canonical: "10000000016400000000000000F03F00",
@@ -335,9 +327,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/oid.json
-        do
+        if  let tests:TestGroup = tests / "id"
         {
-            let tests:TestGroup = tests / "id"
 
             let id:BSON.Identifier = .init(0x0123_4567, 0x89AB_CDEF, 0x4567_3210)
 
@@ -366,9 +357,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/dbpointer.json
-        do
+        if  let tests:TestGroup = tests / "pointer"
         {
-            let tests:TestGroup = tests / "pointer"
 
             TestValidBSON(tests / "ascii",
                 canonical: "1A0000000C610002000000620056E1FC72E0C917E9C471416100",
@@ -400,9 +390,8 @@ enum Main:SyncTests
         }
         
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/binary.json
-        do
+        if  let tests:TestGroup = tests / "binary"
         {
-            let tests:TestGroup = tests / "binary"
 
             TestValidBSON(tests / "generic-empty",
                 canonical: "0D000000057800000000000000",
@@ -450,9 +439,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/document.json
-        do
+        if  let tests:TestGroup = tests / "document"
         {
-            let tests:TestGroup = tests / "document"
 
             TestValidBSON(tests / "empty",
                 canonical: "0D000000037800050000000000",
@@ -504,9 +492,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/array.json
-        do
+        if  let tests:TestGroup = tests / "tuple"
         {
-            let tests:TestGroup = tests / "tuple"
 
             TestValidBSON(tests / "empty",
                 canonical: "0D000000046100050000000000", 
@@ -547,9 +534,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/regex.json
-        do
+        if  let tests:TestGroup = tests / "regex"
         {
-            let tests:TestGroup = tests / "regex"
 
             TestValidBSON(tests / "empty",
                 canonical: "0A0000000B6100000000",
@@ -587,9 +573,8 @@ enum Main:SyncTests
         }
         
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/string.json
-        do
+        if  let tests:TestGroup = tests / "string"
         {
-            let tests:TestGroup = tests / "string"
 
             TestValidBSON(tests / "empty",
                 canonical: "0D000000026100010000000000",
@@ -664,9 +649,8 @@ enum Main:SyncTests
         }
         
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/symbol.json
-        do
+        if  let tests:TestGroup = tests / "symbol"
         {
-            let tests:TestGroup = tests / "symbol"
 
             TestValidBSON(tests / "empty",
                 degenerate: "0D0000000E6100010000000000",
@@ -700,9 +684,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/code.json
-        do
+        if  let tests:TestGroup = tests / "javascript"
         {
-            let tests:TestGroup = tests / "javascript"
 
             TestValidBSON(tests / "empty",
                 canonical: "0D0000000D6100010000000000",
@@ -754,9 +737,8 @@ enum Main:SyncTests
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/code_w_scope.json
-        do
+        if  let tests:TestGroup = tests / "javascript-scope"
         {
-            let tests:TestGroup = tests / "javascript-scope"
 
             TestValidBSON(tests / "empty",
                 canonical: "160000000F61000E0000000100000000050000000000",

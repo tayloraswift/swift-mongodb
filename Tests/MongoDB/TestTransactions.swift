@@ -5,7 +5,11 @@ func TestTransactions(_ tests:TestGroup,
     bootstrap:Mongo.DriverBootstrap,
     hosts:Set<Mongo.Host>) async
 {
-    let tests:TestGroup = tests / "transactions"
+    guard let tests:TestGroup = tests / "transactions"
+    else
+    {
+        return
+    }
 
     await tests.withTemporaryDatabase(named: "transaction-tests",
         bootstrap: bootstrap,
@@ -29,7 +33,7 @@ func TestTransactions(_ tests:TestGroup,
 
         do
         {
-            let tests:TestGroup = tests / "abortion-cancelled"
+            let tests:TestGroup = tests ! "abortion-cancelled"
             //  We should be able to abort an empty transaction by throwing an error.
             let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
                 writeConcern: .majority)
@@ -55,15 +59,25 @@ func TestTransactions(_ tests:TestGroup,
             //  time.
             tests.expect(nil: session.preconditionTime)
         }
+
+        //  We should run at least one command with the session, so that it
+        //  has a precondition time.
+        await (tests ! "refresh-sessions").do
+        {
+            //  There is a heisenbug in the swift 5.7.3 compiler that emits
+            //  broken machine code if we call `session.refresh()`.
+            #if compiler(<5.8)
+            try await session.run(command: Mongo.RefreshSessions.init(session.id),
+                against: .admin)
+            #else
+            try await session.refresh()
+            #endif
+        }
+        
         do
         {
-            let tests:TestGroup = tests / "abortion"
-            //  We should run at least one command with the session, so that it
-            //  has a precondition time.
-            await tests.do
-            {
-                try await session.refresh()
-            }
+            let tests:TestGroup = tests ! "abortion"
+            
             //  We should be able to abort a non-empty transaction by throwing an error.
             let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
                 writeConcern: .majority)
@@ -75,7 +89,7 @@ func TestTransactions(_ tests:TestGroup,
                 let _:Mongo.Timestamp? = tests.expect(value: transaction.preconditionTime)
                 //  We should be able to start a transaction with a write command,
                 //  even though it also has a non-[`nil`]() precondition time.
-                await (tests / "insert").do
+                await (tests ! "insert").do
                 {
                     let response:Mongo.InsertResponse = try await transaction.run(
                         command: Mongo.Insert.init(collection: collection,
@@ -87,7 +101,7 @@ func TestTransactions(_ tests:TestGroup,
                 //  We should be able to observe unaborted writes from the
                 //  transaction itself while the transaction is ongoing, because
                 //  its underlying session is causally-consistent.
-                await (tests / "find-inside").do
+                await (tests ! "find-inside").do
                 {
                     let letters:[Letter] = try await transaction.run(
                         command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
@@ -101,7 +115,7 @@ func TestTransactions(_ tests:TestGroup,
                 bystander.synchronize(with: session)
                 //  We should not be able to observe unaborted writes from other
                 //  sessions while the transaction is ongoing.
-                await (tests / "find-bystander").do
+                await (tests ! "find-bystander").do
                 {
                     let letters:[Letter] = try await bystander.run(
                         command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
@@ -133,7 +147,7 @@ func TestTransactions(_ tests:TestGroup,
 
             //  We should be able to verify that collection has been rolled back
             //  to its previous state.
-            await (tests / "find-outside").do
+            await (tests ! "find-outside").do
             {
                 let letters:[Letter] = try await session.run(
                     command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
@@ -147,7 +161,7 @@ func TestTransactions(_ tests:TestGroup,
         }
         do
         {
-            let tests:TestGroup = tests / "commit-cancelled"
+            let tests:TestGroup = tests ! "commit-cancelled"
             //  We should be able to commit an empty transaction, by returning from
             //  the closure argument.
             let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
@@ -171,7 +185,7 @@ func TestTransactions(_ tests:TestGroup,
         }
         do
         {
-            let tests:TestGroup = tests / "commit"
+            let tests:TestGroup = tests ! "commit"
             //  We should be able to commit a non-empty transaction, by returning from
             //  the closure argument.
             let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
@@ -179,7 +193,7 @@ func TestTransactions(_ tests:TestGroup,
             {
                 (transaction:Mongo.Transaction) in
 
-                await (tests / "insert").do
+                await (tests ! "insert").do
                 {
                     let response:Mongo.InsertResponse = try await transaction.run(
                         command: Mongo.Insert.init(collection: collection,
@@ -190,7 +204,7 @@ func TestTransactions(_ tests:TestGroup,
                 }
                 //  We should be able to observe uncommitted writes from the
                 //  transaction itself while the transaction is ongoing.
-                await (tests / "find-inside").do
+                await (tests ! "find-inside").do
                 {
                     let letters:[Letter] = try await transaction.run(
                         command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
@@ -204,7 +218,7 @@ func TestTransactions(_ tests:TestGroup,
                 bystander.synchronize(with: session)
                 //  We should not be able to observe uncommitted writes from other
                 //  sessions while the transaction is ongoing.
-                await (tests / "find-inside-bystander").do
+                await (tests ! "find-inside-bystander").do
                 {
                     let letters:[Letter] = try await bystander.run(
                         command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
@@ -239,7 +253,7 @@ func TestTransactions(_ tests:TestGroup,
             //  should be durable, because we used a majority write concern, and
             //  and we should be able to observe them because we are using a
             //  causally-consistent session.
-            await (tests / "find-outside").do
+            await (tests ! "find-outside").do
             {
                 let letters:[Letter] = try await session.run(
                     command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
@@ -252,7 +266,7 @@ func TestTransactions(_ tests:TestGroup,
             }
             //  We should also be able to observe the committed writes from the
             //  bystander session.
-            await (tests / "find-outside-bystander").do
+            await (tests ! "find-outside-bystander").do
             {
                 let letters:[Letter] = try await bystander.run(
                     command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(

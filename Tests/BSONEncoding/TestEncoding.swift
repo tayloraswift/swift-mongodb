@@ -2,10 +2,16 @@ import BSONEncoding
 import BSONView
 import Testing
 
-func TestEncoding(_ tests:TestGroup,
+func TestEncoding(_ tests:TestGroup?,
     encoded:BSON.Document,
     literal:BSON.DocumentView<[UInt8]>)
 {
+    guard let tests:TestGroup
+    else
+    {
+        return
+    }
+    
     let encoded:BSON.DocumentView<[UInt8]> = .init(encoded)
 
     tests.expect(encoded ==? literal)
