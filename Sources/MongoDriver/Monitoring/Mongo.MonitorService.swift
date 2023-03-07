@@ -1,6 +1,6 @@
 extension Mongo
 {
-    enum Service:Sendable
+    enum MonitorService:Sendable
     {
         /// The sampler.
         case sampler

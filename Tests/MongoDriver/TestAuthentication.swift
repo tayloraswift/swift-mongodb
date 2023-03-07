@@ -3,19 +3,18 @@ import NIOPosix
 import Testing
 
 func TestAuthentication(_ tests:TestGroup,
-    standalone:Mongo.Host,
+    executors:MultiThreadedEventLoopGroup,
+    seedlist:Mongo.Seedlist,
     username:String,
-    password:String,
-    on executor:MultiThreadedEventLoopGroup) async
+    password:String) async
 {
     await (tests / "authentication" / "defaulted")?.do
     {
-        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
-                authentication: nil,
-                username: username,
-                password: password),
-            executor: executor)
-        try await bootstrap.withSessionPool(seedlist: [standalone])
+        let bootstrap:Mongo.DriverBootstrap = mongodb(username, password)[seedlist] /?
+        {
+            $0.executors = .shared(executors)
+        }
+        try await bootstrap.withSessionPool
         {
             let session:Mongo.Session = try await .init(from: $0)
             try await session.refresh()
@@ -24,12 +23,12 @@ func TestAuthentication(_ tests:TestGroup,
 
     await (tests / "authentication" / "scram-sha256")?.do
     {
-        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
-                authentication: .sasl(.sha256),
-                username: username,
-                password: password),
-            executor: executor)
-        try await bootstrap.withSessionPool(seedlist: [standalone])
+        let bootstrap:Mongo.DriverBootstrap = mongodb(username, password)[seedlist] /?
+        {
+            $0.authentication = .sasl(.sha256)
+            $0.executors = .shared(executors)
+        }
+        try await bootstrap.withSessionPool
         {
             let session:Mongo.Session = try await .init(from: $0)
             try await session.refresh()
@@ -38,21 +37,19 @@ func TestAuthentication(_ tests:TestGroup,
 
     if  let tests:TestGroup = tests / "authentication-unsupported"
     {
-
-        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
-                authentication: .x509,
-                username: username,
-                password: password),
-            executor: executor)
-
+        let bootstrap:Mongo.DriverBootstrap = mongodb(username, password)[seedlist] /?
+        {
+            $0.connectionTimeout = .milliseconds(500)
+            $0.authentication = .x509
+            $0.executors = .shared(executors)
+        }
         await tests.do(catching: Mongo.ConnectionPoolDrainedError.init(
             because: Mongo.AuthenticationError.init(
                     Mongo.AuthenticationUnsupportedError.init(.x509),
                 credentials: bootstrap.credentials!),
-            host: standalone))
+            host: seedlist[0]))
         {
-            try await bootstrap.withSessionPool(seedlist: [standalone],
-                connectionTimeout: .milliseconds(500))
+            try await bootstrap.withSessionPool
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await session.refresh()
@@ -62,21 +59,19 @@ func TestAuthentication(_ tests:TestGroup,
 
     if  let tests:TestGroup = tests / "authentication-wrong-password"
     {
-
-        let bootstrap:Mongo.DriverBootstrap = .init(credentials: .init(
-                authentication: .sasl(.sha256),
-                username: "root",
-                password: "1234"),
-            executor: executor)
-
+        let bootstrap:Mongo.DriverBootstrap = mongodb(username, "1234")[seedlist] /?
+        {
+            $0.connectionTimeout = .milliseconds(500)
+            $0.authentication = .sasl(.sha256)
+            $0.executors = .shared(executors)
+        }
         await tests.do(catching: Mongo.ConnectionPoolDrainedError.init(
             because: Mongo.AuthenticationError.init(Mongo.ServerError.init(18,
                     message: "Authentication failed."),
                 credentials: bootstrap.credentials!),
-            host: standalone))
+            host: seedlist[0]))
         {
-            try await bootstrap.withSessionPool(seedlist: [standalone],
-                connectionTimeout: .milliseconds(500))
+            try await bootstrap.withSessionPool
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await session.refresh()

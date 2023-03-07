@@ -1,9 +1,7 @@
 import MongoDB
 import Testing
 
-func TestInsert(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<Mongo.Host>) async
+func TestInsert(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
     guard let tests:TestGroup = tests / "insert"
     else
@@ -11,9 +9,7 @@ func TestInsert(_ tests:TestGroup,
         return
     }
     
-    await tests.withTemporaryDatabase(named: "insert-tests",
-        bootstrap: bootstrap,
-        hosts: hosts)
+    await bootstrap.withTemporaryDatabase(named: "insert-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 

@@ -1,9 +1,7 @@
 import MongoDB
 import Testing
 
-func TestFind(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<Mongo.Host>) async
+func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
     guard let tests:TestGroup = tests / "find"
     else
@@ -11,9 +9,7 @@ func TestFind(_ tests:TestGroup,
         return
     }
 
-    await tests.withTemporaryDatabase(named: "find-tests",
-        bootstrap: bootstrap,
-        hosts: hosts)
+    await bootstrap.withTemporaryDatabase(named: "find-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 

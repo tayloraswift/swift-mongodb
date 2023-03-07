@@ -1,9 +1,8 @@
 import MongoDB
 import Testing
 
-func TestCursors(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<Mongo.Host>) async
+func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
+    on servers:[Mongo.ReadPreference]) async
 {
     guard let tests:TestGroup = tests / "cursors"
     else
@@ -11,9 +10,7 @@ func TestCursors(_ tests:TestGroup,
         return
     }
 
-    await tests.withTemporaryDatabase(named: "cursor-tests",
-        bootstrap: bootstrap,
-        hosts: hosts)
+    await bootstrap.withTemporaryDatabase(named: "cursor-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
@@ -46,20 +43,6 @@ func TestCursors(_ tests:TestGroup,
                 tests.expect(response ==? expected)
             }
         }
-
-        let servers:[Mongo.ReadPreference] = hosts.count == 1 ?
-        [
-            //  We should be able to run this test on the primary.
-            .primary
-        ]
-            :
-        [
-            .primary,
-            //  We should be able to run this test on a specific server.
-            .nearest(tagSets: [["name": "B"]]),
-            //  We should be able to run this test on a secondary.
-            .nearest(tagSets: [["name": "C"]]),
-        ]
 
         for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
         {

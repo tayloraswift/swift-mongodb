@@ -2,10 +2,8 @@ import MongoDriver
 import NIOPosix
 import Testing
 
-func TestSessionPool(_ tests:TestGroup,
-    credentials:Mongo.Credentials?,
-    seedlist:Set<Mongo.Host>,
-    on executor:MultiThreadedEventLoopGroup) async
+func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
+    single:Bool = false) async
 {
     guard let tests:TestGroup = tests / "session-pools"
     else
@@ -13,9 +11,6 @@ func TestSessionPool(_ tests:TestGroup,
         return
     }
 
-    let bootstrap:Mongo.DriverBootstrap = .init(
-        credentials: credentials,
-        executor: executor)
     if  let tests:TestGroup = tests / "lifecycles"
     {
         //  these tests ensure we do proper cleanup on all exit paths.
@@ -23,7 +18,7 @@ func TestSessionPool(_ tests:TestGroup,
         //  the driver’s `deinit`s if cleanup is not performed correctly.
         await (tests / "seeded-once")?.do
         {
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 //  run at least one command to ensure we actually use the session
                 let session:Mongo.Session = try await .init(from: $0)
@@ -34,12 +29,12 @@ func TestSessionPool(_ tests:TestGroup,
         //  draining the previous one.
         await (tests / "seeded-twice")?.do
         {
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await session.refresh()
             }
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await session.refresh()
@@ -50,14 +45,14 @@ func TestSessionPool(_ tests:TestGroup,
         await (tests / "seeded-concurrently")?.do
         {
             async
-            let first:Void = bootstrap.withSessionPool(seedlist: seedlist)
+            let first:Void = bootstrap.withSessionPool
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await Task.sleep(for: .milliseconds(100))
                 try await session.refresh()
             }
             async
-            let second:Void = bootstrap.withSessionPool(seedlist: seedlist)
+            let second:Void = bootstrap.withSessionPool
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 try await Task.sleep(for: .milliseconds(100))
@@ -73,7 +68,7 @@ func TestSessionPool(_ tests:TestGroup,
         {
             do
             {
-                try await bootstrap.withSessionPool(seedlist: seedlist)
+                try await bootstrap.withSessionPool
                 {
                     (pool:Mongo.SessionPool) in
 
@@ -101,7 +96,7 @@ func TestSessionPool(_ tests:TestGroup,
         /// Two overlapping sessions should not re-use the same session.
         await tests.do
         {
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 let a:Mongo.Session = try await .init(from: $0)
                 let b:Mongo.Session = try await .init(from: $0)
@@ -120,7 +115,7 @@ func TestSessionPool(_ tests:TestGroup,
         /// Two forked sessions should not re-use the same session.
         await tests.do
         {
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 let a:Mongo.Session = try await .init(from: $0)
 
@@ -130,7 +125,7 @@ func TestSessionPool(_ tests:TestGroup,
 
                 tests.expect(await $0.count ==? 2)
 
-                if seedlist.count > 1
+                if !single
                 {
                     let _:Mongo.Timestamp? = tests.expect(value: b.preconditionTime)
                 }
@@ -147,7 +142,7 @@ func TestSessionPool(_ tests:TestGroup,
         /// Two non-overlapping sessions should re-use the same session.
         await tests.do
         {
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 let id:(Mongo.SessionIdentifier, Mongo.SessionIdentifier)
                 do
@@ -176,7 +171,7 @@ func TestSessionPool(_ tests:TestGroup,
         /// even taking into account task execution latencies.
         await tests.do
         {
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 for _:Int in 0 ..< 50
                 {
@@ -196,7 +191,7 @@ func TestSessionPool(_ tests:TestGroup,
         /// Serialized usages of implcit sessions should never blow up the pool.
         await tests.do
         {
-            try await bootstrap.withSessionPool(seedlist: seedlist)
+            try await bootstrap.withSessionPool
             {
                 let explicit:Mongo.Session = try await .init(from: $0)
 

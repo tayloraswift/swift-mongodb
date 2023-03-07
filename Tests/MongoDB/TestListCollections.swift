@@ -1,9 +1,7 @@
 import MongoDB
 import Testing
 
-func TestListCollections(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<Mongo.Host>) async
+func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
     guard let tests:TestGroup = tests / "list-collections"
     else
@@ -11,9 +9,7 @@ func TestListCollections(_ tests:TestGroup,
         return
     }
 
-    await tests.withTemporaryDatabase(named: "list-collections",
-        bootstrap: bootstrap,
-        hosts: hosts)
+    await bootstrap.withTemporaryDatabase(named: "list-collections", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 

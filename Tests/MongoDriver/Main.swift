@@ -2,77 +2,148 @@ import MongoDriver
 import NIOPosix
 import Testing
 
+var mongodb:Mongo.URI.Base<Mongo.Guest, Mongo.DirectSeeding>
+{
+    .init(userinfo: .init())
+}
+
+func mongodb(_ username:String,
+    _ password:String) -> Mongo.URI.Base<Mongo.User, Mongo.DirectSeeding>
+{
+    .init(userinfo: .init(username: username, password: password))
+}
+
 @main
 enum Main:AsyncTests
 {
     static
     func run(tests:Tests) async
     {
-        let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
-
-        let standalone:Mongo.Host = .init(name: "mongo-single", port: 27017)
-        let members:[Mongo.Host] =
-        [
-            .init(name: "mongo-0", port: 27017),
-            .init(name: "mongo-1", port: 27017),
-            .init(name: "mongo-2", port: 27017),
-            .init(name: "mongo-3", port: 27017),
-            .init(name: "mongo-4", port: 27017),
-            .init(name: "mongo-5", port: 27017),
-            .init(name: "mongo-6", port: 27017),
-        ]
-
-        if  let tests:TestGroup = tests / "replicated-topology"
+        let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
+        if  let tests:TestGroup = tests / "replicated"
         {
+            let members:Mongo.Seedlist =
+            [
+                "mongo-0": 27017,
+                "mongo-1": 27017,
+                "mongo-2": 27017,
+                "mongo-3": 27017,
+                "mongo-4": 27017,
+                "mongo-5": 27017,
+                "mongo-6": 27017,
+            ]
 
             print("running tests for replicated topology (hosts: \(members))")
 
-            let seedlist:Set<Mongo.Host> = .init(members)
+            let bootstrap:Mongo.DriverBootstrap = mongodb[members] /?
+            {
+                $0.connectionTimeout = .milliseconds(2000)
+                $0.executors = .shared(executors)
+                $0.appname = "MongoDriverTests"
+            }
 
-            await TestFailpoints(tests, credentials: nil,
-                seedlist: seedlist,
-                on: executor)
+            await TestFailpoints(tests, bootstrap: bootstrap)
 
-            await TestSessionPool(tests, credentials: nil,
-                seedlist: seedlist,
-                on: executor)
+            await TestSessionPool(tests, bootstrap: bootstrap)
             
-            await TestConnectionPool(tests, credentials: nil,
-                seedlist: seedlist,
-                on: executor)
+            await TestConnectionPool(tests, matrix:
+            [
+                "default": bootstrap,
+
+                "preconnecting": mongodb[members] /?
+                {
+                    $0.connectionTimeout = .milliseconds(2000)
+                    $0.connectionPoolSize = 2 ... 50
+                    $0.executors = .shared(executors)
+                },
+
+                "small": mongodb[members] /?
+                {
+                    $0.connectionTimeout = .milliseconds(2000)
+                    $0.connectionPoolSize = 0 ... 10
+                    $0.executors = .shared(executors)
+                },
+            ])
             
-            let bootstrap:Mongo.DriverBootstrap = .init(credentials: nil,
-                executor: executor)
-            
-            await TestMemberDiscovery(tests, bootstrap: bootstrap, members: members)
-            await TestReadPreference(tests, bootstrap: bootstrap, members: members)
+            await TestMemberDiscovery(tests, members: members, matrix:
+            [
+                "from-0": mongodb[members[0].name] /?
+                {
+                    $0.executors = .shared(executors)
+                },
+                "from-1": mongodb[members[1].name] /?
+                {
+                    $0.executors = .shared(executors)
+                },
+                "from-2": mongodb[members[2].name] /?
+                {
+                    $0.executors = .shared(executors)
+                },
+                "from-3": mongodb[members[3].name] /?
+                {
+                    $0.executors = .shared(executors)
+                },
+                "from-4": mongodb[members[4].name] /?
+                {
+                    $0.executors = .shared(executors)
+                },
+                "from-5": mongodb[members[5].name] /?
+                {
+                    $0.executors = .shared(executors)
+                },
+                "from-6": mongodb[members[6].name] /?
+                {
+                    $0.executors = .shared(executors)
+                },
+            ])
+            await TestReadPreference(tests, members: members, bootstrap: mongodb[members] /?
+            {
+                $0.connectionTimeout = .milliseconds(250)
+                $0.executors = .shared(executors)
+            })
         }
 
-        if  let tests:TestGroup = tests / "single-topology"
+        if  let tests:TestGroup = tests / "single"
         {
+            let seedlist:Mongo.Seedlist = ["mongo-single": 27017]
 
-            print("running tests for single topology (host: \(standalone))")
+            print("running tests for single topology (host: \(seedlist))")
 
-            let credentials:Mongo.Credentials = .init(authentication: .sasl(.sha256),
-                username: "root",
-                password: "80085")
+            let username:String = "root",
+                password:String = "80085"
 
-            await TestAuthentication(tests, standalone: standalone,
-                username: credentials.username,
-                password: credentials.password,
-                on: executor)
+            await TestAuthentication(tests,
+                executors: executors,
+                seedlist: seedlist,
+                username: username,
+                password: password)
             
-            await TestFailpoints(tests, credentials: credentials,
-                seedlist: [standalone],
-                on: executor)
+            let bootstrap:Mongo.DriverBootstrap = mongodb(username, password)[seedlist] /?
+            {
+                $0.executors = .shared(executors)
+            }
+            await TestFailpoints(tests, bootstrap: bootstrap)
             
-            await TestSessionPool(tests, credentials: credentials,
-                seedlist: [standalone],
-                on: executor)
+            await TestSessionPool(tests, bootstrap: bootstrap, single: true)
             
-            await TestConnectionPool(tests, credentials: credentials,
-                seedlist: [standalone],
-                on: executor)
+            await TestConnectionPool(tests, matrix:
+            [
+                "default": bootstrap,
+
+                "preconnecting": mongodb[seedlist] /?
+                {
+                    $0.connectionTimeout = .milliseconds(2000)
+                    $0.connectionPoolSize = 2 ... 50
+                    $0.executors = .shared(executors)
+                },
+
+                "small": mongodb[seedlist] /?
+                {
+                    $0.connectionTimeout = .milliseconds(2000)
+                    $0.connectionPoolSize = 0 ... 10
+                    $0.executors = .shared(executors)
+                },
+            ])
         }
     }
 }

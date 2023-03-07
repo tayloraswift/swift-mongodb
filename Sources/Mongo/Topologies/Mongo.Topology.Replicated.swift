@@ -99,6 +99,10 @@ extension Mongo.Topology.Replicated
 }
 extension Mongo.Topology.Replicated
 {
+    init(from seedlist:Mongo.Seedlist, name:String)
+    {
+        self.init(members: seedlist.dictionary(repeating: .queued), name: name)
+    }
     init(from unknown:Mongo.Topology<Owner>.Unknown, name:String)
     {
         self.init(members: unknown.topology(of: Mongo.ReplicaSetMember.self), name: name)

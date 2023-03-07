@@ -7,4 +7,5 @@ swift run   -c release BSONIntegrationTests &&
 swift run   -c release OnlineCDFTests &&
 swift run   -c release MongoDriverTests &&
 swift run   -c release MongoDBTests &&
-swift build -c release --target MongoDSLAPITests
+swift build -c release --target MongoDSLAPITests &&
+swift build -c release --target MongoDBAPITests

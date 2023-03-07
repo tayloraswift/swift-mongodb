@@ -16,7 +16,7 @@ extension Mongo
         init(authentication:Authentication?,
             username:String,
             password:String,
-            database:Database = .admin)
+            database:Database)
         {
             self.authentication = authentication
             self.username = username
@@ -27,6 +27,7 @@ extension Mongo
 }
 extension Mongo.Credentials
 {
+    @inlinable public
     var user:Mongo.Namespaced<String>
     {
         .init(self.database, self.username)

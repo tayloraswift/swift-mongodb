@@ -14,6 +14,21 @@ extension Mongo.Topology:Sendable where Owner:Sendable
 }
 extension Mongo.Topology
 {
+    public
+    init(from seedlist:Mongo.Seedlist, hint:Mongo.TopologyHint?)
+    {
+        switch hint
+        {
+        case .replicated(set: let name)?:
+            self = .replicated(.init(from: seedlist, name: name))
+        
+        case nil:
+            self = .unknown(.init(from: seedlist))
+        }
+    }
+}
+extension Mongo.Topology
+{
     private
     init?(host:Mongo.Host, with update:Mongo.TopologyUpdate, owner:Owner,
         from unknown:inout Unknown,

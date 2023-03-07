@@ -51,13 +51,24 @@ extension Mongo
 }
 extension Mongo.MonitorPool
 {
-    func start(interval:Milliseconds, seedlist:Set<Mongo.Host>) async
+    func start(from seeding:Mongo.SeedingMethod,
+        interval:Milliseconds,
+        topology:Mongo.TopologyHint?) async
     {
+        guard case .direct(let seedlist) = seeding
+        else
+        {
+            fatalError("dns seeding has not been implemented yet")
+        }
+
         await withTaskCancellationHandler
         {
             await withCheckedContinuation
             {
-                self.topology = .init(interval: interval, seedlist: seedlist)
+                self.topology = .init(interval: interval, topology: .init(
+                    from: seedlist,
+                    hint: topology))
+                
                 self.observers.append($0)
 
                 for host:Mongo.Host in seedlist
@@ -141,7 +152,7 @@ extension Mongo.MonitorPool
             timeout: connectionTimeout,
             host: host)
 
-        let services:Mongo.Services
+        let services:Mongo.MonitorServices
 
         do
         {
@@ -173,7 +184,7 @@ extension Mongo.MonitorPool
         {
             (tasks:inout TaskGroup<Void>) in
 
-            let services:AsyncStream<Mongo.Service> = .init(
+            let services:AsyncStream<Mongo.MonitorService> = .init(
                 bufferingPolicy: .bufferingOldest(1))
             {
                 let pool:Mongo.ConnectionPool = .init(alongside: .init($0),
@@ -209,7 +220,7 @@ extension Mongo.MonitorPool
                 generation: generation,
                 host: host)
             
-            for await _:Mongo.Service in services
+            for await _:Mongo.MonitorService in services
             {
                 break
             }
