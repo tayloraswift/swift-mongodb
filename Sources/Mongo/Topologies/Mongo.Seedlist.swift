@@ -94,6 +94,19 @@ extension Mongo.Seedlist:RandomAccessCollection
 }
 extension Mongo.Seedlist
 {
+    /// Returns a new seedlist containing the elements at specified indices
+    /// in the original seedlist. Calling this functor is faster than
+    /// rebuilding a new seedlist from a slice view.
+    ///
+    /// >   Complexity: O(*n*), where *n* is the length of the seedlist.
+    @inlinable public
+    func callAsFunction(_ range:some RangeExpression<Int>) -> Self
+    {
+        .init(uniqueHosts: [Mongo.Host].init(self.elements[range]))
+    }
+}
+extension Mongo.Seedlist
+{
     func dictionary<Value>(repeating value:Value) -> [Mongo.Host: Value]
     {
         .init(uniqueKeysWithValues: self.lazy.map { ($0, value) })

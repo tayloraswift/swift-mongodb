@@ -23,7 +23,7 @@ enum Main:AsyncTests
                 "mongo-6": 27017,
             ]
 
-            let bootstrap:Mongo.DriverBootstrap = MongoDB[members] /?
+            let bootstrap:Mongo.DriverBootstrap = MongoDB / members /?
             {
                 $0.executors = .shared(executors)
                 $0.connectionTimeout = .milliseconds(1000)
@@ -35,7 +35,7 @@ enum Main:AsyncTests
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
 
-            await TestCausalConsistency (tests, bootstrap: MongoDB[members] /?
+            await TestCausalConsistency (tests, bootstrap: MongoDB / members /?
             {
                 $0.executors = .shared(executors)
                 $0.connectionTimeout = .milliseconds(2000)
@@ -55,8 +55,7 @@ enum Main:AsyncTests
         if  let tests:TestGroup = tests / "single"
         {
             let seedlist:Mongo.Seedlist = ["mongo-single": 27017]
-
-            let bootstrap:Mongo.DriverBootstrap = MongoDB("root", "80085")[seedlist] /?
+            let bootstrap:Mongo.DriverBootstrap = MongoDB / ("root", "80085") * seedlist /?
             {
                 $0.authentication = .sasl(.sha256)
                 $0.executors = .shared(executors)

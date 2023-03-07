@@ -4,6 +4,6 @@ extension Mongo
     enum SeedingMethod:Sendable
     {
         case direct(Seedlist)
-        case dns(Host)
+        case dns(DNS)
     }
 }

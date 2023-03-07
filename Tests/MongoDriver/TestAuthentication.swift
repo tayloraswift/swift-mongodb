@@ -10,7 +10,7 @@ func TestAuthentication(_ tests:TestGroup,
 {
     await (tests / "authentication" / "defaulted")?.do
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb(username, password)[seedlist] /?
+        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, password) * seedlist /?
         {
             $0.executors = .shared(executors)
         }
@@ -23,7 +23,7 @@ func TestAuthentication(_ tests:TestGroup,
 
     await (tests / "authentication" / "scram-sha256")?.do
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb(username, password)[seedlist] /?
+        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, password) * seedlist /?
         {
             $0.authentication = .sasl(.sha256)
             $0.executors = .shared(executors)
@@ -37,7 +37,7 @@ func TestAuthentication(_ tests:TestGroup,
 
     if  let tests:TestGroup = tests / "authentication-unsupported"
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb(username, password)[seedlist] /?
+        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, password) * seedlist /?
         {
             $0.connectionTimeout = .milliseconds(500)
             $0.authentication = .x509
@@ -59,7 +59,7 @@ func TestAuthentication(_ tests:TestGroup,
 
     if  let tests:TestGroup = tests / "authentication-wrong-password"
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb(username, "1234")[seedlist] /?
+        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, "1234") * seedlist /?
         {
             $0.connectionTimeout = .milliseconds(500)
             $0.authentication = .sasl(.sha256)
