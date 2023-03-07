@@ -35,7 +35,11 @@ enum Main:AsyncTests
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
 
-            await TestCausalConsistency (tests, bootstrap: bootstrap)
+            await TestCausalConsistency (tests, bootstrap: MongoDB[members] /?
+            {
+                $0.executors = .shared(executors)
+                $0.connectionTimeout = .milliseconds(2000)
+            })
             await TestTransactions      (tests, bootstrap: bootstrap)
 
             await TestCursors           (tests, bootstrap: bootstrap, on:
