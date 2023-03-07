@@ -22,8 +22,8 @@ extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
         }
     }
 }
-extension OrderedDictionary:BSONStreamEncodable
-    where Key == String, Value:BSONStreamEncodable
+extension OrderedDictionary:BSONFieldEncodable
+    where Key == String, Value:BSONFieldEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)

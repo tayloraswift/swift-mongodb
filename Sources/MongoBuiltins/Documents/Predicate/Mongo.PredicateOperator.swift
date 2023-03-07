@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateOperator:BSONStream
+extension Mongo.PredicateOperator:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -140,7 +140,7 @@ extension Mongo.PredicateOperator
             {
                 return
             }
-            self.document[key] = .init
+            self.document.append(key)
             {
                 $0.append(divisor)
                 $0.append(remainder)

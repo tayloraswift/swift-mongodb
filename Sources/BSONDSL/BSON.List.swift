@@ -3,7 +3,7 @@ import BSON
 extension BSON
 {
     @frozen public
-    struct List<DSL>:Sendable
+    struct List<Document>:Sendable
     {
         public
         var output:BSON.Output<[UInt8]>
@@ -91,12 +91,3 @@ extension BSON.List
         }
     }
 }
-//  See note about ``BSON.Document``.
-// extension BSON.List<BSON.Document>?
-// {
-//     @inlinable public
-//     init(with populate:(inout Wrapped) throws -> ()) rethrows
-//     {
-//         self = .some(try .init(with: populate))
-//     }
-// }

@@ -16,7 +16,7 @@ extension Mongo.Accumulator
         }
     }
 }
-extension Mongo.Accumulator.SuperlativeDocument:BSONStream
+extension Mongo.Accumulator.SuperlativeDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]

@@ -15,7 +15,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONCanonicalization", targets: ["BSONCanonicalization"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
-        .library(name: "BSONStream", targets: ["BSONStream"]),
+        .library(name: "BSONDSL", targets: ["BSONDSL"]),
         .library(name: "BSONView", targets: ["BSONView"]),
         
         .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
@@ -74,7 +74,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONTraversal"),
             ]),
-        .target(name: "BSONStream",
+        .target(name: "BSONDSL",
             dependencies:
             [
                 .target(name: "BSON"),
@@ -82,20 +82,20 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "BSONCanonicalization",
             dependencies:
             [
-                .target(name: "BSONStream"),
+                .target(name: "BSONDSL"),
                 .target(name: "BSONView"),
             ]),
         .target(name: "BSONDecoding",
             dependencies:
             [
-                .target(name: "BSONStream"),
+                .target(name: "BSONDSL"),
                 .target(name: "BSONView"),
                 .product(name: "TraceableErrors", package: "swift-grammar"),
             ]),
         .target(name: "BSONEncoding",
             dependencies:
             [
-                .target(name: "BSONStream"),
+                .target(name: "BSONDSL"),
             ]),
         .target(name: "BSONView",
             dependencies:
@@ -220,7 +220,7 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoWire",
             dependencies: 
             [
-                .target(name: "BSONStream"),
+                .target(name: "BSONDSL"),
                 .target(name: "BSONView"),
                 .product(name: "CRC", package: "swift-hash"),
             ]),

@@ -1,2 +1,2 @@
-@_exported import BSONStream
+@_exported import BSONDSL
 @_exported import BSONView

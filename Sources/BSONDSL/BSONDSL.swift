@@ -1,23 +1,23 @@
 import BSON
 
-/// A `BSONStream` is nothing more than a wrapper around some raw BSON document
+/// A `BSONDSL` is nothing more than a wrapper around some raw BSON document
 /// storage that supports an ``init(with:)`` builder API. Conforming to this
 /// protocol enables automatic `BSONDecodable` and `BSONEncodable`
 /// conformances, if the corresponding modules have been imported.
 ///
-/// A `BSONStream`-conforming type is only required to ensure that it generates
+/// A `BSONDSL`-conforming type is only required to ensure that it generates
 /// a document, and not some other kind of BSON value, such as an array.
 ///
 /// The specific encoding API vended and encodability protocol used is up to
 /// the conforming type.
 public
-protocol BSONStream:ExpressibleByDictionaryLiteral where Key == String, Value == Never
+protocol BSONDSL:ExpressibleByDictionaryLiteral where Key == String, Value == Never
 {
     init(bytes:[UInt8])
 
     var bytes:[UInt8] { get }
 }
-extension BSONStream
+extension BSONDSL
 {
     @inlinable public
     var isEmpty:Bool
@@ -25,7 +25,7 @@ extension BSONStream
         self.bytes.isEmpty
     }
 }
-extension BSONStream
+extension BSONDSL
 {
     @inlinable public
     init(dictionaryLiteral:(String, Never)...)
@@ -33,7 +33,7 @@ extension BSONStream
         self.init(bytes: [])
     }
 }
-extension BSONStream
+extension BSONDSL
 {
     /// Creates an empty encoding view and initializes it with the given closure.
     @inlinable public

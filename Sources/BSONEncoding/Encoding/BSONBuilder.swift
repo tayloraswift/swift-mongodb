@@ -4,13 +4,32 @@ protocol BSONBuilder<CodingKey>
     associatedtype CodingKey
 
     mutating
-    func append(_ key:CodingKey, _ value:some BSONStreamEncodable)
+    func append(_ key:CodingKey, with encode:(inout BSON.Field) -> ())
 }
 
 extension BSONBuilder
 {
     @inlinable public mutating
-    func push(_ key:CodingKey, _ value:(some BSONStreamEncodable)?)
+    func append(_ key:CodingKey, _ value:some BSONFieldEncodable)
+    {
+        self.append(key, with: value.encode(to:))
+    }
+    @inlinable public mutating
+    func append<Encoder>(_ key:CodingKey,
+        with _:Encoder.Type = BSON.ListEncoder.self,
+        do encode:(inout Encoder) -> ())
+        where Encoder:BSONEncoder
+    {
+        self.append(key)
+        {
+            $0.with(Encoder.self, do: encode)
+        }
+    }
+}
+extension BSONBuilder
+{
+    @inlinable public mutating
+    func push(_ key:CodingKey, _ value:(some BSONFieldEncodable)?)
     {
         value.map
         {
@@ -20,63 +39,9 @@ extension BSONBuilder
 
     @available(*, deprecated, message: "use append(_:_:) for non-optional values")
     public mutating
-    func push(_ key:CodingKey, _ value:some BSONStreamEncodable)
+    func push(_ key:CodingKey, _ value:some BSONFieldEncodable)
     {
         self.push(key, value as _?)
-    }
-}
-extension BSONBuilder<String>
-{
-    @inlinable public mutating
-    func append(_ key:some RawRepresentable<String>, _ value:some BSONStreamEncodable)
-    {
-        self.append(key.rawValue, value)
-    }
-    @inlinable public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:(some BSONStreamEncodable)?)
-    {
-        value.map
-        {
-            self.append(key, $0)
-        }
-    }
-
-    @available(*, deprecated, message: "use append(_:_:) for non-optional values")
-    public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:some BSONStreamEncodable)
-    {
-        self.push(key, value as _?)
-    }
-}
-extension BSONBuilder<String>
-{
-    /// Appends the given key-value pair to this document builder, encoding the
-    /// given list elements as the field value, so long as it is not empty (or
-    /// `elide` is [`false`]()).
-    ///
-    /// Type inference will always infer this subscript as long as any
-    /// ``BSON.List`` API is used within its builder closure.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() and non-elided assignment to this subscript
-    /// (including mutations that leave the value in a non-[`nil`]() and
-    /// non-elided state after returning) will add a new field to the document,
-    /// even if the key is the same.
-    @inlinable public
-    subscript(key:some RawRepresentable<String>, elide elide:Bool = false) -> BSON.List<Self>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let value:BSON.List<Self>, !(elide && value.isEmpty)
-            {
-                self.append(key, value)
-            }
-        }
     }
 }
 extension BSONBuilder
@@ -151,8 +116,8 @@ extension BSONBuilder
     /// non-elided state after returning) will add a new field to the document,
     /// even if the key is the same.
     @inlinable public
-    subscript<Encodable>(key:CodingKey, elide elide:Bool = false) -> Encodable?
-        where Encodable:BSONEncodable & BSONStream
+    subscript<Encodable>(key:CodingKey, elide elide:Bool) -> Encodable?
+        where Encodable:BSONEncodable & BSONDSL
     {
         get
         {

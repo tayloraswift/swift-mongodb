@@ -1,7 +1,7 @@
 extension BSON.List
 {
     @inlinable public
-    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONStreamEncodable
+    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONFieldEncodable
     {
         self.init
         {
@@ -12,12 +12,7 @@ extension BSON.List
         }
     }
     @inlinable public mutating
-    func append(_ populate:(inout Self) throws -> ()) rethrows
-    {
-        self.append(try Self.init(with: populate))
-    }
-    @inlinable public mutating
-    func append(_ element:some BSONStreamEncodable)
+    func append(_ element:some BSONFieldEncodable)
     {
         self.append(with: element.encode(to:))
     }
@@ -25,7 +20,7 @@ extension BSON.List
     /// Encodes and appends the given value if it is non-`nil`, does
     /// nothing otherwise.
     @inlinable public mutating
-    func push(_ element:(some BSONStreamEncodable)?)
+    func push(_ element:(some BSONFieldEncodable)?)
     {
         element.map
         {
@@ -35,21 +30,31 @@ extension BSON.List
 
     @available(*, deprecated, message: "use append(_:) for non-optional values")
     public mutating
-    func push(_ element:some BSONStreamEncodable)
+    func push(_ element:some BSONFieldEncodable)
     {
         self.push(element as _?)
     }
 }
-extension BSON.List where DSL:BSONStream & BSONStreamEncodable
+extension BSON.List
 {
+    /// Encodes a nested list with the same DSL context as the current list.
     @inlinable public mutating
-    func append(_ populate:(inout DSL) throws -> ()) rethrows
+    func append(_ populate:(inout Self) throws -> ()) rethrows
     {
-        self.append(try DSL.init(with: populate))
+        self.append(try Self.init(with: populate))
+    }
+}
+extension BSON.List where Document:BSONDSL & BSONFieldEncodable
+{
+    /// Encodes a nested document of type determined by this list’s DSL context.
+    @inlinable public mutating
+    func append(_ populate:(inout Document) throws -> ()) rethrows
+    {
+        self.append(try Document.init(with: populate))
     }
 }
 
-extension BSON.List:BSONStreamEncodable
+extension BSON.List:BSONFieldEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
@@ -57,6 +62,6 @@ extension BSON.List:BSONStreamEncodable
         field.encode(list: .init(self))
     }
 }
-extension BSON.List:BSONEncodable where DSL:BSONBuilder
+extension BSON.List:BSONEncodable where Document:BSONBuilder
 {
 }

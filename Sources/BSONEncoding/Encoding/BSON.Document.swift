@@ -13,11 +13,6 @@ extension BSON.Document
 }
 extension BSON.Document:BSONBuilder
 {
-    @inlinable public mutating
-    func append(_ key:String, _ value:some BSONStreamEncodable)
-    {
-        self.append(key, with: value.encode(to:))
-    }
 }
 extension BSON.Document:BSONEncodable
 {
@@ -41,5 +36,35 @@ extension BSON.Document
         with encode:(inout BSON.DocumentEncoder<CodingKeys>) throws -> ()) rethrows
     {
         try self.output.with(BSON.DocumentEncoder<CodingKeys>.self, do: encode)
+    }
+}
+extension BSON.Document
+{
+    @inlinable public mutating
+    func append(_ key:some RawRepresentable<String>, _ value:some BSONFieldEncodable)
+    {
+        self.append(key.rawValue, value)
+    }
+    @inlinable public mutating
+    func push(_ key:some RawRepresentable<String>, _ value:(some BSONFieldEncodable)?)
+    {
+        value.map
+        {
+            self.append(key, $0)
+        }
+    }
+
+    @available(*, deprecated, message: "use append(_:_:) for non-optional values")
+    public mutating
+    func push(_ key:some RawRepresentable<String>, _ value:some BSONFieldEncodable)
+    {
+        self.push(key, value as _?)
+    }
+    @inlinable public mutating
+    func append<Encoder>(_ key:some RawRepresentable<String>,
+        with _:Encoder.Type = BSON.ListEncoder.self,
+        do encode:(inout Encoder) -> ()) where Encoder:BSONEncoder
+    {
+        self.append(key.rawValue, with: Encoder.self, do: encode)
     }
 }

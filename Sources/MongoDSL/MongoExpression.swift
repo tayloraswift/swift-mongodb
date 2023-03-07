@@ -12,7 +12,7 @@ struct MongoExpression
         self.document = .init(bytes: bytes)
     }
 }
-extension MongoExpression:BSONStream
+extension MongoExpression:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -82,9 +82,12 @@ extension MongoExpression
         }
         set(value)
         {
-            self.document[key] = .init
+            if let value:Encodable
             {
-                $0.append(value)
+                self.document.append(key)
+                {
+                    $0.append(value)
+                }
             }
         }
     }
@@ -102,7 +105,7 @@ extension MongoExpression
         {
             if case (let first?, let second?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(first)
                     $0.append(second)
@@ -124,7 +127,7 @@ extension MongoExpression
         {
             if case (of: let array?, at: let index?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(array)
                     $0.append(index)
@@ -146,7 +149,7 @@ extension MongoExpression
         {
             if case (let dividend?, by: let divisor?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(dividend)
                     $0.append(divisor)
@@ -168,7 +171,7 @@ extension MongoExpression
         {
             if case (let element?, in: let array?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(element)
                     $0.append(array)
@@ -190,7 +193,7 @@ extension MongoExpression
         {
             if case (base: let base?, of: let exponential?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(base)
                     $0.append(exponential)
@@ -212,7 +215,7 @@ extension MongoExpression
         {
             if case (base: let base?, to: let exponent?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(base)
                     $0.append(exponent)
@@ -247,7 +250,7 @@ extension MongoExpression
         {
             if case (let fraction?, let places) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(fraction)
                     $0.push(places)
@@ -270,7 +273,7 @@ extension MongoExpression
         {
             if case (from: let start?, to: let end?, by: let step) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(start)
                     $0.append(end)
@@ -308,7 +311,7 @@ extension MongoExpression
         {
             if case (let array?, at: let index, distance: let distance?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(array)
                     $0.push(index)
@@ -345,7 +348,7 @@ extension MongoExpression
         {
             if case (let minuend?, minus: let difference?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(minuend)
                     $0.append(difference)
@@ -367,7 +370,7 @@ extension MongoExpression
         {
             if case (let count?, of: let array?) = value
             {
-                self.document[key] = .init
+                self.document.append(key)
                 {
                     $0.append(count)
                     $0.append(array)

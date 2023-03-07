@@ -15,7 +15,7 @@ extension Mongo
         }
     }    
 }
-extension Mongo.MapDocument:BSONStream
+extension Mongo.MapDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]

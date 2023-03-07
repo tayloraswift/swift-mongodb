@@ -19,12 +19,12 @@ extension Mongo
     {
         /// The raw BSON timestamp value.
         public
-        let timestamp:UInt64
+        let value:UInt64
 
         @inlinable public
-        init(timestamp:UInt64)
+        init(_ value:UInt64)
         {
-            self.timestamp = timestamp
+            self.value = value
         }
     }
 }
@@ -33,7 +33,7 @@ extension Mongo.Timestamp:MongoInstant, Comparable
     @inlinable public static
     func < (lhs:Self, rhs:Self) -> Bool
     {
-        lhs.timestamp < rhs.timestamp
+        lhs.value < rhs.value
     }
 }
 extension Mongo.Timestamp:BSONDecodable
@@ -44,11 +44,11 @@ extension Mongo.Timestamp:BSONDecodable
     @inlinable public
     init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(timestamp: try bson.cast
+        self.init(try bson.cast
         {
-            if case .uint64(let timestamp) = $0
+            if case .uint64(let value) = $0
             {
-                return timestamp
+                return value
             }
             else
             {
@@ -63,7 +63,7 @@ extension Mongo.Timestamp:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(uint64: self.timestamp)
+        field.encode(uint64: self.value)
     }
 }
 extension Mongo.Timestamp:CustomStringConvertible
@@ -71,6 +71,6 @@ extension Mongo.Timestamp:CustomStringConvertible
     public
     var description:String
     {
-        "\(self.timestamp >> 32)+\(self.timestamp & 0x0000_0000_ffff_ffff)"
+        "\(self.value >> 32)+\(self.value & 0x0000_0000_ffff_ffff)"
     }
 }
