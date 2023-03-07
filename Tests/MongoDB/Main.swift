@@ -8,59 +8,63 @@ enum Main:AsyncTests
     static
     func run(tests:Tests) async
     {
-        let executor:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
+        let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
         if  let tests:TestGroup = tests / "replicated"
         {
-            let members:Set<Mongo.Host> =
+            let members:Mongo.Seedlist =
             [
-                .init(name: "mongo-0", port: 27017),
-                .init(name: "mongo-1", port: 27017),
-                .init(name: "mongo-2", port: 27017),
-                .init(name: "mongo-3", port: 27017),
-                .init(name: "mongo-4", port: 27017),
-                .init(name: "mongo-5", port: 27017),
-                .init(name: "mongo-6", port: 27017),
+                "mongo-0": 27017,
+                "mongo-1": 27017,
+                "mongo-2": 27017,
+                "mongo-3": 27017,
+                "mongo-4": 27017,
+                "mongo-5": 27017,
+                "mongo-6": 27017,
             ]
-            
-            print("running tests for replicated topology (hosts: \(members))")
 
-            let bootstrap:Mongo.DriverBootstrap = .init(
-                credentials: nil,
-                executor: executor)
+            let bootstrap:Mongo.DriverBootstrap = MongoDB[members] /?
+            {
+                $0.executors = .shared(executors)
+                $0.connectionTimeout = .milliseconds(1000)
+            }
 
-            await TestFsync             (tests, bootstrap: bootstrap, hosts: members)
-            await TestDatabases         (tests, bootstrap: bootstrap, hosts: members)
-            await TestListCollections   (tests, bootstrap: bootstrap, hosts: members)
-            await TestInsert            (tests, bootstrap: bootstrap, hosts: members)
-            await TestFind              (tests, bootstrap: bootstrap, hosts: members)
+            await TestFsync             (tests, bootstrap: bootstrap)
+            await TestDatabases         (tests, bootstrap: bootstrap)
+            await TestListCollections   (tests, bootstrap: bootstrap)
+            await TestInsert            (tests, bootstrap: bootstrap)
+            await TestFind              (tests, bootstrap: bootstrap)
 
-            await TestCausalConsistency (tests, bootstrap: bootstrap, hosts: members)
-            await TestTransactions      (tests, bootstrap: bootstrap, hosts: members)
+            await TestCausalConsistency (tests, bootstrap: bootstrap)
+            await TestTransactions      (tests, bootstrap: bootstrap)
 
-            await TestCursors           (tests, bootstrap: bootstrap, hosts: members)
+            await TestCursors           (tests, bootstrap: bootstrap, on:
+            [
+                .primary,
+                //  We should be able to run this test on a specific server.
+                .nearest(tagSets: [["name": "B"]]),
+                //  We should be able to run this test on a secondary.
+                .nearest(tagSets: [["name": "C"]]),
+            ])
         }
 
         if  let tests:TestGroup = tests / "single"
         {
+            let seedlist:Mongo.Seedlist = ["mongo-single": 27017]
 
-            let standalone:Mongo.Host = .init(name: "mongo-single", port: 27017)
+            let bootstrap:Mongo.DriverBootstrap = MongoDB("root", "80085")[seedlist] /?
+            {
+                $0.authentication = .sasl(.sha256)
+                $0.executors = .shared(executors)
+            }
 
-            print("running tests for single topology (host: \(standalone))")
+            await TestFsync             (tests, bootstrap: bootstrap)
+            await TestDatabases         (tests, bootstrap: bootstrap)
+            await TestListCollections   (tests, bootstrap: bootstrap)
+            await TestInsert            (tests, bootstrap: bootstrap)
+            await TestFind              (tests, bootstrap: bootstrap)
 
-            let bootstrap:Mongo.DriverBootstrap = .init(
-                credentials: .init(authentication: .sasl(.sha256),
-                    username: "root",
-                    password: "80085"),
-                executor: executor)
-
-            await TestFsync             (tests, bootstrap: bootstrap, hosts: [standalone])
-            await TestDatabases         (tests, bootstrap: bootstrap, hosts: [standalone])
-            await TestListCollections   (tests, bootstrap: bootstrap, hosts: [standalone])
-            await TestInsert            (tests, bootstrap: bootstrap, hosts: [standalone])
-            await TestFind              (tests, bootstrap: bootstrap, hosts: [standalone])
-
-            await TestCursors           (tests, bootstrap: bootstrap, hosts: [standalone])
+            await TestCursors           (tests, bootstrap: bootstrap, on: [.primary])
         }
     }
 }

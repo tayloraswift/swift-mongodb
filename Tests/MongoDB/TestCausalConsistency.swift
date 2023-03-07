@@ -1,9 +1,7 @@
 import MongoDB
 import Testing
 
-func TestCausalConsistency(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<Mongo.Host>) async
+func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
     guard let tests:TestGroup = tests / "causal-consistency"
     else
@@ -11,10 +9,9 @@ func TestCausalConsistency(_ tests:TestGroup,
         return
     }
 
-    await tests.withTemporaryDatabase(named: "causal-consistency-tests",
-        bootstrap: bootstrap,
+    await bootstrap.withTemporaryDatabase(named: "causal-consistency-tests",
         logger: .init(level: .full),
-        hosts: hosts)
+        tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 

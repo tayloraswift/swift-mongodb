@@ -4,9 +4,9 @@ extension Mongo
     struct MonitorDelegate
     {
         private
-        let continuation:AsyncStream<Service>.Continuation
+        let continuation:AsyncStream<MonitorService>.Continuation
 
-        init(_ continuation:AsyncStream<Service>.Continuation)
+        init(_ continuation:AsyncStream<MonitorService>.Continuation)
         {
             self.continuation = continuation
         }
@@ -14,7 +14,7 @@ extension Mongo
 }
 extension Mongo.MonitorDelegate
 {
-    func resume(from service:Mongo.Service)
+    func resume(from service:Mongo.MonitorService)
     {
         self.continuation.yield(service)
     }

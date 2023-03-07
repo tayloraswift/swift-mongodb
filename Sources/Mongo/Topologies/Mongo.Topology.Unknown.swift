@@ -15,10 +15,9 @@ extension Mongo.Topology
 extension Mongo.Topology.Unknown
 {
     /// Adds a *g* to every host in the given list of hosts.
-    public
-    init(hosts:Set<Mongo.Host>)
+    init(from seedlist:Mongo.Seedlist)
     {
-        self.init(ghosts: .init(uniqueKeysWithValues: hosts.map { ($0, .queued) }))
+        self.init(ghosts: seedlist.dictionary(repeating: .queued))
     }
 }
 extension Mongo.Topology.Unknown

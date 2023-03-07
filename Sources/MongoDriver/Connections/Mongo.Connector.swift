@@ -48,7 +48,7 @@ extension Mongo.Connector
 }
 extension Mongo.Connector<Never?>
 {
-    func connect(interval:Milliseconds) async throws -> Mongo.Services
+    func connect(interval:Milliseconds) async throws -> Mongo.MonitorServices
     {
         //  '''
         //  Drivers MUST NOT authenticate on sockets used for monitoring nor

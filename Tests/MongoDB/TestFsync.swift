@@ -1,9 +1,7 @@
 import MongoDB
 import Testing
 
-func TestFsync(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    hosts:Set<Mongo.Host>) async
+func TestFsync(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
     guard let tests:TestGroup = tests / "fsync-locking"
     else
@@ -11,9 +9,7 @@ func TestFsync(_ tests:TestGroup,
         return
     }
     
-    await tests.withTemporaryDatabase(named: "fsync-tests",
-        bootstrap: bootstrap,
-        hosts: hosts)
+    await bootstrap.withTemporaryDatabase(named: "fsync-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 

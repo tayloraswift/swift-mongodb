@@ -1,5 +1,3 @@
-import Durations
-
 extension Mongo
 {
     @frozen public
@@ -15,8 +13,7 @@ extension Mongo
         let rate:Int
 
         public
-        init(size:ClosedRange<Int> = 0 ... 100,
-            rate:Int = 2)
+        init(size:ClosedRange<Int>, rate:Int)
         {
             self.size = size
             self.rate = rate

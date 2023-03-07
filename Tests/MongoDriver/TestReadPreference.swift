@@ -1,9 +1,8 @@
 import MongoDriver
 import Testing
 
-func TestReadPreference(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    members:[Mongo.Host]) async
+func TestReadPreference(_ tests:TestGroup, members:Mongo.Seedlist,
+    bootstrap:Mongo.DriverBootstrap) async
 {
     guard let tests:TestGroup = tests / "read-preferences"
     else
@@ -13,8 +12,7 @@ func TestReadPreference(_ tests:TestGroup,
 
     await tests.do
     {
-        try await bootstrap.withSessionPool(seedlist: .init(members),
-            connectionTimeout: .milliseconds(250))
+        try await bootstrap.withSessionPool
         {
             let session:Mongo.Session = try await .init(from: $0)
             for (name, preference):(String, Mongo.ReadPreference) in

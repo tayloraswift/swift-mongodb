@@ -1,18 +1,17 @@
 import MongoDB
 import Testing
 
-extension TestGroup
+extension Mongo.DriverBootstrap
 {
     func withTemporaryDatabase(named database:Mongo.Database,
-        bootstrap:Mongo.DriverBootstrap,
         logger:Mongo.Logger? = nil,
-        hosts:Set<Mongo.Host>,
+        tests:TestGroup,
         run body:(Mongo.SessionPool, Mongo.Database) async throws -> ()) async
     {
-        let environment:TestGroup = self ! "environment"
+        let environment:TestGroup = tests ! "environment"
         await environment.do
         {
-            try await bootstrap.withSessionPool(seedlist: hosts, logger: logger)
+            try await self.withSessionPool(logger: logger)
             {
                 (pool:Mongo.SessionPool) in
 
@@ -23,7 +22,7 @@ extension TestGroup
                     command: Mongo.ListDatabases.NameOnly.init(),
                     against: .admin)
 
-                await self.do
+                await tests.do
                 {
                     try await body(pool, database)
                 }
@@ -34,7 +33,7 @@ extension TestGroup
                     command: Mongo.ListDatabases.NameOnly.init(),
                     against: .admin)
                 
-                self.expect(before ..? after)
+                environment.expect(before ..? after)
             }
         }
     }

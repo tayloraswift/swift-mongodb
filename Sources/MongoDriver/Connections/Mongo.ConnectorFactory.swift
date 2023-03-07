@@ -8,27 +8,19 @@ extension Mongo
 {
     struct ConnectorFactory:Sendable
     {
-        // TODO: need a better way to handle TLS certificates,
-        // should probably cache certificate loading...
         private
-        let _certificatePath:String?
-        private
-        let executor:any EventLoopGroup
-        private
-        let resolver:DNS.Connection?
-        
+        let executors:any EventLoopGroup
         /// The name of the application.
+        private
         let appname:String?
+        private
+        let tls:TLS
         
-        init(certificatePath:String?,
-            executor:any EventLoopGroup,
-            resolver:DNS.Connection?,
-            appname:String?)
+        init(executors:any EventLoopGroup, appname:String?, tls:TLS)
         {
-            self._certificatePath = certificatePath
-            self.resolver = resolver
-            self.executor = executor
+            self.executors = executors
             self.appname = appname
+            self.tls = tls
         }
     }
 }
@@ -41,7 +33,7 @@ extension Mongo.ConnectorFactory
         .init(authenticator: authenticator,
             bootstrap: self.bootstrap(timeout: timeout, host: host),
             timeout: timeout,
-            appname: appname,
+            appname: self.appname,
             host: host)
     }
 }
@@ -50,8 +42,7 @@ extension Mongo.ConnectorFactory
     private
     func bootstrap(timeout:Milliseconds, host:Mongo.Host) -> ClientBootstrap
     {
-        .init(group: self.executor)
-            .resolver(self.resolver)
+        .init(group: self.executors)
             .channelOption(ChannelOptions.Types.ConnectTimeoutOption.init(), 
                 value: .milliseconds(timeout.rawValue))
             .channelOption(ChannelOptions.Types.SocketOption.init(
@@ -65,18 +56,15 @@ extension Mongo.ConnectorFactory
             let decoder:ByteToMessageHandler<MongoIO.MessageDecoder> = .init(.init())
             let router:MongoIO.MessageRouter = .init()
 
-            guard let certificatePath:String = self._certificatePath
+            guard case .enabled = self.tls
             else
             {
                 return channel.pipeline.addHandlers(decoder, router)
             }
             do 
             {
-                var configuration:TLSConfiguration = .clientDefault
-                configuration.trustRoots = NIOSSLTrustRoots.file(certificatePath)
-                
-                let tls:NIOSSLClientHandler = try .init(
-                    context: .init(configuration: configuration), 
+                let tls:NIOSSLClientHandler = try .init(context: .init(
+                        configuration: .clientDefault), 
                     serverHostname: host.name)
                 return channel.pipeline.addHandlers(tls, decoder, router)
             } 

@@ -2,10 +2,7 @@ import MongoDriver
 import NIOPosix
 import Testing
 
-func TestFailpoints(_ tests:TestGroup,
-    credentials:Mongo.Credentials?,
-    seedlist:Set<Mongo.Host>,
-    on executor:MultiThreadedEventLoopGroup) async
+func TestFailpoints(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
     guard let tests:TestGroup = tests / "failpoints"
     else
@@ -13,13 +10,7 @@ func TestFailpoints(_ tests:TestGroup,
         return
     }
 
-    let appname:String = "swift-mongodb-tests"
-    let bootstrap:Mongo.DriverBootstrap = .init(credentials: credentials,
-        executor: executor,
-        appname: appname)
-    
-
-    await bootstrap.withSessionPool(seedlist: seedlist)
+    await bootstrap.withSessionPool
     {
         (pool:Mongo.SessionPool) in
 
@@ -28,7 +19,7 @@ func TestFailpoints(_ tests:TestGroup,
             try await pool.run(
                 command: Mongo.ConfigureFailpoint<Mongo.FailCommand>.once(.init(
                     behavior: .blockConnection(then: .error(9999)),
-                    appname: appname,
+                    appname: bootstrap.appname,
                     types: [Mongo.Ping.self])),
                 against: .admin,
                 on: .primary)

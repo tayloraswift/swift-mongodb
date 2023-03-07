@@ -10,19 +10,11 @@ extension Mongo
         private
         var topology:Topology<Canary>
 
-        private
         init(interval:Milliseconds, topology:Topology<Canary>)
         {
             self.interval = interval
             self.topology = topology
         }
-    }
-}
-extension Mongo.TopologyModel
-{
-    init(interval:Milliseconds, seedlist:Set<Mongo.Host>)
-    {
-        self.init(interval: interval, topology: .unknown(.init(hosts: seedlist)))
     }
 }
 extension Mongo.TopologyModel

@@ -2,13 +2,13 @@ import MongoDriver
 import Testing
 
 func TestMemberDiscovery(_ tests:TestGroup,
-    bootstrap:Mongo.DriverBootstrap,
-    members:[Mongo.Host]) async
+    members:Mongo.Seedlist,
+    matrix:KeyValuePairs<String, Mongo.DriverBootstrap>) async
 {
     //  we should be able to connect to the primary using any seed
-    for seed:Mongo.Host in members
+    for (name, bootstrap):(String, Mongo.DriverBootstrap) in matrix
     {
-        guard let tests:TestGroup = tests / "discover-primary-from-\(seed.name)"
+        guard let tests:TestGroup = tests / "discovery" / name
         else
         {
             continue
@@ -16,8 +16,7 @@ func TestMemberDiscovery(_ tests:TestGroup,
         
         await tests.do
         {
-            try await bootstrap.withSessionPool(seedlist: [seed],
-                connectionTimeout: .milliseconds(3000))
+            try await bootstrap.withSessionPool
             {
                 let session:Mongo.Session = try await .init(from: $0)
                 let configuration:Mongo.ReplicaSetConfiguration = try await session.run(

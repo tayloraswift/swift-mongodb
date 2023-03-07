@@ -1,5 +1,6 @@
 import BSONDecoding
 import BSONEncoding
+import Mongo
 
 extension Mongo.Authentication
 {

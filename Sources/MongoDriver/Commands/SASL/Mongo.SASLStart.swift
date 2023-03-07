@@ -8,10 +8,10 @@ extension Mongo
     /// This command is internal because it must not be used with sessions.
     struct SASLStart
     {
-        let mechanism:Mongo.Authentication.SASL
+        let mechanism:Authentication.SASL
         let scram:SCRAM.Start
 
-        init(mechanism:Mongo.Authentication.SASL, scram:SCRAM.Start)
+        init(mechanism:Authentication.SASL, scram:SCRAM.Start)
         {
             self.mechanism = mechanism
             self.scram = scram

@@ -1,16 +1,14 @@
 import NIOCore
 import NIOPosix
 
-/// A placeholder for DNS-related functionality.
-public
-enum DNS
+extension Mongo.DNS
 {
     public
     enum Connection:Sendable
     {
     }
 }
-extension DNS.Connection:Resolver
+extension Mongo.DNS.Connection:Resolver
 {
     public
     func initiateAQuery(host:String, port:Int) -> EventLoopFuture<[SocketAddress]>
@@ -28,7 +26,7 @@ extension DNS.Connection:Resolver
         fatalError("unimplemented")
     }
 }
-extension DNS.Connection
+extension Mongo.DNS.Connection
 {
     func srv(_ host:Mongo.Host) async throws -> [Mongo.Host] 
     {

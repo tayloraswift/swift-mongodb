@@ -16,10 +16,10 @@ extension Mongo
         var port:Int
 
         @inlinable public 
-        init(name:String, port:Int = 27017) 
+        init(name:String, port:Int? = nil) 
         {
             self.name = name
-            self.port = port
+            self.port = port ?? 27017
         }
     }
 }
@@ -56,7 +56,7 @@ extension Mongo.Host:LosslessStringConvertible
             name = .init(string)
             port = nil
         }
-        self.init(name: name, port: port ?? 27017)
+        self.init(name: name, port: port)
     }
     @inlinable public
     var description:String

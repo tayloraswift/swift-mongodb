@@ -25,14 +25,16 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "Durations", targets: ["Durations"]),
         .library(name: "Durations_Atomics", targets: ["Durations_Atomics"]),
 
+        .library(name: "MongoDB", targets: ["MongoDB"]),
+
         .library(name: "Mongo", targets: ["Mongo"]),
         .library(name: "MongoBuiltins", targets: ["MongoBuiltins"]),
-        .library(name: "MongoDB", targets: ["MongoDB"]),
-        .library(name: "MongoDSL", targets: ["MongoDSL"]),
-        .library(name: "MongoConnectionString", targets: ["MongoConnectionString"]),
+        .library(name: "MongoConfiguration", targets: ["MongoConfiguration"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
+        .library(name: "MongoDSL", targets: ["MongoDSL"]),
         .library(name: "MongoExecutor", targets: ["MongoExecutor"]),
         .library(name: "MongoIO", targets: ["MongoIO"]),
+        .library(name: "MongoLibrary", targets: ["MongoLibrary"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
         .library(name: "SCRAM", targets: ["SCRAM"]),
@@ -140,13 +142,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "MessageAuthentication", package: "swift-hash"),
             ]),
 
-        .target(name: "MongoDSL",
+        .target(name: "MongoDB",
             dependencies:
             [
-                .target(name: "BSONDecoding"),
-                .target(name: "BSONEncoding"),
+                .target(name: "MongoLibrary"),
             ]),
-
+        
         .target(name: "Mongo",
             dependencies:
             [
@@ -162,6 +163,13 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "Mongo"),
                 .target(name: "MongoDSL"),
             ]),
+
+        .target(name: "MongoConfiguration",
+            dependencies:
+            [
+                .target(name: "Mongo"),
+                .product(name: "NIOCore", package: "swift-nio"),
+            ]),
         
         .target(name: "MongoDriver",
             dependencies: 
@@ -171,7 +179,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
                 .target(name: "Durations_Atomics"),
-                .target(name: "Mongo"),
+                .target(name: "MongoConfiguration"),
                 .target(name: "MongoExecutor"),
                 .target(name: "OnlineCDF"),
                 .target(name: "SCRAM"),
@@ -179,20 +187,14 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
             ]),
+
+        .target(name: "MongoDSL",
+            dependencies:
+            [
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
+            ]),
         
-        .target(name: "MongoDB",
-            dependencies:
-            [
-                .target(name: "MongoBuiltins"),
-                .target(name: "MongoDriver"),
-            ]),
-
-        .target(name: "MongoConnectionString",
-            dependencies:
-            [
-                .target(name: "MongoDriver"),
-            ]),
-
         .target(name: "MongoExecutor",
             dependencies: 
             [
@@ -204,6 +206,13 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore", package: "swift-nio"),
+            ]),
+        
+        .target(name: "MongoLibrary",
+            dependencies:
+            [
+                .target(name: "MongoBuiltins"),
+                .target(name: "MongoDriver"),
             ]),
 
         // the mongo wire protocol. has no awareness of networking or
@@ -273,9 +282,6 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDB"),
-                // already included by `MongoDriver`’s transitive `NIOSSL` dependency,
-                // but restated here for clarity.
-                .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/MongoDB"),
@@ -284,13 +290,9 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDriver"),
-                // already included by `MongoDriver`’s transitive `NIOSSL` dependency,
-                // but restated here for clarity.
-                .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/MongoDriver"),
-        
         
         .target(name: "MongoDSLAPITests",
             dependencies:
@@ -298,5 +300,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoBuiltins"),
             ], 
             path: "Tests/MongoDSLAPI"),
+        
+        .target(name: "MongoDBAPITests",
+            dependencies:
+            [
+                .target(name: "MongoDB"),
+            ], 
+            path: "Tests/MongoDBAPI"),
     ]
 )

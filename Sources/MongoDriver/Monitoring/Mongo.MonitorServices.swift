@@ -2,7 +2,7 @@ import Durations
 
 extension Mongo
 {
-    struct Services:Sendable
+    struct MonitorServices:Sendable
     {
         private
         let listenerConnection:Listener.Connection,
@@ -26,7 +26,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Services
+extension Mongo.MonitorServices
 {
     var initialTopologyUpdate:Mongo.TopologyUpdate
     {
@@ -37,7 +37,7 @@ extension Mongo.Services
         self.handshake.latency
     }
 }
-extension Mongo.Services
+extension Mongo.MonitorServices
 {
     var listener:Mongo.Listener
     {
