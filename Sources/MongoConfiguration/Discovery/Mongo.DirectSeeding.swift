@@ -10,8 +10,8 @@ extension Mongo
 extension Mongo.DirectSeeding:MongoDiscoveryMode
 {
     @inlinable public static
-    subscript(hostname:String, port:Int?) -> Mongo.SeedingMethod
+    subscript(seedlist:Mongo.Seedlist) -> Mongo.SeedingMethod
     {
-        .direct(.init(host: .init(name: hostname, port: port)))
+        .direct(seedlist)
     }
 }

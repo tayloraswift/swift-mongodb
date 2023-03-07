@@ -4,7 +4,7 @@ import MongoDB
 
 let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-let bootstrap:Mongo.DriverBootstrap = MongoDB[["mongo-0", "mongo-1"]] /?
+let bootstrap:Mongo.DriverBootstrap = MongoDB / ["mongo-0", "mongo-1"] /?
 {
     $0.executors = .shared(executors)
     $0.appname = "example app"

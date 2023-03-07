@@ -27,40 +27,43 @@ extension Mongo.URI.Base<Mongo.Guest, Mongo.DirectSeeding>
     {
         .init(userinfo: .init())
     }
-
-    @inlinable public
-    func SRV(_ username:String,
-        _ password:String) -> Mongo.URI.Base<Mongo.User, Mongo.DNS>
-    {
-        .init(userinfo: .init(username: username, password: password))
-    }
 }
 
-extension Mongo.URI.Base
+extension Mongo.URI.Base where LoginMode.Authentication == Never
 {
-    @_disfavoredOverload
-    @inlinable public
-    subscript(hostname:String, port:Int? = nil) -> Mongo.URI.Authority<LoginMode>
+    @inlinable public static
+    func / (base:Self, userinfo:
+        (
+            username:String,
+            password:String
+        ))  -> Mongo.URI.Base<Mongo.User, DiscoveryMode>
     {
-        .init(userinfo: self.userinfo, domains: DiscoveryMode[hostname, port])
+        .init(userinfo: .init(username: userinfo.username, password: userinfo.password))
     }
-    @inlinable public
-    subscript(hostname:String, port:Int? = nil) -> Mongo.DriverBootstrap
+    
+    @_disfavoredOverload
+    @inlinable public static
+    func / (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.URI.Authority<LoginMode>
     {
-        .init(locator: self[hostname, port])
+        .init(userinfo: base.userinfo, domains: DiscoveryMode[domains])
+    }
+    @inlinable public static
+    func / (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.DriverBootstrap
+    {
+        .init(locator: base / domains)
     }
 }
-extension Mongo.URI.Base where DiscoveryMode == Mongo.DirectSeeding
+extension Mongo.URI.Base where LoginMode.Authentication == Mongo.Authentication
 {
     @_disfavoredOverload
-    @inlinable public
-    subscript(hosts:Mongo.Seedlist) -> Mongo.URI.Authority<LoginMode>
+    @inlinable public static
+    func * (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.URI.Authority<LoginMode>
     {
-        .init(userinfo: self.userinfo, domains: .direct(hosts))
+        .init(userinfo: base.userinfo, domains: DiscoveryMode[domains])
     }
-    @inlinable public
-    subscript(hosts:Mongo.Seedlist) -> Mongo.DriverBootstrap
+    @inlinable public static
+    func * (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.DriverBootstrap
     {
-        .init(locator: self[hosts])
+        .init(locator: base * domains)
     }
 }
