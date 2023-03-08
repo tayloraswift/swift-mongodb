@@ -1,4 +1,4 @@
-import BSON
+import BSONTypes
 
 public
 protocol BSONRepresentable<BSONRepresentation>

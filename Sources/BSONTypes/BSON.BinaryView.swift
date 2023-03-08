@@ -79,6 +79,14 @@ extension BSON.BinaryView:VariableLengthBSON where Bytes.SubSequence == Bytes
         }
     }
 }
+extension BSON.BinaryView:BSONView
+{
+    @inlinable public
+    init(_ value:BSON.AnyValue<Bytes>) throws
+    {
+        self = try value.cast(with: \.binary)
+    }
+}
 extension BSON.BinaryView
 {
     /// The length that would be encoded in this binary array’s prefixed header.

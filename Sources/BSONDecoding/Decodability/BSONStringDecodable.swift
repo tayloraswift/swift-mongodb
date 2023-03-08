@@ -1,5 +1,3 @@
-import BSONView
-
 /// A type that can be decoded from a BSON UTF-8 string. Javascript sources
 /// count as UTF-8 strings, from the perspective of this protocol. This protocol
 /// exists to allow types that also conform to ``LosslessStringConvertible``

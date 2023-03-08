@@ -12,11 +12,11 @@ let package:Package = .init(name: "swift-mongodb",
     products: 
     [
         .library(name: "BSON", targets: ["BSON"]),
-        .library(name: "BSONCanonicalization", targets: ["BSONCanonicalization"]),
+        .library(name: "BSONReflection", targets: ["BSONReflection"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
-        .library(name: "BSONDSL", targets: ["BSONDSL"]),
-        .library(name: "BSONView", targets: ["BSONView"]),
+        .library(name: "BSONStreaming", targets: ["BSONStreaming"]),
+        .library(name: "BSONTypes", targets: ["BSONTypes"]),
         
         .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
         .library(name: "BSON_OrderedCollections", targets: ["BSON_OrderedCollections"]),
@@ -67,41 +67,43 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Base16", package: "swift-hash"),
             ]),
 
+        .target(name: "BSON",
+            dependencies:
+            [
+                .target(name: "BSONStreaming"),
+            ]),
+
         .target(name: "BSONTraversal"),
 
-        .target(name: "BSON",
+        .target(name: "BSONTypes",
             dependencies:
             [
                 .target(name: "BSONTraversal"),
             ]),
-        .target(name: "BSONDSL",
+        
+        .target(name: "BSONStreaming",
             dependencies:
             [
-                .target(name: "BSON"),
+                .target(name: "BSONTypes"),
             ]),
-        .target(name: "BSONCanonicalization",
+        
+        .target(name: "BSONReflection",
             dependencies:
             [
-                .target(name: "BSONDSL"),
-                .target(name: "BSONView"),
+                .target(name: "BSONStreaming"),
             ]),
         .target(name: "BSONDecoding",
             dependencies:
             [
-                .target(name: "BSONDSL"),
-                .target(name: "BSONView"),
+                .target(name: "BSONStreaming"),
                 .product(name: "TraceableErrors", package: "swift-grammar"),
             ]),
         .target(name: "BSONEncoding",
             dependencies:
             [
-                .target(name: "BSONDSL"),
+                .target(name: "BSONStreaming"),
             ]),
-        .target(name: "BSONView",
-            dependencies:
-            [
-                .target(name: "BSON"),
-            ]),
+        
         .target(name: "BSON_UUID",
             dependencies:
             [
@@ -220,15 +222,14 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoWire",
             dependencies: 
             [
-                .target(name: "BSONDSL"),
-                .target(name: "BSONView"),
+                .target(name: "BSONStreaming"),
                 .product(name: "CRC", package: "swift-hash"),
             ]),
 
         .executableTarget(name: "BSONTests",
             dependencies:
             [
-                .target(name: "BSONCanonicalization"),
+                .target(name: "BSONReflection"),
                 .product(name: "Base16", package: "swift-hash"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
@@ -246,7 +247,6 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "BSONEncoding"),
-                .target(name: "BSONView"),
                 .product(name: "Testing", package: "swift-hash"),
             ], 
             path: "Tests/BSONEncoding"),
@@ -254,7 +254,7 @@ let package:Package = .init(name: "swift-mongodb",
         .executableTarget(name: "BSONIntegrationTests",
             dependencies:
             [
-                .target(name: "BSONCanonicalization"),
+                .target(name: "BSONReflection"),
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
                 .product(name: "Testing", package: "swift-hash"),

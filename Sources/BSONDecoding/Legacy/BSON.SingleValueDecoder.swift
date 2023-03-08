@@ -1,5 +1,3 @@
-import BSONView
-
 extension BSON 
 {
     /// A single-value decoding container, for use with compiler-generated ``Decodable`` 

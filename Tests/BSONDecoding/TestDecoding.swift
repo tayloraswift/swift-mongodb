@@ -1,5 +1,5 @@
-import Testing
 import BSONDecoding
+import Testing
 
 func TestDecoding<Failure, Unexpected>(_ tests:TestGroup?, bson:BSON.DocumentView<[UInt8]>, 
     catching error:Failure,

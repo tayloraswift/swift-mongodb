@@ -1,5 +1,3 @@
-import BSONView
-
 /// A type that represents a scope for decoding operations.
 public
 protocol BSONScope<Bytes>

@@ -44,6 +44,14 @@ extension BSON.ListView:VariableLengthBSON
         self.init(slice: bytes)
     }
 }
+extension BSON.ListView:BSONView
+{
+    @inlinable public
+    init(_ value:BSON.AnyValue<Bytes>) throws
+    {
+        self = try value.cast(with: \.list)
+    }
+}
 extension BSON.ListView
 {
     /// The raw data backing this list. This collection *does not*

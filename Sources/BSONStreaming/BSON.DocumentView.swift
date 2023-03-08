@@ -1,11 +1,15 @@
-import BSON
+import BSONTypes
 
-extension BSON.DocumentView:BSONView
+extension BSON.DocumentView<[UInt8]>
 {
+    /// Stores the output buffer of the given document into
+    /// an instance of this type.
+    ///
+    /// >   Complexity: O(1).
     @inlinable public
-    init(_ value:BSON.AnyValue<Bytes>) throws
+    init(_ document:BSON.Document)
     {
-        self = try value.cast(with: \.document)
+        self.init(slice: document.bytes)
     }
 }
 extension BSON.DocumentView
@@ -59,44 +63,39 @@ extension BSON.DocumentView
         return elements
     }
 }
-
-extension BSON.DocumentView
+extension BSON.DocumentView:ExpressibleByDictionaryLiteral 
+    where   Bytes:RangeReplaceableCollection<UInt8>,
+            Bytes:RandomAccessCollection<UInt8>,
+            Bytes.Index == Int
 {
-    /// Performs a type-aware equivalence comparison by parsing each operand and recursively
-    /// comparing the elements. Returns [`false`]() if either operand fails to parse.
-    ///
-    /// Some documents that do not compare equal under byte-wise
-    /// `==` comparison may compare equal under this operator, due to normalization
-    /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
-    /// will compare equal to a `BSON//Value.string(_:)` value with the same contents.
-    @inlinable public static
-    func ~~ <Other>(lhs:Self, rhs:BSON.DocumentView<Other>) -> Bool
+    /// Creates a document containing the given fields, making two passes over
+    /// the list of fields in order to encode the output without reallocations.
+    /// The order of the fields will be preserved.
+    @inlinable public
+    init(fields:some Collection<(key:BSON.Key, value:BSON.AnyValue<some RandomAccessCollection<UInt8>>)>)
     {
-        if  let lhs:[(key:BSON.Key, value:BSON.AnyValue<Bytes.SubSequence>)] =
-                try? lhs.parse({ ($0, $1) }),
-            let rhs:[(key:BSON.Key, value:BSON.AnyValue<Other.SubSequence>)] =
-                try? rhs.parse({ ($0, $1) }),
-                rhs.count == lhs.count
-        {
-            for (lhs, rhs):
-            (
-                (key:BSON.Key, value:BSON.AnyValue<Bytes.SubSequence>),
-                (key:BSON.Key, value:BSON.AnyValue<Other.SubSequence>)
-            )
-            in zip(lhs, rhs)
-            {
-                guard   lhs.key   ==  rhs.key,
-                        lhs.value ~~ rhs.value
-                else
-                {
-                    return false
-                }
-            }
-            return true
-        }
-        else
-        {
-            return false
-        }
+        let size:Int = fields.reduce(0) { $0 + 2 + $1.key.rawValue.utf8.count + $1.value.size }
+        var output:BSON.Output<Bytes> = .init(capacity: size)
+            output.serialize(fields: fields)
+        
+        assert(output.destination.count == size,
+            "precomputed size (\(size)) does not match output size (\(output.destination.count))")
+
+        self.init(slice: output.destination)
+    }
+
+    /// Creates a document containing a single key-value pair.
+    @inlinable public
+    init<Other>(key:BSON.Key, value:BSON.AnyValue<Other>)
+        where Other:RandomAccessCollection<UInt8>
+    {
+        self.init(
+            fields: CollectionOfOne<(key:BSON.Key, value:BSON.AnyValue<Other>)>.init((key, value)))
+    }
+
+    @inlinable public
+    init(dictionaryLiteral:(BSON.Key, BSON.AnyValue<Bytes>)...)
+    {
+        self.init(fields: dictionaryLiteral)
     }
 }

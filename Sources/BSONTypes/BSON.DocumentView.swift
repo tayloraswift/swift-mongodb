@@ -1,7 +1,5 @@
 import BSONTraversal
 
-infix operator ~~ : ComparisonPrecedence
-
 extension BSON
 {
     /// A BSON document. The backing storage of this type is opaque,
@@ -52,7 +50,14 @@ extension BSON.DocumentView:VariableLengthBSON
         self.init(slice: bytes)
     }
 }
-
+extension BSON.DocumentView:BSONView
+{
+    @inlinable public
+    init(_ value:BSON.AnyValue<Bytes>) throws
+    {
+        self = try value.cast(with: \.document)
+    }
+}
 extension BSON.DocumentView
 {
     /// The length that would be encoded in this document’s prefixed header.

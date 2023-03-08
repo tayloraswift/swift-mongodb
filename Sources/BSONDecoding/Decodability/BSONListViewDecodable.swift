@@ -1,5 +1,3 @@
-import BSONView
-
 /// A type that can be decoded from a BSON list-document only.
 public
 protocol BSONListViewDecodable:BSONDecodable

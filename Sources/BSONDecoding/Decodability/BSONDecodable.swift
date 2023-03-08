@@ -1,6 +1,3 @@
-import BSONDSL
-import BSONView
-
 /// A type that can be decoded from a BSON variant value backed by
 /// some type of storage not particular to the decoded type.
 ///

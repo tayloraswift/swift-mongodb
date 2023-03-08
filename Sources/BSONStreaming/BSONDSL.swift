@@ -1,4 +1,4 @@
-import BSON
+import BSONTypes
 
 /// A `BSONDSL` is nothing more than a type that supports an ``init(with:)``
 /// builder API.

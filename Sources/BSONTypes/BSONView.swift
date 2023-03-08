@@ -1,5 +1,3 @@
-import BSON
-
 /// A type that can be (efficiently) decoded from a BSON variant value
 /// backed by a preferred type of storage particular to the decoded type.
 ///

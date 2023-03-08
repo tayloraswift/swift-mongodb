@@ -1,4 +1,4 @@
-import BSON
+import BSONTypes
 
 extension BSON
 {

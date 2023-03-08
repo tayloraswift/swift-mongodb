@@ -1,5 +1,3 @@
-import BSONView
-
 extension BSON
 {
     @frozen public

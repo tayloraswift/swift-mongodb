@@ -1,5 +1,3 @@
-import BSON
-
 extension BSON
 {
     /// A decoder failed to cast a variant to an expected value type.

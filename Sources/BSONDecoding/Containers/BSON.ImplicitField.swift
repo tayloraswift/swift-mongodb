@@ -1,5 +1,3 @@
-import BSONView
-
 extension BSON
 {
     /// A field that may or may not exist in a document. This type is

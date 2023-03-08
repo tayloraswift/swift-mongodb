@@ -1,11 +1,15 @@
-import BSON
+import BSONTypes
 
-extension BSON.ListView:BSONView
+extension BSON.ListView<[UInt8]>
 {
+    /// Stores the output buffer of the given list into
+    /// an instance of this type.
+    ///
+    /// >   Complexity: O(1).
     @inlinable public
-    init(_ value:BSON.AnyValue<Bytes>) throws
+    init(_ list:BSON.List<some Any>)
     {
-        self = try value.cast(with: \.list)
+        self.init(slice: list.bytes)
     }
 }
 extension BSON.ListView
@@ -60,37 +64,27 @@ extension BSON.ListView
         try self.parse { $0 }
     }
 }
-extension BSON.ListView
+extension BSON.ListView:ExpressibleByArrayLiteral
+    where   Bytes:RangeReplaceableCollection<UInt8>,
+            Bytes:RandomAccessCollection<UInt8>,
+            Bytes.Index == Int
 {
-    /// Performs a type-aware equivalence comparison by parsing each operand and recursively
-    /// comparing the elements, ignoring list key names. Returns [`false`]() if either
-    /// operand fails to parse.
-    ///
-    /// Some embedded documents that do not compare equal under byte-wise
-    /// `==` comparison may also compare equal under this operator, due to normalization
-    /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
-    /// will compare equal to a `BSON//Value.string(_:)` value with the same contents.
-    @inlinable public static
-    func ~~ <Other>(lhs:Self, rhs:BSON.ListView<Other>) -> Bool
+    /// Creates a list-document containing the given elements.
+    @inlinable public
+    init(elements:some Sequence<BSON.AnyValue<some RandomAccessCollection<UInt8>>>)
     {
-        if  let lhs:[BSON.AnyValue<Bytes.SubSequence>] = try? lhs.parse(),
-            let rhs:[BSON.AnyValue<Other.SubSequence>] = try? rhs.parse(),
-                rhs.count == lhs.count
+        // we do need to precompute the ordinal keys, so we know the total length
+        // of the document.
+        let document:BSON.DocumentView<Bytes> = .init(fields: elements.enumerated().map
         {
-            for (lhs, rhs):(BSON.AnyValue<Bytes.SubSequence>, BSON.AnyValue<Other.SubSequence>) in
-                zip(lhs, rhs)
-            {
-                guard lhs ~~ rhs
-                else
-                {
-                    return false
-                }
-            }
-            return true
-        }
-        else
-        {
-            return false
-        }
+            (.init(index: $0.0), $0.1)
+        })
+        self.init(slice: document.slice)
+    }
+
+    @inlinable public 
+    init(arrayLiteral:BSON.AnyValue<Bytes>...)
+    {
+        self.init(elements: arrayLiteral)
     }
 }

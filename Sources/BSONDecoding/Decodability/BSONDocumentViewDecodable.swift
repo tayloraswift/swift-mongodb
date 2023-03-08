@@ -1,5 +1,3 @@
-import BSONView
-
 /// A type that can be decoded from a BSON document. List-documents
 /// count as documents, from the perspective of this protocol.
 public

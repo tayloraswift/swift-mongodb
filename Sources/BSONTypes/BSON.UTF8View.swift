@@ -133,7 +133,14 @@ extension BSON.UTF8View:VariableLengthBSON where Bytes:RandomAccessCollection<UI
         self.init(slice: bytes)
     }
 }
-
+extension BSON.UTF8View:BSONView where Bytes:RandomAccessCollection<UInt8>
+{
+    @inlinable public
+    init(_ value:BSON.AnyValue<Bytes>) throws
+    {
+        self = try value.cast(with: \.utf8)
+    }
+}
 extension BSON.UTF8View
 {
     /// The length that would be encoded in this string’s prefixed header.
