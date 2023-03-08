@@ -7,9 +7,9 @@ func TestExpressions()
     {
         $0["_"] = [] as [Never]
         $0["_"] = [:]
-        $0["_"] = .init
+        $0["_"]
         {
-            $0["_"] = .init
+            $0["_"]
             {
                 $0["_"] = [:]
             }
@@ -18,11 +18,11 @@ func TestExpressions()
     let _:BSON.Document = .init
     {
         $0["foo"] = "$field"
-        $0["bar"] = .init
+        $0["bar"]
         {
             $0["ccc"] = 56
         }
-        $0["qux"] = .init
+        $0["qux"]
         {
             $0.append(56)
         }

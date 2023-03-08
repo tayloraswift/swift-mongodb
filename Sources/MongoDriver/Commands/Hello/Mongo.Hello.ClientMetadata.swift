@@ -34,17 +34,17 @@ extension Mongo.Hello.ClientMetadata:BSONEncodable, BSONDocumentEncodable
     {
         if let appname:String = self.appname
         {
-            bson["application"] = .init
+            bson["application"]
             {
                 $0["name"] = appname
             }
         }
-        bson["driver"] = .init
+        bson["driver"]
         {
             $0["name"] = "swift-mongodb"
             $0["version"] = "0"
         }
-        bson["os"] = .init
+        bson["os"]
         {
             $0["type"] = Self.os
         }

@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ProjectionOperator:BSONStream
+extension Mongo.ProjectionOperator:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -91,7 +91,7 @@ extension Mongo.ProjectionOperator
             {
                 return
             }
-            self.document[key] = .init
+            self.document[key]
             {
                 if let index:Index = value.at
                 {

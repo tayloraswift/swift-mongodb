@@ -157,13 +157,13 @@ extension BSON.Field
 }
 extension BSON.Field
 {
-    @inlinable public mutating
+    @inlinable internal mutating
     func emit(_ type:BSON)
     {
         self.output.serialize(type: type)
         self.output.serialize(cString: self.key.rawValue)
     }
-    @inlinable public mutating
+    @inlinable internal mutating
     func emit(_ type:BSON, then finish:(inout BSON.Output<[UInt8]>) -> ())
     {
         self.emit(type)

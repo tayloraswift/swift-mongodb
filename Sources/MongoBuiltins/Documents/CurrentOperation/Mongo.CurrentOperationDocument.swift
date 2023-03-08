@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.CurrentOperationDocument:BSONStream
+extension Mongo.CurrentOperationDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]

@@ -206,6 +206,22 @@ extension BSON.Output
 }
 extension BSON.Output<[UInt8]>
 {
+    @inlinable public
+    subscript(with key:BSON.Key) -> BSON.Field
+    {
+        get
+        {
+            .init(key: key, output: self)
+        }
+        _modify
+        {
+            var field:BSON.Field = self[with: key]
+            self = .init(preallocated: [])
+            defer { self = field.output }
+            yield &field
+        }
+    }
+    @available(*, deprecated)
     @inlinable public mutating
     func with(key:BSON.Key, do encode:(inout BSON.Field) -> ())
     {

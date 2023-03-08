@@ -90,8 +90,8 @@ extension Mongo.Aggregate where Mode.Stride == Int
         {
             $0[Self.name] = collection
             
-            $0["pipeline", elide: false] = pipeline
-            $0["cursor"] = .init
+            $0["pipeline"] = pipeline
+            $0["cursor"]
             {
                 $0["batchSize"] = stride
             }
@@ -123,7 +123,7 @@ extension Mongo.Aggregate where Mode.Stride == Void, Mode.Element == Never
         {
             $0[Self.name] = collection
             
-            $0["pipeline", elide: false] = pipeline
+            $0["pipeline"] = pipeline
             $0["explain"] = true
         }
     }

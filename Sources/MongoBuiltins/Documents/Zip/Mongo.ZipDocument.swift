@@ -15,7 +15,7 @@ extension Mongo
         }
     }    
 }
-extension Mongo.ZipDocument:BSONStream
+extension Mongo.ZipDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]

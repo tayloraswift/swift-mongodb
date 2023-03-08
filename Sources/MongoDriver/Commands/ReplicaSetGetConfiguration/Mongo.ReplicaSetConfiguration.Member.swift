@@ -113,6 +113,6 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONEncodable, BSONDocumentEncoda
         }
 
         bson[.votes] = replica.votes
-        bson[.tags, elide: true] = replica.tags
+        bson[.tags] = replica.tags.isEmpty ? nil : replica.tags
     }
 }

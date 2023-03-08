@@ -76,9 +76,16 @@ extension Mongo.WriteConcernError:BSONEncodable, BSONDocumentEncodable
     {
         bson[.code] = self.code
         bson[.errorMessage] = self.message
-        bson[.errorDetails, elide: true] = .init
+
+        guard let details:Details = self.details
+        else
         {
-            $0["writeConcern"] = self.details
+            return
+        }
+        
+        bson[.errorDetails]
+        {
+            $0["writeConcern"] = details
         }
     }
 }

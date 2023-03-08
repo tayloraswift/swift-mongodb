@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ProjectionDocument:BSONStream
+extension Mongo.ProjectionDocument:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -32,7 +32,7 @@ extension Mongo.ProjectionDocument:BSONDecodable
 }
 extension Mongo.ProjectionDocument
 {
-    /// @import(BSONStream)
+    /// @import(BSONDSL)
     /// Encodes an ``Operator``.
     ///
     /// This does not require [`@_disfavoredOverload`](), because

@@ -24,7 +24,7 @@ extension BSON
         }
     }
 }
-extension BSON.Document:BSONStream
+extension BSON.Document:BSONDSL
 {
     @inlinable public
     var bytes:[UInt8]
@@ -42,17 +42,6 @@ extension BSON.Document
     @inlinable public mutating
     func append(_ key:String, with encode:(inout BSON.Field) -> ())
     {
-        self.output.with(key: .init(rawValue: key), do: encode)
+        encode(&self.output[with: .init(rawValue: key)])
     }
 }
-//  When adding overloads to any ``Optional`` whose ``Wrapped`` value
-//  conforms to ``BSONStreamEncodable``, mark them as `@_disfavoredOverload`
-//  to prevent them from shadowing the ``subscript(pushing)`` interface.
-// extension BSON.Document?
-// {
-//     @inlinable public
-//     init(with populate:(inout Wrapped) throws -> ()) rethrows
-//     {
-//         self = .some(try .init(with: populate))
-//     }
-// }

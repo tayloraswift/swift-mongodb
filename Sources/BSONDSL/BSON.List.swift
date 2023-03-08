@@ -3,7 +3,7 @@ import BSON
 extension BSON
 {
     @frozen public
-    struct List<DSL>:Sendable
+    struct List<Document>:Sendable
     {
         public
         var output:BSON.Output<[UInt8]>
@@ -36,9 +36,9 @@ extension BSON.List
         self.bytes.isEmpty
     }
     @inlinable public mutating
-    func append(with serialize:(inout BSON.Field) -> ())
+    func append(with encode:(inout BSON.Field) -> ())
     {
-        self.output.with(key: .init(index: self.count), do: serialize)
+        encode(&self.output[with: .init(index: self.count)])
         self.count += 1
     }
 }
@@ -91,12 +91,3 @@ extension BSON.List
         }
     }
 }
-//  See note about ``BSON.Document``.
-// extension BSON.List<BSON.Document>?
-// {
-//     @inlinable public
-//     init(with populate:(inout Wrapped) throws -> ()) rethrows
-//     {
-//         self = .some(try .init(with: populate))
-//     }
-// }

@@ -81,7 +81,7 @@ extension MongoExpression
         {
             if case (in: let sequence?, of: let element?, let start, let end) = value
             {
-                self.document[key] = .init
+                self.document[key]
                 {
                     $0.append(sequence)
                     $0.append(element)

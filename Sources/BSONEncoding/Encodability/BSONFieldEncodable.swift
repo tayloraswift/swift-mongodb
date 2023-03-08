@@ -1,10 +1,10 @@
 public
-protocol BSONStreamEncodable
+protocol BSONFieldEncodable
 {
     /// A type that can be encoded to a BSON variant value.
     func encode(to field:inout BSON.Field)
 }
-extension BSONStreamEncodable where Self:BSONStream
+extension BSONFieldEncodable where Self:BSONDSL
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
@@ -12,7 +12,7 @@ extension BSONStreamEncodable where Self:BSONStream
         field.encode(document: .init(self))
     }
 }
-extension BSONStreamEncodable where Self:RawRepresentable, RawValue:BSONStreamEncodable
+extension BSONFieldEncodable where Self:RawRepresentable, RawValue:BSONFieldEncodable
 {
     /// Returns the ``encode(to:)`` witness of this type’s ``RawRepresentable.rawValue``.
     @inlinable public
@@ -21,13 +21,13 @@ extension BSONStreamEncodable where Self:RawRepresentable, RawValue:BSONStreamEn
         self.rawValue.encode(to: &field)
     }
 }
-extension BSONStreamEncodable where Self:Sequence, Element:BSONStreamEncodable
+extension BSONFieldEncodable where Self:Sequence, Element:BSONFieldEncodable
 {
     /// Encodes this sequence as a value of type ``BSON.list``.
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.with(BSON.ListEncoder.self)
+        field.encode(as: BSON.ListEncoder.self)
         {
             for element:Element in self
             {
@@ -36,7 +36,7 @@ extension BSONStreamEncodable where Self:Sequence, Element:BSONStreamEncodable
         }
     }
 }
-extension BSONStreamEncodable where Self:BinaryFloatingPoint
+extension BSONFieldEncodable where Self:BinaryFloatingPoint
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
@@ -45,7 +45,7 @@ extension BSONStreamEncodable where Self:BinaryFloatingPoint
     }
 }
 
-extension Optional:BSONStreamEncodable where Wrapped:BSONStreamEncodable
+extension Optional:BSONFieldEncodable where Wrapped:BSONFieldEncodable
 {
     /// Encodes this optional as an explicit ``BSON.null``, if
     /// [`nil`]().
@@ -64,7 +64,7 @@ extension Optional:BSONStreamEncodable where Wrapped:BSONStreamEncodable
 }
 //  We generally do *not* want dictionaries to be encodable, and dictionary
 //  literal generate dictionaries by default.
-extension [String: Never]:BSONStreamEncodable
+extension [String: Never]:BSONFieldEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
@@ -72,9 +72,9 @@ extension [String: Never]:BSONStreamEncodable
         field.encode(document: .init(slice: []))
     }
 }
-extension Array:BSONStreamEncodable where Element:BSONStreamEncodable
+extension Array:BSONFieldEncodable where Element:BSONFieldEncodable
 {
 }
-extension Set:BSONStreamEncodable where Element:BSONStreamEncodable
+extension Set:BSONFieldEncodable where Element:BSONFieldEncodable
 {
 }

@@ -5,16 +5,22 @@ extension BSON.Output<[UInt8]>
     /// trailers; to emit a complete BSON frame, nest the call to this
     /// function inside a call to ``with(frame:do:)``.
     ///
-    /// -   See also: ``with(key:encode:)``.
-    @inlinable public mutating
-    func with<Encoder>(_:Encoder.Type, do encode:(inout Encoder) throws -> ()) rethrows
-        where Encoder:BSONEncoder
+    /// -   See also: ``subscript(with:)``.
+    @inlinable public
+    subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSONEncoder
     {
-        var encoder:Encoder = .init(output: self)
-        
-        self = .init(preallocated: [])
-        defer { self = encoder.output }
+        get
+        {
+            .init(output: self)
+        }
+        _modify
+        {
+            var encoder:Encoder = .init(output: self)
+            
+            self = .init(preallocated: [])
+            defer { self = encoder.output }
 
-        try encode(&encoder)
+            yield &encoder
+        }
     }
 }
