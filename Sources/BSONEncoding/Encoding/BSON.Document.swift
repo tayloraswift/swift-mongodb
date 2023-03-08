@@ -25,17 +25,17 @@ extension BSON.Document
         self.init(with: encodable.encode(to:))
     }
     @inlinable public
-    init<CodingKeys>(
+    init<CodingKeys>(_:CodingKeys.Type = CodingKeys.self,
         with populate:(inout BSON.DocumentEncoder<CodingKeys>) throws -> ()) rethrows
     {
         self.init()
-        try self.encode(CodingKeys.self, with: populate)
+        try populate(&self.output[as: BSON.DocumentEncoder<CodingKeys>.self])
     }
-    @inlinable public mutating
-    func encode<CodingKeys>(_:CodingKeys.Type = CodingKeys.self,
-        with encode:(inout BSON.DocumentEncoder<CodingKeys>) throws -> ()) rethrows
+    @inlinable public
+    init(with populate:(inout BSON.DocumentEncoder<BSON.Key>) throws -> ()) rethrows
     {
-        try self.output.with(BSON.DocumentEncoder<CodingKeys>.self, do: encode)
+        self.init()
+        try populate(&self.output[as: BSON.DocumentEncoder<BSON.Key>.self])
     }
 }
 extension BSON.Document
@@ -45,6 +45,26 @@ extension BSON.Document
     {
         self.append(key.rawValue, value)
     }
+    @inlinable public mutating
+    func append(_ key:some RawRepresentable<String>,
+        with encode:(inout BSON.ListEncoder) -> ())
+    {
+        self.append(key.rawValue, with: encode)
+    }
+    @inlinable public mutating
+    func append(_ key:some RawRepresentable<String>,
+        with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
+    {
+        self.append(key.rawValue, with: encode)
+    }
+    @inlinable public mutating
+    func append<CodingKeys>(_ key:some RawRepresentable<String>,
+        using _:CodingKeys.Type = CodingKeys.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ())
+    {
+        self.append(key.rawValue, with: encode)
+    }
+
     @inlinable public mutating
     func push(_ key:some RawRepresentable<String>, _ value:(some BSONFieldEncodable)?)
     {
@@ -59,12 +79,5 @@ extension BSON.Document
     func push(_ key:some RawRepresentable<String>, _ value:some BSONFieldEncodable)
     {
         self.push(key, value as _?)
-    }
-    @inlinable public mutating
-    func append<Encoder>(_ key:some RawRepresentable<String>,
-        with _:Encoder.Type = BSON.ListEncoder.self,
-        do encode:(inout Encoder) -> ()) where Encoder:BSONEncoder
-    {
-        self.append(key.rawValue, with: Encoder.self, do: encode)
     }
 }

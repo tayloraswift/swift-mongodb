@@ -15,14 +15,28 @@ extension BSONBuilder
         self.append(key, with: value.encode(to:))
     }
     @inlinable public mutating
-    func append<Encoder>(_ key:CodingKey,
-        with _:Encoder.Type = BSON.ListEncoder.self,
-        do encode:(inout Encoder) -> ())
-        where Encoder:BSONEncoder
+    func append(_ key:CodingKey, with encode:(inout BSON.ListEncoder) -> ())
     {
         self.append(key)
         {
-            $0.with(Encoder.self, do: encode)
+            $0.encode(with: encode)
+        }
+    }
+    @inlinable public mutating
+    func append(_ key:CodingKey, with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
+    {
+        self.append(key)
+        {
+            $0.encode(with: encode)
+        }
+    }
+    @inlinable public mutating
+    func append<CodingKeys>(_ key:CodingKey, using _:CodingKeys.Type = CodingKeys.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ())
+    {
+        self.append(key)
+        {
+            $0.encode(with: encode)
         }
     }
 }

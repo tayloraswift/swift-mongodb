@@ -45,7 +45,7 @@ extension Mongo.Payload.Documents
     {
         self.output.with(frame: BSON.DocumentFrame.self)
         {
-            $0.with(BSON.DocumentEncoder<CodingKeys>.self, do: element.encode(to:))
+            element.encode(to: &$0[as: BSON.DocumentEncoder<CodingKeys>.self])
         }
     }
     public mutating

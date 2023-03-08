@@ -28,7 +28,7 @@ extension OrderedDictionary:BSONFieldEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.with(BSON.DocumentEncoder<BSON.Key>.self, do: self.encode(to:))
+        field.encode(with: self.encode(to:))
     }
     public
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
