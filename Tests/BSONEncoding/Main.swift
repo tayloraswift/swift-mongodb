@@ -89,13 +89,13 @@ enum Main:SyncTests
             TestEncoding(tests / "document",
                 encoded: .init
                 {
-                    $0["a"] = .init
+                    $0["a"]
                     {
                         $0["a"] = 1
                         $0["b"] = 2
                         $0["c"] = 3
                     }
-                    $0["b"] = .init
+                    $0["b"]
                     {
                         $0["a"] = 1
                         $0["b"] = 2
@@ -157,58 +157,64 @@ enum Main:SyncTests
                     "null": .null,
                 ])
         }
-        if  let tests:TestGroup = tests / "elided-collections"
+        if  let tests:TestGroup = tests / "string"
         {
-
-            TestEncoding(tests / "string",
+            TestEncoding(tests,
                 encoded: .init
                 {
-                    $0["a", elide: true] = ""
-                    $0["b", elide: true] = "foo"
-                    $0["c", elide: false] = "foo"
-                    $0["d", elide: false] = ""
+                    $0["a"] = ""
+                    $0["b"] = "foo"
+                    $0["c"] = "foo\u{0}"
                 },
                 literal:
                 [
+                    "a": "",
                     "b": "foo",
-                    "c": "foo",
-                    "d": "",
+                    "c": "foo\u{0}",
                 ])
-            
-            TestEncoding(tests / "array",
+        }
+        if  let tests:TestGroup = tests / "array"
+        {
+            TestEncoding(tests,
                 encoded: .init
                 {
-                    $0["a", elide: true] = [] as [Never]
-                    $0["b", elide: true] = [1]
-                    $0["c", elide: false] = [1]
-                    $0["d", elide: false] = [] as [Never]
+                    $0["a"] = [] as [Never]
+                    $0["b"] = [1]
+                    $0["c"]
+                    {
+                        $0.append(1)
+                        $0.append("x")
+                        $0.append(5.5)
+                    }
                 },
                 literal:
                 [
+                    "a": [],
                     "b": [1],
-                    "c": [1],
-                    "d": [],
+                    "c": [1, "x", 5.5],
                 ])
-            
-            TestEncoding(tests / "document",
+        }
+        if  let tests:TestGroup = tests / "document"
+        {
+            TestEncoding(tests,
                 encoded: .init
                 {
-                    $0["a", elide: true] = [:]
-                    $0["b", elide: true] = .init
+                    $0["a"] = [:]
+                    $0["b"]
                     {
                         $0["x"] = 1
                     }
-                    $0["c", elide: false] = .init
+                    $0["c"]
                     {
                         $0["x"] = 1
+                        $0["y"] = 2
                     }
-                    $0["d", elide: false] = [:]
                 },
                 literal:
                 [
+                    "a": [:],
                     "b": ["x": 1],
-                    "c": ["x": 1],
-                    "d": [:],
+                    "c": ["x": 1, "y": 2],
                 ])
         }
         if  let tests:TestGroup = tests / "elided-fields"

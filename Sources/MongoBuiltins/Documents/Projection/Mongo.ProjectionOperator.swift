@@ -91,7 +91,7 @@ extension Mongo.ProjectionOperator
             {
                 return
             }
-            self.document.append(key)
+            self.document[key]
             {
                 if let index:Index = value.at
                 {

@@ -14,34 +14,7 @@ extension BSONBuilder
     {
         self.append(key, with: value.encode(to:))
     }
-    @inlinable public mutating
-    func append(_ key:CodingKey, with encode:(inout BSON.ListEncoder) -> ())
-    {
-        self.append(key)
-        {
-            $0.encode(with: encode)
-        }
-    }
-    @inlinable public mutating
-    func append(_ key:CodingKey, with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
-    {
-        self.append(key)
-        {
-            $0.encode(with: encode)
-        }
-    }
-    @inlinable public mutating
-    func append<CodingKeys>(_ key:CodingKey, using _:CodingKeys.Type = CodingKeys.self,
-        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ())
-    {
-        self.append(key)
-        {
-            $0.encode(with: encode)
-        }
-    }
-}
-extension BSONBuilder
-{
+    
     @inlinable public mutating
     func push(_ key:CodingKey, _ value:(some BSONFieldEncodable)?)
     {
@@ -60,120 +33,37 @@ extension BSONBuilder
 }
 extension BSONBuilder
 {
-    /// Appends the given key-value pair to this document builder, encoding the
-    /// given list elements as the field value, so long as it is not empty (or
-    /// `elide` is [`false`]()).
-    ///
-    /// Type inference will always infer this subscript as long as any
-    /// ``BSON.List`` API is used within its builder closure.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() and non-elided assignment to this subscript
-    /// (including mutations that leave the value in a non-[`nil`]() and
-    /// non-elided state after returning) will add a new field to the document,
-    /// even if the key is the same.
     @inlinable public
-    subscript(key:CodingKey, elide elide:Bool = false) -> BSON.List<Self>?
+    subscript(key:CodingKey, with encode:(inout BSON.ListEncoder) -> ()) -> Void
     {
-        get
+        mutating get
         {
-            nil
-        }
-        set(value)
-        {
-            if let value:BSON.List<Self>, !(elide && value.isEmpty)
-            {
-                self.append(key, value)
-            }
+            self.append(key) { $0.encode(with: encode) }
         }
     }
-    /// Appends the given key-value pair to this document builder, encoding the
-    /// given subdocument as the field value, so long as it is not empty (or
-    /// `elide` is [`false`]()).
-    ///
-    /// Type inference will always infer this subscript as long as any
-    /// ``Document`` DSL API is used within its builder closure.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() and non-elided assignment to this subscript
-    /// (including mutations that leave the value in a non-[`nil`]() and
-    /// non-elided state after returning) will add a new field to the document,
-    /// even if the key is the same.
     @inlinable public
-    subscript(key:CodingKey, elide elide:Bool = false) -> BSON.Document?
+    subscript(_ key:CodingKey,
+        with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ()) -> Void
     {
-        get
+        mutating get
         {
-            nil
-        }
-        set(value)
-        {
-            if let value:BSON.Document, !(elide && value.isEmpty)
-            {
-                self.append(key, value)
-            }
+            self.append(key) { $0.encode(with: encode) }
         }
     }
+    @inlinable public
+    subscript<CodingKeys>(_ key:CodingKey,
+        using _:CodingKeys.Type = CodingKeys.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.append(key) { $0.encode(with: encode) }
+        }
+    }
+}
 
-    /// Appends a key-value pair to this document builder, encoding a
-    /// subdocument of a foreign DSL type as the field value.
-    ///
-    /// Type inference will always prefer the concrete [`Self`]()-typed
-    /// subscript overload over this one.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() and non-elided assignment to this subscript
-    /// (including mutations that leave the value in a non-[`nil`]() and
-    /// non-elided state after returning) will add a new field to the document,
-    /// even if the key is the same.
-    @inlinable public
-    subscript<Encodable>(key:CodingKey, elide elide:Bool) -> Encodable?
-        where Encodable:BSONEncodable & BSONDSL
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let value:Encodable, !(elide && value.isEmpty)
-            {
-                self.append(key, value)
-            }
-        }
-    }
-    /// Appends the given key-value pair to this document builder, encoding the
-    /// given collection as the field value, so long as it is not empty (or
-    /// `elide` is [`false`]()).
-    ///
-    /// Type inference will always prefer one of the concretely-typed subscript
-    /// overloads over this one.
-    ///
-    /// The getter always returns [`nil`]().
-    ///
-    /// Every non-[`nil`]() and non-elided assignment to this subscript
-    /// (including mutations that leave the value in a non-[`nil`]() and
-    /// non-elided state after returning) will add a new field to the document,
-    /// even if the key is the same.
-    @inlinable public
-    subscript<Encodable>(key:CodingKey, elide elide:Bool) -> Encodable?
-        where Encodable:BSONEncodable & Collection
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            if let value:Encodable, !(elide && value.isEmpty)
-            {
-                self.append(key, value)
-            }
-        }
-    }
+extension BSONBuilder
+{
     /// Appends the given key-value pair to this document builder, encoding the
     /// value as the field value using its ``BSONEncodable`` implementation.
     ///

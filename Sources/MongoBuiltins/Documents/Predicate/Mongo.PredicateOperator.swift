@@ -140,7 +140,7 @@ extension Mongo.PredicateOperator
             {
                 return
             }
-            self.document.append(key)
+            self.document[key]
             {
                 $0.append(divisor)
                 $0.append(remainder)

@@ -42,6 +42,6 @@ extension BSON.Document
     @inlinable public mutating
     func append(_ key:String, with encode:(inout BSON.Field) -> ())
     {
-        self.output.with(key: .init(rawValue: key), do: encode)
+        encode(&self.output[with: .init(rawValue: key)])
     }
 }

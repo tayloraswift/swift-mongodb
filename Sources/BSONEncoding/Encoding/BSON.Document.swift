@@ -45,25 +45,6 @@ extension BSON.Document
     {
         self.append(key.rawValue, value)
     }
-    @inlinable public mutating
-    func append(_ key:some RawRepresentable<String>,
-        with encode:(inout BSON.ListEncoder) -> ())
-    {
-        self.append(key.rawValue, with: encode)
-    }
-    @inlinable public mutating
-    func append(_ key:some RawRepresentable<String>,
-        with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
-    {
-        self.append(key.rawValue, with: encode)
-    }
-    @inlinable public mutating
-    func append<CodingKeys>(_ key:some RawRepresentable<String>,
-        using _:CodingKeys.Type = CodingKeys.self,
-        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ())
-    {
-        self.append(key.rawValue, with: encode)
-    }
 
     @inlinable public mutating
     func push(_ key:some RawRepresentable<String>, _ value:(some BSONFieldEncodable)?)
@@ -79,5 +60,36 @@ extension BSON.Document
     func push(_ key:some RawRepresentable<String>, _ value:some BSONFieldEncodable)
     {
         self.push(key, value as _?)
+    }
+}
+extension BSON.Document
+{
+    @inlinable public
+    subscript(_ key:some RawRepresentable<String>,
+        with encode:(inout BSON.ListEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            self[key.rawValue, with: encode]
+        }
+    }
+    @inlinable public
+    subscript(_ key:some RawRepresentable<String>,
+        with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ()) -> Void
+    {
+        mutating get
+        {
+            self[key.rawValue, with: encode]
+        }
+    }
+    @inlinable public
+    subscript<CodingKeys>(_ key:some RawRepresentable<String>,
+        using _:CodingKeys.Type = CodingKeys.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ()) -> Void
+    {
+        mutating get
+        {
+            self[key.rawValue, with: encode]
+        }
     }
 }

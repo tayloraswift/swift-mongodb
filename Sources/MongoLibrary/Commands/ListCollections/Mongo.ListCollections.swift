@@ -51,7 +51,7 @@ extension Mongo.ListCollections<Mongo.CollectionBinding>
         self.init(stride: stride)
         {
             $0[Self.name] = 1 as Int32
-            $0["cursor"] = .init
+            $0["cursor"]
             {
                 $0["batchSize"] = stride
             }
@@ -73,7 +73,7 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
         self.init(stride: stride)
         {
             $0[Self.name] = 1 as Int32
-            $0["cursor"] = .init
+            $0["cursor"]
             {
                 $0["batchSize"] = stride
             }

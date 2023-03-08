@@ -40,7 +40,7 @@ extension Mongo.ClusterTime:BSONEncodable, BSONDocumentEncodable
     public
     func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
-        bson[.signature, elide: false] = self.signature
+        bson[.signature] = self.signature
         bson[.clusterTime] = self.timestamp
     }
 }

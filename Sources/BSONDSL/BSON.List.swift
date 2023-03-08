@@ -36,9 +36,9 @@ extension BSON.List
         self.bytes.isEmpty
     }
     @inlinable public mutating
-    func append(with serialize:(inout BSON.Field) -> ())
+    func append(with encode:(inout BSON.Field) -> ())
     {
-        self.output.with(key: .init(index: self.count), do: serialize)
+        encode(&self.output[with: .init(index: self.count)])
         self.count += 1
     }
 }

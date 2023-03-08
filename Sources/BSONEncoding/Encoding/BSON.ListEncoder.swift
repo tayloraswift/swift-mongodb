@@ -30,9 +30,9 @@ extension BSON.ListEncoder:BSONEncoder
 extension BSON.ListEncoder
 {
     @inlinable internal mutating
-    func append(with serialize:(inout BSON.Field) -> ())
+    func append(with encode:(inout BSON.Field) -> ())
     {
-        serialize(&self.output[with: .init(index: self.count)])
+        encode(&self.output[with: .init(index: self.count)])
         self.count += 1
     }
     @inlinable public mutating
