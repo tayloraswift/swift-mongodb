@@ -13,7 +13,7 @@ extension BSON
         }
     }
 }
-extension BSON.DocumentEncoder:BSONBuilder
+extension BSON.DocumentEncoder:BSONDocumentBuilder
 {
     @inlinable public mutating
     func append(_ key:CodingKey, with encode:(inout BSON.Field) -> ())

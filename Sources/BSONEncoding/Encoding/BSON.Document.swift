@@ -11,7 +11,7 @@ extension BSON.Document
         }
     }
 }
-extension BSON.Document:BSONBuilder
+extension BSON.Document:BSONDocumentBuilder
 {
 }
 extension BSON.Document:BSONEncodable

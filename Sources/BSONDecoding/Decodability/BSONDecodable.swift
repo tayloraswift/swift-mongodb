@@ -105,10 +105,6 @@ extension Float80:BSONDecodable {}
 
 //  This is very similar to the default witness provided by `BSONDocumentViewDecodable`,
 //  except the outer `init(bson:)` call is non-throwing.
-//
-//  We could achieve the same result by explicitly conforming all of our ``BSONBuilder``
-//  types to ``BSONDocumentViewDecodable`` instead of just ``BSONDecodable``. But we
-//  would rather keep these concepts separate from ``BSONBuilder``.
 extension BSONDecodable where Self:BSONDSL
 {
     @inlinable public

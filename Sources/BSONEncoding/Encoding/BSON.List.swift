@@ -62,6 +62,6 @@ extension BSON.List:BSONFieldEncodable
         field.encode(list: .init(self))
     }
 }
-extension BSON.List:BSONEncodable where Document:BSONBuilder
+extension BSON.List:BSONEncodable where Document:BSONEncodable
 {
 }
