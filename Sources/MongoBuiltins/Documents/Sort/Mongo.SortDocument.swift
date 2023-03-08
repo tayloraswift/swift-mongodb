@@ -4,24 +4,16 @@ import BSONDecoding
 extension Mongo
 {
     @frozen public
-    struct SortDocument:Sendable
+    struct SortDocument:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }
-}
-extension Mongo.SortDocument:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
 }
 extension Mongo.SortDocument:BSONEncodable
@@ -58,7 +50,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.document.append(key, 1 as Int32)
+            self.bson.append(key, 1 as Int32)
         }
     }
     @inlinable public
@@ -70,7 +62,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.document.append(key, -1 as Int32)
+            self.bson.append(key, -1 as Int32)
         }
     }
     @inlinable public
@@ -82,7 +74,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }

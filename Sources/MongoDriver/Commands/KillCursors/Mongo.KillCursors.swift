@@ -22,10 +22,7 @@ extension Mongo.KillCursors:MongoCommand
 {
     /// The string [`"killCursors"`]().
     @inlinable public static
-    var name:String
-    {
-        "killCursors"
-    }
+    var type:Mongo.CommandType { .killCursors }
     
     public
     typealias Response = Mongo.KillCursorsResponse
@@ -33,9 +30,8 @@ extension Mongo.KillCursors:MongoCommand
     public
     var fields:BSON.Document
     {
-        .init
+        Self.type(self.collection)
         {
-            $0[Self.name] = self.collection
             $0["cursors"] = self.cursors
         }
     }

@@ -4,24 +4,16 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct Accumulator:Sendable
+    struct Accumulator:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }
-}
-extension Mongo.Accumulator:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
 }
 extension Mongo.Accumulator:BSONDecodable
@@ -42,7 +34,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -55,7 +47,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -68,7 +60,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -80,7 +72,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document.push(key.n, value)
+            self.bson.push(key.n, value)
         }
     }
     @inlinable public
@@ -92,7 +84,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @_disfavoredOverload
@@ -105,7 +97,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.document.push(key.n, value)
+            self.bson.push(key.n, value)
         }
     }
 }

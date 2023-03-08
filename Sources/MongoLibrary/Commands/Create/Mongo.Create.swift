@@ -23,36 +23,29 @@ extension Mongo
         }
     }
 }
+extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
+{
+    @inlinable public static
+    var type:Mongo.CommandType { .create }
+}
 extension Mongo.Create
 {
     private
-    init(writeConcern:WriteConcern?,
-        with populate:(inout BSON.Document) throws -> ()) rethrows
+    init(collection:Mongo.Collection,
+        writeConcern:WriteConcern?,
+        with populate:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
     {
-        self.init(writeConcern: writeConcern, fields: try .init(with: populate))
+        self.init(writeConcern: writeConcern, fields: Self.type(collection, then: populate))
     }
-}
-extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
-{
-    /// The string [`"create"`]().
-    @inlinable public static
-    var name:String
-    {
-        "create"
-    }
-}
-
-extension Mongo.Create
-{
     public
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil)
     {
-        self.init(writeConcern: writeConcern)
-        {
-            $0[Self.name] = collection
-        }
+        self.init(writeConcern: writeConcern, fields: Self.type(collection))
     }
+}
+extension Mongo.Create
+{
     @inlinable public
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
@@ -70,7 +63,9 @@ extension Mongo.Create<Mongo.Timeseries>
         timeseries:Mongo.Timeseries)
     {
         self.init(collection: collection, writeConcern: writeConcern)
-        self.fields["timeseries"] = timeseries
+        {
+            $0["timeseries"] = timeseries
+        }
     }
     @inlinable public
     init(collection:Mongo.Collection,
@@ -90,9 +85,11 @@ extension Mongo.Create<Mongo.CollectionView>
         view:Mongo.CollectionView)
     {
         self.init(collection: collection, writeConcern: writeConcern)
-        // don’t elide pipeline, it should always be there
-        self.fields["viewOn"] = view.collection
-        self.fields["pipeline"] = view.pipeline
+        {
+            // don’t elide pipeline, it should always be there
+            $0["viewOn"] = view.collection
+            $0["pipeline"] = view.pipeline
+        }
     }
     @inlinable public
     init(collection:Mongo.Collection,

@@ -11,7 +11,6 @@ enum Main:SyncTests
     {
         if  let tests:TestGroup = tests / "enumerated-coding-keys"
         {
-
             struct Codable:BSONDocumentDecodable, BSONDocumentEncodable, Equatable
             {
                 enum CodingKeys:String

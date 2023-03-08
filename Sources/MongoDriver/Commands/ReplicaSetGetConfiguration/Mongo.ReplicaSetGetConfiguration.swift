@@ -15,12 +15,8 @@ extension Mongo
 }
 extension Mongo.ReplicaSetGetConfiguration:MongoCommand
 {
-    /// The string [`"replSetGetConfig"`]().
     @inlinable public static
-    var name:String
-    {
-        "replSetGetConfig"
-    }
+    var type:Mongo.CommandType { .replicaSetGetConfiguration }
     
     /// `ReplicaSetGetConfiguration` must be run against to the `admin` database.
     public
@@ -40,10 +36,7 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
     public
     var fields:BSON.Document
     {
-        .init
-        {
-            $0[Self.name] = 1 as Int32
-        }
+        Self.type(1 as Int32)
     }
 }
 extension Mongo.ReplicaSetGetConfiguration:MongoImplicitSessionCommand

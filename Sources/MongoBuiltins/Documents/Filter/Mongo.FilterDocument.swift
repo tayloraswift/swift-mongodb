@@ -3,24 +3,16 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct FilterDocument:Sendable
+    struct FilterDocument:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }    
-}
-extension Mongo.FilterDocument:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
 }
 extension Mongo.FilterDocument:BSONEncodable
@@ -38,7 +30,7 @@ extension Mongo.FilterDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }

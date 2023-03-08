@@ -4,24 +4,16 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct ProjectionOperator:Sendable
+    struct ProjectionOperator:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }
-}
-extension Mongo.ProjectionOperator:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
 }
 extension Mongo.ProjectionOperator:BSONEncodable
@@ -42,7 +34,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }
@@ -57,7 +49,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }
@@ -73,7 +65,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -91,7 +83,7 @@ extension Mongo.ProjectionOperator
             {
                 return
             }
-            self.document[key]
+            self.bson[key]
             {
                 if let index:Index = value.at
                 {

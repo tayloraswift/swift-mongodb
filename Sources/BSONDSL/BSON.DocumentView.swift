@@ -7,7 +7,7 @@ extension BSON.DocumentView<[UInt8]>
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ document:some BSONDSL)
+    init(_ document:BSON.Document)
     {
         self.init(slice: document.bytes)
     }

@@ -4,24 +4,16 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct PipelineStage:Sendable
+    struct PipelineStage:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }
-}
-extension Mongo.PipelineStage:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
 }
 extension Mongo.PipelineStage:BSONEncodable
@@ -42,7 +34,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -54,7 +46,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value?.document)
+            self.bson.push(key, value?.document)
         }
     }
     @inlinable public
@@ -66,7 +58,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }
@@ -81,7 +73,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -94,7 +86,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -107,7 +99,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -127,7 +119,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -140,7 +132,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -160,7 +152,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -173,7 +165,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -207,7 +199,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -220,7 +212,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -233,7 +225,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -259,7 +251,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -272,7 +264,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -285,7 +277,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -298,7 +290,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -311,7 +303,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -324,7 +316,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -337,7 +329,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -350,7 +342,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -370,7 +362,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -383,7 +375,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -396,7 +388,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -409,7 +401,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -422,7 +414,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -434,7 +426,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -447,7 +439,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -459,7 +451,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -473,7 +465,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -485,7 +477,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }

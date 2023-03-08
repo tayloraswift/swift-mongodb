@@ -30,21 +30,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.Aggregate
-{
-    private
-    init(writeConcern:WriteConcern?,
-        readConcern:ReadConcern?,
-        stride:Mode.Stride,
-        with populate:(inout BSON.Document) throws -> ()) rethrows
-    {
-        self.init(writeConcern: writeConcern,
-            readConcern: readConcern,
-            stride: stride,
-            fields: try .init(with: populate))
-    }
-}
-
 extension Mongo.Aggregate:MongoIterableCommand
     where   Mode.Response == Mongo.Cursor<Mode.Element>,
             Mode.Stride == Int
@@ -60,12 +45,8 @@ extension Mongo.Aggregate:MongoIterableCommand
 }
 extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
-    /// The string [`"aggregate"`]().
     @inlinable public static
-    var name:String
-    {
-        "aggregate"
-    }
+    var type:Mongo.CommandType { .aggregate }
 
     public
     typealias Response = Mode.Response
@@ -74,6 +55,22 @@ extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand,
     func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Mode.Response
     {
         try Mode.decode(reply: reply)
+    }
+}
+
+extension Mongo.Aggregate
+{
+    private
+    init(collection:Mongo.Collection,
+        writeConcern:WriteConcern?,
+        readConcern:ReadConcern?,
+        stride:Mode.Stride,
+        with populate:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
+    {
+        self.init(writeConcern: writeConcern,
+            readConcern: readConcern,
+            stride: stride,
+            fields: Self.type(collection, then: populate))
     }
 }
 
@@ -86,10 +83,11 @@ extension Mongo.Aggregate where Mode.Stride == Int
         pipeline:Mongo.Pipeline,
         stride:Int)
     {
-        self.init(writeConcern: writeConcern, readConcern: readConcern, stride: stride)
+        self.init(collection: collection,
+            writeConcern: writeConcern,
+            readConcern: readConcern,
+            stride: stride)
         {
-            $0[Self.name] = collection
-            
             $0["pipeline"] = pipeline
             $0["cursor"]
             {
@@ -119,10 +117,8 @@ extension Mongo.Aggregate where Mode.Stride == Void, Mode.Element == Never
     public
     init(collection:Mongo.Collection, pipeline:Mongo.Pipeline)
     {
-        self.init(writeConcern: nil, readConcern: nil, stride: ())
+        self.init(collection: collection, writeConcern: nil, readConcern: nil, stride: ())
         {
-            $0[Self.name] = collection
-            
             $0["pipeline"] = pipeline
             $0["explain"] = true
         }

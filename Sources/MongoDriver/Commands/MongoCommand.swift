@@ -47,7 +47,7 @@ protocol MongoCommand<Response>:Sendable
     /// always begins with a lowercase letter, and usually resembles the name
     /// of the command type.
     static
-    var name:String { get }
+    var type:Mongo.CommandType { get }
 
     /// @import(BSONDecoding)
     /// A hook to decode an untyped server reply to a typed ``Response``.

@@ -15,6 +15,9 @@ extension BSONDocumentViewDecodable
         try self.init(bson: try .init(bson))
     }
 }
+extension BSON.Document:BSONDocumentViewDecodable, BSONDecodable
+{
+}
 extension Dictionary:BSONDocumentViewDecodable, BSONDecodable
     where Key == String, Value:BSONDecodable
 {

@@ -13,12 +13,8 @@ extension Mongo
 }
 extension Mongo.FsyncUnlock:MongoImplicitSessionCommand, MongoCommand
 {
-    /// The string [`"fsyncUnlock"`]().
     @inlinable public static
-    var name:String
-    {
-        "fsyncUnlock"
-    }
+    var type:Mongo.CommandType { .fsyncUnlock }
 
     public
     typealias Database = Mongo.Database.Admin
@@ -28,9 +24,6 @@ extension Mongo.FsyncUnlock:MongoImplicitSessionCommand, MongoCommand
     public
     var fields:BSON.Document
     {
-        .init
-        {
-            $0[Self.name] = 1 as Int32
-        }
+        Self.type(1 as Int32)
     }
 }

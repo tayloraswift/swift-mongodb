@@ -35,10 +35,7 @@ extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
 {
     /// The string [`"refreshSessions"`]().
     @inlinable public static
-    var name:String
-    {
-        "refreshSessions"
-    }
+    var type:Mongo.CommandType { .refreshSessions }
 
     /// `RefreshSessions` must be run against to the `admin` database.
     public
@@ -47,9 +44,6 @@ extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
     public
     var fields:BSON.Document
     {
-        .init
-        {
-            $0[Self.name] = self.sessions
-        }
+        Self.type(self.sessions)
     }
 }

@@ -30,12 +30,8 @@ extension Mongo
 }
 extension Mongo.GetMore:MongoCommand
 {
-    /// The string [`"getMore"`]().
     @inlinable public static
-    var name:String
-    {
-        "getMore"
-    }
+    var type:Mongo.CommandType { .getMore }
 
     public
     typealias Response = Mongo.Cursor<Element>
@@ -43,9 +39,8 @@ extension Mongo.GetMore:MongoCommand
     public
     var fields:BSON.Document
     {
-        .init
+        Self.type(self.cursor)
         {
-            $0[Self.name] = self.cursor
             $0["collection"] = self.collection
             $0["batchSize"] = self.count
         }

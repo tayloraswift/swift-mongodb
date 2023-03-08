@@ -20,18 +20,12 @@ extension Mongo
 }
 extension Mongo.DropDatabase:MongoImplicitSessionCommand, MongoCommand
 {
-    /// The string [`"dropDatabase"`]().
     @inlinable public static
-    var name:String
-    {
-        "dropDatabase"
-    }
+    var type:Mongo.CommandType { .dropDatabase }
+
     public
     var fields:BSON.Document
     {
-        .init
-        {
-            $0[Self.name] = 1 as Int32
-        }
+        Self.type(1 as Int32)
     }
 }

@@ -28,17 +28,34 @@ extension Mongo
         }
     }
 }
+extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
+{
+    @inlinable public static
+    var type:Mongo.CommandType { .insert }
+
+    /// `Insert` supports retryable writes.
+    public
+    typealias ExecutionPolicy = Mongo.Retry
+
+    public
+    typealias Response = Mongo.InsertResponse
+
+    @inlinable public
+    var payload:Mongo.Payload?
+    {
+        .init(id: .documents, documents: self.documents)
+    }
+}
 extension Mongo.Insert
 {
-    @usableFromInline
+    @usableFromInline internal
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern?,
         documents:Mongo.Payload.Documents)
     {
-        self.init(writeConcern: writeConcern, documents: documents, fields: .init
-        {
-            $0[Self.name] = collection
-        })
+        self.init(writeConcern: writeConcern,
+            documents: documents,
+            fields: Self.type(collection))
     }
 }
 extension Mongo.Insert
@@ -63,29 +80,6 @@ extension Mongo.Insert
         try populate(&self)
     }
 }
-extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
-{
-    /// The string [`"insert"`]().
-    @inlinable public static
-    var name:String
-    {
-        "insert"
-    }
-
-    /// `Insert` supports retryable writes.
-    public
-    typealias ExecutionPolicy = Mongo.Retry
-
-    public
-    typealias Response = Mongo.InsertResponse
-
-    @inlinable public
-    var payload:Mongo.Payload?
-    {
-        .init(id: .documents, documents: self.documents)
-    }
-}
-
 extension Mongo.Insert
 {
     @inlinable public
