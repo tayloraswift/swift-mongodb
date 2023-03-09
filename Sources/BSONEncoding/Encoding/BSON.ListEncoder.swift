@@ -11,7 +11,7 @@ extension BSON
     {
         public
         var output:BSON.Output<[UInt8]>
-        public
+        @usableFromInline internal
         var count:Int
 
         @inlinable public
@@ -29,12 +29,15 @@ extension BSON.ListEncoder:BSONEncoder
 }
 extension BSON.ListEncoder
 {
-    @inlinable internal mutating
+    @inlinable public mutating
     func append(with encode:(inout BSON.Field) -> ())
     {
         encode(&self.output[with: .init(index: self.count)])
         self.count += 1
     }
+}
+extension BSON.ListEncoder
+{
     @inlinable public mutating
     func append(_ value:some BSONFieldEncodable)
     {
@@ -50,11 +53,29 @@ extension BSON.ListEncoder
             self.append($0)
         }
     }
-
     @available(*, deprecated, message: "use append(_:) for non-optional values")
     public mutating
     func push(_ element:some BSONFieldEncodable)
     {
         self.push(element as _?)
+    }
+}
+extension BSON.ListEncoder
+{
+    @inlinable public mutating
+    func append(with encode:(inout BSON.ListEncoder) -> ())
+    {
+        self.append { $0.encode(with: encode) }
+    }
+    @inlinable public mutating
+    func append(with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
+    {
+        self.append { $0.encode(with: encode) }
+    }
+    @inlinable public mutating
+    func append<CodingKeys>(using _:CodingKeys.Type = CodingKeys.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ())
+    {
+        self.append { $0.encode(with: encode) }
     }
 }

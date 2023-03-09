@@ -7,7 +7,7 @@ extension BSON.ListView<[UInt8]>
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ list:BSON.List<some Any>)
+    init(_ list:BSON.List)
     {
         self.init(slice: list.bytes)
     }

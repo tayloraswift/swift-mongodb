@@ -12,6 +12,9 @@ extension BSONListViewDecodable
         try self.init(bson: try .init(bson))
     }
 }
+extension BSON.List:BSONListViewDecodable, BSONDecodable
+{
+}
 extension Array:BSONListViewDecodable, BSONDecodable where Element:BSONDecodable
 {
     @inlinable public

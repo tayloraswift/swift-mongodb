@@ -70,7 +70,7 @@ extension Mongo.PredicateDocument
 extension Mongo.PredicateDocument
 {
     @inlinable public
-    subscript(key:Branch) -> BSON.List<Self>?
+    subscript(key:Branch) -> Mongo.PredicateList?
     {
         get
         {
