@@ -1,7 +1,7 @@
 extension BSON.Document
 {
     @inlinable public
-    init<Encodable>(fields:__shared some Sequence<(key:String, value:Encodable)>)
+    init<Encodable>(encoding fields:__shared some Sequence<(key:String, value:Encodable)>)
         where Encodable:BSONEncodable
     {
         self.init()
@@ -70,7 +70,7 @@ extension BSON.Document
 extension BSON.Document
 {
     @inlinable public
-    subscript(_ key:some RawRepresentable<String>,
+    subscript(key:some RawRepresentable<String>,
         with encode:(inout BSON.ListEncoder) -> ()) -> Void
     {
         mutating get
@@ -79,7 +79,7 @@ extension BSON.Document
         }
     }
     @inlinable public
-    subscript(_ key:some RawRepresentable<String>,
+    subscript(key:some RawRepresentable<String>,
         with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ()) -> Void
     {
         mutating get
@@ -88,7 +88,7 @@ extension BSON.Document
         }
     }
     @inlinable public
-    subscript<CodingKeys>(_ key:some RawRepresentable<String>,
+    subscript<CodingKeys>(key:some RawRepresentable<String>,
         using _:CodingKeys.Type = CodingKeys.self,
         with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ()) -> Void
     {

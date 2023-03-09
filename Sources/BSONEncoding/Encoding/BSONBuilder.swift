@@ -39,7 +39,7 @@ extension BSONBuilder
         }
     }
     @inlinable public
-    subscript(_ key:CodingKey,
+    subscript(key:CodingKey,
         with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ()) -> Void
     {
         mutating get
@@ -48,7 +48,7 @@ extension BSONBuilder
         }
     }
     @inlinable public
-    subscript<CodingKeys>(_ key:CodingKey,
+    subscript<CodingKeys>(key:CodingKey,
         using _:CodingKeys.Type = CodingKeys.self,
         with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ()) -> Void
     {
