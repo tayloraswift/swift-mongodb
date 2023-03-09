@@ -15,7 +15,6 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONReflection", targets: ["BSONReflection"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
-        .library(name: "BSONStreaming", targets: ["BSONStreaming"]),
         .library(name: "BSONTypes", targets: ["BSONTypes"]),
         
         .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
@@ -90,18 +89,18 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "BSONReflection",
             dependencies:
             [
-                .target(name: "BSONStreaming"),
+                .target(name: "BSON"),
             ]),
         .target(name: "BSONDecoding",
             dependencies:
             [
-                .target(name: "BSONStreaming"),
+                .target(name: "BSON"),
                 .product(name: "TraceableErrors", package: "swift-grammar"),
             ]),
         .target(name: "BSONEncoding",
             dependencies:
             [
-                .target(name: "BSONStreaming"),
+                .target(name: "BSON"),
             ]),
         
         .target(name: "BSON_UUID",
@@ -222,7 +221,7 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoWire",
             dependencies: 
             [
-                .target(name: "BSONStreaming"),
+                .target(name: "BSON"),
                 .product(name: "CRC", package: "swift-hash"),
             ]),
 
