@@ -1,5 +1,3 @@
-import BSON
-
 extension BSON.Field
 {
     @inlinable public mutating

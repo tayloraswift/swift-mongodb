@@ -20,7 +20,7 @@ func TestFailpoints(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 command: Mongo.ConfigureFailpoint<Mongo.FailCommand>.once(.init(
                     behavior: .blockConnection(then: .error(9999)),
                     appname: bootstrap.appname,
-                    types: [Mongo.Ping.self])),
+                    types: [.ping])),
                 against: .admin,
                 on: .primary)
         }

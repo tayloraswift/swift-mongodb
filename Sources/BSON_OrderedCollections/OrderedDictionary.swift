@@ -1,6 +1,5 @@
 import BSONDecoding
 import BSONEncoding
-import BSONView
 import OrderedCollections
 
 extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable

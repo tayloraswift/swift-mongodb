@@ -1,5 +1,3 @@
-import BSONView
-
 public
 protocol BSONDecoder<Storage>
 {

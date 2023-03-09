@@ -4,12 +4,13 @@ protocol BSONFieldEncodable
     /// A type that can be encoded to a BSON variant value.
     func encode(to field:inout BSON.Field)
 }
-extension BSONFieldEncodable where Self:BSONDSL
+
+extension BSONFieldEncodable where Self:BSONRepresentable, BSONRepresentation:BSONFieldEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(document: .init(self))
+        self.bson.encode(to: &field)
     }
 }
 extension BSONFieldEncodable where Self:RawRepresentable, RawValue:BSONFieldEncodable

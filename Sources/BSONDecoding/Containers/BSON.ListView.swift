@@ -1,5 +1,3 @@
-import BSONView
-
 extension BSON.ListView
 {
     /// @import(BSONView)

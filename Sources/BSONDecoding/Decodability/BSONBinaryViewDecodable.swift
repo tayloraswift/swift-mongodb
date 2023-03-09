@@ -1,5 +1,3 @@
-import BSONView
-
 /// A type that can be decoded from a BSON binary array.
 public
 protocol BSONBinaryViewDecodable:BSONDecodable

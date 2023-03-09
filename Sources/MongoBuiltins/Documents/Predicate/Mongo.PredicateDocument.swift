@@ -4,24 +4,16 @@ import BSONDecoding
 extension Mongo
 {
     @frozen public
-    struct PredicateDocument:Sendable
+    struct PredicateDocument:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }
-}
-extension Mongo.PredicateDocument:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
 }
 extension Mongo.PredicateDocument:BSONDecodable
@@ -33,7 +25,6 @@ extension Mongo.PredicateDocument:BSONEncodable
 
 extension Mongo.PredicateDocument
 {
-    /// @import(BSONDSL)
     /// Encodes an ``Operator``.
     ///
     /// This does not require [`@_disfavoredOverload`](), because
@@ -48,7 +39,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document[key] = value
+            self.bson[key] = value
         }
     }
     @inlinable public
@@ -60,7 +51,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document[key] = value
+            self.bson[key] = value
         }
     }
     @inlinable public
@@ -72,14 +63,14 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document[key] = value
+            self.bson[key] = value
         }
     }
 }
 extension Mongo.PredicateDocument
 {
     @inlinable public
-    subscript(key:Branch) -> BSON.List<Self>?
+    subscript(key:Branch) -> Mongo.PredicateList?
     {
         get
         {
@@ -87,7 +78,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -99,7 +90,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document.append(key, value)
+            self.bson.append(key, value)
         }
     }
     @inlinable public
@@ -111,7 +102,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -123,7 +114,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }

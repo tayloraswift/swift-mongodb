@@ -11,10 +11,15 @@ extension BSON.Document
         }
     }
 }
-extension BSON.Document:BSONDocumentBuilder
-{
-}
 extension BSON.Document:BSONEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(document: .init(self))
+    }
+}
+extension BSON.Document:BSONBuilder
 {
 }
 extension BSON.Document

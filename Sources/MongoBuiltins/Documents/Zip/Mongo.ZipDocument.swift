@@ -1,27 +1,23 @@
+import BSONDecoding
 import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct ZipDocument:Sendable
+    struct ZipDocument:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }    
-}
-extension Mongo.ZipDocument:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
+}
+extension Mongo.ZipDocument:BSONDecodable
+{
 }
 extension Mongo.ZipDocument:BSONEncodable
 {
@@ -38,7 +34,7 @@ extension Mongo.ZipDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -52,7 +48,7 @@ extension Mongo.ZipDocument
         }
         set(value)
         {
-            self[key] = .init
+            self.bson[key]
             {
                 $0.push(value.0)
                 $0.push(value.1)
@@ -71,7 +67,7 @@ extension Mongo.ZipDocument
         }
         set(value)
         {
-            self[key] = .init
+            self.bson[key]
             {
                 $0.push(value.0)
                 $0.push(value.1)
@@ -92,7 +88,7 @@ extension Mongo.ZipDocument
         }
         set(value)
         {
-            self[key] = .init
+            self.bson[key]
             {
                 $0.push(value.0)
                 $0.push(value.1)
@@ -116,8 +112,8 @@ extension Mongo.ZipDocument
         {
             if let value:Encodable = value
             {
-                self.document.append(key, value)
-                self.document.append("useLongestLength", true)
+                self.bson.append(key, value)
+                self.bson.append("useLongestLength", true)
             }
         }
     }

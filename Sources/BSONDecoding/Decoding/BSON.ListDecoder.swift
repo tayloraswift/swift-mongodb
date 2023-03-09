@@ -1,5 +1,3 @@
-import BSONView
-
 extension BSON
 {
     /// A thin wrapper around a native Swift array providing an efficient decoding

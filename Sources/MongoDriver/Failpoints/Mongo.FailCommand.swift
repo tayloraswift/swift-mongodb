@@ -11,10 +11,10 @@ extension Mongo
         public
         let appname:String?
         public
-        let types:[any MongoCommand.Type]
+        let types:[CommandType]
 
         public
-        init(behavior:Behavior?, appname:String?, types:[any MongoCommand.Type])
+        init(behavior:Behavior?, appname:String?, types:[CommandType])
         {
             self.behavior = behavior
             self.appname = appname
@@ -27,10 +27,7 @@ extension Mongo.FailCommand:MongoFailpoint
 {
     /// The string [`"failCommand"`]().
     @inlinable public static
-    var name:String
-    {
-        "failCommand"
-    }
+    var name:String { "failCommand" }
 }
 extension Mongo.FailCommand:BSONEncodable, BSONDocumentEncodable
 {
@@ -38,7 +35,7 @@ extension Mongo.FailCommand:BSONEncodable, BSONDocumentEncodable
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
         bson["appName"] = self.appname
-        bson["failCommands"] = self.types.map { $0.name }
+        bson["failCommands"] = self.types
 
         switch self.behavior
         {

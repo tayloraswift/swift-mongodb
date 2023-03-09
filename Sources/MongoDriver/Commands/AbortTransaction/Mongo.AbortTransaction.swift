@@ -19,12 +19,8 @@ extension Mongo
 }
 extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
 {
-    /// The string [`"abortTransaction"`]().
     @inlinable public static
-    var name:String
-    {
-        "abortTransaction"
-    }
+    var type:Mongo.CommandType { .abortTransaction }
 
     /// `AbortTransaction` must be run against the `admin` database.
     public
@@ -33,9 +29,6 @@ extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
     public
     var fields:BSON.Document
     {
-        .init
-        {
-            $0[Self.name] = 1 as Int32
-        }
+        Self.type(1 as Int32)
     }
 }

@@ -1,5 +1,3 @@
-import BSONView
-
 /// A type that can be decoded from a BSON list-document only.
 public
 protocol BSONListViewDecodable:BSONDecodable
@@ -13,6 +11,9 @@ extension BSONListViewDecodable
     {
         try self.init(bson: try .init(bson))
     }
+}
+extension BSON.List:BSONListViewDecodable, BSONDecodable
+{
 }
 extension Array:BSONListViewDecodable, BSONDecodable where Element:BSONDecodable
 {

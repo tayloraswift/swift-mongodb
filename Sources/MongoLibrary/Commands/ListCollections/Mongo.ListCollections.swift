@@ -35,12 +35,34 @@ extension Mongo
         }
     }
 }
+extension Mongo.ListCollections:MongoIterableCommand
+{
+    /// `ListCollections` supports retryable reads.
+    public
+    typealias ExecutionPolicy = Mongo.Retry
+
+    public
+    typealias Response = Mongo.Cursor<Element>
+    
+    @inlinable public
+    var tailing:Mongo.Tailing?
+    {
+        nil
+    }
+}
+extension Mongo.ListCollections:MongoImplicitSessionCommand,
+    MongoTransactableCommand,
+    MongoCommand
+{
+    @inlinable public static
+    var type:Mongo.CommandType { .listCollections }
+}
 extension Mongo.ListCollections
 {
     private
-    init(stride:Int, with populate:(inout BSON.Document) throws -> ()) rethrows
+    init(stride:Int, with populate:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
     {
-        self.init(stride: stride, fields: try .init(with: populate))
+        self.init(stride: stride, fields: Self.type(1 as Int32, then: populate))
     }
 }
 extension Mongo.ListCollections<Mongo.CollectionBinding>
@@ -50,7 +72,6 @@ extension Mongo.ListCollections<Mongo.CollectionBinding>
     {
         self.init(stride: stride)
         {
-            $0[Self.name] = 1 as Int32
             $0["cursor"]
             {
                 $0["batchSize"] = stride
@@ -72,7 +93,6 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
     {
         self.init(stride: stride)
         {
-            $0[Self.name] = 1 as Int32
             $0["cursor"]
             {
                 $0["batchSize"] = stride
@@ -84,32 +104,6 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
     {
         self.init(stride: stride)
         try populate(&self)
-    }
-}
-extension Mongo.ListCollections:MongoIterableCommand
-{
-    /// `ListCollections` supports retryable reads.
-    public
-    typealias ExecutionPolicy = Mongo.Retry
-
-    public
-    typealias Response = Mongo.Cursor<Element>
-    
-    @inlinable public
-    var tailing:Mongo.Tailing?
-    {
-        nil
-    }
-}
-extension Mongo.ListCollections:MongoImplicitSessionCommand,
-    MongoTransactableCommand,
-    MongoCommand
-{
-    /// The string [`"listCollections"`]().
-    @inlinable public static
-    var name:String
-    {
-        "listCollections"
     }
 }
 // FIXME: ListCollections *can* run on a secondary,

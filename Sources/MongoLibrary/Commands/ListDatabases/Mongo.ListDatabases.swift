@@ -20,10 +20,7 @@ extension Mongo
         public
         init()
         {
-            self.fields = .init
-            {
-                $0[Self.name] = 1 as Int32
-            }
+            self.fields = Self.type(1 as Int32)
         }
     }
 }
@@ -38,12 +35,8 @@ extension Mongo.ListDatabases
 }
 extension Mongo.ListDatabases:MongoImplicitSessionCommand, MongoCommand
 {
-    /// The string [`"listDatabases"`]().
     @inlinable public static
-    var name:String
-    {
-        "listDatabases"
-    }
+    var type:Mongo.CommandType { .listDatabases }
 
     /// `ListDatabases` supports retryable reads.
     public

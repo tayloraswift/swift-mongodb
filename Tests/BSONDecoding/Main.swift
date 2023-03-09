@@ -1,5 +1,5 @@
-import Testing
 import BSONDecoding
+import Testing
 
 @main 
 enum Main:SyncTests

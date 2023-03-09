@@ -1,5 +1,5 @@
 import BSONDecoding
-import BSONView
+import BSON
 
 extension Mongo.Reply
 {

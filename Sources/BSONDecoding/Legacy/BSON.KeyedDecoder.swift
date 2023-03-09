@@ -1,5 +1,3 @@
-import BSONView
-
 extension BSON
 {
     struct KeyedDecoder<Storage, Key> where Storage:RandomAccessCollection<UInt8>, Key:CodingKey

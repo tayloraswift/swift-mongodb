@@ -1,5 +1,3 @@
-import BSON
-
 public
 protocol BSONEncoder
 {

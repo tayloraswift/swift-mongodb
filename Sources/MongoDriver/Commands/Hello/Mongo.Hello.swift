@@ -22,17 +22,14 @@ extension Mongo.Hello
 {
     /// The string [`"hello"`]().
     @inlinable public static
-    var name:BSON.Key
-    {
-        "hello"
-    }
+    var type:Mongo.CommandType { .hello }
 }
 extension Mongo.Hello:BSONDocumentEncodable
 {
     public
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        bson[Self.name] = true
+        bson[.init(Self.type)] = true
         bson["client"] = self.client
         bson["saslSupportedMechs"] = self.user
     }

@@ -25,10 +25,7 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
     /// The string [`"configureFailPoint"`](). Note that the capitalization
     /// is different from that of the command type.
     @inlinable public static
-    var name:String
-    {
-        "configureFailPoint"
-    }
+    var type:Mongo.CommandType { .configureFailpoint }
 
     /// `ConfigureFailpoint` must be run against to the `admin` database.
     public
@@ -37,10 +34,8 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
     public
     var fields:BSON.Document
     {
-        .init
+        Self.type(Options.name)
         {
-            $0[Self.name] = Options.name
-
             switch self
             {
             case .always(let options):

@@ -22,18 +22,14 @@ extension Mongo.AwaitableHello
 {
     /// The string [`"hello"`]().
     static
-    var name:BSON.Key
-    {
-        Mongo.Hello.name
-    }
+    var type:Mongo.CommandType { .hello }
 }
 extension Mongo.AwaitableHello:BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        bson[Self.name] = true
+        bson[.init(Self.type)] = true
         bson["topologyVersion"] = self.topologyVersion
         bson["maxAwaitTimeMS"] = self.milliseconds
     }
 }
-

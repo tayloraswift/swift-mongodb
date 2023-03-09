@@ -18,19 +18,12 @@ extension Mongo.Ping:MongoTransactableCommand
 }
 extension Mongo.Ping:MongoImplicitSessionCommand, MongoCommand
 {
-    /// The string [`"ping"`]().
     @inlinable public static
-    var name:String
-    {
-        "ping"
-    }
+    var type:Mongo.CommandType { .ping }
 
     public
     var fields:BSON.Document
     {
-        .init
-        {
-            $0[Self.name] = 1 as Int32
-        }
+        Self.type(1 as Int32)
     }
 }

@@ -1,5 +1,3 @@
-import BSONView
-
 /// A type that can be decoded from a BSON document. List-documents
 /// count as documents, from the perspective of this protocol.
 public
@@ -14,6 +12,9 @@ extension BSONDocumentViewDecodable
     {
         try self.init(bson: try .init(bson))
     }
+}
+extension BSON.Document:BSONDocumentViewDecodable, BSONDecodable
+{
 }
 extension Dictionary:BSONDocumentViewDecodable, BSONDecodable
     where Key == String, Value:BSONDecodable

@@ -11,7 +11,7 @@ extension MongoExpression
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -23,7 +23,7 @@ extension MongoExpression
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -35,7 +35,7 @@ extension MongoExpression
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -47,7 +47,7 @@ extension MongoExpression
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -59,7 +59,7 @@ extension MongoExpression
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }
@@ -81,7 +81,7 @@ extension MongoExpression
         {
             if case (in: let sequence?, of: let element?, let start, let end) = value
             {
-                self.document[key]
+                self.bson[key]
                 {
                     $0.append(sequence)
                     $0.append(element)

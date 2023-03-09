@@ -4,24 +4,16 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct MergeDocument:Sendable
+    struct MergeDocument:BSONRepresentable, BSONDSL, Sendable
     {
         public
-        var document:BSON.Document
+        var bson:BSON.Document
 
         @inlinable public
-        init(bytes:[UInt8] = [])
+        init(_ bson:BSON.Document)
         {
-            self.document = .init(bytes: bytes)
+            self.bson = bson
         }
-    }
-}
-extension Mongo.MergeDocument:BSONDSL
-{
-    @inlinable public
-    var bytes:[UInt8]
-    {
-        self.document.bytes
     }
 }
 extension Mongo.MergeDocument:BSONEncodable
@@ -41,7 +33,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -53,7 +45,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value?.document)
+            self.bson.push(key, value?.document)
         }
     }
 
@@ -66,7 +58,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -78,7 +70,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -91,7 +83,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 
@@ -104,7 +96,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -116,7 +108,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
     @inlinable public
@@ -128,7 +120,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.document.push(key, value)
+            self.bson.push(key, value)
         }
     }
 }

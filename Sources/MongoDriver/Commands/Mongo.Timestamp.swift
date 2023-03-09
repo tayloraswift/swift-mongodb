@@ -1,6 +1,6 @@
 import BSONDecoding
 import BSONEncoding
-import BSONView
+import BSON
 
 extension Mongo
 {

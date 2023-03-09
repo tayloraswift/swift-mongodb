@@ -20,10 +20,7 @@ extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
 {
     /// The string [`"commitTransaction"`]().
     @inlinable public static
-    var name:String
-    {
-        "commitTransaction"
-    }
+    var type:Mongo.CommandType { .commitTransaction }
 
     /// `CommitTransaction` must be run against to the `admin` database.
     public
@@ -32,9 +29,6 @@ extension Mongo.CommitTransaction:MongoTransactableCommand, MongoCommand
     public
     var fields:BSON.Document
     {
-        .init
-        {
-            $0[Self.name] = 1 as Int32
-        }
+        Self.type(1 as Int32)
     }
 }

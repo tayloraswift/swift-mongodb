@@ -1,5 +1,4 @@
 import BSONEncoding
-import BSONView
 import Testing
 
 func TestEncoding(_ tests:TestGroup?,

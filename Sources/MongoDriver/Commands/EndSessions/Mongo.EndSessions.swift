@@ -25,18 +25,14 @@ extension Mongo
 }
 extension Mongo.EndSessions
 {
-    /// The string [`"endSessions"`]().
     @inlinable public static
-    var name:BSON.Key
-    {
-        "endSessions"
-    }
+    var type:Mongo.CommandType { .endSessions }
 }
 extension Mongo.EndSessions:BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
+    func encode(to bson:inout BSON.DocumentEncoder<Mongo.CommandType>)
     {
-        bson[Self.name] = self.sessions
+        bson[Self.type] = self.sessions
     }
 }

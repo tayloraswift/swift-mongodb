@@ -1,6 +1,6 @@
 import Base16
 import BSON
-import BSONCanonicalization
+import BSONReflection
 import Testing
 
 @main 

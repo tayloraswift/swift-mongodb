@@ -20,9 +20,8 @@ extension Mongo.ListDatabases
         public
         init()
         {
-            self.fields = .init
+            self.fields = Self.type(1 as Int32)
             {
-                $0[Self.name] = 1 as Int32
                 $0["nameOnly"] = true
             }
         }
@@ -39,12 +38,8 @@ extension Mongo.ListDatabases.NameOnly
 }
 extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
 {
-    /// The string [`"listDatabases"`]().
     @inlinable public static
-    var name:String
-    {
-        Mongo.ListDatabases.name
-    }
+    var type:Mongo.CommandType { .listDatabases }
 
     /// `ListDatabases` supports retryable reads.
     public

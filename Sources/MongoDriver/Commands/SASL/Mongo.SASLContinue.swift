@@ -14,18 +14,14 @@ extension Mongo
 }
 extension Mongo.SASLContinue
 {
-    /// The string [`"saslContinue"`]().
     static
-    var name:BSON.Key
-    {
-        "saslContinue"
-    }
+    var type:Mongo.CommandType { .saslContinue }
 }
 extension Mongo.SASLContinue:BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        bson[Self.name] = true
+        bson[.init(Self.type)] = true
         bson["conversationId"] = self.conversation
         bson["payload"] = self.message.base64
     }

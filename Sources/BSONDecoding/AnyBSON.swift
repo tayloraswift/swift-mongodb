@@ -1,5 +1,3 @@
-import BSONView
-
 extension BSON.AnyValue:Decoder 
 {
     @inlinable public 

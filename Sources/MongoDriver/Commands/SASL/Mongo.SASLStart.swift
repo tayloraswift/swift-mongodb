@@ -20,18 +20,14 @@ extension Mongo
 }
 extension Mongo.SASLStart
 {
-    /// The string [`"saslStart"`]().
     static
-    var name:BSON.Key
-    {
-        "saslStart"
-    }
+    var type:Mongo.CommandType { .saslStart }
 }
 extension Mongo.SASLStart:BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        bson[Self.name] = true
+        bson[.init(Self.type)] = true
         bson["mechanism"] = self.mechanism
         bson["payload"] = self.scram.message.base64
         bson["options"]
