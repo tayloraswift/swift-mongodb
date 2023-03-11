@@ -34,8 +34,7 @@ extension BSON.DecodingError:Equatable where Location:Equatable
         lhs.underlying == rhs.underlying
     }
 }
-extension BSON.DecodingError:TraceableError, CustomStringConvertible
-    where Location:CustomStringConvertible
+extension BSON.DecodingError:TraceableError
 {
     /// Returns a single note that says
     /// [`"while decoding value for field '_'"`]().
