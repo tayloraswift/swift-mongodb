@@ -75,6 +75,24 @@ extension BSON.DocumentDecoder
 }
 extension BSON.DocumentDecoder
 {
+    @inlinable public __consuming
+    func single() throws -> BSON.ExplicitField<CodingKey, Bytes>
+    {
+        guard let (key, value):(CodingKey, BSON.AnyValue<Bytes>) = self.index.first
+        else
+        {
+            throw BSON.SingleKeyError<CodingKey>.none
+        }
+        if self.index.count == 1
+        {
+            return .init(key: key, value: value)
+        }
+        else
+        {
+            throw BSON.SingleKeyError<CodingKey>.multiple
+        }
+    }
+
     @inlinable public
     subscript(key:CodingKey) -> BSON.ExplicitField<CodingKey, Bytes>?
     {
