@@ -1,6 +1,6 @@
 <div align="center">
   
-***`mongodb`***<br>`0.1.8`
+***`mongodb`***<br>`0.1.12`
 
 [![ci status](https://github.com/kelvin13/swift-mongodb/actions/workflows/build.yml/badge.svg)](https://github.com/kelvin13/swift-mongodb/actions/workflows/build.yml)
 
@@ -9,7 +9,7 @@
 
 </div>
 
-*`swift-mongodb`* is a pure-Swift, Foundation-less BSON library and MongoDB driver.
+*`swift-mongodb`* is a pure-Swift BSON library and MongoDB driver. All of the constituent products in this package are Foundation-free.
 
 ## getting started
 
@@ -36,129 +36,9 @@ let configuration:Mongo.ReplicaSetConfiguration = try await bootstrap.withSessio
 }
 
 print(configuration)
+
+//  ...
 ```
-
-## products
-
-This package vends the following library products:
-
-1.  [**`BSON`**](Sources/BSON) ([`BSONTraversal`](Sources/BSONTraversal))
-
-    Defines BSON types. Consumers that don’t need to perform any decoding or encoding, or interact with variants (union types) can depend on this product alone.
-
-    This module contains a type (`BSON`) of the same name as the module itself, so every declaration in this module is namespaced to that type.
-
-1.  [**`BSONDSL`**](Sources/BSONDSL) ([`BSON`](Sources/BSON))
-
-    Provides the basic definitions needed to bootstrap BSON-based domain-specific languages (DSLs). Defines the `BSONDSL` protocol and the `BSON.Document`, and `BSON.List` containers.
-
-1.  [**`BSONDecoding`**](Sources/BSONDecoding) ([`BSON`*](Sources/BSON), [`BSONDSL`*](Sources/BSONDSL), [`BSONView`](Sources/BSONView))
-
-    Provides tools for performantly decoding BSON with an emphasis on type-safety and avoiding allocations.
-    
-    Also vends a fallback [`Decoder`](https://swiftinit.org/reference/swift/decoder) interface for consumers migrating from [`Decodable`](https://swiftinit.org/reference/swift/decodable).
-
-    Re-exports `BSON` and `BSONDSL`, but not `BSONView`.
-
-1.  [**`BSONEncoding`**](Sources/BSONEncoding) ([`BSON`*](Sources/BSON), [`BSONDSL`*](Sources/BSONDSL))
-
-    Vends tools for performantly encoding BSON with an emphasis on static typing and legibility.
-
-    Re-exports `BSON` and `BSONDSL`.
-
-1.  [**`BSONView`**](Sources/BSONView) ([`BSON`](Sources/BSON))
-
-    Defines the `BSON.AnyValue` union type, the `BSON.TypecastError` type, and provides tools for working with heterogenous/dynamically-typed BSON.
-
-    Also vends [`ExpressibleByArrayLiteral`](https://swiftinit.org/reference/swift/expressiblebyarrayliteral) and [`ExpressibleByDictionaryLiteral`](https://swiftinit.org/reference/swift/expressiblebydictionaryliteral) conformances for various BSON types, including `BSON.AnyValue`.
-
-    Does not re-export `BSON`.
-
-1.  [**`BSON_UUID`**](Sources/BSON_UUID) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`UUID`](Sources/UUID))
-
-    A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the `UUID` type.
-
-1.  [**`BSON_Durations`**](Sources/BSON_Durations) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`Durations`](Sources/UUID))
-
-    A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for the various quantized duration types.
-
-1.  [**`BSON_OrderedCollections`**](Sources/BSON_OrderedCollections) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), `OrderedCollections`)
-
-    A standard overlay module providing `BSONEncodable` and `BSONDecodable` conformances for [`OrderedDictionary`](https://swiftinit.org/reference/swift-collections/orderedcollections/ordereddictionary).
-
-1.  [**`Durations`**](Sources/Durations)
-
-    Vends quantized duration types (`Minutes`, `Seconds`, `Milliseconds`), and the `QuantizedDuration` protocol.
-
-1.  [**`Durations_Atomics`**](Sources/Durations_Atomics) ([`Durations`](Sources/UUID), `Atomics`)
-
-    A standard overlay module declaring `AtomicValue` conformances for the various quantized duration types.
-
-1.  [**`MongoDSL`**](Sources/MongoDSL) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding))
-
-    Implements the MongoDB aggregation expression DSL.
-
-1.  [**`Mongo`**](Sources/Mongo) ([`BSONDecoding`](Sources/BSONDecoding), [`BSONEncoding`](Sources/BSONEncoding), [`Durations`](Sources/Durations), [`TraceableErrors`](Sources/TraceableErrors))
-
-    A single-namespace module that implements the topology model and state-transition operations used by the driver’s service discovery and monitoring components.
-
-    Also implements much of the server selection specification, including tag sets, secondary staleness, and read modes.
-
-1.  [**`MongoBuiltins`**](Sources/MongoBuiltins) ([`MongoDSL`*](Sources/MongoDSL), [`Mongo`*](Sources/Mongo))
-
-    Implements the MongoDB “standard library”, which currently consists of complex aggregation expression operators, accumulators, various standard MongoDB document formats, and aggregation pipeline stages.
-
-1.  [**`MongoChannel`**](Sources/MongoChannel)
-([`BSONDecoding`](Sources/BSONDecoding),
-[`BSONEncoding`](Sources/BSONEncoding),
-[`MongoWire`](Sources/MongoWire),
-[`TraceableErrors`](Sources/TraceableErrors),
-`NIOCore`,
-`Atomics`)
-
-    A single-namespace, NIO-based layer over `MongoWire`, that vends channel handlers and supports basic command routing and connection lifecycle management.
-
-1.  [**`MongoDB`**](Sources/MongoDB) ([`MongoBuiltins`*](Sources/MongoBuiltins), [`MongoDriver`*](Sources/MongoDriver))
-
-    Vends Swift bindings for MongoDB’s command API, and also implements cursors and managed cursor streams. Most package consumers will depend this module, unless it is possible to depend on one of its constituent dependencies.
-
-    Depends on SwiftNIO (indirectly), and re-exports `MongoBuiltins` and `MongoDriver`.
-
-1.  [**`MongoDriver`**](Sources/MongoDriver)
-([`Mongo`*](Sources/Mongo),
-[`MongoChannel`](Sources/MongoChannel),
-[`BSON_Durations`](Sources/BSON_Durations),
-[`BSON_OrderedCollections`](Sources/BSON_OrderedCollections),
-[`BSON_UUID`](Sources/BSON_UUID),
-[`Durations_Atomics`](Sources/Durations_Atomics),
-[`SCRAM`](Sources/SCRAM),
-[`SHA2`](https://github.com/kelvin13/swift-hash/tree/master/Sources/SHA2),
-`NIOPosix`,
-`NIOSSL`)
-
-    Implements a MongoDB driver, for communicating with a `mongod`/`mongos` server. Handles authentication, sessions, transactions, and command execution, but does not define complex MongoDB commands that have DSLs. Notably, `MongoDriver` does not depend on `MongoBuiltins`.
-
-1.  [**`MongoWire`**](Sources/MongoWire) ([`BSON`](Sources/BSON), [`CRC`](https://github.com/kelvin13/swift-hash/tree/master/Sources/CRC))
-
-    A single-namespace module that implements the [MongoDB wire protocol](https://www.mongodb.com/docs/manual/reference/mongodb-wire-protocol/), in a generic manner without dependency on SwiftNIO.
-
-1.  [**`OnlineCDF`**](Sources/OnlineCDF)
-
-    Implements the t-digest data structure, for tracking online CDFs.
-
-1.  [**`SCRAM`**](Sources/SCRAM) ([`Base64`](https://github.com/kelvin13/swift-hash/tree/master/Sources/Base64), [`MessageAuthentication`](https://github.com/kelvin13/swift-hash/tree/master/Sources/MessageAuthentication))
-
-    Implements [SCRAM](https://www.rfc-editor.org/rfc/rfc5802#section-7). The module is intended to be used with [MongoDB SCRAM-SHA-256](https://github.com/mongodb/specifications/blob/master/source/auth/auth.rst#scram-sha-256), but is not strongly coupled with any particular flavor of SCRAM.
-
-1.  [**`TraceableErrors`**](Sources/TraceableErrors)
-
-    Provides support for error chaining and pretty-printing of errors.
-
-1.  [**`UUID`**](Sources/UUID)
-
-    Defines the `UUID` type, and an interface for interacting with UUIDs as [`RandomAccessCollection`](https://swiftinit.org/reference/swift/randomaccesscollection)s of [`UInt8`](https://swiftinit.org/reference/swift/uint8).
-
-All of the modules listed above are Foundation-free.
 
 ## external dependencies
 
