@@ -1,5 +1,4 @@
 import Atomics
-import AtomicReference
 
 extension Mongo
 {
