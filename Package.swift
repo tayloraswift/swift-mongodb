@@ -44,22 +44,13 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.3.1")),
         .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.5.0")),
         
-        .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(from: "1.0.3")),
+        .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(from: "1.1.0")),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.0.4")),
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.48.0")),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(from: "2.23.0")),
     ],
     targets:
     [
-        .target(name: "AtomicReferenceShims"),
-        
-        .target(name: "AtomicReference",
-            dependencies:
-            [
-                .target(name: "AtomicReferenceShims"),
-                .product(name: "Atomics", package: "swift-atomics"),
-            ]),
-        
         .target(name: "UUID",
             dependencies:
             [
@@ -175,7 +166,6 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoDriver",
             dependencies: 
             [
-                .target(name: "AtomicReference"),
                 .target(name: "BSON_Durations"),
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
@@ -184,6 +174,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoExecutor"),
                 .target(name: "OnlineCDF"),
                 .target(name: "SCRAM"),
+                .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "SHA2", package: "swift-hash"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
