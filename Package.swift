@@ -41,13 +41,19 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     dependencies: 
     [
-        .package(url: "https://github.com/kelvin13/swift-grammar", .upToNextMinor(from: "0.3.1")),
-        .package(url: "https://github.com/kelvin13/swift-hash", .upToNextMinor(from: "0.5.0")),
+        .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
+            from: "0.3.2")),
+        .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
+            from: "0.5.0")),
         
-        .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(from: "1.1.0")),
-        .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.0.4")),
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.48.0")),
-        .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(from: "2.23.0")),
+        .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(
+            from: "1.1.0")),
+        .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
+            from: "1.0.4")),
+        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(
+            from: "2.51.0")),
+        .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(
+            from: "2.24.0")),
     ],
     targets:
     [

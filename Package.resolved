@@ -21,16 +21,16 @@
     {
       "identity" : "swift-grammar",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kelvin13/swift-grammar",
+      "location" : "https://github.com/tayloraswift/swift-grammar",
       "state" : {
-        "revision" : "69613825b2ad1d0538c59d72e548867ce7568cc2",
-        "version" : "0.3.1"
+        "revision" : "3ed94966b1fd8145c2624a5955a9f0d17663280b",
+        "version" : "0.3.2"
       }
     },
     {
       "identity" : "swift-hash",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kelvin13/swift-hash",
+      "location" : "https://github.com/tayloraswift/swift-hash",
       "state" : {
         "revision" : "c7ba0cde5eb63042c2196b02b65a770101c1ac11",
         "version" : "0.5.0"

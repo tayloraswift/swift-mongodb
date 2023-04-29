@@ -73,6 +73,14 @@ extension BSON.DocumentDecoder
         }
     }
 }
+extension BSON.DocumentDecoder where Storage == [UInt8]
+{
+    @inlinable public 
+    init(parsing bson:__shared BSON.Document) throws
+    {
+        try self.init(parsing: .init(bson))
+    }
+}
 extension BSON.DocumentDecoder
 {
     @inlinable public __consuming
