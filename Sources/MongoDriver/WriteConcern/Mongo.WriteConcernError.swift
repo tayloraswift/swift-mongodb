@@ -62,8 +62,7 @@ extension Mongo.WriteConcernError:BSONDecodable, BSONDocumentDecodable
     {
         self.init(code: try bson[.code].decode(to: Int32.self),
             message: try bson[.errorMessage].decode(to: String.self),
-            details: try bson[.errorDetails]?.decode(
-                as: BSON.DocumentDecoder<BSON.Key, Bytes.SubSequence>.self)
+            details: try bson[.errorDetails]?.decode
             {
                 try $0["writeConcern"].decode(to: Details.self)
             })
