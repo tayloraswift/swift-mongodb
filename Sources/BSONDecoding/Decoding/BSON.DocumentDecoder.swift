@@ -7,7 +7,7 @@ extension BSON
         where   CodingKey:Hashable & RawRepresentable<String>,
                 Storage:RandomAccessCollection<UInt8>
     {
-        public
+        @usableFromInline internal
         var index:[CodingKey: BSON.AnyValue<Bytes>]
         
         @inlinable public
@@ -81,24 +81,37 @@ extension BSON.DocumentDecoder where Storage == [UInt8]
         try self.init(parsing: .init(bson))
     }
 }
+extension BSON.DocumentDecoder:Sequence
+{
+    @inlinable public
+    func makeIterator() -> Iterator
+    {
+        .init(base: self.index.makeIterator())
+    }
+}
 extension BSON.DocumentDecoder
 {
     @inlinable public __consuming
     func single() throws -> BSON.ExplicitField<CodingKey, Bytes>
     {
-        guard let (key, value):(CodingKey, BSON.AnyValue<Bytes>) = self.index.first
+        var single:BSON.ExplicitField<CodingKey, Bytes>? = nil
+        for field:BSON.ExplicitField<CodingKey, Bytes> in self
+        {
+            if case nil = single
+            {
+                single = field
+            }
+            else
+            {
+                throw BSON.SingleKeyError<CodingKey>.multiple
+            }
+        }
+        guard let single
         else
         {
             throw BSON.SingleKeyError<CodingKey>.none
         }
-        if self.index.count == 1
-        {
-            return .init(key: key, value: value)
-        }
-        else
-        {
-            throw BSON.SingleKeyError<CodingKey>.multiple
-        }
+        return single
     }
 
     @inlinable public
