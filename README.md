@@ -2,10 +2,10 @@
   
 ***`mongodb`***<br>`0.1.14`
 
-[![ci status](https://github.com/kelvin13/swift-mongodb/actions/workflows/build.yml/badge.svg)](https://github.com/kelvin13/swift-mongodb/actions/workflows/build.yml)
+[![ci status](https://github.com/tayloraswift/swift-mongodb/actions/workflows/build.yml/badge.svg)](https://github.com/tayloraswift/swift-mongodb/actions/workflows/build.yml)
 
-[![swift package index versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkelvin13%2Fswift-mongodb%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/kelvin13/swift-mongodb)
-[![swift package index platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkelvin13%2Fswift-mongodb%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/kelvin13/swift-mongodb)
+[![swift package index versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkelvin13%2Fswift-mongodb%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/tayloraswift/swift-mongodb)
+[![swift package index platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkelvin13%2Fswift-mongodb%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/tayloraswift/swift-mongodb)
 
 </div>
 
@@ -46,11 +46,11 @@ I have verified that all products depended-upon by this package are Foundation-f
 
 My packages:
 
-1.  [`swift-grammar`](https://github.com/kelvin13/swift-grammar)
+1.  [`swift-grammar`](https://github.com/tayloraswift/swift-grammar)
 
     Rationale: this package provides the `TraceableErrors` module which the driver uses to provide rich diagnostics. The driver does not depend on any parser targets.
 
-1.  [`swift-hash`](https://github.com/kelvin13/swift-hash)
+1.  [`swift-hash`](https://github.com/tayloraswift/swift-hash)
 
     Rationale: this package implements cryptographic algorithms the driver uses to complete authentication with `mongod`/`mongos` servers.
 
@@ -88,4 +88,4 @@ The [official MongoDB C driver](https://github.com/mongodb/mongo-swift-driver) a
 
 The `MongoDriver` module is MIT-licensed.
 
-The other modules are available under the MPL 2.0 license. This license was chosen as an organizational default, and is not ideological. Please [reach out](https://github.com/kelvin13/swift-mongodb/discussions) if you have a use-case that requires a more-permissive license!
+The other modules are available under the MPL 2.0 license. This license was chosen as an organizational default, and is not ideological. Please [reach out](https://github.com/tayloraswift/swift-mongodb/discussions) if you have a use-case that requires a more-permissive license!

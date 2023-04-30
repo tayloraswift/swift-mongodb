@@ -27,12 +27,12 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                 //  We should be able to initialize the test collection with 100 ordinals
                 //  of the form:
                 //
-                //  {_id: 0, ordinal: 0}
-                //  {_id: 1, ordinal: 1}
+                //  {_id: 0, value: 0}
+                //  {_id: 1, value: 1}
                 //
                 //   ...
                 //
-                //  {_id: 99, ordinal: 99}
+                //  {_id: 99, value: 99}
                 let expected:Mongo.InsertResponse = .init(inserted: 100)
                 let response:Mongo.InsertResponse = try await initializer.run(
                     command: Mongo.Insert.init(collection: collection,
@@ -61,7 +61,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                 tests.expect(await pool.count ==? 2)
                 //  We should be able to query the collection for results in batches of
                 //  10.
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
                         collection: collection,
                         stride: 10),
                     against: database,
@@ -94,7 +94,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                     //  We should be able to fully iterate the cursor by iterating its
                     //  ``AsyncSequence``
                     var batch:Int = 0
-                    for try await elements:[Ordinal] in $0
+                    for try await elements:[Record<Int64>] in $0
                     {
                         //  We should never observe an empty batch, in fact, every batch
                         //  we receive should contain exactly ten elements.
@@ -172,7 +172,8 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                     let session:Mongo.Session = try await .init(from: pool,
                         forking: initializer)
                     let cursor:Mongo.CursorIdentifier? =
-                        try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                        try await session.run(
+                            command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
                                 collection: collection,
                                 stride: 10),
                             against: database,
@@ -181,7 +182,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                         if  iterations > 0
                         {
                             var iteration:Int = 0
-                            for try await _:[Ordinal] in $0
+                            for try await _:[Record<Int64>] in $0
                             {
                                 iteration += 1
                                 if iteration == iterations
@@ -212,7 +213,8 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                                 collection: collection),
                             against: database,
                             on: server)
-                        // if the cursor is already dead, killing it manually will return 'notFound'.
+                        // if the cursor is already dead, killing it manually will return
+                        // 'notFound'.
                         tests.expect(cursors.alive **? [])
                         tests.expect(cursors.killed **? [])
                         tests.expect(cursors.unknown **? [])
@@ -233,14 +235,14 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
             {
                 let session:Mongo.Session = try await .init(from: pool, forking: initializer)
                 try await session.run(
-                    command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                    command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
                         collection: collection,
                         stride: 10),
                     against: database,
                     on: server)
                 {
                     var counter:Int = 0
-                    for try await batch:[Ordinal] in $0
+                    for try await batch:[Record<Int64>] in $0
                     {
                         let tests:TestGroup = tests ! counter.description
                         let names:[Mongo.Database] = try await initializer.run(

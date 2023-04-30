@@ -9,6 +9,50 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
         return
     }
 
+    await bootstrap.withTemporaryDatabase(named: "roundtripping", tests: tests)
+    {
+        (pool:Mongo.SessionPool, database:Mongo.Database) in
+
+        let collection:Mongo.Collection = "roundtripping"
+
+        if  let tests:TestGroup = tests / "roundtripping" / "uint64"
+        {
+            let session:Mongo.Session = try await .init(from: pool)
+            //  Cannot roundtrip 0 in a toplevel document field!
+            for (id, value):(Int, UInt64) in [1, .max].enumerated()
+            {
+                guard let tests:TestGroup = tests / value.description
+                else
+                {
+                    continue
+                }
+                await tests.do
+                {
+                    let expected:Mongo.InsertResponse = .init(inserted: 1)
+                    let response:Mongo.InsertResponse = try await session.run(
+                        command: Mongo.Insert.init(collection: collection,
+                            elements: [Record<UInt64>.init(id: id, value: value)]),
+                        against: database)
+                    
+                    tests.expect(response ==? expected)
+
+                    let batch:[Record<UInt64>] = try await session.run(
+                        command: Mongo.Find<Mongo.SingleBatch<Record<UInt64>>>.init(
+                            collection: collection,
+                            limit: 1)
+                            {
+                                $0[.filter] = .init
+                                {
+                                    $0["_id"] = id
+                                }
+                            },
+                        against: database)
+
+                    tests.expect(batch ..? [.init(id: id, value: value)])
+                }
+            }
+        }
+    }
     await bootstrap.withTemporaryDatabase(named: "find-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
@@ -34,8 +78,8 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
         {
             await tests.do
             {
-                let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
+                let batch:[Record<Int64>] = try await pool.run(
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
                         collection: collection,
                         limit: 10),
                     against: database)
@@ -47,8 +91,8 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
         {
             await tests.do
             {
-                let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
+                let batch:[Record<Int64>] = try await pool.run(
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
                         collection: collection,
                         limit: 7,
                         skip: 5),
@@ -61,8 +105,8 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
         {
             await tests.do
             {
-                let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
+                let batch:[Record<Int64>] = try await pool.run(
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
                         collection: collection,
                         limit: 5,
                         skip: 10)
@@ -81,15 +125,15 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
         {
             await tests.do
             {
-                let batch:[Ordinal] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Ordinal>>.init(
+                let batch:[Record<Int64>] = try await pool.run(
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
                         collection: collection,
                         limit: 5,
                         skip: 10)
                     {
                         $0[.sort] = .init
                         {
-                            $0["ordinal"] = (-)
+                            $0["value"] = (-)
                         }
                     },
                     against: database)
@@ -102,17 +146,18 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
                         collection: collection,
                         stride: 10),
                     against: database)
                 {
                     var expected:Ordinals.Iterator = ordinals.makeIterator()
-                    for try await batch:[Ordinal] in $0
+                    for try await batch:[Record<Int64>] in $0
                     {
-                        for returned:Ordinal in batch
+                        for returned:Record<Int64> in batch
                         {
-                            if  let expected:Ordinal = tests.expect(value: expected.next())
+                            if  let expected:Record<Int64> = tests.expect(
+                                    value: expected.next())
                             {
                                 tests.expect(returned ==? expected)
                             }
@@ -127,13 +172,13 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
                         collection: collection,
                         stride: 10)
                     {
                         $0[.filter] = .init
                         {
-                            $0["ordinal"] = .init
+                            $0["value"] = .init
                             {
                                 $0[.mod] = (by: 3, is: 0)
                             }
@@ -141,13 +186,14 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     },
                     against: database)
                 {
-                    var expected:Array<Ordinal>.Iterator = 
+                    var expected:Array<Record<Int64>>.Iterator = 
                         ordinals.filter { $0.value % 3 == 0 }.makeIterator()
-                    for try await batch:[Ordinal] in $0
+                    for try await batch:[Record<Int64>] in $0
                     {
-                        for returned:Ordinal in batch
+                        for returned:Record<Int64> in batch
                         {
-                            if  let expected:Ordinal = tests.expect(value: expected.next())
+                            if  let expected:Record<Int64> = tests.expect(
+                                    value: expected.next())
                             {
                                 tests.expect(returned ==? expected)
                             }
@@ -162,16 +208,16 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Ordinal>>.init(
+                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
                         collection: collection,
                         stride: 10)
                     {
                         $0[.projection] = .init
                         {
                             $0["_id"] = 1 as Int32
-                            $0["ordinal"] = .init
+                            $0["value"] = .init
                             {
-                                $0[.add] = ("$ordinal", 5)
+                                $0[.add] = ("$value", 5)
                             }
                         }
                     },
@@ -180,11 +226,12 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     var expected:Ordinals.Iterator = Ordinals.init(
                         identifiers: 0 ..< 100,
                         start: 5).makeIterator()
-                    for try await batch:[Ordinal] in $0
+                    for try await batch:[Record<Int64>] in $0
                     {
-                        for returned:Ordinal in batch
+                        for returned:Record<Int64> in batch
                         {
-                            if  let expected:Ordinal = tests.expect(value: expected.next())
+                            if  let expected:Record<Int64> = tests.expect(
+                                    value: expected.next())
                             {
                                 tests.expect(returned ==? expected)
                             }

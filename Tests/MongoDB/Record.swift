@@ -1,41 +1,42 @@
 import BSONDecoding
 import BSONEncoding
 
-struct Ordinal:Hashable, Sendable
+struct Record<Value>:Hashable, Sendable
+    where Value:Hashable & Sendable & BSONDecodable & BSONEncodable
 {
     let id:Int
-    let value:Int64
+    let value:Value
 }
-extension Ordinal
+extension Record
 {
     enum CodingKeys:String
     {
         case id = "_id"
-        case ordinal
+        case value
     }
 }
-extension Ordinal:BSONEncodable, BSONDocumentEncodable
+extension Record:BSONEncodable, BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
         bson[.id] = self.id
-        bson[.ordinal] = self.value
+        bson[.value] = self.value
     }
 }
-extension Ordinal:BSONDecodable, BSONDocumentDecodable
+extension Record:BSONDecodable, BSONDocumentDecodable
 {
     init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(id: try bson[.id].decode(to: Int.self),
-            value: try bson[.ordinal].decode(to: Int64.self))
+            value: try bson[.value].decode(to: Value.self))
     }
 }
-extension Ordinal:CustomStringConvertible
+extension Record:CustomStringConvertible
 {
     var description:String
     {
         """
-        {_id: \(self.id), ordinal: \(self.value)}
+        {_id: \(self.id), value: \(self.value)}
         """
     }
 }

@@ -19,7 +19,7 @@ extension Ordinals:RandomAccessCollection
     {
         self.identifiers.upperBound
     }
-    subscript(index:Int) -> Ordinal
+    subscript(index:Int) -> Record<Int64>
     {
         .init(id: index, value: self.start + Int64.init(index))
     }

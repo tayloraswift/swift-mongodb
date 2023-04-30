@@ -49,6 +49,13 @@ extension BSON
         /// A 64-bit unsigned integer.
         ///
         /// MongoDB also uses this type internally to represent timestamps.
+        ///
+        /// >   Important:
+        ///     MongoDB replaces zero values of this type in top-level document
+        ///     fields with the bit pattern of its “current timestamp”. This
+        ///     behavior is not part of the BSON specification, and does not
+        ///     affect roundtrippability of BSON documents that are not stored
+        ///     in a Mongo database.
         case uint64(UInt64)
     }
 }
