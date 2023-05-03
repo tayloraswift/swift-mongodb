@@ -5,16 +5,6 @@ protocol MongoExpressionEncodable:BSONFieldEncodable
 {
 }
 
-extension MongoExpressionEncodable
-    where Self:BSONRepresentable, BSONRepresentation:BSONFieldEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        self.bson.encode(to: &field)
-    }
-}
-
 extension Never:MongoExpressionEncodable
 {
 }
@@ -69,9 +59,6 @@ extension BSON.Regex:MongoExpressionEncodable
 {
 }
 
-extension Set:MongoExpressionEncodable where Element:MongoExpressionEncodable
-{
-}
 extension Array:MongoExpressionEncodable where Element:MongoExpressionEncodable
 {
 }

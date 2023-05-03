@@ -5,6 +5,15 @@ protocol BSONFieldEncodable
     func encode(to field:inout BSON.Field)
 }
 
+extension BSONFieldEncodable where Self:BSONRepresentable, BSONRepresentation:BSONFieldEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        self.bson.encode(to: &field)
+    }
+}
+
 extension BSONFieldEncodable where Self:RawRepresentable, RawValue:BSONFieldEncodable
 {
     /// Returns the ``encode(to:)`` witness of this type’s ``RawRepresentable.rawValue``.
@@ -14,9 +23,10 @@ extension BSONFieldEncodable where Self:RawRepresentable, RawValue:BSONFieldEnco
         self.rawValue.encode(to: &field)
     }
 }
-extension BSONFieldEncodable where Self:Sequence, Element:BSONFieldEncodable
+
+extension Array:BSONFieldEncodable where Element:BSONFieldEncodable
 {
-    /// Encodes this sequence as a value of type ``BSON.list``.
+    /// Encodes this array as a value of type ``BSON.list``.
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
@@ -29,15 +39,6 @@ extension BSONFieldEncodable where Self:Sequence, Element:BSONFieldEncodable
         }
     }
 }
-extension BSONFieldEncodable where Self:BinaryFloatingPoint
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        field.encode(double: .init(self))
-    }
-}
-
 extension Optional:BSONFieldEncodable where Wrapped:BSONFieldEncodable
 {
     /// Encodes this optional as an explicit ``BSON.null``, if
@@ -64,10 +65,4 @@ extension [String: Never]:BSONFieldEncodable
     {
         field.encode(document: .init(slice: []))
     }
-}
-extension Array:BSONFieldEncodable where Element:BSONFieldEncodable
-{
-}
-extension Set:BSONFieldEncodable where Element:BSONFieldEncodable
-{
 }
