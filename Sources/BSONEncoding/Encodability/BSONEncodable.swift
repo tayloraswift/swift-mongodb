@@ -5,6 +5,15 @@ protocol BSONEncodable:BSONFieldEncodable
     func encode(to field:inout BSON.Field)
 }
 
+extension BSONEncodable where Self:BSONRepresentable, BSONRepresentation:BSONFieldEncodable
+{
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        self.bson.encode(to: &field)
+    }
+}
+
 extension Optional:BSONEncodable where Wrapped:BSONEncodable
 {
 }

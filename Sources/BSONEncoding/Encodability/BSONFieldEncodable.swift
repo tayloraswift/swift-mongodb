@@ -5,14 +5,6 @@ protocol BSONFieldEncodable
     func encode(to field:inout BSON.Field)
 }
 
-extension BSONFieldEncodable where Self:BSONRepresentable, BSONRepresentation:BSONFieldEncodable
-{
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        self.bson.encode(to: &field)
-    }
-}
 extension BSONFieldEncodable where Self:RawRepresentable, RawValue:BSONFieldEncodable
 {
     /// Returns the ``encode(to:)`` witness of this type’s ``RawRepresentable.rawValue``.
@@ -64,7 +56,7 @@ extension Optional:BSONFieldEncodable where Wrapped:BSONFieldEncodable
     }
 }
 //  We generally do *not* want dictionaries to be encodable, and dictionary
-//  literal generate dictionaries by default.
+//  literals generate dictionaries by default.
 extension [String: Never]:BSONFieldEncodable
 {
     @inlinable public
