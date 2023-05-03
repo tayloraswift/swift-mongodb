@@ -5,6 +5,9 @@ protocol BSONEncodable:BSONFieldEncodable
     func encode(to field:inout BSON.Field)
 }
 
+extension Array:BSONEncodable where Element:BSONEncodable
+{
+}
 extension Optional:BSONEncodable where Wrapped:BSONEncodable
 {
 }
@@ -12,12 +15,6 @@ extension Optional:BSONEncodable where Wrapped:BSONEncodable
 //  We generally do *not* want dictionaries to be encodable, and dictionary
 //  literal generate dictionaries by default.
 extension [String: Never]:BSONEncodable
-{
-}
-extension Array:BSONEncodable where Element:BSONEncodable
-{
-}
-extension Set:BSONEncodable where Element:BSONEncodable
 {
 }
 
@@ -42,11 +39,18 @@ extension BSON:BSONEncodable
 
 extension Double:BSONEncodable
 {
+    /// Encodes this metatype as a value of type ``BSON.double``.
+    @inlinable public
+    func encode(to field:inout BSON.Field)
+    {
+        field.encode(double: .init(self))
+    }
 }
 
 extension UInt64:BSONEncodable
 {
     /// Encodes this integer as a value of type ``BSON.uint64``.
+    @available(*, deprecated)
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
@@ -56,6 +60,7 @@ extension UInt64:BSONEncodable
 extension UInt:BSONEncodable
 {
     /// Encodes this integer as a value of type ``BSON.uint64``.
+    @available(*, deprecated)
     @inlinable public
     func encode(to field:inout BSON.Field)
     {

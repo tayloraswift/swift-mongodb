@@ -1,6 +1,16 @@
 /// A type that can be encoded to a BSON UTF-8 string. This protocol
 /// exists to allow types that also conform to ``LosslessStringConvertible``
 /// to opt-in to automatic ``BSONEncodable`` conformance as well.
+///
+/// In general, you should *not* require this protocol if the intention is
+/// simply to constrain a type parameter to a type that can only encode a
+/// BSON string.
+///
+/// >   Tip:
+///     Not every type that *can* be ``BSONStringEncodable`` *should* be
+///     ``BSONStringEncodable``. For example, ``Int`` is
+///     ``CustomStringConvertible``, but it should encode itself as an
+///     integer, not a string.
 public
 protocol BSONStringEncodable:BSONEncodable
 {

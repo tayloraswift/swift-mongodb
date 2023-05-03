@@ -1,3 +1,10 @@
+/// A type that can be encoded to a BSON document. This protocol exists to
+/// allow types that define ``CodingKeys`` to encode themselves using a
+/// ``BSON.DocumentEncoder``.
+///
+/// In general, you should *not* require this protocol if the intention is
+/// simply to constrain a type parameter to a type that can only encode a
+/// BSON document.
 public
 protocol BSONDocumentEncodable<CodingKeys>:BSONEncodable
 {

@@ -59,9 +59,6 @@ extension BSON.Regex:MongoExpressionEncodable
 {
 }
 
-extension Set:MongoExpressionEncodable where Element:MongoExpressionEncodable
-{
-}
 extension Array:MongoExpressionEncodable where Element:MongoExpressionEncodable
 {
 }
