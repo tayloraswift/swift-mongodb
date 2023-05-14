@@ -1,7 +1,7 @@
 import BSONDecoding
 import Testing
 
-@main 
+@main
 enum Main:SyncTests
 {
     static
@@ -149,7 +149,7 @@ enum Main:SyncTests
                 catching: BSON.DecodingError<BSON.Key>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
-                            invalid: .int64),
+                            invalid: .int32),
                         in: 2),
                     in: "heterogenous"))
             {
@@ -169,7 +169,7 @@ enum Main:SyncTests
                 catching: BSON.DecodingError<BSON.Key>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
-                            invalid: .int64),
+                            invalid: .int32),
                         in: 2),
                     in: "heterogenous"))
             {
@@ -180,7 +180,7 @@ enum Main:SyncTests
                 }
             }
         }
-        
+
         if  let tests:TestGroup = tests / "document"
         {
 
@@ -334,7 +334,7 @@ enum Main:SyncTests
             {
                 try $0["character"].decode(to: Character.self)
             }
-            
+
             TestDecoding(tests / "string", bson: bson,
                 to: "e\u{0301}e\u{0301}")
             {
