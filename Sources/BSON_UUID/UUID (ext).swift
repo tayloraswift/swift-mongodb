@@ -7,17 +7,9 @@ extension UUID:BSONDecodable, BSONBinaryViewDecodable
     @inlinable public
     init(bson:BSON.BinaryView<some RandomAccessCollection<UInt8>>) throws
     {
-        guard case .uuid = bson.subtype
-        else
-        {
-            throw BSON.BinarySchemeError.subtype(invalid: bson.subtype)
-        }
-        guard bson.slice.count == 16
-        else
-        {
-            throw BSON.BinarySchemeError.shape(invalid: bson.slice.count, expected: 16)
-        }
-        
+        try bson.subtype.expect(.uuid)
+        try bson.shape.expect(length: 16)
+
         self.init(bson.slice)
     }
 }

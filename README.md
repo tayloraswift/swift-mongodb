@@ -1,6 +1,6 @@
 <div align="center">
-  
-***`mongodb`***<br>`0.1.14`
+
+***`mongodb`***<br>`0.1.17`
 
 [![ci status](https://github.com/tayloraswift/swift-mongodb/actions/workflows/build.yml/badge.svg)](https://github.com/tayloraswift/swift-mongodb/actions/workflows/build.yml)
 
@@ -82,7 +82,7 @@ This package requires swift 5.7 or greater. Compiling with a swift 5.9 toolchain
 
 This library originally started out as a re-write of [Orlandos](https://orlandos.nl/)’s *MongoKitten*; accordingly the `MongoDriver` module retains *MongoKitten*’s original [MIT-license](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md).
 
-The [official MongoDB C driver](https://github.com/mongodb/mongo-swift-driver) also served as prior art for this module. 
+The [official MongoDB C driver](https://github.com/mongodb/mongo-swift-driver) also served as prior art for this module.
 
 ## license
 

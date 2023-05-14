@@ -14,18 +14,22 @@ enum Main:SyncTests
                 encoded: .init
                 {
                     $0["default"] = 1
+                    $0["default-long"] = 0x7fff_ffff_ffff_ffff
                     $0["int32"] = 1 as Int32
                     $0["int64"] = 1 as Int64
-                    $0["uint64"] = 1 as UInt64
+                    $0["int"] = 1 as Int
+                    $0["int-long"] = 0x7fff_ffff_ffff_ffff as Int
                 },
                 literal:
                 [
                     "default": 1,
+                    "default-long": 0x7fff_ffff_ffff_ffff,
                     "int32": .int32(1),
                     "int64": .int64(1),
-                    "uint64": .uint64(1),
+                    "int": .int32(1),
+                    "int-long": .int64(0x7fff_ffff_ffff_ffff),
                 ])
-            
+
             TestEncoding(tests / "floating-point",
                 encoded: .init
                 {
@@ -37,7 +41,7 @@ enum Main:SyncTests
                     "default": 1.0,
                     "a": .double(1.0),
                 ])
-            
+
             TestEncoding(tests / "string",
                 encoded: .init
                 {
@@ -53,7 +57,7 @@ enum Main:SyncTests
                     "c": .string(.init(from: "string")),
                     "d": .string(.init(from: "string")),
                 ])
-            
+
             TestEncoding(tests / "optionals",
                 encoded: .init
                 {
@@ -69,7 +73,7 @@ enum Main:SyncTests
                     "c": [1, .null, 3],
                     "d": .list([1, .null, 3]),
                 ])
-            
+
             TestEncoding(tests / "list",
                 encoded: .init
                 {
@@ -85,7 +89,7 @@ enum Main:SyncTests
                     "c": [1, 2, 3],
                     "d": .list([1, 2, 3]),
                 ])
-            
+
             TestEncoding(tests / "document",
                 encoded: .init
                 {
@@ -126,7 +130,7 @@ enum Main:SyncTests
                     "a": .binary(.init(subtype: .generic,
                         slice: [0xff, 0xff, 0xff])),
                 ])
-            
+
             TestEncoding(tests / "max",
                 encoded: .init
                 {
@@ -136,7 +140,7 @@ enum Main:SyncTests
                 [
                     "max": .max,
                 ])
-            
+
             TestEncoding(tests / "min",
                 encoded: .init
                 {
@@ -146,7 +150,7 @@ enum Main:SyncTests
                 [
                     "min": .min,
                 ])
-            
+
             TestEncoding(tests / "null",
                 encoded: .init
                 {
@@ -231,7 +235,7 @@ enum Main:SyncTests
                 [
                     "inhabited": .null,
                 ])
-            
+
             TestEncoding(tests / "integer",
                 encoded: .init
                 {
@@ -242,7 +246,7 @@ enum Main:SyncTests
                 [
                     "inhabited": 5,
                 ])
-            
+
             TestEncoding(tests / "optional",
                 encoded: .init
                 {

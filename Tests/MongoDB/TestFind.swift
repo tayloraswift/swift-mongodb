@@ -33,7 +33,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                         command: Mongo.Insert.init(collection: collection,
                             elements: [Record<UInt64>.init(id: id, value: value)]),
                         against: database)
-                    
+
                     tests.expect(response ==? expected)
 
                     let batch:[Record<UInt64>] = try await session.run(
@@ -70,7 +70,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     command: Mongo.Insert.init(collection: collection,
                         elements: ordinals),
                     against: database)
-                
+
                 tests.expect(response ==? expected)
             }
         }
@@ -186,7 +186,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     },
                     against: database)
                 {
-                    var expected:Array<Record<Int64>>.Iterator = 
+                    var expected:Array<Record<Int64>>.Iterator =
                         ordinals.filter { $0.value % 3 == 0 }.makeIterator()
                     for try await batch:[Record<Int64>] in $0
                     {

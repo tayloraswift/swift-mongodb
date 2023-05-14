@@ -21,12 +21,12 @@ extension BSON.ListDecoder:BSONDecoder
     ///
     /// This method will only attempt to parse statically-typed BSON lists; it will not
     /// inspect general documents to determine if they are valid lists.
-    /// 
+    ///
     /// -   Returns:
     ///     The payload of the variant, parsed to a list decoder, if it matches
     ///     ``case list(_:)`` and could be successfully parsed, [`nil`]() otherwise.
     ///
-    /// >   Complexity: 
+    /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public
     init(parsing bson:__shared BSON.AnyValue<Storage>) throws
@@ -42,7 +42,7 @@ extension BSON.ListDecoder
     /// method instead. Alternatively, you can use this function and access the
     /// ``elements`` property afterwards.
     ///
-    /// >   Complexity: 
+    /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public
     init(parsing bson:__shared BSON.ListView<Storage>) throws
@@ -52,9 +52,9 @@ extension BSON.ListDecoder
 
     /// The shape of the list being decoded.
     @inlinable public
-    var shape:BSON.ListShape
+    var shape:BSON.Shape
     {
-        .init(count: self.elements.count)
+        .init(length: self.elements.count)
     }
 }
 extension BSON.ListDecoder:RandomAccessCollection

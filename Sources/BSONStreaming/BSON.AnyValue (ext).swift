@@ -2,7 +2,7 @@ import BSONTypes
 
 extension BSON.AnyValue:ExpressibleByStringLiteral,
     ExpressibleByArrayLiteral,
-    ExpressibleByExtendedGraphemeClusterLiteral, 
+    ExpressibleByExtendedGraphemeClusterLiteral,
     ExpressibleByUnicodeScalarLiteral,
     ExpressibleByDictionaryLiteral
     where   Bytes:RangeReplaceableCollection<UInt8>,
@@ -37,6 +37,8 @@ extension BSON.AnyValue:ExpressibleByFloatLiteral
 extension BSON.AnyValue:ExpressibleByIntegerLiteral
 {
     /// Creates an instance initialized to the specified integer value.
+    /// It will be an ``int32(_:)`` value if it fits, otherwise it will
+    /// be an ``int64(_:)``.
     ///
     /// Although MongoDB uses ``Int32`` as its default integer type,
     /// this library infers integer literals to be of type ``Int`` for
@@ -44,7 +46,14 @@ extension BSON.AnyValue:ExpressibleByIntegerLiteral
     @inlinable public
     init(integerLiteral:Int)
     {
-        self = .int64(Int64.init(integerLiteral))
+        if  let int32:Int32 = .init(exactly: integerLiteral)
+        {
+            self = .int32(int32)
+        }
+        else
+        {
+            self = .int64(Int64.init(integerLiteral))
+        }
     }
 }
 extension BSON.AnyValue:ExpressibleByBooleanLiteral
@@ -55,4 +64,3 @@ extension BSON.AnyValue:ExpressibleByBooleanLiteral
         self = .bool(booleanLiteral)
     }
 }
-

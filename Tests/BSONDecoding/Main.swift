@@ -1,7 +1,7 @@
 import BSONDecoding
 import Testing
 
-@main 
+@main
 enum Main:SyncTests
 {
     static
@@ -88,12 +88,12 @@ enum Main:SyncTests
 
             TestDecoding(tests / "none-to-two", bson: bson,
                 catching: BSON.DecodingError<BSON.Key>.init(
-                    BSON.ListShapeError.init(invalid: 0, expected: .count(2)),
+                    BSON.ShapeError.init(invalid: 0, expected: .length(2)),
                     in: "none"))
             {
                 try $0["none"].decode
                 {
-                    try $0.shape.expect(count: 2)
+                    try $0.shape.expect(length: 2)
                 }
             }
 
@@ -102,25 +102,25 @@ enum Main:SyncTests
             {
                 try $0["two"].decode
                 {
-                    try $0.shape.expect(count: 2)
+                    try $0.shape.expect(length: 2)
                     return try $0.map { try $0.decode(to: String.self) }
                 }
             }
 
             TestDecoding(tests / "three-to-two", bson: bson,
                 catching: BSON.DecodingError<BSON.Key>.init(
-                    BSON.ListShapeError.init(invalid: 3, expected: .count(2)),
+                    BSON.ShapeError.init(invalid: 3, expected: .length(2)),
                     in: "three"))
             {
                 try $0["three"].decode
                 {
-                    try $0.shape.expect(count: 2)
+                    try $0.shape.expect(length: 2)
                 }
             }
 
             TestDecoding(tests / "three-by-two", bson: bson,
                 catching: BSON.DecodingError<BSON.Key>.init(
-                    BSON.ListShapeError.init(invalid: 3, expected: .multiple(of: 2)),
+                    BSON.ShapeError.init(invalid: 3, expected: .multiple(of: 2)),
                     in: "three"))
             {
                 try $0["three"].decode
@@ -149,7 +149,7 @@ enum Main:SyncTests
                 catching: BSON.DecodingError<BSON.Key>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
-                            invalid: .int64),
+                            invalid: .int32),
                         in: 2),
                     in: "heterogenous"))
             {
@@ -169,7 +169,7 @@ enum Main:SyncTests
                 catching: BSON.DecodingError<BSON.Key>.init(
                     BSON.DecodingError<Int>.init(
                         BSON.TypecastError<BSON.UTF8View<ArraySlice<UInt8>>>.init(
-                            invalid: .int64),
+                            invalid: .int32),
                         in: 2),
                     in: "heterogenous"))
             {
@@ -180,7 +180,7 @@ enum Main:SyncTests
                 }
             }
         }
-        
+
         if  let tests:TestGroup = tests / "document"
         {
 
@@ -334,7 +334,7 @@ enum Main:SyncTests
             {
                 try $0["character"].decode(to: Character.self)
             }
-            
+
             TestDecoding(tests / "string", bson: bson,
                 to: "e\u{0301}e\u{0301}")
             {
