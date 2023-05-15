@@ -9,14 +9,14 @@ let package:Package = .init(name: "swift-mongodb",
         //  other modules that use async/await.
         .macOS(.v10_15),
     ],
-    products: 
+    products:
     [
         .library(name: "BSON", targets: ["BSON"]),
         .library(name: "BSONReflection", targets: ["BSONReflection"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
         .library(name: "BSONTypes", targets: ["BSONTypes"]),
-        
+
         .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
         .library(name: "BSON_OrderedCollections", targets: ["BSON_OrderedCollections"]),
         .library(name: "BSON_UUID", targets: ["BSON_UUID"]),
@@ -39,19 +39,19 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "SCRAM", targets: ["SCRAM"]),
         .library(name: "UUID", targets: ["UUID"]),
     ],
-    dependencies: 
+    dependencies:
     [
         .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
             from: "0.3.2")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
             from: "0.5.0")),
-        
+
         .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(
             from: "1.1.0")),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
             from: "1.0.4")),
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(
-            from: "2.51.0")),
+            from: "2.53.0")),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(
             from: "2.24.0")),
     ],
@@ -76,13 +76,13 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONTraversal"),
             ]),
-        
+
         .target(name: "BSONStreaming",
             dependencies:
             [
                 .target(name: "BSONTypes"),
             ]),
-        
+
         .target(name: "BSONReflection",
             dependencies:
             [
@@ -99,7 +99,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSON"),
             ]),
-        
+
         .target(name: "BSON_UUID",
             dependencies:
             [
@@ -121,20 +121,20 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONEncoding"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
             ]),
-        
+
         .target(name: "OnlineCDF"),
 
         .target(name: "Durations"),
 
         .target(name: "Durations_Atomics",
-            dependencies: 
+            dependencies:
             [
                 .target(name: "Durations"),
                 .product(name: "Atomics", package: "swift-atomics"),
             ]),
-        
+
         .target(name: "SCRAM",
-            dependencies: 
+            dependencies:
             [
                 .product(name: "Base64", package: "swift-hash"),
                 .product(name: "MessageAuthentication", package: "swift-hash"),
@@ -145,7 +145,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "MongoLibrary"),
             ]),
-        
+
         .target(name: "Mongo",
             dependencies:
             [
@@ -168,9 +168,9 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "Mongo"),
                 .product(name: "NIOCore", package: "swift-nio"),
             ]),
-        
+
         .target(name: "MongoDriver",
-            dependencies: 
+            dependencies:
             [
                 .target(name: "BSON_Durations"),
                 .target(name: "BSON_OrderedCollections"),
@@ -192,20 +192,20 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
             ]),
-        
+
         .target(name: "MongoExecutor",
-            dependencies: 
+            dependencies:
             [
                 .target(name: "MongoIO"),
             ]),
 
         .target(name: "MongoIO",
-            dependencies: 
+            dependencies:
             [
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore", package: "swift-nio"),
             ]),
-        
+
         .target(name: "MongoLibrary",
             dependencies:
             [
@@ -216,7 +216,7 @@ let package:Package = .init(name: "swift-mongodb",
         // the mongo wire protocol. has no awareness of networking or
         // driver-level concepts.
         .target(name: "MongoWire",
-            dependencies: 
+            dependencies:
             [
                 .target(name: "BSON"),
                 .product(name: "CRC", package: "swift-hash"),
@@ -228,25 +228,25 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONReflection"),
                 .product(name: "Base16", package: "swift-hash"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/BSON"),
-        
+
         .executableTarget(name: "BSONDecodingTests",
             dependencies:
             [
                 .target(name: "BSONDecoding"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/BSONDecoding"),
-        
+
         .executableTarget(name: "BSONEncodingTests",
             dependencies:
             [
                 .target(name: "BSONEncoding"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/BSONEncoding"),
-        
+
         .executableTarget(name: "BSONIntegrationTests",
             dependencies:
             [
@@ -254,54 +254,54 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/BSONIntegration"),
-        
-        
+
+
         .executableTarget(name: "OnlineCDFTests",
             dependencies:
             [
                 .target(name: "OnlineCDF"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/OnlineCDF"),
-        
+
         .executableTarget(name: "MongoTests",
             dependencies:
             [
                 .target(name: "Mongo"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/Mongo"),
-        
+
         .executableTarget(name: "MongoDBTests",
             dependencies:
             [
                 .target(name: "MongoDB"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/MongoDB"),
-        
+
         .executableTarget(name: "MongoDriverTests",
             dependencies:
             [
                 .target(name: "MongoDriver"),
                 .product(name: "Testing", package: "swift-hash"),
-            ], 
+            ],
             path: "Tests/MongoDriver"),
-        
+
         .target(name: "MongoDSLAPITests",
             dependencies:
             [
                 .target(name: "MongoBuiltins"),
-            ], 
+            ],
             path: "Tests/MongoDSLAPI"),
-        
+
         .target(name: "MongoDBAPITests",
             dependencies:
             [
                 .target(name: "MongoDB"),
-            ], 
+            ],
             path: "Tests/MongoDBAPI"),
     ]
 )
