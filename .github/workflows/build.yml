@@ -16,22 +16,20 @@ jobs:
                 image:
                 -   swift:5.8.0-amazonlinux2
                 -   swift:5.8.0-jammy
-                -   swift:5.7.3-amazonlinux2
-                -   swift:5.7.3-jammy
 
         steps:
             -   name: checkout repository
                 uses: actions/checkout@v3
-            
+
             -   name: set up mock deployments
                 run: |
                     docker compose -f .github/mongonet/docker-compose.yml up -d
-            
+
             -   name: initialize replica set
                 run: |
                     timeout 60s bash -c \
                     'until docker exec -t mongonet-mongo-0-1 /bin/mongosh --file /create-replica-set.js; do sleep 1; done'
-            
+
             -   name: build and test
                 run: |
                     docker run -t --rm --network=mongonet \

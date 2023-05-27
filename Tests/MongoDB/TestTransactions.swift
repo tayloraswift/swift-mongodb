@@ -60,20 +60,13 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
         //  has a precondition time.
         await (tests ! "refresh-sessions").do
         {
-            //  There is a heisenbug in the swift 5.7.3 compiler that emits
-            //  broken machine code if we call `session.refresh()`.
-            #if compiler(<5.8)
-            try await session.run(command: Mongo.RefreshSessions.init(session.id),
-                against: .admin)
-            #else
             try await session.refresh()
-            #endif
         }
-        
+
         do
         {
             let tests:TestGroup = tests ! "abortion"
-            
+
             //  We should be able to abort a non-empty transaction by throwing an error.
             let result:Mongo.TransactionResult<Void> = await session.withSnapshotTransaction(
                 writeConcern: .majority)
@@ -91,7 +84,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                         command: Mongo.Insert.init(collection: collection,
                             elements: [a]),
                         against: database)
-                    
+
                     tests.expect(response ==? .init(inserted: 1))
                 }
                 //  We should be able to observe unaborted writes from the
@@ -104,7 +97,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                             collection: collection,
                             limit: 10),
                         against: database)
-                    
+
                     tests.expect(letters ..? [a])
                 }
 
@@ -119,7 +112,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                             limit: 10),
                         against: database,
                         on: .primary)
-                    
+
                     tests.expect(letters ..? [])
                 }
 
@@ -151,7 +144,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                         limit: 10),
                     against: database,
                     on: .primary)
-                
+
                 tests.expect(letters ..? [])
             }
         }
@@ -195,7 +188,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                         command: Mongo.Insert.init(collection: collection,
                             elements: [b]),
                         against: database)
-                    
+
                     tests.expect(response ==? .init(inserted: 1))
                 }
                 //  We should be able to observe uncommitted writes from the
@@ -207,7 +200,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                             collection: collection,
                             limit: 10),
                         against: database)
-                    
+
                     tests.expect(letters ..? [b])
                 }
 
@@ -222,7 +215,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                             limit: 10),
                         against: database,
                         on: .primary)
-                    
+
                     tests.expect(letters ..? [])
                 }
             }
@@ -257,7 +250,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                         limit: 10),
                     against: database,
                     on: .primary)
-                
+
                 tests.expect(letters ..? [b])
             }
             //  We should also be able to observe the committed writes from the
@@ -270,7 +263,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                         limit: 10),
                     against: database,
                     on: .primary)
-                
+
                 tests.expect(letters ..? [b])
             }
         }

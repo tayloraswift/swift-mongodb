@@ -72,7 +72,6 @@ func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                 {
                     (pool:Mongo.SessionPool) in
 
-                    #if compiler(>=5.8)
                     async
                     let _:Void =
                     {
@@ -81,7 +80,6 @@ func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                         try await Task.sleep(for: .milliseconds(100))
                         try await session.refresh()
                     }()
-                    #endif
                     try await Task.sleep(for: .milliseconds(50))
                     throw CancellationError.init()
                 }
@@ -105,7 +103,7 @@ func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
 
                 try await a.refresh()
                 try await b.refresh()
-                
+
                 tests.expect(true: a.id != b.id)
             }
         }
@@ -132,7 +130,7 @@ func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
 
                 try await a.refresh()
                 try await b.refresh()
-                
+
                 tests.expect(true: a.id != b.id)
             }
         }

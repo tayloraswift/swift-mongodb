@@ -63,18 +63,13 @@ extension MongoExecutor
     /// therefore it is the responsibility of the calling code to check if the
     /// deadline is sensible.
     private static
-    func request(_ channel:any Channel, 
+    func request(_ channel:any Channel,
         sections:__owned MongoWire.Message<[UInt8]>.Sections,
         deadline:ContinuousClock.Instant)
         async -> Result<MongoWire.Message<ByteBufferView>, MongoIO.ChannelError>
     {
-        #if compiler(<5.8)
-        async
-        let __:Void = Self.timeout(channel, by: deadline)
-        #else
         async
         let _:Void = Self.timeout(channel, by: deadline)
-        #endif
 
         return await withTaskCancellationHandler
         {

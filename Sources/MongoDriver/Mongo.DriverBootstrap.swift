@@ -31,7 +31,7 @@ extension Mongo.DriverBootstrap
                 try? await executors.shutdownGracefully()
                 throw error
             }
-        
+
         case .shared(let executors):
             return try await operation(executors)
         }
@@ -72,19 +72,12 @@ extension Mongo.DriverBootstrap
                 connectorFactory: connectorFactory,
                 authenticator: authenticator,
                 deployment: deployment)
-            
-            #if compiler(<5.8)
-            async
-            let __:Void = monitors.start(from: self.seeding,
-                interval: self.monitorInterval,
-                topology: self.topology)
-            #else
+
             async
             let _:Void = monitors.start(from: self.seeding,
                 interval: self.monitorInterval,
                 topology: self.topology)
-            #endif
-            
+
             let sessions:Mongo.SessionPool = .init(deployment: deployment)
             do
             {

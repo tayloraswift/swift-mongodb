@@ -52,7 +52,7 @@ extension Mongo
         {
             self.timeout = .init(default: connectionTimeout)
             self.logger = logger
-            
+
             self._capabilities = .create(.init(nil))
             self._clusterTime = .create(nil)
 
@@ -202,13 +202,8 @@ extension Mongo.Deployment
     {
         let id:UInt = self.request()
 
-        #if compiler(<5.8)
-        async
-        let __:Void = self.fail(capabilityRequest: id, once: deadline)
-        #else
         async
         let _:Void = self.fail(capabilityRequest: id, once: deadline)
-        #endif
 
         return await withCheckedContinuation
         {
@@ -243,13 +238,8 @@ extension Mongo.Deployment
 
         let id:UInt = self.request()
 
-        #if compiler(<5.8)
-        async
-        let __:Void = self.fail(selectionRequest: id, once: deadline)
-        #else
         async
         let _:Void = self.fail(selectionRequest: id, once: deadline)
-        #endif
 
         return await withCheckedContinuation
         {
@@ -269,7 +259,7 @@ extension Mongo.Deployment
 {
     /// Sends an ``EndSessions`` command ending the given list of sessions
     /// to an appropriate server for this deployment’s topology, and awaits
-    /// its response. 
+    /// its response.
     ///
     /// -   Parameters:
     ///     -   sessions:
@@ -302,11 +292,11 @@ extension Mongo.Deployment
                 by: deadline)
             let connection:Mongo.Connection = try await .init(from: connections,
                 by: deadline)
-            
+
             let reply:Mongo.Reply = try await connection.allocation.run(command: command,
                 against: .admin,
                 by: deadline)
-            
+
             return reply.ok
         }
         catch
