@@ -125,10 +125,14 @@ extension Mongo.Session
         other.preconditionTime?.combine(into: &self.preconditionTime)
     }
 }
+
+#if swift(>=5.9)
 @available(*, unavailable, message: "sessions have reference semantics")
 extension Mongo.Session:Sendable
 {
 }
+#endif
+
 extension Mongo.Session
 {
     /// Runs a command against the specified database, on a server selected according
@@ -160,13 +164,13 @@ extension Mongo.Session
             {
                 let connection:Mongo.Connection = try await .init(from: $0,
                     by: $1.connection)
-                
+
                 return try await self.run(command: command, against: database,
                     over: connection,
                     on: preference,
                     by: $1.operation)
             }
-        
+
         case .autocommitting?:
             defer
             {
@@ -181,13 +185,13 @@ extension Mongo.Session
             {
                 let connection:Mongo.Connection = try await .init(from: $0,
                     by: $1.connection)
-                
+
                 return try await self.run(command: command, against: database,
                     over: connection,
                     on: preference,
                     by: $1.operation)
             }
-        
+
         case .starting, .started:
             throw Mongo.TransactionInProgressError.init()
         }
@@ -206,7 +210,7 @@ extension Mongo.Session
     /// is still open after the closure parameter returns. This only happens if the
     /// consumer aborts iteration before obtaining the final batch of results, and this
     /// is the only situation where this method will block on exit.
-    /// 
+    ///
     /// This method will not block on exit in the following situations:
     ///
     /// -   The consumer completes iteration of the cursor, in which case it is already
@@ -262,7 +266,7 @@ extension Mongo.Session
                     on: preference,
                     by: deadlines)
             }
-        
+
         case .autocommitting?:
             defer
             {
@@ -285,7 +289,7 @@ extension Mongo.Session
                     on: preference,
                     by: deadlines)
             }
-        
+
         case .starting, .started:
             throw Mongo.TransactionInProgressError.init()
         }
@@ -382,10 +386,10 @@ extension Mongo.Session
         {
         case nil:
             return .unsupported(.init())
-        
+
         case .autocommitting?:
             self.transaction.phase = .starting(readConcern)
-        
+
         case .starting?, .started?:
             return .rejection(.init())
         }
@@ -399,13 +403,13 @@ extension Mongo.Session
         {
         case .failure(let error):
             return .unavailable(error)
-        
+
         case .success(let pool):
             connections = pool
         }
 
         let transaction:Mongo.Transaction = .init(session: self, pinned: connections)
-        
+
         do
         {
             let success:Success = try await body(transaction)
@@ -471,7 +475,7 @@ extension Mongo.Session
             readConcern: command.readConcernLabel,
             preference: preference,
             autocommit: Command.autocommits)
-        
+
         let sent:ContinuousClock.Instant = .now
         let reply:Mongo.Reply = try await connection.run(command: command,
             against: database,
@@ -527,18 +531,18 @@ extension Mongo.Session
 
             readOptions = .init(level: level, after: self.preconditionTime)
             transaction = .starting(self.transaction.number)
-        
+
         case .started?:
             readOptions = nil
             transaction = .started(self.transaction.number)
-        
+
         case .autocommitting?:
             readOptions = readConcern.map
             {
                 .init(level: $0?.level, after: self.preconditionTime)
             }
             transaction = autocommit ? .autocommitting(self.transaction.number + 1) : nil
-        
+
         case nil:
             readOptions = readConcern.map
             {
@@ -552,11 +556,11 @@ extension Mongo.Session
         {
         case    (nil, nil):
             clusterTime = nil
-        
+
         case    (let value?, nil),
                 (nil, let value?):
             clusterTime = value
-        
+
         case (let global?, let local?):
             clusterTime = global < local ? local : global
         }
