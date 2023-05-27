@@ -59,7 +59,7 @@ extension BSON.Output
         self.append(type.rawValue)
     }
     /// Serializes the UTF-8 code units of a string as a c-string with a trailing
-    /// null byte. The `cString` must not contain null bytes. Use ``serialize(utf8:)`` 
+    /// null byte. The `cString` must not contain null bytes. Use ``serialize(utf8:)``
     /// to serialize a string that contains interior null bytes.
     @inlinable public mutating
     func serialize(cString:String)
@@ -123,10 +123,10 @@ extension BSON.Output
         {
         case .double(let double):
             self.serialize(integer: double.bitPattern)
-        
+
         case .string(let string):
             self.serialize(utf8: string)
-        
+
         case .document(let document):
             self.serialize(document: document)
 
@@ -135,49 +135,49 @@ extension BSON.Output
 
         case .binary(let binary):
             self.serialize(binary: binary)
-        
+
         case .null:
             break
-        
+
         case .id(let id):
             self.serialize(id: id)
-        
+
         case .bool(let bool):
             self.append(bool ? 1 : 0)
 
         case .millisecond(let millisecond):
             self.serialize(integer: millisecond.value)
-        
+
         case .regex(let regex):
             self.serialize(cString: regex.pattern)
             self.serialize(cString: regex.options.description)
-        
+
         case .pointer(let database, let id):
             self.serialize(utf8: database)
             self.serialize(id: id)
-        
+
         case .javascript(let code):
             self.serialize(utf8: code)
-        
+
         case .javascriptScope(let scope, let code):
             let size:Int32 = 4 + Int32.init(scope.size) + Int32.init(code.size)
             self.serialize(integer: size)
             self.serialize(utf8: code)
             self.serialize(document: scope)
-        
+
         case .int32(let int32):
             self.serialize(integer: int32)
-        
+
         case .uint64(let uint64):
             self.serialize(integer: uint64)
-        
+
         case .int64(let int64):
             self.serialize(integer: int64)
 
         case .decimal128(let decimal):
             self.serialize(integer: decimal.low)
             self.serialize(integer: decimal.high)
-        
+
         case .max:
             break
         case .min:
@@ -221,15 +221,6 @@ extension BSON.Output<[UInt8]>
             yield &field
         }
     }
-    @available(*, deprecated)
-    @inlinable public mutating
-    func with(key:BSON.Key, do encode:(inout BSON.Field) -> ())
-    {
-        var field:BSON.Field = .init(key: key, output: self)
-        self = .init(preallocated: [])
-        encode(&field)
-        self = field.output
-    }
     @inlinable public mutating
     func with<Frame>(frame _:Frame.Type, do serialize:(inout Self) -> ())
         where Frame:VariableLengthBSONFrame
@@ -245,7 +236,7 @@ extension BSON.Output<[UInt8]>
         serialize(&self)
 
         assert(self.destination.index(start, offsetBy: 4) <= self.destination.endIndex)
-        
+
         if let trailer:UInt8 = Frame.trailer
         {
             self.append(trailer)
