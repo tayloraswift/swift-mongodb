@@ -34,10 +34,15 @@ extension Mongo
         }
     }
 }
+
+#if swift(>=5.9)
+// produces spurious compiler warnings on 5.8
 @available(*, unavailable, message: "connections are mutable move-only types.")
 extension Mongo.Connection:Sendable
 {
 }
+#endif
+
 extension Mongo.Connection
 {
     public
