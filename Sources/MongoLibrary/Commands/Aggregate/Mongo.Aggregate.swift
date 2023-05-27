@@ -1,5 +1,6 @@
 import BSONDecoding
 import BSONEncoding
+import MongoDriver
 import NIOCore
 
 extension Mongo
@@ -36,7 +37,7 @@ extension Mongo.Aggregate:MongoIterableCommand
 {
     public
     typealias Element = Mode.Element
-    
+
     @inlinable public
     var tailing:Mongo.Tailing?
     {

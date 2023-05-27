@@ -1,4 +1,5 @@
 import BSONDecoding
+import MongoDriver
 import NIOCore
 
 extension Mongo

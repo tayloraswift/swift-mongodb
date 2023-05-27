@@ -1,10 +1,11 @@
 import BSONDecoding
 import BSONEncoding
+import MongoDriver
 import NIOCore
 
 extension Mongo
 {
-    /// Lists all existing databases along with basic statistics about them. 
+    /// Lists all existing databases along with basic statistics about them.
     /// This command must run against the `admin` database.
     ///
     /// This command never enables the `nameOnly` option. To enable it, use the

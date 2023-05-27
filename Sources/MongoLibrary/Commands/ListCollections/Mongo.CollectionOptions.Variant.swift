@@ -1,6 +1,3 @@
-import BSON
-import BSON
-
 extension Mongo.CollectionOptions
 {
     @frozen public
@@ -10,7 +7,7 @@ extension Mongo.CollectionOptions
             validationAction:Mongo.ValidationAction? = nil,
             validationLevel:Mongo.ValidationLevel? = nil,
             validator:Mongo.PredicateDocument? = nil)
-        
+
         case timeseries(Mongo.Timeseries)
 
         case view(Mongo.CollectionView)

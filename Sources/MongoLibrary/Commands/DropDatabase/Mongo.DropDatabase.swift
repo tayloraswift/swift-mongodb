@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoDriver
 
 extension Mongo
 {
