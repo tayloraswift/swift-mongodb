@@ -1,4 +1,5 @@
 import Durations
+import MongoConfiguration
 import NIOCore
 import NIOPosix
 

@@ -1,6 +1,4 @@
 import BSON
-import BSON
-import BSON
 
 extension MongoWire.Message
 {
@@ -53,11 +51,11 @@ extension BSON.Input
                 {
                     throw MongoWire.BodyCountError.multiple
                 }
-            
+
             case .sequence:
                 var sequence:BSON.Input<Source.SubSequence> = .init(
                     try self.parse(MongoWire.SequenceFrame.self))
-                
+
                 let id:String = try sequence.parse(as: String.self)
 
                 outlined.append(.init(id: id, slice: sequence.remaining))

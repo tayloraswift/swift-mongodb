@@ -1,6 +1,4 @@
 import BSON
-import BSON
-import BSON
 
 extension MongoWire
 {
@@ -21,7 +19,7 @@ extension MongoWire
         let type:MessageType
 
         @inlinable public
-        init(count:Int, id:MessageIdentifier, 
+        init(count:Int, id:MessageIdentifier,
             request:MessageIdentifier = .none,
             type:MessageType = .message)
         {
@@ -52,7 +50,7 @@ extension MongoWire.Header
         {
             throw MongoWire.MessageTypeError.init(invalid: type)
         }
-        self.init(count: Int.init(size) - Self.size, id: .init(id), request: .init(request), 
+        self.init(count: Int.init(size) - Self.size, id: .init(id), request: .init(request),
             type: type)
     }
 }
