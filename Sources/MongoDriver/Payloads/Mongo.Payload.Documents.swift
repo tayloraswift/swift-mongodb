@@ -43,10 +43,9 @@ extension Mongo.Payload.Documents
     @inlinable public mutating
     func append<CodingKeys>(_ element:some BSONDocumentEncodable<CodingKeys>)
     {
-        self.output.with(frame: BSON.DocumentFrame.self)
-        {
-            element.encode(to: &$0[as: BSON.DocumentEncoder<CodingKeys>.self])
-        }
+        element.encode(to: &self.output[
+            as: BSON.DocumentEncoder<CodingKeys>.self,
+            in: BSON.DocumentFrame.self])
     }
     public mutating
     func append(_ document:BSON.DocumentView<[UInt8]>)

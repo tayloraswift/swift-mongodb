@@ -30,13 +30,12 @@ extension Array:BSONFieldEncodable where Element:BSONFieldEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(as: BSON.ListEncoder.self)
         {
             for element:Element in self
             {
                 $0.append(element)
             }
-        }
+        } (&field[as: BSON.ListEncoder.self])
     }
 }
 extension Optional:BSONFieldEncodable where Wrapped:BSONFieldEncodable

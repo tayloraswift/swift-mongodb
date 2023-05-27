@@ -206,6 +206,46 @@ extension BSON.Output
 }
 extension BSON.Output<[UInt8]>
 {
+    /// Temporarily rebinds this output’s storage buffer to an encoder of
+    /// the specified type, bracketing it with the appropriate headers or
+    /// trailers, if performing a mutation.
+    ///
+    /// -   See also: ``subscript(as:)``.
+    @inlinable public
+    subscript<Encoder>(as _:Encoder.Type, in frame:BSON.DocumentFrame.Type) -> Encoder
+        where Encoder:BSONEncoder
+    {
+        get
+        {
+            self[in: frame][as: Encoder.self]
+        }
+        _modify
+        {
+            yield &self[in: frame][as: Encoder.self]
+        }
+    }
+    /// Temporarily rebinds this output’s storage buffer to an encoder of
+    /// the specified type. This function does not add any headers or trailers;
+    /// to emit a complete BSON frame, mutate through ``subscript(as:in:)``.
+    ///
+    /// -   See also: ``subscript(with:)``.
+    @inlinable public
+    subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSONEncoder
+    {
+        get
+        {
+            .init(output: self)
+        }
+        _modify
+        {
+            var encoder:Encoder = .init(output: self)
+
+            self = .init(preallocated: [])
+            defer { self = encoder.output }
+
+            yield &encoder
+        }
+    }
     @inlinable public
     subscript(with key:BSON.Key) -> BSON.Field
     {
@@ -221,41 +261,49 @@ extension BSON.Output<[UInt8]>
             yield &field
         }
     }
-    @inlinable public mutating
-    func with<Frame>(frame _:Frame.Type, do serialize:(inout Self) -> ())
-        where Frame:VariableLengthBSONFrame
+    @inlinable internal
+    subscript(in frame:(some VariableLengthBSONFrame).Type) -> Self
     {
-        let start:Int = self.destination.endIndex
-
-        // make room for the length header
-        self.append(0x00)
-        self.append(0x00)
-        self.append(0x00)
-        self.append(0x00)
-
-        serialize(&self)
-
-        assert(self.destination.index(start, offsetBy: 4) <= self.destination.endIndex)
-
-        if let trailer:UInt8 = Frame.trailer
+        get
         {
-            self.append(trailer)
+            self
         }
-
-        let written:Int = self.destination.distance(from: start,
-            to: self.destination.endIndex)
-
-        let length:Int32 = .init(written - Frame.skipped - 4)
-
-        withUnsafeBytes(of: length.littleEndian)
+        _modify
         {
-            var index:Int = start
-            for byte:UInt8 in $0
+            let start:Int = self.destination.endIndex
+
+            // make room for the length header
+            self.append(0x00)
+            self.append(0x00)
+            self.append(0x00)
+            self.append(0x00)
+
+            defer
             {
-                self.destination[index] = byte
-                self.destination.formIndex(after: &index)
+                assert(self.destination.index(start, offsetBy: 4) <= self.destination.endIndex)
+
+                if let trailer:UInt8 = frame.trailer
+                {
+                    self.append(trailer)
+                }
+
+                let written:Int = self.destination.distance(from: start,
+                    to: self.destination.endIndex)
+
+                let length:Int32 = .init(written - frame.skipped - 4)
+
+                withUnsafeBytes(of: length.littleEndian)
+                {
+                    var index:Int = start
+                    for byte:UInt8 in $0
+                    {
+                        self.destination[index] = byte
+                        self.destination.formIndex(after: &index)
+                    }
+                }
             }
+
+            yield &self
         }
     }
 }
-
