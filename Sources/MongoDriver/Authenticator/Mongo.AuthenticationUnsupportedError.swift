@@ -1,3 +1,5 @@
+import MongoConfiguration
+
 extension Mongo
 {
     public

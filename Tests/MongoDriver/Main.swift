@@ -1,3 +1,4 @@
+import MongoConfiguration
 import MongoDriver
 import NIOPosix
 import Testing
@@ -39,7 +40,7 @@ enum Main:AsyncTests
             await TestFailpoints(tests, bootstrap: bootstrap)
 
             await TestSessionPool(tests, bootstrap: bootstrap)
-            
+
             await TestConnectionPool(tests, matrix:
             [
                 "default": bootstrap,
@@ -58,7 +59,7 @@ enum Main:AsyncTests
                     $0.executors = .shared(executors)
                 },
             ])
-            
+
             await TestMemberDiscovery(tests, members: members, matrix:
             [
                 "from-0": mongodb / members(0 ... 0) /?
@@ -111,15 +112,15 @@ enum Main:AsyncTests
                 seedlist: seedlist,
                 username: username,
                 password: password)
-            
+
             let bootstrap:Mongo.DriverBootstrap = mongodb / (username, password) * seedlist /?
             {
                 $0.executors = .shared(executors)
             }
             await TestFailpoints(tests, bootstrap: bootstrap)
-            
+
             await TestSessionPool(tests, bootstrap: bootstrap, single: true)
-            
+
             await TestConnectionPool(tests, matrix:
             [
                 "default": bootstrap,

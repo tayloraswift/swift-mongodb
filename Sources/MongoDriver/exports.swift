@@ -1,1 +1,1 @@
-@_exported import MongoConfiguration
+@_exported import Mongo

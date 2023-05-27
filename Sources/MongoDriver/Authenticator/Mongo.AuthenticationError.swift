@@ -1,3 +1,4 @@
+import MongoConfiguration
 import TraceableErrors
 
 extension Mongo
