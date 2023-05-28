@@ -23,7 +23,7 @@ extension Mongo
         /// token to every connection created from it.
         nonisolated
         let generation:UInt
-        
+
         /// The size and width of this connection pool.
         public nonisolated
         let settings:ConnectionPoolSettings
@@ -37,7 +37,7 @@ extension Mongo
         let monitor:MonitorDelegate
         private nonisolated
         let logger:Logger?
-        
+
         /// The connections stored in this pool.
         private
         var allocations:Allocations
@@ -70,7 +70,7 @@ extension Mongo
             self.allocations = .init(connector: connectorFactory(authenticator: authenticator,
                 timeout: connectionTimeout,
                 host: host))
-            
+
             self.releasing = .create(0)
             self.latency = .create(0)
 
@@ -173,7 +173,7 @@ extension Mongo.ConnectionPool
             generation: self.generation,
             event: topologyEvent))
     }
-    
+
     private nonisolated
     func log(_ event:Mongo.ConnectionPoolEvent)
     {
@@ -221,28 +221,23 @@ extension Mongo.ConnectionPool
             {
             case .available(let allocation):
                 return allocation
-            
+
             case .reserved(let reservation):
                 // note: this checks for awaiting requests, and may use the
                 // newly-established connection to succeed a different request.
                 // so it is not guaranteed that the next iteration of the loop
                 // will yield a channel.
                 await self.fill(reservation: reservation)
-            
+
             case .blocked(let id):
-                #if compiler(<5.8)
-                async
-                let __:Void = self.fail(request: id, by: deadline)
-                #else
                 async
                 let _:Void = self.fail(request: id, by: deadline)
-                #endif
 
                 return try await withCheckedThrowingContinuation
                 {
                     self.allocations.submit(request: id, resuming: $0)
                 }
-            
+
             case .failure(let error):
                 throw error
             }
@@ -270,7 +265,7 @@ extension Mongo.ConnectionPool
     ///
     /// If `reuse` is [`false`](), this method does not replace the connection,
     /// because replacement is performed when the underlying channel closes,
-    /// which may take place before the wrapping connection is destroyed. 
+    /// which may take place before the wrapping connection is destroyed.
     nonisolated
     func destroy(_ allocation:Allocation, reuse:Bool)
     {
@@ -301,7 +296,7 @@ extension Mongo.ConnectionPool
             }
 
             self.allocations.reindex(allocation)
-        
+
         case .draining:
             //  we have to wait for the channel to close before removing
             //  it from the retained list, because a re-entrant call to this
@@ -345,7 +340,7 @@ extension Mongo.ConnectionPool
         self.log(.expanding(id: reservation.id))
 
         let allocation:Allocation
-        
+
         do
         {
             allocation = try await reservation.connect()
@@ -366,7 +361,7 @@ extension Mongo.ConnectionPool
         case .draining:
             await allocation.close()
             self.allocations.erase()
-        
+
         case .connecting:
             allocation.channel.closeFuture.whenComplete
             {

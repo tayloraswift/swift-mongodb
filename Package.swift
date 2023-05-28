@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.8
 import PackageDescription
 
 let package:Package = .init(name: "swift-mongodb",
@@ -144,6 +144,10 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoLibrary"),
+            ],
+            swiftSettings:
+            [
+                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "Mongo",
@@ -167,6 +171,10 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "Mongo"),
                 .product(name: "NIOCore", package: "swift-nio"),
+            ],
+            swiftSettings:
+            [
+                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoDriver",
@@ -184,6 +192,10 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "SHA2", package: "swift-hash"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
+            ],
+            swiftSettings:
+            [
+                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoDSL",
@@ -197,6 +209,10 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoIO"),
+            ],
+            swiftSettings:
+            [
+                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoIO",
@@ -204,6 +220,10 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore", package: "swift-nio"),
+            ],
+            swiftSettings:
+            [
+                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoLibrary",
@@ -211,6 +231,10 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "MongoBuiltins"),
                 .target(name: "MongoDriver"),
+            ],
+            swiftSettings:
+            [
+                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         // the mongo wire protocol. has no awareness of networking or
@@ -227,7 +251,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONReflection"),
                 .product(name: "Base16", package: "swift-hash"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/BSON"),
 
@@ -235,7 +259,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "BSONDecoding"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/BSONDecoding"),
 
@@ -243,7 +267,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "BSONEncoding"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/BSONEncoding"),
 
@@ -253,7 +277,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONReflection"),
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/BSONIntegration"),
 
@@ -262,7 +286,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "OnlineCDF"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/OnlineCDF"),
 
@@ -270,7 +294,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "Mongo"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/Mongo"),
 
@@ -278,7 +302,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDB"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/MongoDB"),
 
@@ -286,7 +310,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDriver"),
-                .product(name: "Testing", package: "swift-hash"),
+                .product(name: "Testing", package: "swift-grammar"),
             ],
             path: "Tests/MongoDriver"),
 

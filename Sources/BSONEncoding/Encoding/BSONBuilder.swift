@@ -35,7 +35,7 @@ extension BSONBuilder
     {
         mutating get
         {
-            self.append(key) { $0.encode(with: encode) }
+            self.append(key) { encode(&$0[as: BSON.ListEncoder.self]) }
         }
     }
     @inlinable public
@@ -44,7 +44,7 @@ extension BSONBuilder
     {
         mutating get
         {
-            self.append(key) { $0.encode(with: encode) }
+            self.append(key) { encode(&$0[as: BSON.DocumentEncoder<BSON.Key>.self]) }
         }
     }
     @inlinable public
@@ -54,7 +54,7 @@ extension BSONBuilder
     {
         mutating get
         {
-            self.append(key) { $0.encode(with: encode) }
+            self.append(key) { encode(&$0[as: BSON.DocumentEncoder<CodingKeys>.self]) }
         }
     }
 }

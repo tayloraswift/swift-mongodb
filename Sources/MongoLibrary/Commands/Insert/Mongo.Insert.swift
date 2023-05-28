@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoDriver
 
 extension Mongo
 {
@@ -12,14 +13,14 @@ extension Mongo
         public
         let writeConcern:WriteConcern?
         public
-        let documents:Mongo.Payload.Documents
+        let documents:Mongo.OutlineVector
 
         public
         var fields:BSON.Document
 
-        private
+        @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            documents:Mongo.Payload.Documents,
+            documents:Mongo.OutlineVector,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -41,21 +42,9 @@ extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     typealias Response = Mongo.InsertResponse
 
     @inlinable public
-    var payload:Mongo.Payload?
+    var payload:Mongo.OutlinePayload?
     {
-        .init(id: .documents, documents: self.documents)
-    }
-}
-extension Mongo.Insert
-{
-    @usableFromInline internal
-    init(collection:Mongo.Collection,
-        writeConcern:WriteConcern?,
-        documents:Mongo.Payload.Documents)
-    {
-        self.init(writeConcern: writeConcern,
-            documents: documents,
-            fields: Self.type(collection))
+        .init(vector: self.documents, type: .documents)
     }
 }
 extension Mongo.Insert
@@ -66,8 +55,9 @@ extension Mongo.Insert
         elements:Elements)
         where Elements:Sequence, Elements.Element:BSONDocumentEncodable
     {
-        self.init(collection: collection, writeConcern: writeConcern,
-            documents: .init(elements))
+        self.init(writeConcern: writeConcern,
+            documents: .init(elements),
+            fields: Self.type(collection))
     }
     @inlinable public
     init<Elements>(collection:Mongo.Collection,

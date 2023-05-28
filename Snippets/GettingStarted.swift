@@ -1,6 +1,6 @@
+import MongoDB
 import NIOCore
 import NIOPosix
-import MongoDB
 
 let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 

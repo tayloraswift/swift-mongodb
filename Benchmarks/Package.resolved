@@ -50,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
       "state" : {
-        "revision" : "ff3d2212b6b093db7f177d0855adbc4ef9c5f036",
-        "version" : "1.0.3"
+        "revision" : "6c89474e62719ddcc1e9614989fff2f68208fe10",
+        "version" : "1.1.0"
       }
     },
     {
@@ -75,19 +75,19 @@
     {
       "identity" : "swift-grammar",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kelvin13/swift-grammar",
+      "location" : "https://github.com/tayloraswift/swift-grammar",
       "state" : {
-        "revision" : "fa809185be2d204874fe21c224e57911ee18a39c",
-        "version" : "0.3.0"
+        "revision" : "3ed94966b1fd8145c2624a5955a9f0d17663280b",
+        "version" : "0.3.2"
       }
     },
     {
       "identity" : "swift-hash",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kelvin13/swift-hash",
+      "location" : "https://github.com/tayloraswift/swift-hash",
       "state" : {
-        "revision" : "7475de0872c71f1b8dc69ac2e395f9ede42356b2",
-        "version" : "0.4.6"
+        "revision" : "c7ba0cde5eb63042c2196b02b65a770101c1ac11",
+        "version" : "0.5.0"
       }
     },
     {
@@ -95,8 +95,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "45167b8006448c79dda4b7bd604e07a034c15c49",
-        "version" : "2.48.0"
+        "revision" : "2d8e6ca36fe3e8ed74b0883f593757a45463c34d",
+        "version" : "2.53.0"
       }
     },
     {
@@ -104,8 +104,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
       "state" : {
-        "revision" : "4fb7ead803e38949eb1d6fabb849206a72c580f3",
-        "version" : "2.23.0"
+        "revision" : "e866a626e105042a6a72a870c88b4c531ba05f83",
+        "version" : "2.24.0"
       }
     },
     {

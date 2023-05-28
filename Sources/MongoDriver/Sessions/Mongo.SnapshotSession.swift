@@ -41,10 +41,7 @@ extension Mongo
         }
     }
 }
-
-#if swift(>=5.9)
 @available(*, unavailable, message: "sessions have reference semantics")
 extension Mongo.SnapshotSession:Sendable
 {
 }
-#endif

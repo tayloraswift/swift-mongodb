@@ -23,6 +23,6 @@ extension BSONDocumentEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(with: self.encode(to:))
+        self.encode(to: &field[as: BSON.DocumentEncoder<CodingKeys>.self])
     }
 }

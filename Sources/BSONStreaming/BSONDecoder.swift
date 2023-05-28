@@ -1,3 +1,5 @@
+import BSONTypes
+
 public
 protocol BSONDecoder<Storage>
 {

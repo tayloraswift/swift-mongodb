@@ -1,7 +1,5 @@
 import CRC
 import BSON
-import BSON
-import BSON
 
 extension MongoWire
 {
@@ -53,7 +51,7 @@ extension BSON.Input
 
         let checksum:CRC32? = flags.contains(.checksumPresent) ?
             .init(checksum: try self.parse(as: UInt32.self)) : nil
-        
+
         return .init(header: header, flags: flags, sections: sections, checksum: checksum)
     }
 }
@@ -65,7 +63,7 @@ extension MongoWire.Message
     {
         // 4 bytes of flags + 1 for body section type
         var count:Int = 4 + 1 + sections.body.size
-        
+
         for outline:Outline in sections.outlined
         {
             // section type

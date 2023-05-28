@@ -1,7 +1,7 @@
-extension Mongo.Payload
+extension Mongo
 {
     @frozen public
-    enum ID:String, Hashable, Sendable
+    enum OutlineType:String, Hashable, Sendable
     {
         case documents
         case updates

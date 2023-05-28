@@ -1,3 +1,5 @@
+import MongoDriver
+
 extension Mongo.Cursor:MongoBatchingMode
 {
     public

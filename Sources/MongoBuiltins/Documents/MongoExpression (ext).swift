@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoDSL
 
 extension MongoExpression
 {
@@ -85,7 +86,7 @@ extension MongoExpression
                 {
                     $0.append(sequence)
                     $0.append(element)
-                    
+
                     if let start:Start
                     {
                         $0.append(start)

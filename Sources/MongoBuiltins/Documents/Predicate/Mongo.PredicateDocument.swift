@@ -1,8 +1,10 @@
-import BSONEncoding
 import BSONDecoding
+import BSONEncoding
+import MongoDSL
 
 extension Mongo
 {
+    /// Not to be confused with ``FilterDocument``.
     @frozen public
     struct PredicateDocument:BSONRepresentable, BSONDSL, Sendable
     {

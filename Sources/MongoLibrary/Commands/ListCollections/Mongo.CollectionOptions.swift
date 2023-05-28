@@ -1,5 +1,5 @@
 import BSONDecoding
-import BSON
+import MongoDriver
 
 extension Mongo
 {
@@ -126,10 +126,10 @@ extension Mongo.CollectionOptions
                     to: Mongo.ValidationLevel.self),
                 validator: try bson["validator"]?.decode(
                     to: Mongo.PredicateDocument.self))
-        
+
         case .timeseries:
             variant = .timeseries(try bson["timeseries"].decode(to: Mongo.Timeseries.self))
-        
+
         case .view:
             variant = .view(.init(on: try bson["viewOn"].decode(to: Mongo.Collection.self),
                 pipeline: try bson["pipeline"].decode(to: Mongo.Pipeline.self)))

@@ -1,3 +1,4 @@
+import MongoConfiguration
 import MongoDriver
 import NIOPosix
 import Testing

@@ -28,7 +28,7 @@ extension BSONListEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(with: self.encode(to:))
+        self.encode(to: &field[as: BSON.ListEncoder.self])
     }
 }
 extension BSONListEncodable where Self:Sequence, Element:BSONFieldEncodable
@@ -37,12 +37,11 @@ extension BSONListEncodable where Self:Sequence, Element:BSONFieldEncodable
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(as: BSON.ListEncoder.self)
         {
             for element:Element in self
             {
                 $0.append(element)
             }
-        }
+        } (&field[as: BSON.ListEncoder.self])
     }
 }

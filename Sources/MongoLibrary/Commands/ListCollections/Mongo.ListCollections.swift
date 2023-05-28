@@ -1,5 +1,6 @@
 import BSONDecoding
 import BSONEncoding
+import MongoDriver
 
 extension Mongo
 {
@@ -43,7 +44,7 @@ extension Mongo.ListCollections:MongoIterableCommand
 
     public
     typealias Response = Mongo.Cursor<Element>
-    
+
     @inlinable public
     var tailing:Mongo.Tailing?
     {

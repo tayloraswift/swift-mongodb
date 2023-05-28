@@ -1,13 +1,13 @@
 import BSONEncoding
 
-extension Mongo.Payload
+extension Mongo
 {
     /// A payload is an efficient means of encoding long sequences of BSON
     /// documents. Payloads are subject to the maximum wire message size,
     /// which is usually 48 MB, and larger than the maximum BSON document
     /// size, which is usually 16 MB.
     @frozen public
-    struct Documents:Sendable
+    struct OutlineVector:Sendable
     {
         @usableFromInline
         var output:BSON.Output<[UInt8]>
@@ -19,14 +19,14 @@ extension Mongo.Payload
         }
     }
 }
-extension Mongo.Payload.Documents
+extension Mongo.OutlineVector
 {
     var slice:[UInt8]
     {
         self.output.destination
     }
 }
-extension Mongo.Payload.Documents
+extension Mongo.OutlineVector
 {
     @inlinable public
     init<Encodable>(_ elements:some Sequence<Encodable>) where Encodable:BSONDocumentEncodable
@@ -37,16 +37,25 @@ extension Mongo.Payload.Documents
             self.append(element)
         }
     }
+    @inlinable public
+    init<Element>(_ elements:some Sequence<Element>)
+        where Element:BSONRepresentable<BSON.Document>
+    {
+        self.init()
+        for element:Element in elements
+        {
+            self.append(BSON.DocumentView<[UInt8]>.init(element.bson))
+        }
+    }
 }
-extension Mongo.Payload.Documents
+extension Mongo.OutlineVector
 {
     @inlinable public mutating
     func append<CodingKeys>(_ element:some BSONDocumentEncodable<CodingKeys>)
     {
-        self.output.with(frame: BSON.DocumentFrame.self)
-        {
-            element.encode(to: &$0[as: BSON.DocumentEncoder<CodingKeys>.self])
-        }
+        element.encode(to: &self.output[
+            as: BSON.DocumentEncoder<CodingKeys>.self,
+            in: BSON.DocumentFrame.self])
     }
     public mutating
     func append(_ document:BSON.DocumentView<[UInt8]>)

@@ -125,14 +125,10 @@ extension Mongo.Session
         other.preconditionTime?.combine(into: &self.preconditionTime)
     }
 }
-
-#if swift(>=5.9)
 @available(*, unavailable, message: "sessions have reference semantics")
 extension Mongo.Session:Sendable
 {
 }
-#endif
-
 extension Mongo.Session
 {
     /// Runs a command against the specified database, on a server selected according

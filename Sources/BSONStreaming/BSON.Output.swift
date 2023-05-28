@@ -59,7 +59,7 @@ extension BSON.Output
         self.append(type.rawValue)
     }
     /// Serializes the UTF-8 code units of a string as a c-string with a trailing
-    /// null byte. The `cString` must not contain null bytes. Use ``serialize(utf8:)`` 
+    /// null byte. The `cString` must not contain null bytes. Use ``serialize(utf8:)``
     /// to serialize a string that contains interior null bytes.
     @inlinable public mutating
     func serialize(cString:String)
@@ -123,10 +123,10 @@ extension BSON.Output
         {
         case .double(let double):
             self.serialize(integer: double.bitPattern)
-        
+
         case .string(let string):
             self.serialize(utf8: string)
-        
+
         case .document(let document):
             self.serialize(document: document)
 
@@ -135,49 +135,49 @@ extension BSON.Output
 
         case .binary(let binary):
             self.serialize(binary: binary)
-        
+
         case .null:
             break
-        
+
         case .id(let id):
             self.serialize(id: id)
-        
+
         case .bool(let bool):
             self.append(bool ? 1 : 0)
 
         case .millisecond(let millisecond):
             self.serialize(integer: millisecond.value)
-        
+
         case .regex(let regex):
             self.serialize(cString: regex.pattern)
             self.serialize(cString: regex.options.description)
-        
+
         case .pointer(let database, let id):
             self.serialize(utf8: database)
             self.serialize(id: id)
-        
+
         case .javascript(let code):
             self.serialize(utf8: code)
-        
+
         case .javascriptScope(let scope, let code):
             let size:Int32 = 4 + Int32.init(scope.size) + Int32.init(code.size)
             self.serialize(integer: size)
             self.serialize(utf8: code)
             self.serialize(document: scope)
-        
+
         case .int32(let int32):
             self.serialize(integer: int32)
-        
+
         case .uint64(let uint64):
             self.serialize(integer: uint64)
-        
+
         case .int64(let int64):
             self.serialize(integer: int64)
 
         case .decimal128(let decimal):
             self.serialize(integer: decimal.low)
             self.serialize(integer: decimal.high)
-        
+
         case .max:
             break
         case .min:
@@ -206,6 +206,46 @@ extension BSON.Output
 }
 extension BSON.Output<[UInt8]>
 {
+    /// Temporarily rebinds this output’s storage buffer to an encoder of
+    /// the specified type, bracketing it with the appropriate headers or
+    /// trailers, if performing a mutation.
+    ///
+    /// -   See also: ``subscript(as:)``.
+    @inlinable public
+    subscript<Encoder>(as _:Encoder.Type, in frame:BSON.DocumentFrame.Type) -> Encoder
+        where Encoder:BSONEncoder
+    {
+        get
+        {
+            self[in: frame][as: Encoder.self]
+        }
+        _modify
+        {
+            yield &self[in: frame][as: Encoder.self]
+        }
+    }
+    /// Temporarily rebinds this output’s storage buffer to an encoder of
+    /// the specified type. This function does not add any headers or trailers;
+    /// to emit a complete BSON frame, mutate through ``subscript(as:in:)``.
+    ///
+    /// -   See also: ``subscript(with:)``.
+    @inlinable public
+    subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSONEncoder
+    {
+        get
+        {
+            .init(output: self)
+        }
+        _modify
+        {
+            var encoder:Encoder = .init(output: self)
+
+            self = .init(preallocated: [])
+            defer { self = encoder.output }
+
+            yield &encoder
+        }
+    }
     @inlinable public
     subscript(with key:BSON.Key) -> BSON.Field
     {
@@ -221,50 +261,49 @@ extension BSON.Output<[UInt8]>
             yield &field
         }
     }
-    @available(*, deprecated)
-    @inlinable public mutating
-    func with(key:BSON.Key, do encode:(inout BSON.Field) -> ())
+    @inlinable internal
+    subscript(in frame:(some VariableLengthBSONFrame).Type) -> Self
     {
-        var field:BSON.Field = .init(key: key, output: self)
-        self = .init(preallocated: [])
-        encode(&field)
-        self = field.output
-    }
-    @inlinable public mutating
-    func with<Frame>(frame _:Frame.Type, do serialize:(inout Self) -> ())
-        where Frame:VariableLengthBSONFrame
-    {
-        let start:Int = self.destination.endIndex
-
-        // make room for the length header
-        self.append(0x00)
-        self.append(0x00)
-        self.append(0x00)
-        self.append(0x00)
-
-        serialize(&self)
-
-        assert(self.destination.index(start, offsetBy: 4) <= self.destination.endIndex)
-        
-        if let trailer:UInt8 = Frame.trailer
+        get
         {
-            self.append(trailer)
+            self
         }
-
-        let written:Int = self.destination.distance(from: start,
-            to: self.destination.endIndex)
-
-        let length:Int32 = .init(written - Frame.skipped - 4)
-
-        withUnsafeBytes(of: length.littleEndian)
+        _modify
         {
-            var index:Int = start
-            for byte:UInt8 in $0
+            let start:Int = self.destination.endIndex
+
+            // make room for the length header
+            self.append(0x00)
+            self.append(0x00)
+            self.append(0x00)
+            self.append(0x00)
+
+            defer
             {
-                self.destination[index] = byte
-                self.destination.formIndex(after: &index)
+                assert(self.destination.index(start, offsetBy: 4) <= self.destination.endIndex)
+
+                if let trailer:UInt8 = frame.trailer
+                {
+                    self.append(trailer)
+                }
+
+                let written:Int = self.destination.distance(from: start,
+                    to: self.destination.endIndex)
+
+                let length:Int32 = .init(written - frame.skipped - 4)
+
+                withUnsafeBytes(of: length.littleEndian)
+                {
+                    var index:Int = start
+                    for byte:UInt8 in $0
+                    {
+                        self.destination[index] = byte
+                        self.destination.formIndex(after: &index)
+                    }
+                }
             }
+
+            yield &self
         }
     }
 }
-

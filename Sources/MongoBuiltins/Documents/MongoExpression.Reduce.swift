@@ -1,3 +1,5 @@
+import MongoDSL
+
 extension MongoExpression
 {
     @frozen public

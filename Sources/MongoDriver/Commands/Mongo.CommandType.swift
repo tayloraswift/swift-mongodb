@@ -27,6 +27,7 @@ extension Mongo
         case replicaSetGetConfiguration = "replSetGetConfig"
         case saslContinue
         case saslStart
+        case update
     }
 }
 extension Mongo.CommandType:BSONDecodable, BSONEncodable

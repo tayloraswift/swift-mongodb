@@ -44,7 +44,7 @@ extension MongoExpressionList.Encoder
     {
         self.bson.push(element)
     }
-    
+
     @available(*, deprecated, message: "use append(_:) for non-optional values")
     public mutating
     func push(_ element:some MongoExpressionEncodable)
@@ -62,6 +62,6 @@ extension MongoExpressionList.Encoder
     @inlinable public mutating
     func append(with encode:(inout Self) -> ())
     {
-        self.append { $0.encode(with: encode) }
+        self.append { encode(&$0[as: Self.self]) }
     }
 }
