@@ -4,9 +4,8 @@ import MongoDSL
 
 extension Mongo
 {
-    /// Not to be confused with ``FilterDocument``.
     @frozen public
-    struct PredicateDocument:BSONRepresentable, BSONDSL, Sendable
+    struct UpdateDocument:BSONRepresentable, BSONDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -18,61 +17,16 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateDocument:BSONDecodable
+extension Mongo.UpdateDocument:BSONDecodable
 {
 }
-extension Mongo.PredicateDocument:BSONEncodable
+extension Mongo.UpdateDocument:BSONEncodable
 {
 }
-
-extension Mongo.PredicateDocument
-{
-    /// Encodes an ``Operator``.
-    ///
-    /// This does not require [`@_disfavoredOverload`](), because
-    /// ``Operator`` has no ``String``-keyed subscripts, so it will
-    /// never conflict with ``BSON.Document``.
-    @inlinable public
-    subscript(key:String) -> Mongo.PredicateOperator?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson[key] = value
-        }
-    }
-    @inlinable public
-    subscript(key:String) -> Self?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson[key] = value
-        }
-    }
-    @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson[key] = value
-        }
-    }
-}
-extension Mongo.PredicateDocument
+extension Mongo.UpdateDocument
 {
     @inlinable public
-    subscript(key:Branch) -> Mongo.PredicateList?
+    subscript(key:Arithmetic) -> Mongo.UpdateFields<Arithmetic>?
     {
         get
         {
@@ -84,19 +38,7 @@ extension Mongo.PredicateDocument
         }
     }
     @inlinable public
-    subscript(key:Branch) -> [Self]
-    {
-        get
-        {
-            []
-        }
-        set(value)
-        {
-            self.bson.append(key, value)
-        }
-    }
-    @inlinable public
-    subscript<Encodable>(key:Comment) -> Encodable? where Encodable:BSONEncodable
+    subscript(key:Bit) -> Mongo.UpdateFields<Bit>?
     {
         get
         {
@@ -108,7 +50,67 @@ extension Mongo.PredicateDocument
         }
     }
     @inlinable public
-    subscript<Encodable>(key:Expr) -> Encodable? where Encodable:MongoExpressionEncodable
+    subscript(key:CurrentDate) -> Mongo.UpdateFields<CurrentDate>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(key, value)
+        }
+    }
+    @inlinable public
+    subscript(key:Pop) -> Mongo.UpdateFields<Pop>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(key, value)
+        }
+    }
+    @inlinable public
+    subscript(key:Pull) -> Mongo.UpdateFields<Pull>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(key, value)
+        }
+    }
+    @inlinable public
+    subscript(key:Reduction) -> Mongo.UpdateFields<Reduction>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(key, value)
+        }
+    }
+    @inlinable public
+    subscript(key:Rename) -> Mongo.UpdateFields<Rename>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(key, value)
+        }
+    }
+    @inlinable public
+    subscript(key:Unset) -> Mongo.UpdateFields<Unset>?
     {
         get
         {

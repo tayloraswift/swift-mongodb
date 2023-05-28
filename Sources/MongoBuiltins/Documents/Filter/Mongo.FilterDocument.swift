@@ -3,6 +3,7 @@ import MongoDSL
 
 extension Mongo
 {
+    /// Not to be confused with ``PredicateDocument``.
     @frozen public
     struct FilterDocument:BSONRepresentable, BSONDSL, Sendable
     {

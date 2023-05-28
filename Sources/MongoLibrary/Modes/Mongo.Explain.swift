@@ -3,7 +3,7 @@ import NIOCore
 
 extension Mongo
 {
-    public
+    @frozen public
     enum Explain<Response> where Response:Sendable & BSONDocumentDecodable<BSON.Key>
     {
     }

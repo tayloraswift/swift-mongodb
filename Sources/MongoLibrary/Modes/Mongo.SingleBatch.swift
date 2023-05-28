@@ -4,7 +4,7 @@ import NIOCore
 
 extension Mongo
 {
-    public
+    @frozen public
     enum SingleBatch<Element> where Element:BSONDecodable & Sendable
     {
     }
