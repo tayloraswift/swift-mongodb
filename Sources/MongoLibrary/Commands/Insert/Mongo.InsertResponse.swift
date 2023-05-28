@@ -29,10 +29,8 @@ extension Mongo.InsertResponse:BSONDocumentDecodable
     @inlinable public
     init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(inserted: try bson["n"].decode(to: Int.self),
-            writeConcernErrors: try bson["writeConcernErrors"]?.decode(
-                to: [Mongo.WriteConcernError].self) ?? [],
-            writeErrors: try bson["writeErrors"]?.decode(
-                to: [Mongo.WriteError].self) ?? [])
+        self.init(inserted: try bson["n"].decode(),
+            writeConcernErrors: try bson["writeConcernErrors"]?.decode() ?? [],
+            writeErrors: try bson["writeErrors"]?.decode() ?? [])
     }
 }

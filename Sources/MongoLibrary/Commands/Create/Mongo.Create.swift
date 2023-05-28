@@ -24,11 +24,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
-{
-    @inlinable public static
-    var type:Mongo.CommandType { .create }
-}
 extension Mongo.Create
 {
     private
@@ -38,15 +33,20 @@ extension Mongo.Create
     {
         self.init(writeConcern: writeConcern, fields: Self.type(collection, then: populate))
     }
+}
+extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
+{
+    @inlinable public static
+    var type:Mongo.CommandType { .create }
+}
+extension Mongo.Create
+{
     public
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil)
     {
         self.init(writeConcern: writeConcern, fields: Self.type(collection))
     }
-}
-extension Mongo.Create
-{
     @inlinable public
     init(collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,

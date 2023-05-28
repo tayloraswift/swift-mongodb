@@ -34,6 +34,7 @@ enum Main:AsyncTests
             await TestListCollections   (tests, bootstrap: bootstrap)
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
+            await TestUpdate            (tests, bootstrap: bootstrap)
 
             await TestCausalConsistency (tests, bootstrap: MongoDB / members /?
             {
@@ -66,6 +67,7 @@ enum Main:AsyncTests
             await TestListCollections   (tests, bootstrap: bootstrap)
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
+            await TestUpdate            (tests, bootstrap: bootstrap)
 
             await TestCursors           (tests, bootstrap: bootstrap, on: [.primary])
         }

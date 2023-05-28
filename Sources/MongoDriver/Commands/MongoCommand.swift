@@ -24,19 +24,17 @@ protocol MongoCommand<Response>:Sendable
     ///     and an undecoded message as a *reply*.
     associatedtype Response:Sendable
 
-    var stack:[(file:StaticString, line:Int)] { get }
-
     var writeConcernLabel:Mongo.WriteConcern? { get }
     var writeConcern:WriteConcern? { get }
 
     var readConcernLabel:Mongo.ReadConcern?? { get }
     var readConcern:ReadConcern? { get }
 
+    /// The payload of this command.
+    var payload:Mongo.OutlinePayload? { get }
+
     var timeout:Mongo.MaxTime? { get }
 
-    /// The payload of this command.
-    var payload:Mongo.Payload? { get }
-    
     /// The opaque fields of this command. Not all conforming types will encode
     /// all of their fields to this property; some may have fields (such as
     /// `readConcern` or `maxTimeMS`) that are recognized by the driver and added
@@ -62,14 +60,9 @@ protocol MongoCommand<Response>:Sendable
 }
 extension MongoCommand
 {
-    @inlinable public
-    var stack:[(file:StaticString, line:Int)] { [] }
-}
-extension MongoCommand
-{
     /// Returns [`nil`]().
     @inlinable public
-    var payload:Mongo.Payload?
+    var payload:Mongo.OutlinePayload?
     {
         nil
     }
@@ -209,14 +202,14 @@ extension MongoCommand
             {
             case nil:
                 break
-            
+
             case .autocommitting(let number)?:
                 bson["txnNumber"] = number
 
             case .starting(let number)?:
                 bson["startTransaction"] = true
                 fallthrough
-            
+
             case .started(let number)?:
                 bson["autocommit"] = false
                 bson["txnNumber"] = number

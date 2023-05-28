@@ -6,19 +6,19 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Update<Mode>:Sendable where Mode:MongoOverwriteMode
+    struct Update<Mode, ID>:Sendable where Mode:MongoOverwriteMode, ID:BSONDecodable
     {
         public
         let writeConcern:WriteConcern?
         public
-        let updates:Mongo.Payload.Documents
+        let updates:Mongo.OutlineVector
 
         public
         var fields:BSON.Document
 
-        private
+        @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            updates:Mongo.Payload.Documents,
+            updates:Mongo.OutlineVector,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -36,26 +36,13 @@ extension Mongo.Update:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     public
     typealias ExecutionPolicy = Mode.ExecutionPolicy
 
-    // TODO: fixme
     public
-    typealias Response = Void
+    typealias Response = Mongo.UpdateResponse<ID>
 
     @inlinable public
-    var payload:Mongo.Payload?
+    var payload:Mongo.OutlinePayload?
     {
-        .init(id: .updates, documents: self.updates)
-    }
-}
-extension Mongo.Update
-{
-    @usableFromInline internal
-    init(collection:Mongo.Collection,
-        writeConcern:WriteConcern?,
-        updates:Mongo.Payload.Documents)
-    {
-        self.init(writeConcern: writeConcern,
-            updates: updates,
-            fields: Self.type(collection))
+        .init(vector: self.updates, type: .updates)
     }
 }
 extension Mongo.Update
@@ -65,13 +52,9 @@ extension Mongo.Update
         writeConcern:Mongo.WriteConcern? = nil,
         updates statements:some Sequence<Mongo.UpdateStatement<Mode>>)
     {
-        var updates:Mongo.Payload.Documents = .init()
-        for statement:Mongo.UpdateStatement<Mode> in statements
-        {
-            updates.append(BSON.DocumentView<[UInt8]>.init(statement.bson))
-        }
-        self.init(collection: collection, writeConcern: writeConcern,
-            updates: updates)
+        self.init(writeConcern: writeConcern,
+            updates: .init(statements),
+            fields: Self.type(collection))
     }
     @inlinable public
     init(collection:Mongo.Collection,
@@ -79,7 +62,37 @@ extension Mongo.Update
         updates statements:some Sequence<Mongo.UpdateStatement<Mode>>,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection, writeConcern: writeConcern, updates: statements)
+        self.init(collection: collection,
+            writeConcern: writeConcern,
+            updates: statements)
         try populate(&self)
+    }
+}
+extension Mongo.Update
+{
+    @inlinable public
+    subscript(key:Flag) -> Bool?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields.push(key, value)
+        }
+    }
+
+    @inlinable public
+    subscript(key:Let) -> Mongo.LetDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.fields.push(key, value)
+        }
     }
 }

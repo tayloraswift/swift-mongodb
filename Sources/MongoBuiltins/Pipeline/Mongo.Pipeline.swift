@@ -4,7 +4,7 @@ import BSON
 
 extension Mongo
 {
-    @frozen public 
+    @frozen public
     struct Pipeline:Sendable
     {
         @usableFromInline
@@ -76,7 +76,7 @@ extension Mongo.Pipeline
         self.stages.append(stage)
     }
     @inlinable public mutating
-    func append(_ populate:(inout Mongo.PipelineStage) throws -> ()) rethrows
+    func stage(_ populate:(inout Mongo.PipelineStage) throws -> ()) rethrows
     {
         self.append(try .init(with: populate))
     }
