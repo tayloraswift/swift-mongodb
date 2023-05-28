@@ -6,7 +6,7 @@ extension BSON
     /// completely unmanaged, as it is nothing more than a 96-bit integer.
     ///
     /// The type name is chosen to avoid conflict with Swift’s ``ObjectIdentifier``.
-    @frozen public 
+    @frozen public
     struct Identifier:Sendable
     {
         public
@@ -15,21 +15,39 @@ extension BSON
         /// Creates an identifier with the given bit pattern. Do not use this
         /// initializer to create an identifier from integer literals; use
         /// ``init(_:_:_:)``, which accounts for platform endianness, instead.
-        @inlinable public
+        @inlinable internal
         init(bitPattern:(UInt32, UInt32, UInt32))
         {
             self.bitPattern = bitPattern
         }
-
-        /// Creates an identifier with the given high-, middle-, and low-components.
-        /// The components are interpreted by platform endianness; therefore the values
-        /// stored into ``bitPattern`` may be different if the current host is not
-        /// big-endian.
-        @inlinable public
-        init(_ high:UInt32, _ middle:UInt32, _ low:UInt32)
+    }
+}
+extension BSON.Identifier
+{
+    /// Creates an identifier with the given high-, middle-, and low-components.
+    /// The components are interpreted by platform endianness; therefore the values
+    /// stored into ``bitPattern`` may be different if the current host is not
+    /// big-endian.
+    @inlinable public
+    init(_ high:UInt32, _ middle:UInt32, _ low:UInt32)
+    {
+        self.init(bitPattern: (high.bigEndian, middle.bigEndian, low.bigEndian))
+    }
+    /// Creates an identifier by delegating to the closure to initialize raw memory.
+    /// The buffer contains 12 bytes and will be interpreted as a 96-bit, big-endian
+    /// integer.
+    @inlinable public
+    init(with initialize:(_ memory:UnsafeMutableRawBufferPointer) throws -> ()) rethrows
+    {
+        let bitPattern:(UInt32, UInt32, UInt32) = try withUnsafeTemporaryAllocation(
+            byteCount: MemoryLayout<(UInt32, UInt32, UInt32)>.size,
+            alignment: MemoryLayout<(UInt32, UInt32, UInt32)>.alignment)
         {
-            self.init(bitPattern: (high.bigEndian, middle.bigEndian, low.bigEndian))
+            try initialize($0)
+            return $0.load(as: (UInt32, UInt32, UInt32).self)
         }
+
+        self.init(bitPattern: bitPattern)
     }
 }
 extension BSON.Identifier
@@ -56,10 +74,46 @@ extension BSON.Identifier
         .init(bigEndian: self.bitPattern.2)
     }
 }
+extension BSON.Identifier:ExpressibleByIntegerLiteral
+{
+    @inlinable public
+    init(integerLiteral:StaticBigInt)
+    {
+        precondition(integerLiteral.signum() >= 0,
+            "BSON identifier literal cannot be negative")
+        precondition(integerLiteral.bitWidth <= 97, // +1 bit for “sign” bit
+            "BSON identifier literal overflows UInt96 (bit width: \(integerLiteral.bitWidth))")
+
+        self.init
+        {
+            (bytes:UnsafeMutableRawBufferPointer) in
+
+            var byte:Int = bytes.endIndex
+            var word:Int = 0
+            while byte != bytes.startIndex
+            {
+                withUnsafeBytes(of: integerLiteral[word].bigEndian)
+                {
+                    for value:UInt8 in $0.reversed()
+                    {
+                        byte = bytes.index(before: byte)
+                        bytes[byte] = value
+
+                        if  byte == bytes.startIndex
+                        {
+                            break
+                        }
+                    }
+                }
+                word += 1
+            }
+        }
+    }
+}
 extension BSON.Identifier
 {
-    public 
-    typealias Seed = 
+    public
+    typealias Seed =
     (
         UInt8,
         UInt8,
@@ -67,8 +121,8 @@ extension BSON.Identifier
         UInt8,
         UInt8
     )
-    public 
-    typealias Ordinal = 
+    public
+    typealias Ordinal =
     (
         UInt8,
         UInt8,
