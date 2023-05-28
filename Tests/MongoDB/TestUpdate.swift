@@ -17,6 +17,8 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 
         let session:Mongo.Session = try await .init(from: pool)
 
+        //  This test is based on the tutorial from:
+        //  https://www.mongodb.com/docs/manual/reference/command/update/#examples
         if  let tests:TestGroup = tests / "members-example"
         {
             struct Member:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable
