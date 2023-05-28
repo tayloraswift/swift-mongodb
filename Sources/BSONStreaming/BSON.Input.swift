@@ -41,7 +41,7 @@ extension BSON.Input
         {
             self.source.formIndex(after: &self.index)
         }
-        
+
         return self.source[self.index]
     }
     /// Advances the current index until encountering the specified `byte`.
@@ -75,21 +75,16 @@ extension BSON.Input
     {
         .init(decoding: self.source[try self.parse(through: 0x00)], as: Unicode.UTF8.self)
     }
-    /// Parses a MongoDB object reference.
+    /// Parses a MongoDB object identifier.
     @inlinable public mutating
     func parse(as _:BSON.Identifier.Type = BSON.Identifier.self) throws -> BSON.Identifier
     {
         let start:Source.Index = self.index
-        if  let end:Source.Index = self.source.index(self.index, offsetBy: 12, 
+        if  let end:Source.Index = self.source.index(self.index, offsetBy: 12,
                 limitedBy: self.source.endIndex)
         {
             self.index = end
-            return withUnsafeTemporaryAllocation(byteCount: 12,
-                alignment: MemoryLayout<UInt32>.alignment)
-            {
-                $0.copyBytes(from: self.source[start ..< end])
-                return .init(bitPattern: $0.load(as: (UInt32, UInt32, UInt32).self))
-            }
+            return .init { $0.copyBytes(from: self.source[start ..< end]) }
         }
         else
         {
@@ -137,8 +132,8 @@ extension BSON.Input
         where LittleEndian:FixedWidthInteger
     {
         let start:Source.Index = self.index
-        if  let end:Source.Index = self.source.index(self.index, 
-                offsetBy: MemoryLayout<LittleEndian>.size, 
+        if  let end:Source.Index = self.source.index(self.index,
+                offsetBy: MemoryLayout<LittleEndian>.size,
                 limitedBy: self.source.endIndex)
         {
             self.index = end
@@ -168,7 +163,7 @@ extension BSON.Input
             throw BSON.HeaderError<Frame>.init(length: header)
         }
         let start:Source.Index = self.index
-        if  let end:Source.Index = self.source.index(start, offsetBy: stride, 
+        if  let end:Source.Index = self.source.index(start, offsetBy: stride,
                 limitedBy: self.source.endIndex)
         {
             self.index = end
@@ -188,7 +183,7 @@ extension BSON.Input
     {
         try .init(slicing: try self.parse(View.Frame.self))
     }
-    
+
     /// Returns a slice of the input from the current ``index`` to the end
     /// of the input. Accessing this property does not affect the current
     /// ``index``.
@@ -197,7 +192,7 @@ extension BSON.Input
     {
         self.source.suffix(from: self.index)
     }
-    
+
     /// Asserts that there is no input remaining.
     @inlinable public
     func finish() throws
@@ -227,65 +222,65 @@ extension BSON.Input
         {
         case .double:
             return .double(.init(bitPattern: try self.parse(as: UInt64.self)))
-        
+
         case .string:
             return .string(try self.parse(as: BSON.UTF8View<Source.SubSequence>.self))
-        
+
         case .document:
             return .document(try self.parse(as: BSON.DocumentView<Source.SubSequence>.self))
-        
+
         case .list:
             return .list(try self.parse(as: BSON.ListView<Source.SubSequence>.self))
-        
+
         case .binary:
             return .binary(try self.parse(as: BSON.BinaryView<Source.SubSequence>.self))
-        
+
         case .null:
             return .null
-        
+
         case .id:
             return .id(try self.parse(as: BSON.Identifier.self))
-        
+
         case .bool:
             return .bool(try self.parse(as: Bool.self))
-        
+
         case .millisecond:
             return .millisecond(try self.parse(as: BSON.Millisecond.self))
-        
+
         case .regex:
             return .regex(try self.parse(as: BSON.Regex.self))
-        
+
         case .pointer:
             let database:BSON.UTF8View<Source.SubSequence> = try self.parse(
                 as: BSON.UTF8View<Source.SubSequence>.self)
             let object:BSON.Identifier = try self.parse(
                 as: BSON.Identifier.self)
             return .pointer(database, object)
-        
+
         case .javascript:
             return .javascript(try self.parse(as: BSON.UTF8View<Source.SubSequence>.self))
-        
+
         case .javascriptScope:
             // possible micro-optimization here
             let _:Int32 = try self.parse(as: Int32.self)
-            let code:BSON.UTF8View<Source.SubSequence> = 
+            let code:BSON.UTF8View<Source.SubSequence> =
                 try self.parse(as: BSON.UTF8View<Source.SubSequence>.self)
-            let scope:BSON.DocumentView<Source.SubSequence> = 
+            let scope:BSON.DocumentView<Source.SubSequence> =
                 try self.parse(as: BSON.DocumentView<Source.SubSequence>.self)
             return .javascriptScope(scope, code)
-        
+
         case .int32:
             return .int32(try self.parse(as: Int32.self))
-        
+
         case .uint64:
             return .uint64(try self.parse(as: UInt64.self))
-        
+
         case .int64:
             return .int64(try self.parse(as: Int64.self))
-        
+
         case .decimal128:
             return .decimal128(try self.parse(as: BSON.Decimal128.self))
-        
+
         case .max:
             return .max
         case .min:

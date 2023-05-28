@@ -6,7 +6,7 @@ extension Mongo
     public
     struct Batches<BatchElement> where BatchElement:BSONDecodable & Sendable
     {
-        public
+        @usableFromInline internal
         let iterator:AsyncIterator
 
         init(iterator:AsyncIterator)
@@ -25,7 +25,7 @@ extension Mongo.Batches
 }
 extension Mongo.Batches
 {
-    @usableFromInline static
+    @usableFromInline internal static
     func create(preference:Mongo.ReadPreference,
         lifecycle:Mongo.CursorLifecycle,
         timeout:Milliseconds,
@@ -56,7 +56,7 @@ extension Mongo.Batches
         }
         return .init(iterator: iterator)
     }
-    @usableFromInline
+    @usableFromInline internal
     func destroy() async
     {
         if  let cursor:Mongo.CursorIterator = self.iterator.cursor
