@@ -153,7 +153,7 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 2)
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection: collection, elements: states.0),
+                    command: Mongo.Insert.init(collection, encoding: states.0),
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -166,7 +166,7 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 {
                     let expected:Mongo.UpdateResponse<Int> = .init(selected: 1, modified: 1)
                     let response:Mongo.UpdateResponse<Int> = try await session.run(
-                        command: Mongo.Update<Mongo.One, Int>.init(collection: collection,
+                        command: Mongo.Update<Mongo.One, Int>.init(collection,
                             writeConcern: .majority,
                             updates:
                             [
@@ -199,8 +199,7 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await tests.do
                 {
                     let members:[Member] = try await session.run(
-                        command: Mongo.Find<Mongo.SingleBatch<Member>>.init(
-                            collection: collection,
+                        command: Mongo.Find<Mongo.SingleBatch<Member>>.init(collection,
                             limit: 10),
                         against: database)
 
@@ -215,7 +214,7 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 {
                     let expected:Mongo.UpdateResponse<Int> = .init(selected: 2, modified: 2)
                     let response:Mongo.UpdateResponse<Int> = try await session.run(
-                        command: Mongo.Update<Mongo.Many, Int>.init(collection: collection,
+                        command: Mongo.Update<Mongo.Many, Int>.init(collection,
                             writeConcern: .majority,
                             updates:
                             [
@@ -246,8 +245,7 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await tests.do
                 {
                     let members:[Member] = try await session.run(
-                        command: Mongo.Find<Mongo.SingleBatch<Member>>.init(
-                            collection: collection,
+                        command: Mongo.Find<Mongo.SingleBatch<Member>>.init(collection,
                             limit: 10),
                         against: database)
 
@@ -262,7 +260,7 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 {
                     let expected:Mongo.UpdateResponse<Int> = .init(selected: 2, modified: 2)
                     let response:Mongo.UpdateResponse<Int> = try await session.run(
-                        command: Mongo.Update<Mongo.Many, Int>.init(collection: collection,
+                        command: Mongo.Update<Mongo.Many, Int>.init(collection,
                             writeConcern: .majority,
                             updates:
                             [
@@ -297,8 +295,7 @@ func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await tests.do
                 {
                     let members:[Member] = try await session.run(
-                        command: Mongo.Find<Mongo.SingleBatch<Member>>.init(
-                            collection: collection,
+                        command: Mongo.Find<Mongo.SingleBatch<Member>>.init(collection,
                             limit: 10),
                         against: database)
 

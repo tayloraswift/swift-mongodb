@@ -61,7 +61,7 @@ extension Mongo.Find:MongoIterableCommand
 extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         tailing:Mongo.Tailing? = nil,
         stride:Int,
@@ -80,7 +80,7 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
         self.fields["skip"] = skip
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         tailing:Mongo.Tailing? = nil,
         stride:Int,
@@ -88,7 +88,7 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
         skip:Int? = nil,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection,
+        self.init(collection,
             readConcern: readConcern,
             tailing: tailing,
             stride: stride,
@@ -100,7 +100,7 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
 extension Mongo.Find where Mode.Tailing == Never, Mode.Stride == Void
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         limit:Int,
         skip:Int? = nil)
@@ -116,13 +116,13 @@ extension Mongo.Find where Mode.Tailing == Never, Mode.Stride == Void
         self.fields["skip"] = skip
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         limit:Int,
         skip:Int? = nil,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection,
+        self.init(collection,
             readConcern: readConcern,
             limit: limit,
             skip: skip)

@@ -25,8 +25,8 @@ func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) asy
                 {
                     await (tests ! collection.name).do
                     {
-                        try await session.run(command: Mongo.Create<Mongo.Collection>.init(
-                                collection: collection), 
+                        try await session.run(
+                            command: Mongo.Create<Mongo.Collection>.init(collection),
                             against: database)
                     }
                 }

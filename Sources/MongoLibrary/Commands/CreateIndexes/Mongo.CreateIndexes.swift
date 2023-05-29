@@ -40,7 +40,7 @@ extension Mongo.CreateIndexes:MongoImplicitSessionCommand
 extension Mongo.CreateIndexes
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         indexes:[Mongo.CreateIndexStatement])
     {
@@ -48,12 +48,12 @@ extension Mongo.CreateIndexes
         self.fields["indexes"] = indexes
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         indexes:[Mongo.CreateIndexStatement],
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection, writeConcern: writeConcern, indexes: indexes)
+        self.init(collection, writeConcern: writeConcern, indexes: indexes)
         try populate(&self)
     }
 }

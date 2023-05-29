@@ -50,9 +50,9 @@ extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
 extension Mongo.Insert
 {
     @inlinable public
-    init<Elements>(collection:Mongo.Collection,
+    init<Elements>(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        elements:Elements)
+        encoding elements:Elements)
         where Elements:Sequence, Elements.Element:BSONDocumentEncodable
     {
         self.init(writeConcern: writeConcern,
@@ -60,13 +60,13 @@ extension Mongo.Insert
             fields: Self.type(collection))
     }
     @inlinable public
-    init<Elements>(collection:Mongo.Collection,
+    init<Elements>(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        elements:Elements,
+        encoding elements:Elements,
         with populate:(inout Self) throws -> ()) rethrows
         where Elements:Sequence, Elements.Element:BSONDocumentEncodable
     {
-        self.init(collection: collection, writeConcern: writeConcern, elements: elements)
+        self.init(collection, writeConcern: writeConcern, encoding: elements)
         try populate(&self)
     }
 }

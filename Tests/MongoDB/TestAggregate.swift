@@ -74,32 +74,32 @@ func TestAggregate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 4)
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection: collection, elements:
-                    [
-                        .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b2,
-                            author: "barbie",
-                            title: "Brain Surgery for Beginners",
-                            views: 527,
-                            tags: ["medicine", "neuroscience", "education"]),
+                    command: Mongo.Insert.init(collection, encoding:
+                        [
+                            .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b2,
+                                author: "barbie",
+                                title: "Brain Surgery for Beginners",
+                                views: 527,
+                                tags: ["medicine", "neuroscience", "education"]),
 
-                        .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b3,
-                            author: "barbie",
-                            title: "NATO Expansion and Unipolar Norms: A Review",
-                            views: 760,
-                            tags: ["politics", "history"]),
+                            .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b3,
+                                author: "barbie",
+                                title: "NATO Expansion and Unipolar Norms: A Review",
+                                views: 760,
+                                tags: ["politics", "history"]),
 
-                        .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b4,
-                            author: "raquelle",
-                            title: "A Brief History of Raquelle (Vol. 1)",
-                            views: 288,
-                            tags: ["history", "autobiography"]),
+                            .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b4,
+                                author: "raquelle",
+                                title: "A Brief History of Raquelle (Vol. 1)",
+                                views: 288,
+                                tags: ["history", "autobiography"]),
 
-                        .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b5,
-                            author: "raquelle",
-                            title: "A Brief History of Raquelle (Vol. 2)",
-                            views: 115,
-                            tags: ["history", "autobiography"]),
-                    ] as [Article]),
+                            .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b5,
+                                author: "raquelle",
+                                title: "A Brief History of Raquelle (Vol. 2)",
+                                views: 115,
+                                tags: ["history", "autobiography"]),
+                        ] as [Article]),
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -140,8 +140,7 @@ func TestAggregate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     .init(id: "autobiography", count: 2),
                 ]
                 let response:[TagStats] = try await session.run(
-                    command: Mongo.Aggregate<Mongo.Cursor<TagStats>>.init(
-                        collection: collection,
+                    command: Mongo.Aggregate<Mongo.Cursor<TagStats>>.init(collection,
                         writeConcern: .majority,
                         readConcern: .majority,
                         pipeline: .init
@@ -204,8 +203,7 @@ func TestAggregate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     .init(id: "raquelle", views: 288 + 115),
                 ]
                 let response:[AuthorStats] = try await session.run(
-                    command: Mongo.Aggregate<Mongo.Cursor<AuthorStats>>.init(
-                        collection: collection,
+                    command: Mongo.Aggregate<Mongo.Cursor<AuthorStats>>.init(collection,
                         writeConcern: .majority,
                         readConcern: .majority,
                         pipeline: .init

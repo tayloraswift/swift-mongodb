@@ -61,7 +61,7 @@ extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand,
 extension Mongo.Aggregate where Mode.Stride == Int
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
         pipeline:Mongo.Pipeline,
@@ -80,14 +80,14 @@ extension Mongo.Aggregate where Mode.Stride == Int
         }
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
         pipeline:Mongo.Pipeline,
         stride:Int,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection,
+        self.init(collection,
             writeConcern: writeConcern,
             readConcern: readConcern,
             pipeline: pipeline,
@@ -99,7 +99,7 @@ extension Mongo.Aggregate where Mode.Stride == Int
 extension Mongo.Aggregate where Mode.Stride == Void, Mode.Element == Never
 {
     public
-    init(collection:Mongo.Collection, pipeline:Mongo.Pipeline)
+    init(_ collection:Mongo.Collection, pipeline:Mongo.Pipeline)
     {
         self.init(
             writeConcern: nil,
@@ -111,11 +111,11 @@ extension Mongo.Aggregate where Mode.Stride == Void, Mode.Element == Never
         self.fields["explain"] = true
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         pipeline:Mongo.Pipeline,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection, pipeline: pipeline)
+        self.init(collection, pipeline: pipeline)
         try populate(&self)
     }
 }

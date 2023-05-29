@@ -48,7 +48,7 @@ extension Mongo.Update:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
 extension Mongo.Update
 {
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         updates statements:some Sequence<Mongo.UpdateStatement<Mode>>)
     {
@@ -57,12 +57,12 @@ extension Mongo.Update
             fields: Self.type(collection))
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         updates statements:some Sequence<Mongo.UpdateStatement<Mode>>,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection,
+        self.init(collection,
             writeConcern: writeConcern,
             updates: statements)
         try populate(&self)

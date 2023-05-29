@@ -67,8 +67,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 100)
                 let response:Mongo.InsertResponse = try await pool.run(
-                    command: Mongo.Insert.init(collection: collection,
-                        elements: ordinals),
+                    command: Mongo.Insert.init(collection, encoding: ordinals),
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -79,8 +78,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let batch:[Record<Int64>] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
-                        collection: collection,
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(collection,
                         limit: 10),
                     against: database)
 
@@ -92,8 +90,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let batch:[Record<Int64>] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
-                        collection: collection,
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(collection,
                         limit: 7,
                         skip: 5),
                     against: database)
@@ -106,8 +103,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let batch:[Record<Int64>] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
-                        collection: collection,
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(collection,
                         limit: 5,
                         skip: 10)
                     {
@@ -126,8 +122,7 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let batch:[Record<Int64>] = try await pool.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(
-                        collection: collection,
+                    command: Mongo.Find<Mongo.SingleBatch<Record<Int64>>>.init(collection,
                         limit: 5,
                         skip: 10)
                     {
@@ -146,8 +141,8 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
-                        collection: collection,
+                try await session.run(
+                    command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10),
                     against: database)
                 {
@@ -172,8 +167,8 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
-                        collection: collection,
+                try await session.run(
+                    command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10)
                     {
                         $0[.filter] = .init
@@ -208,8 +203,8 @@ func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await tests.do
             {
                 let session:Mongo.Session = try await .init(from: pool)
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
-                        collection: collection,
+                try await session.run(
+                    command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10)
                     {
                         $0[.projection] = .init
