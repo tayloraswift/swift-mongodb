@@ -30,6 +30,6 @@ extension Mongo.Credentials
     @inlinable public
     var user:Mongo.Namespaced<String>
     {
-        .init(self.database, self.username)
+        self.database | self.username
     }
 }

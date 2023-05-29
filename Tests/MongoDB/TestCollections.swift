@@ -13,7 +13,7 @@ func TestCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
-        let collections:[Mongo.Collection] = (0 ..< 32).map { .init($0.description) }
+        var collections:[Mongo.Collection] = (0 ..< 32).map { .init($0.description) }
         let session:Mongo.Session = try await .init(from: pool)
 
         do
@@ -78,6 +78,18 @@ func TestCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     }
                     tests.expect(collections **? [])
                 }
+            }
+        }
+        if  let tests:TestGroup = tests / "rename-collection"
+        {
+            await tests.do
+            {
+                let target:Mongo.Namespaced<Mongo.Collection> = database | "renamed"
+                try await session.run(
+                    command: Mongo.RenameCollection.init(database | collections[0], to: target),
+                    against: .admin)
+
+                collections[0] = target.collection
             }
         }
         if  let tests:TestGroup = tests / "drop"

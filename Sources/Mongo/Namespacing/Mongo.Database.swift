@@ -16,11 +16,19 @@ extension Mongo
         }
     }
 }
+extension Mongo.Database
+{
+    @inlinable public static
+    func | <Name>(database:Self, name:Name) -> Mongo.Namespaced<Name>
+    {
+        .init(database, name)
+    }
+}
 extension Mongo.Database:ExpressibleByStringLiteral
 {
     public static
     let admin:Self = "admin"
-    
+
     @inlinable public
     init(stringLiteral:String)
     {
