@@ -3,22 +3,25 @@ import BSONEncoding
 import MongoDB
 import Testing
 
-func TestCreateIndexes(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+func TestIndexes(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
-    guard let tests:TestGroup = tests / "create-indexes"
+    guard let tests:TestGroup = tests / "indexes"
     else
     {
         return
     }
 
-    await bootstrap.withTemporaryDatabase(named: "create-indexes-tests", tests: tests)
+    await bootstrap.withTemporaryDatabase(named: "indexes-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
         let session:Mongo.Session = try await .init(from: pool)
+        let collection:Mongo.Collection = "inventory"
 
-        if  let tests:TestGroup = tests / "products-example"
+        do
         {
+            let tests:TestGroup = tests ! "create-indexes"
+
             struct Product:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable
             {
                 let item:Int
@@ -62,8 +65,6 @@ func TestCreateIndexes(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     bson[.model] = self.model
                 }
             }
-
-            let collection:Mongo.Collection = "inventory"
 
             await tests.do
             {
@@ -136,6 +137,18 @@ func TestCreateIndexes(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                     against: database)
 
                 tests.expect(response ==? expected)
+            }
+        }
+        if  let tests:TestGroup = tests / "drop-indexes"
+        {
+            await tests.do
+            {
+                try await session.run(
+                    command: Mongo.DropIndexes(collection, writeConcern: .majority)
+                    {
+                        $0[.index] = ["item_manufacturer_model", "item_supplier_model"]
+                    },
+                    against: database)
             }
         }
     }
