@@ -9,6 +9,7 @@ extension Mongo
         case abortTransaction
         case aggregate
         case create
+        case createIndexes
         case commitTransaction
         case configureFailpoint = "configureFailPoint"
         case dropDatabase

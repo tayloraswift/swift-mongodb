@@ -58,27 +58,17 @@ extension Mongo.ListCollections:MongoImplicitSessionCommand,
     @inlinable public static
     var type:Mongo.CommandType { .listCollections }
 }
-extension Mongo.ListCollections
-{
-    private
-    init(stride:Int, with populate:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
-    {
-        self.init(stride: stride, fields: Self.type(1 as Int32, then: populate))
-    }
-}
 extension Mongo.ListCollections<Mongo.CollectionBinding>
 {
     public
     init(stride:Int)
     {
-        self.init(stride: stride)
+        self.init(stride: stride, fields: Self.type(1))
+        self.fields["cursor"]
         {
-            $0["cursor"]
-            {
-                $0["batchSize"] = stride
-            }
-            $0["nameOnly"] = true
+            $0["batchSize"] = stride
         }
+        self.fields["nameOnly"] = true
     }
     @inlinable public
     init(stride:Int, with populate:(inout Self) throws -> ()) rethrows
@@ -92,12 +82,10 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
     public
     init(stride:Int)
     {
-        self.init(stride: stride)
+        self.init(stride: stride, fields: Self.type(1))
+        self.fields["cursor"]
         {
-            $0["cursor"]
-            {
-                $0["batchSize"] = stride
-            }
+            $0["batchSize"] = stride
         }
     }
     @inlinable public

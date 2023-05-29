@@ -31,21 +31,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.Find
-{
-    private
-    init(collection:Mongo.Collection,
-        readConcern:ReadConcern?,
-        tailing:Mode.Tailing?,
-        stride:Mode.Stride,
-        with populate:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
-    {
-        self.init(readConcern: readConcern,
-            tailing: tailing,
-            stride: stride,
-            fields: Self.type(collection, then: populate))
-    }
-}
 extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
     /// The string [`"find"`]().
@@ -83,17 +68,16 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
         limit:Int? = nil,
         skip:Int? = nil)
     {
-        self.init(collection: collection,
-            readConcern: readConcern,
+        self.init(readConcern: readConcern,
             tailing: tailing,
-            stride: stride)
-        {
-            $0["awaitData"] = tailing.flatMap { $0.awaits ? true : nil }
-            $0["tailable"] = tailing.map { _ in true }
-            $0["batchSize"] = stride
-            $0["limit"] = limit
-            $0["skip"] = skip
-        }
+            stride: stride,
+            fields: Self.type(collection))
+
+        self.fields["awaitData"] = tailing.flatMap { $0.awaits ? true : nil }
+        self.fields["tailable"] = tailing.map { _ in true }
+        self.fields["batchSize"] = stride
+        self.fields["limit"] = limit
+        self.fields["skip"] = skip
     }
     @inlinable public
     init(collection:Mongo.Collection,
@@ -121,13 +105,15 @@ extension Mongo.Find where Mode.Tailing == Never, Mode.Stride == Void
         limit:Int,
         skip:Int? = nil)
     {
-        self.init(collection: collection, readConcern: readConcern, tailing: nil, stride: ())
-        {
-            $0["singleBatch"] = true
-            $0["batchSize"] = limit
-            $0["limit"] = limit
-            $0["skip"] = skip
-        }
+        self.init(readConcern: readConcern,
+            tailing: nil,
+            stride: (),
+            fields: Self.type(collection))
+
+        self.fields["singleBatch"] = true
+        self.fields["batchSize"] = limit
+        self.fields["limit"] = limit
+        self.fields["skip"] = skip
     }
     @inlinable public
     init(collection:Mongo.Collection,
