@@ -74,8 +74,7 @@ func TestAggregate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 4)
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection, encoding:
-                        [
+                    command: Mongo.Insert.init(collection, encoding: [
                             .init(id: 0x5276_9ea0_f3dc_6ead_47c9_a1b2,
                                 author: "barbie",
                                 title: "Brain Surgery for Beginners",
