@@ -58,23 +58,6 @@ extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand,
         try Mode.decode(reply: reply)
     }
 }
-
-extension Mongo.Aggregate
-{
-    private
-    init(collection:Mongo.Collection,
-        writeConcern:WriteConcern?,
-        readConcern:ReadConcern?,
-        stride:Mode.Stride,
-        with populate:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
-    {
-        self.init(writeConcern: writeConcern,
-            readConcern: readConcern,
-            stride: stride,
-            fields: Self.type(collection, then: populate))
-    }
-}
-
 extension Mongo.Aggregate where Mode.Stride == Int
 {
     public
@@ -84,16 +67,16 @@ extension Mongo.Aggregate where Mode.Stride == Int
         pipeline:Mongo.Pipeline,
         stride:Int)
     {
-        self.init(collection: collection,
+        self.init(
             writeConcern: writeConcern,
             readConcern: readConcern,
-            stride: stride)
+            stride: stride,
+            fields: Self.type(collection))
+
+        self.fields["pipeline"] = pipeline
+        self.fields["cursor"]
         {
-            $0["pipeline"] = pipeline
-            $0["cursor"]
-            {
-                $0["batchSize"] = stride
-            }
+            $0["batchSize"] = stride
         }
     }
     @inlinable public
@@ -118,11 +101,14 @@ extension Mongo.Aggregate where Mode.Stride == Void, Mode.Element == Never
     public
     init(collection:Mongo.Collection, pipeline:Mongo.Pipeline)
     {
-        self.init(collection: collection, writeConcern: nil, readConcern: nil, stride: ())
-        {
-            $0["pipeline"] = pipeline
-            $0["explain"] = true
-        }
+        self.init(
+            writeConcern: nil,
+            readConcern: nil,
+            stride: (),
+            fields: Self.type(collection))
+
+        self.fields["pipeline"] = pipeline
+        self.fields["explain"] = true
     }
     @inlinable public
     init(collection:Mongo.Collection,

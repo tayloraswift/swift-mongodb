@@ -24,16 +24,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.Create
-{
-    private
-    init(collection:Mongo.Collection,
-        writeConcern:WriteConcern?,
-        with populate:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
-    {
-        self.init(writeConcern: writeConcern, fields: Self.type(collection, then: populate))
-    }
-}
 extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
     @inlinable public static
@@ -63,10 +53,8 @@ extension Mongo.Create<Mongo.Timeseries>
         writeConcern:WriteConcern? = nil,
         timeseries:Mongo.Timeseries)
     {
-        self.init(collection: collection, writeConcern: writeConcern)
-        {
-            $0["timeseries"] = timeseries
-        }
+        self.init(writeConcern: writeConcern, fields: Self.type(collection))
+        self.fields["timeseries"] = timeseries
     }
     @inlinable public
     init(collection:Mongo.Collection,
@@ -85,12 +73,10 @@ extension Mongo.Create<Mongo.CollectionView>
         writeConcern:WriteConcern? = nil,
         view:Mongo.CollectionView)
     {
-        self.init(collection: collection, writeConcern: writeConcern)
-        {
+        self.init(writeConcern: writeConcern, fields: Self.type(collection))
             // don’t elide pipeline, it should always be there
-            $0["viewOn"] = view.collection
-            $0["pipeline"] = view.pipeline
-        }
+        self.fields["viewOn"] = view.collection
+        self.fields["pipeline"] = view.pipeline
     }
     @inlinable public
     init(collection:Mongo.Collection,

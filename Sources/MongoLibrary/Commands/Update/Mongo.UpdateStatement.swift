@@ -1,6 +1,5 @@
 import BSONDecoding
 import BSONEncoding
-import MongoDSL
 
 extension Mongo
 {
