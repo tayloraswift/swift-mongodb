@@ -1,15 +1,15 @@
 import MongoDB
 import Testing
 
-func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+func TestCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
-    guard let tests:TestGroup = tests / "list-collections"
+    guard let tests:TestGroup = tests / "collections"
     else
     {
         return
     }
 
-    await bootstrap.withTemporaryDatabase(named: "list-collections", tests: tests)
+    await bootstrap.withTemporaryDatabase(named: "collections-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
@@ -32,7 +32,7 @@ func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) asy
                 }
             }
         }
-        if  let tests:TestGroup = tests / "bindings"
+        if  let tests:TestGroup = tests / "list-collections" / "bindings"
         {
             await tests.do
             {
@@ -56,7 +56,7 @@ func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) asy
                 }
             }
         }
-        if  let tests:TestGroup = tests / "metadata"
+        if  let tests:TestGroup = tests / "list-collections" / "metadata"
         {
             await tests.do
             {
@@ -77,6 +77,17 @@ func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) asy
                         }
                     }
                     tests.expect(collections **? [])
+                }
+            }
+        }
+        if  let tests:TestGroup = tests / "drop"
+        {
+            for collection:Mongo.Collection in collections
+            {
+                await (tests ! collection.name).do
+                {
+                    try await session.run(command: Mongo.Drop.init(collection),
+                        against: database)
                 }
             }
         }

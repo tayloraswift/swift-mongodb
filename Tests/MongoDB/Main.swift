@@ -31,7 +31,7 @@ enum Main:AsyncTests
 
             await TestFsync             (tests, bootstrap: bootstrap)
             await TestDatabases         (tests, bootstrap: bootstrap)
-            await TestListCollections   (tests, bootstrap: bootstrap)
+            await TestCollections       (tests, bootstrap: bootstrap)
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
             await TestUpdate            (tests, bootstrap: bootstrap)
@@ -66,7 +66,7 @@ enum Main:AsyncTests
 
             await TestFsync             (tests, bootstrap: bootstrap)
             await TestDatabases         (tests, bootstrap: bootstrap)
-            await TestListCollections   (tests, bootstrap: bootstrap)
+            await TestCollections       (tests, bootstrap: bootstrap)
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
             await TestUpdate            (tests, bootstrap: bootstrap)
