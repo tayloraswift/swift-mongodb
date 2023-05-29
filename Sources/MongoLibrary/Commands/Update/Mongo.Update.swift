@@ -11,14 +11,14 @@ extension Mongo
         public
         let writeConcern:WriteConcern?
         public
-        let updates:Mongo.OutlineVector
+        let updates:Mongo.OutlineDocuments
 
         public
         var fields:BSON.Document
 
         @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            updates:Mongo.OutlineVector,
+            updates:Mongo.OutlineDocuments,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -40,9 +40,9 @@ extension Mongo.Update:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     typealias Response = Mongo.UpdateResponse<ID>
 
     @inlinable public
-    var payload:Mongo.OutlinePayload?
+    var outline:Mongo.OutlineVector?
     {
-        .init(vector: self.updates, type: .updates)
+        .init(self.updates, type: .updates)
     }
 }
 extension Mongo.Update

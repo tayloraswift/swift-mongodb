@@ -31,7 +31,7 @@ protocol MongoCommand<Response>:Sendable
     var readConcern:ReadConcern? { get }
 
     /// The payload of this command.
-    var payload:Mongo.OutlinePayload? { get }
+    var outline:Mongo.OutlineVector? { get }
 
     var timeout:Mongo.MaxTime? { get }
 
@@ -62,7 +62,7 @@ extension MongoCommand
 {
     /// Returns [`nil`]().
     @inlinable public
-    var payload:Mongo.OutlinePayload?
+    var outline:Mongo.OutlineVector?
     {
         nil
     }
@@ -154,8 +154,10 @@ extension MongoCommand
         by deadline:ContinuousClock.Instant) -> MongoWire.Message<[UInt8]>.Sections?
     {
         // do this first, so we never have to access `self` after reading `self.fields`
-        let outlined:[MongoWire.Message<[UInt8]>.Outline] =
-            self.payload.map { [$0.outline] } ?? []
+        let outlined:[MongoWire.Message<[UInt8]>.Outline]? = self.outline.map
+        {
+            [.init(id: $0.type.rawValue, slice: $0.documents.slice)]
+        }
 
         let now:ContinuousClock.Instant = .now
 
@@ -178,7 +180,7 @@ extension MongoCommand
             timeout: timeout,
             labels: labels)
 
-        return .init(body: body, outlined: outlined)
+        return .init(body: body, outlined: outlined ?? [])
     }
 
     private __consuming
