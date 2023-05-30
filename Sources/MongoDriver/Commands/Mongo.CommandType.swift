@@ -18,6 +18,7 @@ extension Mongo
         case dropIndexes
         case endSessions
         case find
+        case findAndModify
         case fsync
         case fsyncUnlock
         case getMore
