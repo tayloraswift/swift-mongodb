@@ -6,7 +6,7 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Update<Plurality, ID>:Sendable where Plurality:MongoWriteEffect, ID:BSONDecodable
+    struct Update<Effect, ID>:Sendable where Effect:MongoWriteEffect, ID:BSONDecodable
     {
         public
         let writeConcern:WriteConcern?
@@ -34,7 +34,7 @@ extension Mongo.Update:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
 
     /// `Update` only supports retryable writes in single-write mode.
     public
-    typealias ExecutionPolicy = Plurality.ExecutionPolicy
+    typealias ExecutionPolicy = Effect.ExecutionPolicy
 
     public
     typealias Response = Mongo.UpdateResponse<ID>
@@ -50,7 +50,7 @@ extension Mongo.Update
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates statements:some Sequence<Mongo.UpdateStatement<Plurality>>)
+        updates statements:some Sequence<Mongo.UpdateStatement<Effect>>)
     {
         self.init(writeConcern: writeConcern,
             updates: .init(statements),
@@ -59,7 +59,7 @@ extension Mongo.Update
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates statements:some Sequence<Mongo.UpdateStatement<Plurality>>,
+        updates statements:some Sequence<Mongo.UpdateStatement<Effect>>,
         with populate:(inout Self) throws -> ()) rethrows
     {
         self.init(collection,

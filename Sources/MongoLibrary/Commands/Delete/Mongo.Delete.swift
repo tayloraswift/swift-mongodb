@@ -6,7 +6,7 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Delete<Plurality>:Sendable where Plurality:MongoWriteEffect
+    struct Delete<Effect>:Sendable where Effect:MongoWriteEffect
     {
         public
         let writeConcern:WriteConcern?
@@ -34,7 +34,7 @@ extension Mongo.Delete:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
 
     /// `Update` only supports retryable writes in single-write mode.
     public
-    typealias ExecutionPolicy = Plurality.ExecutionPolicy
+    typealias ExecutionPolicy = Effect.ExecutionPolicy
 
     public
     typealias Response = Mongo.DeleteResponse
@@ -50,7 +50,7 @@ extension Mongo.Delete
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        deletes statements:some Sequence<Mongo.DeleteStatement<Plurality>>)
+        deletes statements:some Sequence<Mongo.DeleteStatement<Effect>>)
     {
         self.init(writeConcern: writeConcern,
             deletes: .init(statements),
@@ -59,7 +59,7 @@ extension Mongo.Delete
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        deletes statements:some Sequence<Mongo.DeleteStatement<Plurality>>,
+        deletes statements:some Sequence<Mongo.DeleteStatement<Effect>>,
         with populate:(inout Self) throws -> ()) rethrows
     {
         self.init(collection,

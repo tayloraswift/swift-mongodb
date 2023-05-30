@@ -6,22 +6,22 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Find<Plurality>:Sendable where Plurality:MongoReadEffect
+    struct Find<Effect>:Sendable where Effect:MongoReadEffect
     {
         public
         let readConcern:ReadConcern?
         public
-        let tailing:Plurality.Tailing?
+        let tailing:Effect.Tailing?
         public
-        let stride:Plurality.Stride
+        let stride:Effect.Stride
 
         public
         var fields:BSON.Document
 
         private
         init(readConcern:ReadConcern?,
-            tailing:Plurality.Tailing?,
-            stride:Plurality.Stride,
+            tailing:Effect.Tailing?,
+            stride:Effect.Stride,
             fields:BSON.Document)
         {
             self.readConcern = readConcern
@@ -42,24 +42,24 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
     typealias ExecutionPolicy = Mongo.Retry
 
     public
-    typealias Response = Plurality.Response
+    typealias Response = Effect.Response
 
     @inlinable public static
     func decode(
-        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Plurality.Response
+        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Effect.Response
     {
-        try Plurality.decode(reply: reply)
+        try Effect.decode(reply: reply)
     }
 }
 extension Mongo.Find:MongoIterableCommand
-    where   Plurality.Response == Mongo.Cursor<Plurality.Element>,
-            Plurality.Tailing == Mongo.Tailing,
-            Plurality.Stride == Int
+    where   Effect.Response == Mongo.Cursor<Effect.Element>,
+            Effect.Tailing == Mongo.Tailing,
+            Effect.Stride == Int
 {
     public
-    typealias Element = Plurality.Element
+    typealias Element = Effect.Element
 }
-extension Mongo.Find where Plurality.Tailing == Mongo.Tailing, Plurality.Stride == Int
+extension Mongo.Find where Effect.Tailing == Mongo.Tailing, Effect.Stride == Int
 {
     public
     init(_ collection:Mongo.Collection,
@@ -98,7 +98,7 @@ extension Mongo.Find where Plurality.Tailing == Mongo.Tailing, Plurality.Stride 
         try populate(&self)
     }
 }
-extension Mongo.Find where Plurality.Tailing == Never, Plurality.Stride == Void
+extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Void
 {
     public
     init(_ collection:Mongo.Collection,
