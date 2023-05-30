@@ -6,22 +6,22 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Find<Mode>:Sendable where Mode:MongoBatchingMode
+    struct Find<Plurality>:Sendable where Plurality:MongoReadEffect
     {
         public
         let readConcern:ReadConcern?
         public
-        let tailing:Mode.Tailing?
+        let tailing:Plurality.Tailing?
         public
-        let stride:Mode.Stride
+        let stride:Plurality.Stride
 
         public
         var fields:BSON.Document
 
         private
         init(readConcern:ReadConcern?,
-            tailing:Mode.Tailing?,
-            stride:Mode.Stride,
+            tailing:Plurality.Tailing?,
+            stride:Plurality.Stride,
             fields:BSON.Document)
         {
             self.readConcern = readConcern
@@ -42,26 +42,27 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
     typealias ExecutionPolicy = Mongo.Retry
 
     public
-    typealias Response = Mode.Response
+    typealias Response = Plurality.Response
 
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Mode.Response
+    func decode(
+        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Plurality.Response
     {
-        try Mode.decode(reply: reply)
+        try Plurality.decode(reply: reply)
     }
 }
 extension Mongo.Find:MongoIterableCommand
-    where   Mode.Response == Mongo.Cursor<Mode.Element>,
-            Mode.Tailing == Mongo.Tailing,
-            Mode.Stride == Int
+    where   Plurality.Response == Mongo.Cursor<Plurality.Element>,
+            Plurality.Tailing == Mongo.Tailing,
+            Plurality.Stride == Int
 {
     public
-    typealias Element = Mode.Element
+    typealias Element = Plurality.Element
 }
-extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
+extension Mongo.Find where Plurality.Tailing == Mongo.Tailing, Plurality.Stride == Int
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         tailing:Mongo.Tailing? = nil,
         stride:Int,
@@ -80,7 +81,7 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
         self.fields["skip"] = skip
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         tailing:Mongo.Tailing? = nil,
         stride:Int,
@@ -88,7 +89,7 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
         skip:Int? = nil,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection,
+        self.init(collection,
             readConcern: readConcern,
             tailing: tailing,
             stride: stride,
@@ -97,10 +98,10 @@ extension Mongo.Find where Mode.Tailing == Mongo.Tailing, Mode.Stride == Int
         try populate(&self)
     }
 }
-extension Mongo.Find where Mode.Tailing == Never, Mode.Stride == Void
+extension Mongo.Find where Plurality.Tailing == Never, Plurality.Stride == Void
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         limit:Int,
         skip:Int? = nil)
@@ -116,13 +117,13 @@ extension Mongo.Find where Mode.Tailing == Never, Mode.Stride == Void
         self.fields["skip"] = skip
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         limit:Int,
         skip:Int? = nil,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection,
+        self.init(collection,
             readConcern: readConcern,
             limit: limit,
             skip: skip)

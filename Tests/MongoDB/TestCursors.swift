@@ -35,11 +35,10 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                 //  {_id: 99, value: 99}
                 let expected:Mongo.InsertResponse = .init(inserted: 100)
                 let response:Mongo.InsertResponse = try await initializer.run(
-                    command: Mongo.Insert.init(collection: collection,
-                        elements: ordinals),
+                    command: Mongo.Insert.init(collection, encoding: ordinals),
                     against: database,
                     on: .primary)
-                
+
                 tests.expect(response ==? expected)
             }
         }
@@ -61,8 +60,8 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                 tests.expect(await pool.count ==? 2)
                 //  We should be able to query the collection for results in batches of
                 //  10.
-                try await session.run(command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
-                        collection: collection,
+                try await session.run(
+                    command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10),
                     against: database,
                     on: server)
@@ -83,7 +82,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                         tests.expect(iterator.namespace.database ==? database)
                         tests.expect(iterator.preference ==? server)
                         tests.expect(iterator.stride ==? 10)
-                        
+
                         cursor = iterator.id
                     }
                     else
@@ -114,7 +113,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                     //  We should never have run more than one concurrent operation with
                     //  this server’s connection pool at a time.
                     tests.expect(await connections.count ==? 1)
-                    
+
                     //  We should be able to reuse the batch sequence’s connection after
                     //  finishing iteration, even though we are still inside the query
                     //  closure. In other words, we should be able to obtain a second
@@ -129,7 +128,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                         //  do block, to allow the next command to reuse it.
                         let _:Mongo.Connection = connection
                     }
-                    
+
                     tests.expect(await connections.count ==? 1)
 
                     //  We should be able to verify that the server-side cursor is already
@@ -138,11 +137,10 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                     //  to the same server we ran the original query on, since servers
                     //  never have any clue what cursors other servers have.
                     let cursors:Mongo.KillCursorsResponse = try await session.run(
-                        command: Mongo.KillCursors.init([cursor], 
-                            collection: collection),
+                        command: Mongo.KillCursors.init(collection, cursors: [cursor]),
                         against: database,
                         on: server)
-                    
+
                     tests.expect(cursors.alive **? [])
                     tests.expect(cursors.killed **? [])
                     tests.expect(cursors.unknown **? [])
@@ -173,8 +171,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                         forking: initializer)
                     let cursor:Mongo.CursorIdentifier? =
                         try await session.run(
-                            command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
-                                collection: collection,
+                            command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                                 stride: 10),
                             against: database,
                             on: server)
@@ -209,8 +206,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                     if  let cursor:Mongo.CursorIdentifier
                     {
                         let cursors:Mongo.KillCursorsResponse = try await session.run(
-                            command: Mongo.KillCursors.init([cursor], 
-                                collection: collection),
+                            command: Mongo.KillCursors.init(collection, cursors: [cursor]),
                             against: database,
                             on: server)
                         // if the cursor is already dead, killing it manually will return
@@ -235,8 +231,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
             {
                 let session:Mongo.Session = try await .init(from: pool, forking: initializer)
                 try await session.run(
-                    command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(
-                        collection: collection,
+                    command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10),
                     against: database,
                     on: server)
@@ -249,7 +244,7 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                             command: Mongo.ListDatabases.NameOnly.init(),
                             against: .admin,
                             on: server)
-                        
+
                         tests.expect(false: batch.isEmpty)
                         tests.expect(false: names.isEmpty)
 

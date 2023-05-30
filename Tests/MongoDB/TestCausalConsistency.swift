@@ -29,19 +29,19 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         //  We should have a test deployment with six members, including one
         //  arbiter, one (non-voting) hidden replica, and four visible
         //  replicas.
-        // 
+        //
         //  Therefore, writes must propogate to at least three replicas
         //  (besides the hidden replica) to pass a `majority` write concern.
         await (tests ! "initialize").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert.init(collection: collection,
+                command: Mongo.Insert.init(collection,
                     writeConcern: .acknowledged(by: 4, journaled: true),
-                    elements: [a]),
+                    encoding: [a]),
                     //  We should ensure the write propogates to all four visible replicas.
                 against: database,
                 on: .primary)
-            
+
             tests.expect(response ==? .init(inserted: 1))
         }
 
@@ -80,7 +80,7 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
             lock = try await session.run(command: Mongo.FsyncUnlock.init(),
                 against: .admin,
                 on: secondary)
-            
+
             tests.expect(lock.count ==? count)
         }
 
@@ -90,8 +90,7 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         await (tests ! "before").do
         {
             let letters:[Letter] = try await session.run(
-                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                    collection: collection,
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10),
                 against: database,
                 on: secondary)
@@ -104,12 +103,12 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         await (tests ! "insert-b").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert.init(collection: collection,
+                command: Mongo.Insert.init(collection,
                     writeConcern: .majority(journaled: true),
-                    elements: [b]),
+                    encoding: [b]),
                 against: database,
                 on: .primary)
-            
+
             tests.expect(response ==? .init(inserted: 1))
         }
 
@@ -129,12 +128,12 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         await (tests ! "insert-c").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert.init(collection: collection,
+                command: Mongo.Insert.init(collection,
                     writeConcern: .acknowledged(by: 3, journaled: true),
-                    elements: [c]),
+                    encoding: [c]),
                 against: database,
                 on: .primary)
-            
+
             tests.expect(response ==? .init(inserted: 1))
         }
 
@@ -152,12 +151,12 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         await (tests ! "insert-d").do
         {
             let response:Mongo.InsertResponse = try await session.run(
-                command: Mongo.Insert.init(collection: collection,
+                command: Mongo.Insert.init(collection,
                     writeConcern: .acknowledged(by: 2, journaled: true),
-                    elements: [d]),
+                    encoding: [d]),
                 against: database,
                 on: .primary)
-            
+
             tests.expect(response ==? .init(inserted: 1))
         }
 
@@ -176,8 +175,7 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         func ReadLetters() async throws -> [Letter]
         {
             try await session.run(
-                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                    collection: collection,
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10)
                 {
                     $0[.sort] = .init
@@ -210,8 +208,7 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         await (tests ! "bystander").do
         {
             let letters:[Letter] = try await session.run(
-                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                    collection: collection,
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10)
                 {
                     $0[.sort] = .init
@@ -221,7 +218,7 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
                 },
                 against: database,
                 on: .secondary(tagSets: [["name": "D"]]))
-            
+
             tests.expect(letters ..? [a, b, c, d])
         }
 
@@ -239,12 +236,11 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
         await (tests ! "non-causal").do
         {
             let letters:[Letter] = try await other.run(
-                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                    collection: collection,
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10),
                 against: database,
                 on: secondary)
-            
+
             guard let time:Mongo.Timestamp = tests.expect(value: other.preconditionTime)
             else
             {
@@ -268,8 +264,7 @@ func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) a
             tests.expect(forked.preconditionTime ==? head)
 
             let _:[Letter] = try await forked.run(
-                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                    collection: collection,
+                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10),
                 against: database,
                 on: secondary)

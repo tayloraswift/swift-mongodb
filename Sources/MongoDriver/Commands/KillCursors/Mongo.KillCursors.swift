@@ -11,7 +11,7 @@ extension Mongo
         let cursors:[CursorIdentifier]
 
         @inlinable public
-        init(_ cursors:[CursorIdentifier], collection:Collection)
+        init(_ collection:Collection, cursors:[CursorIdentifier])
         {
             self.collection = collection
             self.cursors = cursors
@@ -23,7 +23,7 @@ extension Mongo.KillCursors:MongoCommand
     /// The string [`"killCursors"`]().
     @inlinable public static
     var type:Mongo.CommandType { .killCursors }
-    
+
     public
     typealias Response = Mongo.KillCursorsResponse
 

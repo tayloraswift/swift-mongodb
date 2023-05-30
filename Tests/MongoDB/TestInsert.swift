@@ -8,7 +8,7 @@ func TestInsert(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
     {
         return
     }
-    
+
     await bootstrap.withTemporaryDatabase(named: "insert-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
@@ -22,10 +22,10 @@ func TestInsert(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 1)
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection: collection,
-                        elements: Ordinals.init(identifiers: 0 ..< 1)),
+                    command: Mongo.Insert.init(collection,
+                        encoding: Ordinals.init(identifiers: 0 ..< 1)),
                     against: database)
-                
+
                 tests.expect(response ==? expected)
             }
         }
@@ -36,10 +36,10 @@ func TestInsert(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 15)
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection: collection,
-                        elements: Ordinals.init(identifiers: 1 ..< 16)),
+                    command: Mongo.Insert.init(collection,
+                        encoding: Ordinals.init(identifiers: 1 ..< 16)),
                     against: database)
-                
+
                 tests.expect(response ==? expected)
             }
         }
@@ -60,10 +60,10 @@ func TestInsert(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                             code: 11000),
                     ])
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection: collection,
-                        elements: Ordinals.init(identifiers: 0 ..< 1)),
+                    command: Mongo.Insert.init(collection,
+                        encoding: Ordinals.init(identifiers: 0 ..< 1)),
                     against: database)
-                
+
                 tests.expect(response ==? expected)
             }
         }
@@ -84,10 +84,10 @@ func TestInsert(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                             code: 11000),
                     ])
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection: collection,
-                        elements: Ordinals.init(identifiers: -8 ..< 32)),
+                    command: Mongo.Insert.init(collection,
+                        encoding: Ordinals.init(identifiers: -8 ..< 32)),
                     against: database)
-                
+
                 tests.expect(response ==? expected)
             }
         }
@@ -108,13 +108,13 @@ func TestInsert(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                             code: 11000)
                     })
                 let response:Mongo.InsertResponse = try await session.run(
-                    command: Mongo.Insert.init(collection: collection,
-                        elements: Ordinals.init(identifiers: -16 ..< 32))
+                    command: Mongo.Insert.init(collection,
+                        encoding: Ordinals.init(identifiers: -16 ..< 32))
                     {
                         $0[.ordered] = false
                     },
                     against: database)
-                
+
                 tests.expect(response ==? expected)
             }
         }

@@ -3,6 +3,8 @@ import BSONEncoding
 
 extension Mongo
 {
+    /// A MongoDB compound namespace. Create a namespace using the
+    /// ``Mongo.Database.|(_:_:)`` operator.
     @frozen public
     struct Namespaced<Name> where Name:LosslessStringConvertible
     {
@@ -11,7 +13,7 @@ extension Mongo
         public
         let name:Name
 
-        @inlinable public
+        @inlinable internal
         init(_ database:Database, _ name:Name)
         {
             self.database = database

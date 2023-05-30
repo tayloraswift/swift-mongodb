@@ -81,8 +81,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await (tests ! "insert").do
                 {
                     let response:Mongo.InsertResponse = try await transaction.run(
-                        command: Mongo.Insert.init(collection: collection,
-                            elements: [a]),
+                        command: Mongo.Insert.init(collection, encoding: [a]),
                         against: database)
 
                     tests.expect(response ==? .init(inserted: 1))
@@ -93,8 +92,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await (tests ! "find-inside").do
                 {
                     let letters:[Letter] = try await transaction.run(
-                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                            collection: collection,
+                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                             limit: 10),
                         against: database)
 
@@ -107,8 +105,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await (tests ! "find-bystander").do
                 {
                     let letters:[Letter] = try await bystander.run(
-                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                            collection: collection,
+                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                             limit: 10),
                         against: database,
                         on: .primary)
@@ -139,8 +136,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await (tests ! "find-outside").do
             {
                 let letters:[Letter] = try await session.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                        collection: collection,
+                    command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                         limit: 10),
                     against: database,
                     on: .primary)
@@ -185,8 +181,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await (tests ! "insert").do
                 {
                     let response:Mongo.InsertResponse = try await transaction.run(
-                        command: Mongo.Insert.init(collection: collection,
-                            elements: [b]),
+                        command: Mongo.Insert.init(collection, encoding: [b]),
                         against: database)
 
                     tests.expect(response ==? .init(inserted: 1))
@@ -196,8 +191,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await (tests ! "find-inside").do
                 {
                     let letters:[Letter] = try await transaction.run(
-                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                            collection: collection,
+                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                             limit: 10),
                         against: database)
 
@@ -210,8 +204,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 await (tests ! "find-inside-bystander").do
                 {
                     let letters:[Letter] = try await bystander.run(
-                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                            collection: collection,
+                        command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                             limit: 10),
                         against: database,
                         on: .primary)
@@ -245,9 +238,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await (tests ! "find-outside").do
             {
                 let letters:[Letter] = try await session.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                        collection: collection,
-                        limit: 10),
+                    command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection, limit: 10),
                     against: database,
                     on: .primary)
 
@@ -258,9 +249,7 @@ func TestTransactions(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
             await (tests ! "find-outside-bystander").do
             {
                 let letters:[Letter] = try await bystander.run(
-                    command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(
-                        collection: collection,
-                        limit: 10),
+                    command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection, limit: 10),
                     against: database,
                     on: .primary)
 

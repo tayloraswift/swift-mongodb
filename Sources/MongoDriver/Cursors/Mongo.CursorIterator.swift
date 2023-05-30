@@ -72,7 +72,7 @@ extension Mongo.CursorIterator
         {
         case .iterable(let timeout):
             return .now.advanced(by: .milliseconds(timeout ?? self.timeout))
-        
+
         case .expires(let deadline):
             return deadline
         }
@@ -117,8 +117,8 @@ extension Mongo.CursorIterator
     @usableFromInline
     func kill() async throws -> Mongo.KillCursorsResponse
     {
-        try await self.pinned.session.run(command: Mongo.KillCursors.init([self.id],
-                collection: self.namespace.collection),
+        try await self.pinned.session.run(
+            command: Mongo.KillCursors.init(self.namespace.collection, cursors: [self.id]),
             against: self.namespace.database,
             over: self.pinned.connection,
             on: self.preference,

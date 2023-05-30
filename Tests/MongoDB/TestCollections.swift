@@ -1,19 +1,19 @@
 import MongoDB
 import Testing
 
-func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+func TestCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {
-    guard let tests:TestGroup = tests / "list-collections"
+    guard let tests:TestGroup = tests / "collections"
     else
     {
         return
     }
 
-    await bootstrap.withTemporaryDatabase(named: "list-collections", tests: tests)
+    await bootstrap.withTemporaryDatabase(named: "collections-tests", tests: tests)
     {
         (pool:Mongo.SessionPool, database:Mongo.Database) in
 
-        let collections:[Mongo.Collection] = (0 ..< 32).map { .init($0.description) }
+        var collections:[Mongo.Collection] = (0 ..< 32).map { .init($0.description) }
         let session:Mongo.Session = try await .init(from: pool)
 
         do
@@ -25,14 +25,14 @@ func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) asy
                 {
                     await (tests ! collection.name).do
                     {
-                        try await session.run(command: Mongo.Create<Mongo.Collection>.init(
-                                collection: collection), 
+                        try await session.run(
+                            command: Mongo.Create<Mongo.Collection>.init(collection),
                             against: database)
                     }
                 }
             }
         }
-        if  let tests:TestGroup = tests / "bindings"
+        if  let tests:TestGroup = tests / "list-collections" / "bindings"
         {
             await tests.do
             {
@@ -56,7 +56,7 @@ func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) asy
                 }
             }
         }
-        if  let tests:TestGroup = tests / "metadata"
+        if  let tests:TestGroup = tests / "list-collections" / "metadata"
         {
             await tests.do
             {
@@ -77,6 +77,29 @@ func TestListCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) asy
                         }
                     }
                     tests.expect(collections **? [])
+                }
+            }
+        }
+        if  let tests:TestGroup = tests / "rename-collection"
+        {
+            await tests.do
+            {
+                let target:Mongo.Namespaced<Mongo.Collection> = database | "renamed"
+                try await session.run(
+                    command: Mongo.RenameCollection.init(database | collections[0], to: target),
+                    against: .admin)
+
+                collections[0] = target.collection
+            }
+        }
+        if  let tests:TestGroup = tests / "drop"
+        {
+            for collection:Mongo.Collection in collections
+            {
+                await (tests ! collection.name).do
+                {
+                    try await session.run(command: Mongo.Drop.init(collection),
+                        against: database)
                 }
             }
         }

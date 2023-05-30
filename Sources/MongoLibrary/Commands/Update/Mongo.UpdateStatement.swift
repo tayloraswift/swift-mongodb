@@ -5,7 +5,7 @@ extension Mongo
 {
     @frozen public
     struct UpdateStatement<Effect>:BSONRepresentable, BSONDSL, Sendable
-        where Effect:MongoOverwriteMode
+        where Effect:MongoWriteEffect
     {
         public
         var bson:BSON.Document
@@ -23,10 +23,10 @@ extension Mongo.UpdateStatement:BSONDecodable
 extension Mongo.UpdateStatement:BSONEncodable
 {
 }
-extension Mongo.UpdateStatement<Mongo.Many>
+extension Mongo.UpdateStatement
 {
     @inlinable public
-    subscript(key:Multi) -> Bool?
+    subscript(key:Multi) -> Effect.UpdatePlurality?
     {
         get
         {

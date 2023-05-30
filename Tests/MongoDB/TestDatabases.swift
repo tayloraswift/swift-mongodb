@@ -16,7 +16,7 @@ func TestDatabases(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
         await (tests ! "create-by-collection").do
         {
             try await pool.run(
-                command: Mongo.Create<Mongo.Collection>.init(collection: "placeholder"), 
+                command: Mongo.Create<Mongo.Collection>.init("placeholder"),
                 against: database)
         }
 

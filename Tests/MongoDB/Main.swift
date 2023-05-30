@@ -31,11 +31,13 @@ enum Main:AsyncTests
 
             await TestFsync             (tests, bootstrap: bootstrap)
             await TestDatabases         (tests, bootstrap: bootstrap)
-            await TestListCollections   (tests, bootstrap: bootstrap)
+            await TestCollections       (tests, bootstrap: bootstrap)
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
             await TestUpdate            (tests, bootstrap: bootstrap)
+            await TestDelete            (tests, bootstrap: bootstrap)
             await TestAggregate         (tests, bootstrap: bootstrap)
+            await TestIndexes           (tests, bootstrap: bootstrap)
 
             await TestCausalConsistency (tests, bootstrap: MongoDB / members /?
             {
@@ -65,11 +67,13 @@ enum Main:AsyncTests
 
             await TestFsync             (tests, bootstrap: bootstrap)
             await TestDatabases         (tests, bootstrap: bootstrap)
-            await TestListCollections   (tests, bootstrap: bootstrap)
+            await TestCollections       (tests, bootstrap: bootstrap)
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
             await TestUpdate            (tests, bootstrap: bootstrap)
+            await TestDelete            (tests, bootstrap: bootstrap)
             await TestAggregate         (tests, bootstrap: bootstrap)
+            await TestIndexes           (tests, bootstrap: bootstrap)
 
             await TestCursors           (tests, bootstrap: bootstrap, on: [.primary])
         }

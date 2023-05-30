@@ -4,32 +4,34 @@ import MongoDriver
 extension Mongo
 {
     public
-    struct InsertResponse:Equatable, Sendable
+    struct DeleteResponse:Equatable, Sendable
     {
         public
         let writeConcernError:WriteConcernError?
         public
         let writeErrors:[WriteError]
+
+        /// The number of documents deleted by the operation.
         public
-        let inserted:Int
+        let deleted:Int
 
         public
-        init(inserted:Int,
+        init(deleted:Int,
             writeConcernError:WriteConcernError? = nil,
             writeErrors:[WriteError] = [])
         {
             self.writeConcernError = writeConcernError
             self.writeErrors = writeErrors
-            self.inserted = inserted
+            self.deleted = deleted
         }
     }
 }
-extension Mongo.InsertResponse:BSONDocumentDecodable
+extension Mongo.DeleteResponse:BSONDocumentDecodable
 {
     @inlinable public
     init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(inserted: try bson["n"].decode(),
+        self.init(deleted: try bson["n"].decode(),
             writeConcernError: try bson["writeConcernError"]?.decode(),
             writeErrors: try bson["writeErrors"]?.decode() ?? [])
     }

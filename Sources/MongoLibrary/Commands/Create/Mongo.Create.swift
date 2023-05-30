@@ -32,24 +32,24 @@ extension Mongo.Create:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
 extension Mongo.Create
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil)
     {
         self.init(writeConcern: writeConcern, fields: Self.type(collection))
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection, writeConcern: writeConcern)
+        self.init(collection, writeConcern: writeConcern)
         try populate(&self)
     }
 }
 extension Mongo.Create<Mongo.Timeseries>
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         timeseries:Mongo.Timeseries)
     {
@@ -57,19 +57,19 @@ extension Mongo.Create<Mongo.Timeseries>
         self.fields["timeseries"] = timeseries
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         timeseries:Mongo.Timeseries,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection, writeConcern: writeConcern, timeseries: timeseries)
+        self.init(collection, writeConcern: writeConcern, timeseries: timeseries)
         try populate(&self)
     }
 }
 extension Mongo.Create<Mongo.CollectionView>
 {
     public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         view:Mongo.CollectionView)
     {
@@ -79,12 +79,12 @@ extension Mongo.Create<Mongo.CollectionView>
         self.fields["pipeline"] = view.pipeline
     }
     @inlinable public
-    init(collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         view:Mongo.CollectionView,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection: collection, writeConcern: writeConcern, view: view)
+        self.init(collection, writeConcern: writeConcern, view: view)
         try populate(&self)
     }
 }

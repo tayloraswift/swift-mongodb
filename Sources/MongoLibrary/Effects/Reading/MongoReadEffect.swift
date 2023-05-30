@@ -2,7 +2,7 @@ import BSONDecoding
 import NIOCore
 
 public
-protocol MongoBatchingMode
+protocol MongoReadEffect
 {
     associatedtype Response:Sendable
 
@@ -13,7 +13,7 @@ protocol MongoBatchingMode
     static
     func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
 }
-extension MongoBatchingMode where Response:BSONDocumentDecodable<BSON.Key>
+extension MongoReadEffect where Response:BSONDocumentDecodable<BSON.Key>
 {
     @inlinable public static
     func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response

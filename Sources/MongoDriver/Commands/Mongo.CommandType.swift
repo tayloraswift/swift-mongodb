@@ -12,7 +12,10 @@ extension Mongo
         case createIndexes
         case commitTransaction
         case configureFailpoint = "configureFailPoint"
+        case delete
+        case drop
         case dropDatabase
+        case dropIndexes
         case endSessions
         case find
         case fsync
@@ -23,9 +26,11 @@ extension Mongo
         case killCursors
         case listCollections
         case listDatabases
+        case listIndexes
         case ping
         case refreshSessions
         case replicaSetGetConfiguration = "replSetGetConfig"
+        case renameCollection
         case saslContinue
         case saslStart
         case update
