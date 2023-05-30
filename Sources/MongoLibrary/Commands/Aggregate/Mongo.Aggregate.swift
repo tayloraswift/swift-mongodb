@@ -6,14 +6,14 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Aggregate<Mode>:Sendable where Mode:MongoBatchingMode
+    struct Aggregate<Effect>:Sendable where Effect:MongoReadEffect
     {
         public
         let writeConcern:WriteConcern?
         public
         let readConcern:ReadConcern?
         public
-        let stride:Mode.Stride
+        let stride:Effect.Stride
 
         public
         var fields:BSON.Document
@@ -21,7 +21,7 @@ extension Mongo
         public
         init(writeConcern:WriteConcern?,
             readConcern:ReadConcern?,
-            stride:Mode.Stride,
+            stride:Effect.Stride,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -32,11 +32,11 @@ extension Mongo
     }
 }
 extension Mongo.Aggregate:MongoIterableCommand
-    where   Mode.Response == Mongo.Cursor<Mode.Element>,
-            Mode.Stride == Int
+    where   Effect.Response == Mongo.Cursor<Effect.Element>,
+            Effect.Stride == Int
 {
     public
-    typealias Element = Mode.Element
+    typealias Element = Effect.Element
 
     @inlinable public
     var tailing:Mongo.Tailing?
@@ -50,15 +50,15 @@ extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand,
     var type:Mongo.CommandType { .aggregate }
 
     public
-    typealias Response = Mode.Response
+    typealias Response = Effect.Response
 
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Mode.Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Effect.Response
     {
-        try Mode.decode(reply: reply)
+        try Effect.decode(reply: reply)
     }
 }
-extension Mongo.Aggregate where Mode.Stride == Int
+extension Mongo.Aggregate where Effect.Stride == Int
 {
     public
     init(_ collection:Mongo.Collection,
@@ -96,7 +96,7 @@ extension Mongo.Aggregate where Mode.Stride == Int
     }
 }
 
-extension Mongo.Aggregate where Mode.Stride == Void, Mode.Element == Never
+extension Mongo.Aggregate where Effect.Stride == Void, Effect.Element == Never
 {
     public
     init(_ collection:Mongo.Collection, pipeline:Mongo.Pipeline)

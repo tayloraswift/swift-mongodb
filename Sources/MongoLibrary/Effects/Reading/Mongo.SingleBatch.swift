@@ -9,7 +9,7 @@ extension Mongo
     {
     }
 }
-extension Mongo.SingleBatch:MongoBatchingMode
+extension Mongo.SingleBatch:MongoReadEffect
 {
     public
     typealias Response = [Element]

@@ -1,6 +1,6 @@
 import MongoDriver
 
-extension Mongo.Cursor:MongoBatchingMode
+extension Mongo.Cursor:MongoReadEffect
 {
     public
     typealias Response = Self

@@ -35,6 +35,7 @@ enum Main:AsyncTests
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
             await TestUpdate            (tests, bootstrap: bootstrap)
+            await TestDelete            (tests, bootstrap: bootstrap)
             await TestAggregate         (tests, bootstrap: bootstrap)
             await TestIndexes           (tests, bootstrap: bootstrap)
 
@@ -70,6 +71,7 @@ enum Main:AsyncTests
             await TestInsert            (tests, bootstrap: bootstrap)
             await TestFind              (tests, bootstrap: bootstrap)
             await TestUpdate            (tests, bootstrap: bootstrap)
+            await TestDelete            (tests, bootstrap: bootstrap)
             await TestAggregate         (tests, bootstrap: bootstrap)
             await TestIndexes           (tests, bootstrap: bootstrap)
 

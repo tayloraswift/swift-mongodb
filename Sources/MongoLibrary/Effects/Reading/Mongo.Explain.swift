@@ -8,7 +8,7 @@ extension Mongo
     {
     }
 }
-extension Mongo.Explain:MongoBatchingMode
+extension Mongo.Explain:MongoReadEffect
 {
     public
     typealias CommandResponse = Response

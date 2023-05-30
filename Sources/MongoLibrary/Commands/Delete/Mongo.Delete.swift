@@ -6,72 +6,72 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Update<Plurality, ID>:Sendable where Plurality:MongoWriteEffect, ID:BSONDecodable
+    struct Delete<Plurality>:Sendable where Plurality:MongoWriteEffect
     {
         public
         let writeConcern:WriteConcern?
         public
-        let updates:Mongo.OutlineDocuments
+        let deletes:Mongo.OutlineDocuments
 
         public
         var fields:BSON.Document
 
         @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            updates:Mongo.OutlineDocuments,
+            deletes:Mongo.OutlineDocuments,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
-            self.updates = updates
+            self.deletes = deletes
             self.fields = fields
         }
     }
 }
-extension Mongo.Update:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
+extension Mongo.Delete:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
     @inlinable public static
-    var type:Mongo.CommandType { .update }
+    var type:Mongo.CommandType { .delete }
 
     /// `Update` only supports retryable writes in single-write mode.
     public
     typealias ExecutionPolicy = Plurality.ExecutionPolicy
 
     public
-    typealias Response = Mongo.UpdateResponse<ID>
+    typealias Response = Mongo.DeleteResponse
 
     @inlinable public
     var outline:Mongo.OutlineVector?
     {
-        .init(self.updates, type: .updates)
+        .init(self.deletes, type: .deletes)
     }
 }
-extension Mongo.Update
+extension Mongo.Delete
 {
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates statements:some Sequence<Mongo.UpdateStatement<Plurality>>)
+        deletes statements:some Sequence<Mongo.DeleteStatement<Plurality>>)
     {
         self.init(writeConcern: writeConcern,
-            updates: .init(statements),
+            deletes: .init(statements),
             fields: Self.type(collection))
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates statements:some Sequence<Mongo.UpdateStatement<Plurality>>,
+        deletes statements:some Sequence<Mongo.DeleteStatement<Plurality>>,
         with populate:(inout Self) throws -> ()) rethrows
     {
         self.init(collection,
             writeConcern: writeConcern,
-            updates: statements)
+            deletes: statements)
         try populate(&self)
     }
 }
-extension Mongo.Update
+extension Mongo.Delete
 {
     @inlinable public
-    subscript(key:Flag) -> Bool?
+    subscript(key:Ordered) -> Bool?
     {
         get
         {

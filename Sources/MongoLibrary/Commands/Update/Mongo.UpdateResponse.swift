@@ -7,7 +7,7 @@ extension Mongo
     struct UpdateResponse<ID> where ID:BSONDecodable
     {
         public
-        let writeConcernErrors:[WriteConcernError]
+        let writeConcernError:WriteConcernError?
         public
         let writeErrors:[WriteError]
 
@@ -26,10 +26,10 @@ extension Mongo
         init(selected:Int,
             modified:Int,
             upserted:[Upsertion] = [],
-            writeConcernErrors:[WriteConcernError] = [],
+            writeConcernError:WriteConcernError? = nil,
             writeErrors:[WriteError] = [])
         {
-            self.writeConcernErrors = writeConcernErrors
+            self.writeConcernError = writeConcernError
             self.writeErrors = writeErrors
             self.selected = selected
             self.modified = modified
@@ -51,7 +51,7 @@ extension Mongo.UpdateResponse:BSONDocumentDecodable
         self.init(selected: try bson["n"].decode(),
             modified: try bson["nModified"].decode(),
             upserted: try bson["upserted"]?.decode() ?? [],
-            writeConcernErrors: try bson["writeConcernErrors"]?.decode() ?? [],
+            writeConcernError: try bson["writeConcernError"]?.decode(),
             writeErrors: try bson["writeErrors"]?.decode() ?? [])
     }
 }

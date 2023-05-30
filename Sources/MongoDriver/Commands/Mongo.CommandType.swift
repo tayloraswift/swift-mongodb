@@ -12,6 +12,7 @@ extension Mongo
         case createIndexes
         case commitTransaction
         case configureFailpoint = "configureFailPoint"
+        case delete
         case drop
         case dropDatabase
         case dropIndexes
