@@ -1,18 +1,10 @@
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestCollections(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Collections:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "collections"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-
-    await bootstrap.withTemporaryDatabase(named: "collections-tests", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         var collections:[Mongo.Collection] = (0 ..< 32).map { .init($0.description) }
         let session:Mongo.Session = try await .init(from: pool)
 

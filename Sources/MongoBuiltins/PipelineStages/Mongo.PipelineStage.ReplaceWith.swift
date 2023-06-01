@@ -9,6 +9,7 @@ extension Mongo.PipelineStage
 extension Mongo.PipelineStage.ReplaceWith
 {
     @available(*, unavailable, message: "Use the 'replaceWith' stage instead.")
+    public static
     var replaceRoot:Self
     {
         fatalError()

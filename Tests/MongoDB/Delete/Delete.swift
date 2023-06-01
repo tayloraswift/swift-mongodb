@@ -1,65 +1,11 @@
-import BSONDecoding
-import BSONEncoding
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestDelete(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Delete:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "delete"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-
-    await bootstrap.withTemporaryDatabase(named: "delete-tests", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         let session:Mongo.Session = try await .init(from: pool)
-
-        struct Cake:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable
-        {
-            let location:String
-            let flavor:String
-            let status:String
-            let points:Int
-
-            init(location:String,
-                flavor:String,
-                status:String,
-                points:Int)
-            {
-                self.location = location
-                self.flavor = flavor
-                self.status = status
-                self.points = points
-            }
-
-            enum CodingKeys:String
-            {
-                case location
-                case flavor
-                case status
-                case points
-            }
-
-            init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
-                throws
-            {
-                self.init(location: try bson[.location].decode(),
-                    flavor: try bson[.flavor].decode(),
-                    status: try bson[.status].decode(),
-                    points: try bson[.points].decode())
-            }
-
-            func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
-            {
-                bson[.location] = self.location
-                bson[.flavor] = self.flavor
-                bson[.status] = self.status
-                bson[.points] = self.points
-            }
-        }
 
         let collection:Mongo.Collection = "cakes"
         let states:([Cake], [Cake], [Cake], [Cake])

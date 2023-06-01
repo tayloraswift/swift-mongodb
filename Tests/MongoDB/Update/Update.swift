@@ -1,85 +1,14 @@
-import BSONDecoding
-import BSONEncoding
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestUpdate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Update:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "update"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-
-    await bootstrap.withTemporaryDatabase(named: "update-tests", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         let session:Mongo.Session = try await .init(from: pool)
 
         //  This test is based on the tutorial from:
         //  https://www.mongodb.com/docs/manual/reference/command/update/#examples
-        struct Member:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable
-        {
-            let id:Int
-            let member:String
-            let status:String
-            let points:Int
-            let comments:[String]
-            let misc1:String?
-            let misc2:String?
-
-            init(id:Int,
-                member:String,
-                status:String,
-                points:Int,
-                comments:[String] = [],
-                misc1:String? = nil,
-                misc2:String? = nil)
-            {
-                self.id = id
-                self.member = member
-                self.status = status
-                self.points = points
-                self.comments = comments
-                self.misc1 = misc1
-                self.misc2 = misc2
-            }
-
-            enum CodingKeys:String
-            {
-                case id = "_id"
-                case member
-                case status
-                case points
-                case comments
-                case misc1
-                case misc2
-            }
-
-            init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
-                throws
-            {
-                self.init(id: try bson[.id].decode(),
-                    member: try bson[.member].decode(),
-                    status: try bson[.status].decode(),
-                    points: try bson[.points].decode(),
-                    comments: try bson[.comments]?.decode() ?? [],
-                    misc1: try bson[.misc1]?.decode(),
-                    misc2: try bson[.misc2]?.decode())
-            }
-
-            func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
-            {
-                bson[.id] = self.id
-                bson[.member] = self.member
-                bson[.status] = self.status
-                bson[.points] = self.points
-                bson[.comments] = self.comments.isEmpty ? nil : self.comments
-                bson[.misc1] = self.misc1
-                bson[.misc2] = self.misc2
-            }
-        }
 
         let collection:Mongo.Collection = "members"
         let states:([Member], [Member], [Member], [Member], [Member])

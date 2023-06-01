@@ -1,62 +1,10 @@
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestFind(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Find:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "find"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-
-    // await bootstrap.withTemporaryDatabase(named: "roundtripping", tests: tests)
-    // {
-    //     (pool:Mongo.SessionPool, database:Mongo.Database) in
-
-    //     let collection:Mongo.Collection = "roundtripping"
-
-    //     if  let tests:TestGroup = tests / "roundtripping" / "uint64"
-    //     {
-    //         let session:Mongo.Session = try await .init(from: pool)
-    //         //  Cannot roundtrip 0 in a toplevel document field!
-    //         for (id, value):(Int, UInt64) in [1, .max].enumerated()
-    //         {
-    //             guard let tests:TestGroup = tests / value.description
-    //             else
-    //             {
-    //                 continue
-    //             }
-    //             await tests.do
-    //             {
-    //                 let expected:Mongo.InsertResponse = .init(inserted: 1)
-    //                 let response:Mongo.InsertResponse = try await session.run(
-    //                     command: Mongo.Insert.init(collection: collection,
-    //                         elements: [Record<UInt64>.init(id: id, value: value)]),
-    //                     against: database)
-
-    //                 tests.expect(response ==? expected)
-
-    //                 let batch:[Record<UInt64>] = try await session.run(
-    //                     command: Mongo.Find<Mongo.SingleBatch<Record<UInt64>>>.init(
-    //                         collection: collection,
-    //                         limit: 1)
-    //                         {
-    //                             $0[.filter] = .init
-    //                             {
-    //                                 $0["_id"] = id
-    //                             }
-    //                         },
-    //                     against: database)
-
-    //                 tests.expect(batch ..? [.init(id: id, value: value)])
-    //             }
-    //         }
-    //     }
-    // }
-    await bootstrap.withTemporaryDatabase(named: "find-tests", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         let collection:Mongo.Collection = "ordinals"
         let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
 

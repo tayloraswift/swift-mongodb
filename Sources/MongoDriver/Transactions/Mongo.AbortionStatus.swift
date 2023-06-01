@@ -7,9 +7,9 @@ extension Mongo
         /// The transaction was not aborted, because there was nothing to abort.
         /// (No user commands were run with the transaction.)
         case cancelled
-        /// The transaction was aborted.
+        /// The transaction abortion succeeded.
         case aborted
-        /// The transaction was born.
+        /// The transaction abortion failed.
         ///
         /// In most cases, this status can be ignored, because running the next
         /// command with the relevant session will purge the server-side transaction
