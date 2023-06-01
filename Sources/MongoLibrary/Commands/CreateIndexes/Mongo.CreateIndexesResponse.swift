@@ -7,7 +7,7 @@ extension Mongo
     struct CreateIndexesResponse:Equatable, Sendable
     {
         public
-        let createdCollectionAutomatically:Bool
+        let createdCollectionAutomatically:Bool?
         public
         let indexesBefore:Int
         public
@@ -16,7 +16,7 @@ extension Mongo
         let note:String?
 
         public
-        init(createdCollectionAutomatically:Bool,
+        init(createdCollectionAutomatically:Bool?,
             indexesBefore:Int,
             indexesAfter:Int,
             note:String? = nil)
@@ -34,7 +34,8 @@ extension Mongo.CreateIndexesResponse:BSONDocumentDecodable
     init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
-            createdCollectionAutomatically: try bson["createdCollectionAutomatically"].decode(),
+            createdCollectionAutomatically:
+                try bson["createdCollectionAutomatically"]?.decode(),
             indexesBefore: try bson["numIndexesBefore"].decode(),
             indexesAfter: try bson["numIndexesAfter"].decode(),
             note: try bson["note"]?.decode())

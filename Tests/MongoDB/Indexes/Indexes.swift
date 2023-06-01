@@ -10,7 +10,7 @@ struct Indexes:MongoTestBattery
 
         do
         {
-            let tests:TestGroup = tests ! "create-indexes"
+            let tests:TestGroup = tests ! "Create"
 
             await tests.do
             {
@@ -85,7 +85,38 @@ struct Indexes:MongoTestBattery
                 tests.expect(response ==? expected)
             }
         }
-        if  let tests:TestGroup = tests / "drop-indexes"
+        if  let tests:TestGroup = tests / "CreateExisting"
+        {
+            await tests.do
+            {
+                let expected:Mongo.CreateIndexesResponse = .init(
+                    createdCollectionAutomatically: nil,
+                    indexesBefore: 3,
+                    indexesAfter: 3,
+                    note: "all indexes already exist")
+                let response:Mongo.CreateIndexesResponse = try await session.run(
+                    command: Mongo.CreateIndexes.init(collection,
+                        writeConcern: .majority,
+                        indexes:
+                        [
+                            .init
+                            {
+                                $0[.unique] = true
+                                $0[.name] = "item_supplier_model"
+                                $0[.key] = .init
+                                {
+                                    $0["item"] = (+)
+                                    $0["supplier"] = (+)
+                                    $0["model"] = (+)
+                                }
+                            },
+                        ]),
+                    against: database)
+
+                tests.expect(response ==? expected)
+            }
+        }
+        if  let tests:TestGroup = tests / "Drop"
         {
             await tests.do
             {
