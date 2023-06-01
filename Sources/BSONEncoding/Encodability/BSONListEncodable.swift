@@ -31,7 +31,7 @@ extension BSONListEncodable
         self.encode(to: &field[as: BSON.ListEncoder.self])
     }
 }
-extension BSONListEncodable where Self:Sequence, Element:BSONFieldEncodable
+extension BSONListEncodable where Self:Sequence, Element:BSONWeakEncodable
 {
     /// Encodes this sequence as a value of type ``BSON.list``.
     @inlinable public

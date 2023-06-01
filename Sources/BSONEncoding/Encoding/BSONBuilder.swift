@@ -9,12 +9,12 @@ protocol BSONBuilder<CodingKey>
 extension BSONBuilder
 {
     @inlinable public mutating
-    func append(_ key:CodingKey, _ value:some BSONFieldEncodable)
+    func append(_ key:CodingKey, _ value:some BSONWeakEncodable)
     {
         self.append(key, with: value.encode(to:))
     }
     @inlinable public mutating
-    func push(_ key:CodingKey, _ value:(some BSONFieldEncodable)?)
+    func push(_ key:CodingKey, _ value:(some BSONWeakEncodable)?)
     {
         value.map
         {
@@ -23,7 +23,7 @@ extension BSONBuilder
     }
     @available(*, deprecated, message: "use append(_:_:) for non-optional values")
     public mutating
-    func push(_ key:CodingKey, _ value:some BSONFieldEncodable)
+    func push(_ key:CodingKey, _ value:some BSONWeakEncodable)
     {
         self.push(key, value as _?)
     }

@@ -9,7 +9,7 @@ extension BSON.List
     }
 
     @inlinable public
-    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONFieldEncodable
+    init<Encodable>(elements:some Sequence<Encodable>) where Encodable:BSONWeakEncodable
     {
         self.init
         {

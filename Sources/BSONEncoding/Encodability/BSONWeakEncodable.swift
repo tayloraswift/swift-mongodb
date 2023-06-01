@@ -1,11 +1,11 @@
 public
-protocol BSONFieldEncodable
+protocol BSONWeakEncodable
 {
     /// A type that can be encoded to a BSON variant value.
     func encode(to field:inout BSON.Field)
 }
 
-extension BSONFieldEncodable where Self:BSONRepresentable, BSONRepresentation:BSONFieldEncodable
+extension BSONWeakEncodable where Self:BSONRepresentable, BSONRepresentation:BSONWeakEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
@@ -14,7 +14,7 @@ extension BSONFieldEncodable where Self:BSONRepresentable, BSONRepresentation:BS
     }
 }
 
-extension BSONFieldEncodable where Self:RawRepresentable, RawValue:BSONFieldEncodable
+extension BSONWeakEncodable where Self:RawRepresentable, RawValue:BSONWeakEncodable
 {
     /// Returns the ``encode(to:)`` witness of this type’s ``RawRepresentable.rawValue``.
     @inlinable public
@@ -24,7 +24,7 @@ extension BSONFieldEncodable where Self:RawRepresentable, RawValue:BSONFieldEnco
     }
 }
 
-extension Array:BSONFieldEncodable where Element:BSONFieldEncodable
+extension Array:BSONWeakEncodable where Element:BSONWeakEncodable
 {
     /// Encodes this array as a value of type ``BSON.list``.
     @inlinable public
@@ -38,7 +38,7 @@ extension Array:BSONFieldEncodable where Element:BSONFieldEncodable
         } (&field[as: BSON.ListEncoder.self])
     }
 }
-extension Optional:BSONFieldEncodable where Wrapped:BSONFieldEncodable
+extension Optional:BSONWeakEncodable where Wrapped:BSONWeakEncodable
 {
     /// Encodes this optional as an explicit ``BSON.null``, if
     /// [`nil`]().
@@ -57,7 +57,7 @@ extension Optional:BSONFieldEncodable where Wrapped:BSONFieldEncodable
 }
 //  We generally do *not* want dictionaries to be encodable, and dictionary
 //  literals generate dictionaries by default.
-extension [String: Never]:BSONFieldEncodable
+extension [String: Never]:BSONWeakEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)

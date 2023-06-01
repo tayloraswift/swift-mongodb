@@ -1,7 +1,7 @@
 extension BSON
 {
     @frozen public
-    struct DocumentEncoder<CodingKey> where CodingKey:RawRepresentable<String> & Hashable
+    struct DocumentEncoder<CodingKey> where CodingKey:RawRepresentable<String>
     {
         public
         var output:BSON.Output<[UInt8]>

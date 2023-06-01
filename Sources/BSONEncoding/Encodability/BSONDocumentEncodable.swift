@@ -8,7 +8,7 @@
 public
 protocol BSONDocumentEncodable<CodingKeys>:BSONEncodable
 {
-    associatedtype CodingKeys:RawRepresentable<String> & Hashable = BSON.Key
+    associatedtype CodingKeys:RawRepresentable<String> = BSON.Key
 
     /// Creates a document from this instance by encoding to
     /// the parameter.

@@ -46,13 +46,13 @@ extension BSON.Document
 extension BSON.Document
 {
     @inlinable public mutating
-    func append(_ key:some RawRepresentable<String>, _ value:some BSONFieldEncodable)
+    func append(_ key:some RawRepresentable<String>, _ value:some BSONWeakEncodable)
     {
         self.append(key.rawValue, value)
     }
 
     @inlinable public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:(some BSONFieldEncodable)?)
+    func push(_ key:some RawRepresentable<String>, _ value:(some BSONWeakEncodable)?)
     {
         value.map
         {
@@ -62,7 +62,7 @@ extension BSON.Document
 
     @available(*, deprecated, message: "use append(_:_:) for non-optional values")
     public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:some BSONFieldEncodable)
+    func push(_ key:some RawRepresentable<String>, _ value:some BSONWeakEncodable)
     {
         self.push(key, value as _?)
     }

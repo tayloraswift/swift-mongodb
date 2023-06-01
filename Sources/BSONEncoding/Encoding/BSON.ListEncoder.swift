@@ -4,7 +4,7 @@ extension BSON
     ///
     /// Unlike ``DocumentEncoder``, which works with ``BSONDocumentEncodable``,
     /// this type currently doesn’t have a companion protocol. That’s because
-    /// we currently only use it to bootstrap faster ``BSONFieldEncodable``
+    /// we currently only use it to bootstrap faster ``BSONWeakEncodable``
     /// conformances for ``Sequence``s.
     @frozen public
     struct ListEncoder
@@ -39,14 +39,14 @@ extension BSON.ListEncoder
 extension BSON.ListEncoder
 {
     @inlinable public mutating
-    func append(_ value:some BSONFieldEncodable)
+    func append(_ value:some BSONWeakEncodable)
     {
         self.append(with: value.encode(to:))
     }
     /// Encodes and appends the given value if it is non-`nil`, does
     /// nothing otherwise.
     @inlinable public mutating
-    func push(_ element:(some BSONFieldEncodable)?)
+    func push(_ element:(some BSONWeakEncodable)?)
     {
         element.map
         {
@@ -55,7 +55,7 @@ extension BSON.ListEncoder
     }
     @available(*, deprecated, message: "use append(_:) for non-optional values")
     public mutating
-    func push(_ element:some BSONFieldEncodable)
+    func push(_ element:some BSONWeakEncodable)
     {
         self.push(element as _?)
     }
