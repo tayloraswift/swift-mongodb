@@ -34,6 +34,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "MongoExecutor", targets: ["MongoExecutor"]),
         .library(name: "MongoIO", targets: ["MongoIO"]),
         .library(name: "MongoLibrary", targets: ["MongoLibrary"]),
+        .library(name: "MongoTesting", targets: ["MongoTesting"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
         .library(name: "SCRAM", targets: ["SCRAM"]),
@@ -144,10 +145,6 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoLibrary"),
-            ],
-            swiftSettings:
-            [
-                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "Mongo",
@@ -171,10 +168,6 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "Mongo"),
                 .product(name: "NIOCore", package: "swift-nio"),
-            ],
-            swiftSettings:
-            [
-                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoDriver",
@@ -192,10 +185,6 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "SHA2", package: "swift-hash"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
-            ],
-            swiftSettings:
-            [
-                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoDSL",
@@ -209,10 +198,6 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoIO"),
-            ],
-            swiftSettings:
-            [
-                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoIO",
@@ -220,10 +205,6 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore", package: "swift-nio"),
-            ],
-            swiftSettings:
-            [
-                .enableUpcomingFeature("StrictConcurrency"),
             ]),
 
         .target(name: "MongoLibrary",
@@ -231,10 +212,13 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "MongoBuiltins"),
                 .target(name: "MongoDriver"),
-            ],
-            swiftSettings:
+            ]),
+
+        .target(name: "MongoTesting",
+            dependencies:
             [
-                .enableUpcomingFeature("StrictConcurrency"),
+                .target(name: "MongoDB"),
+                .product(name: "Testing", package: "swift-grammar"),
             ]),
 
         // the mongo wire protocol. has no awareness of networking or
@@ -301,8 +285,7 @@ let package:Package = .init(name: "swift-mongodb",
         .executableTarget(name: "MongoDBTests",
             dependencies:
             [
-                .target(name: "MongoDB"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .target(name: "MongoTesting"),
             ],
             path: "Tests/MongoDB"),
 
@@ -329,3 +312,17 @@ let package:Package = .init(name: "swift-mongodb",
             path: "Tests/MongoDBAPI"),
     ]
 )
+
+for target:PackageDescription.Target in package.targets
+{
+    {
+        var settings:[PackageDescription.SwiftSetting] = $0 ?? []
+
+        settings.append(.enableUpcomingFeature("BareSlashRegexLiterals"))
+        settings.append(.enableUpcomingFeature("ConciseMagicFile"))
+        settings.append(.enableUpcomingFeature("ExistentialAny"))
+        settings.append(.enableUpcomingFeature("StrictConcurrency"))
+
+        $0 = settings
+    } (&target.swiftSettings)
+}

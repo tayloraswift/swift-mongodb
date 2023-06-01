@@ -1,27 +1,19 @@
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestFsync(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Fsync:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "fsync-locking"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-    
-    await bootstrap.withTemporaryDatabase(named: "fsync-tests", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         //  We should ensure we are locking and unlocking the same node!
         let node:Mongo.ReadPreference = .nearest(tagSets: [["name": "A"]])
 
         var lock:Mongo.FsyncLock
-        
+
         lock = try await pool.run(command: Mongo.Fsync.init(lock: true),
             against: .admin,
             on: node)
-        
+
         tests.expect(lock.count ==? 1)
 
         //  We should always be able to run the ping command, even if the

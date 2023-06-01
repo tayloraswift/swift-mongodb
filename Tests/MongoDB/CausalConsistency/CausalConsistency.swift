@@ -1,20 +1,12 @@
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestCausalConsistency(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct CausalConsistency:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "causal-consistency"
-    else
-    {
-        return
-    }
+    var logging:Mongo.LoggingLevel? { .full }
 
-    await bootstrap.withTemporaryDatabase(named: "causal-consistency-tests",
-        logger: .init(level: .full),
-        tests: tests)
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         let session:Mongo.Session = try await .init(from: pool)
 
         let collection:Mongo.Collection = "letters"

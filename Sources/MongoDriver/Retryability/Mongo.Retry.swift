@@ -25,17 +25,16 @@ extension Mongo.Retry:MongoExecutionPolicy
 
             let pool:Mongo.ConnectionPool = try await deployment.pool(selecting: preference,
                 by: deadlines.connection)
-            
+
             do
             {
                 return try await operation(pool, deadlines)
             }
-            catch   let error
+            catch let error
             {
-                if  let error:MongoRetryableError = error as? MongoRetryableError,
-                        error.isRetryable
+                if case let error as any MongoRetryableError = error,
+                            error.isRetryable
                 {
-                    print("RETRYING '\(pool.host)'")
                     reported = error
                     continue trying
                 }

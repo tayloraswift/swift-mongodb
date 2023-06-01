@@ -1,70 +1,16 @@
-import BSONDecoding
-import BSONEncoding
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestIndexes(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Indexes:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "indexes"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-
-    await bootstrap.withTemporaryDatabase(named: "indexes-tests", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         let session:Mongo.Session = try await .init(from: pool)
         let collection:Mongo.Collection = "inventory"
 
         do
         {
             let tests:TestGroup = tests ! "create-indexes"
-
-            struct Product:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable
-            {
-                let item:Int
-                let manufacturer:String
-                let supplier:String
-                let model:String
-
-                init(item:Int,
-                    manufacturer:String,
-                    supplier:String,
-                    model:String)
-                {
-                    self.item = item
-                    self.manufacturer = manufacturer
-                    self.supplier = supplier
-                    self.model = model
-                }
-
-                enum CodingKeys:String
-                {
-                    case item
-                    case manufacturer
-                    case supplier
-                    case model
-                }
-
-                init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
-                    throws
-                {
-                    self.init(item: try bson[.item].decode(),
-                        manufacturer: try bson[.manufacturer].decode(),
-                        supplier: try bson[.supplier].decode(),
-                        model: try bson[.model].decode())
-                }
-
-                func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
-                {
-                    bson[.item] = self.item
-                    bson[.manufacturer] = self.manufacturer
-                    bson[.supplier] = self.supplier
-                    bson[.model] = self.model
-                }
-            }
 
             await tests.do
             {

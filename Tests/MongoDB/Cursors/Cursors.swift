@@ -1,19 +1,17 @@
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
-    on servers:[Mongo.ReadPreference]) async
+struct Cursors:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "cursors"
-    else
+    let servers:[Mongo.ReadPreference]
+
+    init(servers:[Mongo.ReadPreference])
     {
-        return
+        self.servers = servers
     }
 
-    await bootstrap.withTemporaryDatabase(named: "cursor-tests", tests: tests)
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         let collection:Mongo.Collection = "ordinals"
         let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
 
@@ -43,7 +41,8 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
             }
         }
 
-        for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
+        for (server, name):(Mongo.ReadPreference, String)
+            in zip(self.servers, ["primary", "b", "c"])
         {
             guard let tests:TestGroup = tests / name / "cursor-cleanup-normal"
             else
@@ -148,7 +147,8 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                 }
             }
         }
-        for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
+        for (server, name):(Mongo.ReadPreference, String)
+            in zip(self.servers, ["primary", "b", "c"])
         {
             guard let tests:TestGroup = tests / name / "cursor-cleanup-interrupted"
             else
@@ -219,7 +219,8 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
                 }
             }
         }
-        for (server, name):(Mongo.ReadPreference, String) in zip(servers, ["primary", "b", "c"])
+        for (server, name):(Mongo.ReadPreference, String)
+            in zip(self.servers, ["primary", "b", "c"])
         {
             guard let tests:TestGroup = tests / name / "cursor-concurrent-commands"
             else
@@ -255,3 +256,4 @@ func TestCursors(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
         }
     }
 }
+

@@ -1,75 +1,16 @@
-import BSONDecoding
-import BSONEncoding
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestAggregate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Aggregate:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "aggregate"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-
-    await bootstrap.withTemporaryDatabase(named: "aggregate-tests", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         let session:Mongo.Session = try await .init(from: pool)
 
         if  let tests:TestGroup = tests / "articles-example"
         {
             let collection:Mongo.Collection = "articles"
 
-            struct Article:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable
-            {
-                let id:BSON.Identifier
-                let author:String
-                let title:String
-                let views:Int
-                let tags:[String]
-
-                init(id:BSON.Identifier,
-                    author:String,
-                    title:String,
-                    views:Int,
-                    tags:[String])
-                {
-                    self.id = id
-                    self.author = author
-                    self.title = title
-                    self.views = views
-                    self.tags = tags
-                }
-
-                enum CodingKeys:String
-                {
-                    case id = "_id"
-                    case author
-                    case title
-                    case views
-                    case tags
-                }
-
-                init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
-                    throws
-                {
-                    self.init(id: try bson[.id].decode(),
-                        author: try bson[.author].decode(),
-                        title: try bson[.title].decode(),
-                        views: try bson[.views].decode(),
-                        tags: try bson[.tags].decode())
-                }
-
-                func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
-                {
-                    bson[.id] = self.id
-                    bson[.author] = self.author
-                    bson[.title] = self.title
-                    bson[.views] = self.views
-                    bson[.tags] = self.tags
-                }
-            }
             await tests.do
             {
                 let expected:Mongo.InsertResponse = .init(inserted: 4)
@@ -104,29 +45,6 @@ func TestAggregate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 tests.expect(response ==? expected)
             }
 
-            struct TagStats:Equatable, Hashable, BSONDocumentDecodable
-            {
-                let id:String
-                let count:Int
-
-                init(id:String, count:Int)
-                {
-                    self.id = id
-                    self.count = count
-                }
-
-                enum CodingKeys:String
-                {
-                    case id = "_id"
-                    case count
-                }
-
-                init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
-                    throws
-                {
-                    self.init(id: try bson[.id].decode(), count: try bson[.count].decode())
-                }
-            }
             await tests.do
             {
                 let expected:[TagStats] =
@@ -171,29 +89,6 @@ func TestAggregate(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
                 tests.expect(response **? expected)
             }
 
-            struct AuthorStats:Equatable, Hashable, BSONDocumentDecodable
-            {
-                let id:String
-                let views:Int
-
-                init(id:String, views:Int)
-                {
-                    self.id = id
-                    self.views = views
-                }
-
-                enum CodingKeys:String
-                {
-                    case id = "_id"
-                    case views
-                }
-
-                init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
-                    throws
-                {
-                    self.init(id: try bson[.id].decode(), views: try bson[.views].decode())
-                }
-            }
             await tests.do
             {
                 let expected:[AuthorStats] =

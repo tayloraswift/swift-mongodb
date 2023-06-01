@@ -10,7 +10,7 @@ enum Main:AsyncTests
     {
         let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
 
-        if  let tests:TestGroup = tests / "replicated"
+        if  let tests:TestGroup = tests / "Replicated"
         {
             let members:Mongo.Seedlist =
             [
@@ -29,35 +29,36 @@ enum Main:AsyncTests
                 $0.connectionTimeout = .milliseconds(1000)
             }
 
-            await TestFsync             (tests, bootstrap: bootstrap)
-            await TestDatabases         (tests, bootstrap: bootstrap)
-            await TestCollections       (tests, bootstrap: bootstrap)
-            await TestInsert            (tests, bootstrap: bootstrap)
-            await TestFind              (tests, bootstrap: bootstrap)
-            await TestFindAndModify     (tests, bootstrap: bootstrap)
-            await TestUpdate            (tests, bootstrap: bootstrap)
-            await TestDelete            (tests, bootstrap: bootstrap)
-            await TestAggregate         (tests, bootstrap: bootstrap)
-            await TestIndexes           (tests, bootstrap: bootstrap)
+            await bootstrap.run(tests,
+                Aggregate.init(),
+                Collections.init(),
+                Cursors.init(servers: [
+                    .primary,
+                    //  We should be able to run this test on a specific server.
+                    .nearest(tagSets: [["name": "B"]]),
+                    //  We should be able to run this test on a secondary.
+                    .nearest(tagSets: [["name": "C"]]),
+                ]),
+                Databases.init(),
+                Delete.init(),
+                Find.init(),
+                FindAndModify.init(),
+                Fsync.init(),
+                Indexes.init(),
+                Insert.init(),
+                Transactions.init(),
+                Update.init())
 
-            await TestCausalConsistency (tests, bootstrap: MongoDB / members /?
+            let slow:Mongo.DriverBootstrap = MongoDB / members /?
             {
                 $0.executors = .shared(executors)
                 $0.connectionTimeout = .milliseconds(2000)
-            })
-            await TestTransactions      (tests, bootstrap: bootstrap)
+            }
 
-            await TestCursors           (tests, bootstrap: bootstrap, on:
-            [
-                .primary,
-                //  We should be able to run this test on a specific server.
-                .nearest(tagSets: [["name": "B"]]),
-                //  We should be able to run this test on a secondary.
-                .nearest(tagSets: [["name": "C"]]),
-            ])
+            await slow.run(tests, CausalConsistency.init())
         }
 
-        if  let tests:TestGroup = tests / "single"
+        if  let tests:TestGroup = tests / "Single"
         {
             let seedlist:Mongo.Seedlist = ["mongo-single": 27017]
             let bootstrap:Mongo.DriverBootstrap = MongoDB / ("root", "80085") * seedlist /?
@@ -66,18 +67,18 @@ enum Main:AsyncTests
                 $0.executors = .shared(executors)
             }
 
-            await TestFsync             (tests, bootstrap: bootstrap)
-            await TestDatabases         (tests, bootstrap: bootstrap)
-            await TestCollections       (tests, bootstrap: bootstrap)
-            await TestInsert            (tests, bootstrap: bootstrap)
-            await TestFind              (tests, bootstrap: bootstrap)
-            await TestFindAndModify     (tests, bootstrap: bootstrap)
-            await TestUpdate            (tests, bootstrap: bootstrap)
-            await TestDelete            (tests, bootstrap: bootstrap)
-            await TestAggregate         (tests, bootstrap: bootstrap)
-            await TestIndexes           (tests, bootstrap: bootstrap)
-
-            await TestCursors           (tests, bootstrap: bootstrap, on: [.primary])
+            await bootstrap.run(tests,
+                Aggregate.init(),
+                Collections.init(),
+                Cursors.init(servers: [.primary]),
+                Databases.init(),
+                Delete.init(),
+                Find.init(),
+                FindAndModify.init(),
+                Fsync.init(),
+                Indexes.init(),
+                Insert.init(),
+                Update.init())
         }
     }
 }

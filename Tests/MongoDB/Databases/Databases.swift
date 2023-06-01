@@ -1,18 +1,10 @@
 import MongoDB
-import Testing
+import MongoTesting
 
-func TestDatabases(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
+struct Databases:MongoTestBattery
 {
-    guard let tests:TestGroup = tests / "databases"
-    else
+    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
-        return
-    }
-
-    await bootstrap.withTemporaryDatabase(named: "database", tests: tests)
-    {
-        (pool:Mongo.SessionPool, database:Mongo.Database) in
-
         await (tests ! "create-by-collection").do
         {
             try await pool.run(
