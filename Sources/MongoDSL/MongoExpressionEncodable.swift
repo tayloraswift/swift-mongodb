@@ -1,7 +1,7 @@
 import BSONEncoding
 
 public
-protocol MongoExpressionEncodable:BSONFieldEncodable
+protocol MongoExpressionEncodable:BSONWeakEncodable
 {
 }
 

@@ -1,7 +1,8 @@
 /// A type that can be encoded to a BSON variant value.
 public
-protocol BSONEncodable:BSONFieldEncodable
+protocol BSONEncodable:BSONWeakEncodable
 {
+    override
     func encode(to field:inout BSON.Field)
 }
 
