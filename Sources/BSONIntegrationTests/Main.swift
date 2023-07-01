@@ -3,13 +3,13 @@ import BSONReflection
 import BSONDecoding
 import BSONEncoding
 
-@main 
+@main
 enum Main:SyncTests
 {
     static
     func run(tests:Tests)
     {
-        if  let tests:TestGroup = tests / "enumerated-coding-keys"
+        if  let tests:TestGroup = tests / "EnumeratedCodingKeys"
         {
             struct Codable:BSONDocumentDecodable, BSONDocumentEncodable, Equatable
             {
@@ -67,7 +67,7 @@ enum Main:SyncTests
 
                 tests.expect(true: encoded.bytes.count < original.slice.count)
 
-                let redecoded:Codable = try .init(bson: .init(encoded)) 
+                let redecoded:Codable = try .init(bson: .init(encoded))
 
                 tests.expect(redecoded ==? expected)
 
@@ -75,7 +75,7 @@ enum Main:SyncTests
 
                 tests.expect(reencoded.bytes ..? encoded.bytes)
             }
-            
+
         }
     }
 }

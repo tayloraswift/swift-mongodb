@@ -3,12 +3,12 @@ import BSON
 extension BSON.DocumentView
 {
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
-    /// comparing the elements. Returns [`false`]() if either operand fails to parse.
+    /// comparing the elements. Returns false if either operand fails to parse.
     ///
     /// Some documents that do not compare equal under byte-wise
     /// `==` comparison may compare equal under this operator, due to normalization
     /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
-    /// will compare equal to a `BSON//Value.string(_:)` value with the same contents.
+    /// will compare equal to a ``BSON Value.string(_:)`` value with the same contents.
     @inlinable public static
     func ~~ <Other>(lhs:Self, rhs:BSON.DocumentView<Other>) -> Bool
     {

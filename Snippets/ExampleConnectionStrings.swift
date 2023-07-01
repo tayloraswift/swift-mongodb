@@ -1,6 +1,6 @@
 import MongoDB
 
-func TestConfigurations()
+func ExampleConnectionStrings()
 {
     let _ = MongoDB.SRV / ["example.com"]
 

@@ -2,7 +2,7 @@ import BSONEncoding
 import MongoBuiltins
 import MongoDSL
 
-func TestExpressions()
+func ExampleExpressions()
 {
     let _:BSON.Document = .init
     {
