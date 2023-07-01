@@ -24,6 +24,16 @@ extension Mongo
         }
     }
 }
+extension Mongo.InsertResponse
+{
+    @inlinable public
+    var error:any Error
+    {
+        self.writeConcernError as (any Error)? ??
+        self.writeErrors.first as (any Error)? ??
+        Mongo.InsertError.init(inserted: self.inserted)
+    }
+}
 extension Mongo.InsertResponse:BSONDocumentDecodable
 {
     @inlinable public
