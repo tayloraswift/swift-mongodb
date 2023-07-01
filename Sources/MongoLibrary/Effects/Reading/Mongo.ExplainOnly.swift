@@ -5,11 +5,11 @@ import NIOCore
 extension Mongo
 {
     @frozen public
-    enum PipelineExplain
+    enum ExplainOnly
     {
     }
 }
-extension Mongo.PipelineExplain:MongoReadEffect
+extension Mongo.ExplainOnly:MongoReadEffect
 {
     public
     typealias CommandResponse = Void
@@ -21,7 +21,7 @@ extension Mongo.PipelineExplain:MongoReadEffect
     typealias Stride = Void
 
     public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>)
     {
         var output:String = ""
         let indent:BSON.Indent = "    " + 1
