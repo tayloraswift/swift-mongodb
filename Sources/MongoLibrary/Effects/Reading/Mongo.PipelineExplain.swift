@@ -24,7 +24,7 @@ extension Mongo.PipelineExplain:MongoReadEffect
     func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws
     {
         var output:String = ""
-        let indent:BSON.Indent = "    "
+        let indent:BSON.Indent = "    " + 1
         for field:BSON.ExplicitField<BSON.Key, ByteBufferView> in
             reply.sorted(by: { $0.key < $1.key })
         {
