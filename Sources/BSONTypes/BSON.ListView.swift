@@ -55,26 +55,23 @@ extension BSON.ListView:BSONView
 extension BSON.ListView
 {
     /// The raw data backing this list. This collection *does not*
-    /// include the trailing null byte that appears after its inline 
+    /// include the trailing null byte that appears after its inline
     /// elements list.
     @inlinable public
-    var slice:Bytes
-    {
-        self.document.slice
-    }
-    /// The length that would be encoded in this list’s prefixed header.
-    /// Equal to [`self.size`]().
-    @inlinable public
-    var header:Int32
-    {
-        .init(self.size)
-    }
+    var slice:Bytes { self.document.slice }
 
-    /// The size of this list when encoded with its header and trailing null byte.
-    /// This *is* the same as the length encoded in the header itself.
+    /// Indicates if this list contains no elements.
     @inlinable public
-    var size:Int
-    {
-        5 + self.slice.count
-    }
+    var isEmpty:Bool { self.slice.isEmpty }
+
+    /// The length that would be encoded in this list’s prefixed header.
+    /// Equal to ``size``.
+    @inlinable public
+    var header:Int32 { .init(self.size) }
+
+    /// The size of this list when encoded with its header and trailing
+    /// null byte. This *is* the same as the length encoded in the header
+    /// itself.
+    @inlinable public
+    var size:Int { 5 + self.slice.count }
 }

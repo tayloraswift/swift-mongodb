@@ -2,6 +2,18 @@ import BSON
 
 extension BSON.ListView
 {
+    func description(indent:BSON.Indent) -> String
+    {
+        self.isEmpty ? "[]" : self.document.description(indent: indent)
+    }
+}
+extension BSON.ListView:CustomStringConvertible
+{
+    public
+    var description:String { self.description(indent: "    ") }
+}
+extension BSON.ListView
+{
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
     /// comparing the elements, ignoring list key names. Returns [`false`]() if either
     /// operand fails to parse.

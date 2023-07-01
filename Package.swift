@@ -210,6 +210,7 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoLibrary",
             dependencies:
             [
+                .target(name: "BSONReflection"),
                 .target(name: "MongoBuiltins"),
                 .target(name: "MongoDriver"),
             ]),
@@ -261,6 +262,13 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Testing", package: "swift-grammar"),
             ]),
 
+        .executableTarget(name: "BSONReflectionTests",
+            dependencies:
+            [
+                .target(name: "BSONReflection"),
+                .target(name: "BSONEncoding"),
+                .product(name: "Testing", package: "swift-grammar"),
+            ]),
 
         .executableTarget(name: "OnlineCDFTests",
             dependencies:

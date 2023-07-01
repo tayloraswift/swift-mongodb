@@ -31,6 +31,14 @@ extension BSON.Key
         self.init(rawValue: codingKey.stringValue)
     }
 }
+extension BSON.Key:Comparable
+{
+    @inlinable public static
+    func < (lhs:Self, rhs:Self) -> Bool
+    {
+        lhs.rawValue < rhs.rawValue
+    }
+}
 extension BSON.Key:CustomStringConvertible
 {
     @inlinable public

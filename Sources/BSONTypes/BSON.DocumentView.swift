@@ -10,7 +10,7 @@ extension BSON
         /// The raw data backing this document. This collection *does not*
         /// include the trailing null byte that typically appears after its
         /// inline field list.
-        public 
+        public
         let slice:Bytes
 
         /// Stores the argument in ``slice`` unchanged.
@@ -40,7 +40,7 @@ extension BSON.DocumentView:VariableLengthBSON
 {
     public
     typealias Frame = BSON.DocumentFrame
-    
+
     /// Stores the argument in ``slice`` unchanged. Equivalent to ``init(slice:)``.
     ///
     /// >   Complexity: O(1)
@@ -60,36 +60,17 @@ extension BSON.DocumentView:BSONView
 }
 extension BSON.DocumentView
 {
-    /// The length that would be encoded in this document’s prefixed header.
-    /// Equal to [`self.size`]().
+    /// Indicates if this document contains no fields.
     @inlinable public
-    var header:Int32
-    {
-        .init(self.size)
-    }
-    
-    /// The size of this document when encoded with its header and trailing null byte.
-    /// This *is* the same as the length encoded in the header itself.
-    @inlinable public
-    var size:Int
-    {
-        5 + self.slice.count
-    }
-}
+    var isEmpty:Bool { self.slice.isEmpty }
 
-extension BSON.DocumentView:CustomStringConvertible
-{
-    public
-    var description:String
-    {
-        """
-        (\(self.header), \(self.slice.lazy.map 
-        {
-            """
-            \(String.init($0 >> 4,   radix: 16, uppercase: true))\
-            \(String.init($0 & 0x0f, radix: 16, uppercase: true))
-            """
-        }.joined(separator: "_")))
-        """
-    }
+    /// The length that would be encoded in this document’s prefixed header.
+    /// Equal to ``size``.
+    @inlinable public
+    var header:Int32 { .init(self.size) }
+
+    /// The size of this document when encoded with its header and trailing
+    /// null byte. This *is* the same as the length encoded in the header itself.
+    @inlinable public
+    var size:Int { 5 + self.slice.count }
 }

@@ -2,6 +2,35 @@ import BSON
 
 extension BSON.DocumentView
 {
+    func description(indent:BSON.Indent) -> String
+    {
+        if  self.isEmpty
+        {
+            return "[:]"
+        }
+        do
+        {
+            var string:String = indent.level == 0 ? "{" : "\(indent){"
+            try self.parse
+            {
+                (indent + 1).print(key: $0, value: $1, to: &string)
+            }
+            string += "\(indent)}"
+            return string
+        }
+        catch
+        {
+            return "{ corrupted }"
+        }
+    }
+}
+extension BSON.DocumentView:CustomStringConvertible
+{
+    public
+    var description:String { self.description(indent: "    ") }
+}
+extension BSON.DocumentView
+{
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
     /// comparing the elements. Returns false if either operand fails to parse.
     ///

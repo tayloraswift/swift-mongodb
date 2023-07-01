@@ -9,7 +9,6 @@ enum Main:SyncTests
     {
         if  let tests:TestGroup = tests / "literal-inference"
         {
-
             TestEncoding(tests / "integer",
                 encoded: .init
                 {
