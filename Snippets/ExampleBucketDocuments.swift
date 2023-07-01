@@ -1,7 +1,7 @@
 import BSONEncoding
 import MongoBuiltins
 
-func TestBucketDocuments()
+func ExampleBucketDocuments()
 {
     let _:Mongo.BucketDocument = .init
     {

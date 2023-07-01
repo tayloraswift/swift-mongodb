@@ -1,7 +1,7 @@
 import BSONEncoding
 import MongoBuiltins
 
-func TestProjectionDocuments()
+func ExampleProjectionDocuments()
 {
     let _:Mongo.ProjectionDocument = .init
     {
@@ -30,7 +30,7 @@ func TestProjectionDocuments()
         {
             $0[.first] = .init
             {
-                $0[.or] = 
+                $0[.or] =
                 [
                     .init
                     {

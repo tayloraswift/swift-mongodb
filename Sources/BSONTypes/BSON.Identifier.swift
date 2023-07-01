@@ -110,6 +110,26 @@ extension BSON.Identifier:ExpressibleByIntegerLiteral
         }
     }
 }
+extension BSON.Identifier:CustomStringConvertible
+{
+    @inlinable public
+    var description:String
+    {
+        let unpadded:(String, String, String) =
+        (
+            .init(self.timestamp, radix: 16),
+            .init(self.middle, radix: 16),
+            .init(self.low, radix: 16)
+        )
+        let padding:(String, String, String) =
+        (
+            "\(String.init(repeating: "0", count: 8 - unpadded.0.count))",
+            "\(String.init(repeating: "0", count: 8 - unpadded.1.count))",
+            "\(String.init(repeating: "0", count: 8 - unpadded.2.count))"
+        )
+        return "0x\(padding.0)\(unpadded.0)_\(padding.1)\(unpadded.1)_\(padding.2)\(unpadded.2)"
+    }
+}
 extension BSON.Identifier
 {
     public

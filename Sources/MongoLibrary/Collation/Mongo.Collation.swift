@@ -10,13 +10,13 @@ extension Mongo
         let locale:String
 
         public
-        let alternate:Alternate
+        let alternate:Alternate?
         public
-        let backwards:Bool
+        let backwards:Bool?
         public
         let caseFirst:CaseFirst?
         public
-        let caseLevel:Bool
+        let caseLevel:Bool?
         /// Determines up to which characters are considered ignorable when
         /// ``alternate`` is ``Alternate/.shifted``.
         /// Has no effect ``Alternate/.nonignorable``.
@@ -26,22 +26,22 @@ extension Mongo
         public
         let maxVariable:MaxVariable?
         public
-        let normalization:Bool
+        let normalization:Bool?
         public
-        let numericOrdering:Bool
+        let numericOrdering:Bool?
         public
-        let strength:Strength
+        let strength:Strength?
 
         @inlinable public
         init(locale:String,
-            alternate:Alternate = .nonignorable,
-            backwards:Bool = false,
+            alternate:Alternate? = nil,
+            backwards:Bool? = nil,
             caseFirst:CaseFirst? = nil,
-            caseLevel:Bool = false,
+            caseLevel:Bool? = nil,
             maxVariable:MaxVariable? = nil,
-            normalization:Bool = false,
-            numericOrdering:Bool = false,
-            strength:Strength = .tertiary)
+            normalization:Bool? = nil,
+            numericOrdering:Bool? = nil,
+            strength:Strength? = nil)
         {
             self.locale = locale
             self.alternate = alternate
@@ -77,14 +77,14 @@ extension Mongo.Collation:BSONDecodable, BSONDocumentDecodable
     init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(locale: try bson[.locale].decode(to: String.self),
-            alternate: try bson[.alternate]?.decode(to: Alternate.self) ?? .nonignorable,
-            backwards: try bson[.backwards]?.decode(to: Bool.self) ?? false,
+            alternate: try bson[.alternate]?.decode(to: Alternate.self),
+            backwards: try bson[.backwards]?.decode(to: Bool.self),
             caseFirst: try bson[.caseFirst]?.decode(to: CaseFirst.self),
-            caseLevel: try bson[.caseLevel]?.decode(to: Bool.self) ?? false,
+            caseLevel: try bson[.caseLevel]?.decode(to: Bool.self),
             maxVariable: try bson[.maxVariable]?.decode(to: MaxVariable.self),
-            normalization: try bson[.normalization]?.decode(to: Bool.self) ?? false,
-            numericOrdering: try bson[.numericOrdering]?.decode(to: Bool.self) ?? false,
-            strength: try bson[.strength]?.decode(to: Strength.self) ?? .tertiary)
+            normalization: try bson[.normalization]?.decode(to: Bool.self),
+            numericOrdering: try bson[.numericOrdering]?.decode(to: Bool.self),
+            strength: try bson[.strength]?.decode(to: Strength.self))
     }
 }
 extension Mongo.Collation:BSONEncodable, BSONDocumentEncodable
@@ -93,13 +93,13 @@ extension Mongo.Collation:BSONEncodable, BSONDocumentEncodable
     func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
     {
         bson[.locale] = self.locale
-        bson[.strength] = self.strength != .tertiary ? self.strength : nil
-        bson[.caseLevel] = self.caseLevel ? true : nil
+        bson[.strength] = self.strength
+        bson[.caseLevel] = self.caseLevel
         bson[.caseFirst] = self.caseFirst
-        bson[.numericOrdering] = self.numericOrdering ? true : nil
-        bson[.normalization] = self.normalization ? true : nil
-        bson[.backwards] = self.backwards ? true : nil
-        bson[.alternate] = self.alternate != .nonignorable ? self.alternate : nil
+        bson[.numericOrdering] = self.numericOrdering
+        bson[.normalization] = self.normalization
+        bson[.backwards] = self.backwards
+        bson[.alternate] = self.alternate
         bson[.maxVariable] = self.maxVariable
     }
 }

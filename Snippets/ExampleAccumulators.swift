@@ -1,7 +1,7 @@
 import BSONEncoding
 import MongoBuiltins
 
-func TestAccumulators()
+func ExampleAccumulators()
 {
     let _:Mongo.Accumulator = .init
     {

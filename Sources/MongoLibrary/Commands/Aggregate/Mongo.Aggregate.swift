@@ -96,7 +96,7 @@ extension Mongo.Aggregate where Effect.Stride == Int
     }
 }
 
-extension Mongo.Aggregate where Effect.Stride == Void, Effect.Element == Never
+extension Mongo.Aggregate<Mongo.ExplainOnly>
 {
     public
     init(_ collection:Mongo.Collection, pipeline:Mongo.Pipeline)

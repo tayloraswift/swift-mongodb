@@ -1,11 +1,7 @@
-swift --version &&
-swift build -c release &&
-swift run   -c release BSONTests &&
-swift run   -c release BSONDecodingTests &&
-swift run   -c release BSONEncodingTests &&
-swift run   -c release BSONIntegrationTests &&
-swift run   -c release OnlineCDFTests &&
-swift run   -c release MongoDriverTests &&
-swift run   -c release MongoDBTests &&
-swift build -c release --target MongoDSLAPITests &&
-swift build -c release --target MongoDBAPITests
+#!/bin/bash
+set -e
+swift --version
+swift build -c release
+for f in .build/release/*Tests; do
+  $f
+done

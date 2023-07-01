@@ -210,6 +210,7 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoLibrary",
             dependencies:
             [
+                .target(name: "BSONReflection"),
                 .target(name: "MongoBuiltins"),
                 .target(name: "MongoDriver"),
             ]),
@@ -236,24 +237,21 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONReflection"),
                 .product(name: "Base16", package: "swift-hash"),
                 .product(name: "Testing", package: "swift-grammar"),
-            ],
-            path: "Tests/BSON"),
+            ]),
 
         .executableTarget(name: "BSONDecodingTests",
             dependencies:
             [
                 .target(name: "BSONDecoding"),
                 .product(name: "Testing", package: "swift-grammar"),
-            ],
-            path: "Tests/BSONDecoding"),
+            ]),
 
         .executableTarget(name: "BSONEncodingTests",
             dependencies:
             [
                 .target(name: "BSONEncoding"),
                 .product(name: "Testing", package: "swift-grammar"),
-            ],
-            path: "Tests/BSONEncoding"),
+            ]),
 
         .executableTarget(name: "BSONIntegrationTests",
             dependencies:
@@ -262,54 +260,35 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
                 .product(name: "Testing", package: "swift-grammar"),
-            ],
-            path: "Tests/BSONIntegration"),
+            ]),
 
+        .executableTarget(name: "BSONReflectionTests",
+            dependencies:
+            [
+                .target(name: "BSONReflection"),
+                .target(name: "BSONEncoding"),
+                .product(name: "Testing", package: "swift-grammar"),
+            ]),
 
         .executableTarget(name: "OnlineCDFTests",
             dependencies:
             [
                 .target(name: "OnlineCDF"),
                 .product(name: "Testing", package: "swift-grammar"),
-            ],
-            path: "Tests/OnlineCDF"),
-
-        .executableTarget(name: "MongoTests",
-            dependencies:
-            [
-                .target(name: "Mongo"),
-                .product(name: "Testing", package: "swift-grammar"),
-            ],
-            path: "Tests/Mongo"),
+            ]),
 
         .executableTarget(name: "MongoDBTests",
             dependencies:
             [
                 .target(name: "MongoTesting"),
-            ],
-            path: "Tests/MongoDB"),
+            ]),
 
         .executableTarget(name: "MongoDriverTests",
             dependencies:
             [
                 .target(name: "MongoDriver"),
                 .product(name: "Testing", package: "swift-grammar"),
-            ],
-            path: "Tests/MongoDriver"),
-
-        .target(name: "MongoDSLAPITests",
-            dependencies:
-            [
-                .target(name: "MongoBuiltins"),
-            ],
-            path: "Tests/MongoDSLAPI"),
-
-        .target(name: "MongoDBAPITests",
-            dependencies:
-            [
-                .target(name: "MongoDB"),
-            ],
-            path: "Tests/MongoDBAPI"),
+            ]),
     ]
 )
 

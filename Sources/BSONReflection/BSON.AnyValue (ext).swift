@@ -1,52 +1,56 @@
 import BSON
 
-extension BSON.AnyValue:CustomStringConvertible
+extension BSON.AnyValue
 {
-    public
-    var description:String
+    func description(indent:BSON.Indent) -> String
     {
         switch self
         {
         case .document(let document):
-            return ".document(\(document))"
+            return document.description(indent: indent)
         case .list(let list):
-            return ".list(\(list))"
+            return list.description(indent: indent)
         case .binary(let binary):
-            return ".binary(\(binary))"
+            return "{ binary data, type \(binary.subtype.rawValue) }"
         case .bool(let bool):
-            return ".bool(\(bool))"
+            return "\(bool)"
         case .decimal128(let decimal128):
-            return ".decimal128(\(decimal128))"
+            return "\(decimal128) as BSON.Decimal128"
         case .double(let double):
-            return ".double(\(double))"
+            return "\(double)"
         case .id(let id):
-            return ".id(\(id))"
+            return "\(id)"
         case .int32(let int32):
-            return ".int32(\(int32))"
+            return "\(int32)"
         case .int64(let int64):
-            return ".int64(\(int64))"
+            return "\(int64) as Int64"
         case .javascript(let javascript):
-            return ".javascript(\"\(javascript)\")"
-        case .javascriptScope(let scope, let javascript):
-            return ".javascriptScope(\(scope), \"\(javascript)\")"
+            return "'\(javascript)'"
+        case .javascriptScope(_, _):
+            return "{ javascript with scope }"
         case .max:
-            return ".max"
+            return "max"
         case .millisecond(let millisecond):
-            return ".millisecond(\(millisecond))"
+            return "\(millisecond.value) as BSON.Millisecond"
         case .min:
-            return ".min"
+            return "min"
         case .null:
-            return ".null"
+            return "nil"
         case .pointer(let database, let id):
-            return ".pointer(\(database), \(id))"
+            return "\(database) + \(id)"
         case .regex(let regex):
-            return ".regex(\(regex))"
-        case .string(let string):
-            return ".string(\"\(string)\")"
+            return "\(regex)"
+        case .string(let utf8):
+            return "\"\(utf8)\""
         case .uint64(let uint64):
-            return ".uint64(\(uint64))"
+            return "\(uint64) as UInt64"
         }
     }
+}
+extension BSON.AnyValue:CustomStringConvertible
+{
+    public
+    var description:String { self.description(indent: "    ") }
 }
 extension BSON.AnyValue
 {
@@ -64,11 +68,11 @@ extension BSON.AnyValue
     /// >   Warning:
     ///     Comparison of ``millisecond(_:)`` values uses integer equality. This library does
     ///     not support calendrical equivalence.
-    /// 
+    ///
     /// >   Note:
     ///     The embedded document in the deprecated `javascriptScope(_:_:)` variant
     ///     also receives type-aware treatment.
-    /// 
+    ///
     /// >   Note:
     ///     The embedded UTF-8 string in the deprecated `pointer(_:_:)` variant
     ///     also receives type-aware treatment.
@@ -115,7 +119,7 @@ extension BSON.AnyValue
             return lhs == rhs
         case (.uint64       (let lhs), .uint64      (let rhs)):
             return lhs == rhs
-        
+
         default:
             return false
         }

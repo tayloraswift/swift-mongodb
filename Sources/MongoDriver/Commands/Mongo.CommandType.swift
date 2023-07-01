@@ -17,6 +17,7 @@ extension Mongo
         case dropDatabase
         case dropIndexes
         case endSessions
+        case explain
         case find
         case findAndModify
         case fsync

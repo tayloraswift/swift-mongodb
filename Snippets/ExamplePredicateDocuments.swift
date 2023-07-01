@@ -1,7 +1,7 @@
 import BSONEncoding
 import MongoBuiltins
 
-func TestPredicateDocuments()
+func ExamplePredicateDocuments()
 {
     let _:Mongo.PredicateDocument = .init
     {
