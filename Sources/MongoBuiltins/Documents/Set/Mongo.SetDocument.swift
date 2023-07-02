@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.SetDocument
 {
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
