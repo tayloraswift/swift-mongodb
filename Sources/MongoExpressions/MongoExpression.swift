@@ -17,14 +17,6 @@ struct MongoExpression:BSONRepresentable, BSONDecodable, BSONEncodable, Sendable
 //  operators that take multiple arguments. The other DSLs don't need these.
 extension MongoExpression?
 {
-    @available(*, deprecated, renamed: "MongoExpression.expr(with:)")
-    @_disfavoredOverload
-    @inlinable public
-    init(with populate:(inout MongoExpression) throws -> ()) rethrows
-    {
-        self = .some(try .expr(with: populate))
-    }
-
     @inlinable public static
     func expr(with populate:(inout MongoExpression) throws -> ()) rethrows -> Self
     {
