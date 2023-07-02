@@ -84,7 +84,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript(key:Count) -> String?
+    subscript(key:Count) -> BSON.Key?
     {
         get
         {
@@ -424,7 +424,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript(key:Unset) -> String?
+    subscript(key:Unset) -> BSON.Key?
     {
         get
         {
@@ -436,7 +436,7 @@ extension Mongo.PipelineStage
         }
     }
     @inlinable public
-    subscript(key:Unset) -> [String]?
+    subscript(key:Unset) -> [BSON.Key]?
     {
         get
         {
@@ -449,8 +449,8 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript<FieldPath>(key:Unwind) -> FieldPath?
-        where FieldPath:MongoFieldPathEncodable
+    subscript<KeyPath>(key:Unwind) -> KeyPath?
+        where KeyPath:MongoKeyPathEncodable
     {
         get
         {

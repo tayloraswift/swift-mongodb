@@ -175,7 +175,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Reduction>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> String?
+    subscript(key:BSON.Key) -> BSON.Key?
     {
         get
         {

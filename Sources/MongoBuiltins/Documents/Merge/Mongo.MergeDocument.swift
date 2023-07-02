@@ -43,7 +43,7 @@ extension Mongo.MergeDocument
     }
 
     @inlinable public
-    subscript(key:On) -> String?
+    subscript(key:On) -> BSON.Key?
     {
         get
         {
@@ -55,7 +55,7 @@ extension Mongo.MergeDocument
         }
     }
     @inlinable public
-    subscript(key:On) -> [String]?
+    subscript(key:On) -> [BSON.Key]?
     {
         get
         {

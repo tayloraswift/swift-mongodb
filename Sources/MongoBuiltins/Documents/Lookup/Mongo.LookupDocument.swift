@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.LookupDocument
 {
     @inlinable public
-    subscript(key:Field) -> String?
+    subscript(key:Field) -> BSON.Key?
     {
         get
         {
