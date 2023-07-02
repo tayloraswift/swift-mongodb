@@ -5,11 +5,11 @@ func ExampleBucketDocuments()
 {
     let _:Mongo.BucketDocument = .init
     {
-        $0[.by] = .init
+        $0[.by] = .expr
         {
             $0[.first] = "$field"
         }
-        $0[.default] = .init
+        $0[.default] = .expr
         {
             $0[.abs] = "$field"
         }
@@ -17,11 +17,11 @@ func ExampleBucketDocuments()
     }
     let _:Mongo.BucketDocument = .init
     {
-        $0[.by] = .init
+        $0[.by] = .expr
         {
             $0[.abs] = "$field"
         }
-        $0[.default] = .init
+        $0[.default] = .expr
         {
             $0[.abs] = "$field"
         }

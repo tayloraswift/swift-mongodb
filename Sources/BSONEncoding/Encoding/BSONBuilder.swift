@@ -9,12 +9,12 @@ protocol BSONBuilder<CodingKey>
 extension BSONBuilder
 {
     @inlinable public mutating
-    func append(_ key:CodingKey, _ value:some BSONWeakEncodable)
+    func append(_ key:CodingKey, _ value:some BSONEncodable)
     {
         self.append(key, with: value.encode(to:))
     }
     @inlinable public mutating
-    func push(_ key:CodingKey, _ value:(some BSONWeakEncodable)?)
+    func push(_ key:CodingKey, _ value:(some BSONEncodable)?)
     {
         value.map
         {
@@ -23,7 +23,7 @@ extension BSONBuilder
     }
     @available(*, deprecated, message: "use append(_:_:) for non-optional values")
     public mutating
-    func push(_ key:CodingKey, _ value:some BSONWeakEncodable)
+    func push(_ key:CodingKey, _ value:some BSONEncodable)
     {
         self.push(key, value as _?)
     }
@@ -73,8 +73,7 @@ extension BSONBuilder
     /// that leave the value in a non-[`nil`]() state after returning) will add
     /// a new field to the document, even if the key is the same.
     @inlinable public
-    subscript<Value>(key:CodingKey) -> Value?
-        where Value:BSONEncodable
+    subscript<Value>(key:CodingKey) -> Value? where Value:BSONEncodable
     {
         get
         {

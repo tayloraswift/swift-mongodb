@@ -3,8 +3,8 @@ extension Mongo.MapDocument
     @frozen public
     enum Argument:String, Hashable, Sendable
     {
-        case `for` = "as"
+        case `as`
         case input
-        case transform = "in"
+        case `in`
     }
 }

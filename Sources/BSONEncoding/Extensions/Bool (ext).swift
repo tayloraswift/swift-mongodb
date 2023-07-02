@@ -1,8 +1,8 @@
-extension BSON.List:BSONEncodable
+extension Bool:BSONEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(list: .init(self))
+        field.encode(bool: self)
     }
 }

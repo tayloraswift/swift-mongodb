@@ -5,12 +5,12 @@ func ExampleProjectionDocuments()
 {
     let _:Mongo.ProjectionDocument = .init
     {
-        $0["expression"] = .init
+        $0["expression"] = .expr
         {
             $0[.abs] = "$field"
         }
         $0["key1"] = 1
-        $0["key2"] = .init
+        $0["key2"] = .expr
         {
             $0[.literal] = 1
         }

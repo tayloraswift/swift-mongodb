@@ -1,7 +1,8 @@
 import BSONEncoding
 
+//  TODO: do we really need this?
 public
-protocol MongoFieldPathEncodable:MongoExpressionEncodable
+protocol MongoFieldPathEncodable:BSONEncodable
 {
 }
 extension Unicode.Scalar:MongoFieldPathEncodable

@@ -1,7 +1,7 @@
 import BSONEncoding
 
 @frozen public
-struct MongoExpression:MongoExpressionEncodable, BSONRepresentable, BSONDSL, Sendable
+struct MongoExpression:MongoExpressionEncodable, BSONRepresentable, Sendable
 {
     public
     var bson:BSON.Document
@@ -16,29 +16,34 @@ struct MongoExpression:MongoExpressionEncodable, BSONRepresentable, BSONDSL, Sen
 //  operators that take multiple arguments. The other DSLs don't need these.
 extension MongoExpression?
 {
+    @available(*, deprecated, renamed: "MongoExpression.expr(with:)")
     @_disfavoredOverload
     @inlinable public
     init(with populate:(inout MongoExpression) throws -> ()) rethrows
     {
-        self = .some(try .init(with: populate))
+        self = .some(try .expr(with: populate))
+    }
+
+    @inlinable public static
+    func expr(with populate:(inout MongoExpression) throws -> ()) rethrows -> Self
+    {
+        return .some(try .expr(with: populate))
+    }
+}
+//  This must be an extension on ``Optional`` and not ``MongoExpressionEncodable``
+//  because SE-299 does not support protocol extension member lookup with unnamed
+//  closure parameters.
+extension BSONEncodable where Self == MongoExpression
+{
+    @inlinable public static
+    func expr(with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        var expr:Self = .init(.init())
+        try populate(&expr)
+        return expr
     }
 }
 
-extension MongoExpression
-{
-    @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoExpressionEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
-        }
-    }
-}
 extension MongoExpression
 {
     @inlinable public

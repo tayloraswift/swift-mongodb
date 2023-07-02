@@ -1,8 +1,8 @@
-extension BSON.List:BSONEncodable
+extension BSON.Max:BSONEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.Field)
     {
-        field.encode(list: .init(self))
+        field.encode(max: self)
     }
 }
