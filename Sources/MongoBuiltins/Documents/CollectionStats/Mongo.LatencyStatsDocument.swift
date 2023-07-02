@@ -4,7 +4,7 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct LatencyStatsDocument:BSONRepresentable, BSONDSL, Sendable
+    struct LatencyStatsDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,13 +16,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.LatencyStatsDocument:BSONEncodable
-{
-}
-extension Mongo.LatencyStatsDocument:BSONDecodable
-{
-}
-
 extension Mongo.LatencyStatsDocument
 {
     @inlinable public

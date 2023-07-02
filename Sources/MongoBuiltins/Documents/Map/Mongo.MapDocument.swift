@@ -1,10 +1,9 @@
 import BSONEncoding
-import MongoDSL
 
 extension Mongo
 {
     @frozen public
-    struct MapDocument:BSONRepresentable, BSONDSL, Sendable
+    struct MapDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,14 +15,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.MapDocument:BSONEncodable
-{
-}
 extension Mongo.MapDocument
 {
     @inlinable public
-    subscript<Encodable>(key:Argument) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+    subscript<Encodable>(key:Argument) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {

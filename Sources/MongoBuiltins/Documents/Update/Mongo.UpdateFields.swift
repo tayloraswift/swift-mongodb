@@ -1,11 +1,10 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension Mongo
 {
     @frozen public
-    struct UpdateFields<Operator>:BSONRepresentable, BSONDSL, Sendable
+    struct UpdateFields<Operator>:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,12 +15,6 @@ extension Mongo
             self.bson = bson
         }
     }
-}
-extension Mongo.UpdateFields:BSONDecodable
-{
-}
-extension Mongo.UpdateFields:BSONEncodable
-{
 }
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
 {

@@ -1,11 +1,10 @@
-import BSONDecoding
 import BSONEncoding
+import MongoBuiltins
 
 extension Mongo
 {
     @frozen public
-    struct DeleteStatement<Effect>:BSONRepresentable, BSONDSL, Sendable
-        where Effect:MongoWriteEffect
+    struct DeleteStatement<Effect>:MongoDocumentDSL, Sendable where Effect:MongoWriteEffect
     {
         public
         var bson:BSON.Document
@@ -16,12 +15,6 @@ extension Mongo
             self.bson = bson
         }
     }
-}
-extension Mongo.DeleteStatement:BSONDecodable
-{
-}
-extension Mongo.DeleteStatement:BSONEncodable
-{
 }
 extension Mongo.DeleteStatement
 {

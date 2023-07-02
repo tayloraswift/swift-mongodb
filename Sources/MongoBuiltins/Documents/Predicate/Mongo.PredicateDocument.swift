@@ -1,12 +1,10 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
 
 extension Mongo
 {
     /// Not to be confused with ``FilterDocument``.
     @frozen public
-    struct PredicateDocument:BSONRepresentable, BSONDSL, Sendable
+    struct PredicateDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -18,13 +16,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateDocument:BSONDecodable
-{
-}
-extension Mongo.PredicateDocument:BSONEncodable
-{
-}
-
 extension Mongo.PredicateDocument
 {
     /// Encodes an ``Operator``.
@@ -108,7 +99,7 @@ extension Mongo.PredicateDocument
         }
     }
     @inlinable public
-    subscript<Encodable>(key:Expr) -> Encodable? where Encodable:MongoExpressionEncodable
+    subscript<Encodable>(key:Expr) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {

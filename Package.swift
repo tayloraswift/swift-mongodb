@@ -30,7 +30,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "MongoBuiltins", targets: ["MongoBuiltins"]),
         .library(name: "MongoConfiguration", targets: ["MongoConfiguration"]),
         .library(name: "MongoDriver", targets: ["MongoDriver"]),
-        .library(name: "MongoDSL", targets: ["MongoDSL"]),
+        .library(name: "MongoExpressions", targets: ["MongoExpressions"]),
         .library(name: "MongoExecutor", targets: ["MongoExecutor"]),
         .library(name: "MongoIO", targets: ["MongoIO"]),
         .library(name: "MongoLibrary", targets: ["MongoLibrary"]),
@@ -160,7 +160,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "Mongo"),
-                .target(name: "MongoDSL"),
+                .target(name: "MongoExpressions"),
             ]),
 
         .target(name: "MongoConfiguration",
@@ -187,7 +187,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
             ]),
 
-        .target(name: "MongoDSL",
+        .target(name: "MongoExpressions",
             dependencies:
             [
                 .target(name: "BSONDecoding"),

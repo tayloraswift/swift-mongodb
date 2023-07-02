@@ -1,10 +1,9 @@
-import BSONDecoding
 import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct ProjectionOperator:BSONRepresentable, BSONDSL, Sendable
+    struct ProjectionOperator:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,13 +15,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.ProjectionOperator:BSONEncodable
-{
-}
-extension Mongo.ProjectionOperator:BSONDecodable
-{
-}
-
 extension Mongo.ProjectionOperator
 {
     @inlinable public

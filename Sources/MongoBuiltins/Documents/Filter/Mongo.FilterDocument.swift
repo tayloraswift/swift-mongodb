@@ -1,11 +1,10 @@
 import BSONEncoding
-import MongoDSL
 
 extension Mongo
 {
     /// Not to be confused with ``PredicateDocument``.
     @frozen public
-    struct FilterDocument:BSONRepresentable, BSONDSL, Sendable
+    struct FilterDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,14 +16,11 @@ extension Mongo
         }
     }
 }
-extension Mongo.FilterDocument:BSONEncodable
-{
-}
 extension Mongo.FilterDocument
 {
     @inlinable public
     subscript<Encodable>(key:Argument) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {

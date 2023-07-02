@@ -1,11 +1,10 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension Mongo
 {
     @frozen public
-    struct PipelineStage:BSONRepresentable, BSONDSL, Sendable
+    struct PipelineStage:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,13 +16,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.PipelineStage:BSONEncodable
-{
-}
-extension Mongo.PipelineStage:BSONDecodable
-{
-}
-
 extension Mongo.PipelineStage
 {
     @inlinable public
@@ -145,7 +137,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript<Array>(key:Documents) -> Array? where Array:MongoExpressionEncodable
+    subscript<Array>(key:Documents) -> Array? where Array:BSONEncodable
     {
         get
         {
@@ -296,7 +288,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript<RedactMode>(key:Redact) -> RedactMode? where RedactMode:MongoExpressionEncodable
+    subscript<RedactMode>(key:Redact) -> RedactMode? where RedactMode:BSONEncodable
     {
         get
         {
@@ -309,7 +301,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript<Document>(key:ReplaceWith) -> Document? where Document:MongoExpressionEncodable
+    subscript<Document>(key:ReplaceWith) -> Document? where Document:BSONEncodable
     {
         get
         {
@@ -394,7 +386,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript<GroupKey>(key:SortByCount) -> GroupKey? where GroupKey:MongoExpressionEncodable
+    subscript<GroupKey>(key:SortByCount) -> GroupKey? where GroupKey:BSONEncodable
     {
         get
         {

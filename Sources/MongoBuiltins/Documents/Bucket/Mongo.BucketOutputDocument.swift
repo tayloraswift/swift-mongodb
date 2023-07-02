@@ -4,7 +4,7 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    struct BucketOutputDocument:BSONRepresentable, BSONDSL, Sendable
+    struct BucketOutputDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,13 +16,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.BucketOutputDocument:BSONEncodable
-{
-}
-extension Mongo.BucketOutputDocument:BSONDecodable
-{
-}
-
 extension Mongo.BucketOutputDocument
 {
     @inlinable public

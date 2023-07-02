@@ -1,11 +1,9 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
 
 extension Mongo
 {
     @frozen public
-    struct ZipDocument:BSONRepresentable, BSONDSL, Sendable
+    struct ZipDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,17 +15,11 @@ extension Mongo
         }
     }
 }
-extension Mongo.ZipDocument:BSONDecodable
-{
-}
-extension Mongo.ZipDocument:BSONEncodable
-{
-}
 extension Mongo.ZipDocument
 {
     @inlinable public
     subscript<Encodable>(key:Inputs) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -40,8 +32,8 @@ extension Mongo.ZipDocument
     }
     @inlinable public
     subscript<T0, T1>(key:Inputs) -> (T0?, T1?)
-        where   T0:MongoExpressionEncodable,
-                T1:MongoExpressionEncodable
+        where   T0:BSONEncodable,
+                T1:BSONEncodable
     {
         get
         {
@@ -58,9 +50,9 @@ extension Mongo.ZipDocument
     }
     @inlinable public
     subscript<T0, T1, T2>(key:Inputs) -> (T0?, T1?, T2?)
-        where   T0:MongoExpressionEncodable,
-                T1:MongoExpressionEncodable,
-                T2:MongoExpressionEncodable
+        where   T0:BSONEncodable,
+                T1:BSONEncodable,
+                T2:BSONEncodable
     {
         get
         {
@@ -78,10 +70,10 @@ extension Mongo.ZipDocument
     }
     @inlinable public
     subscript<T0, T1, T2, T3>(key:Inputs) -> (T0?, T1?, T2?, T3?)
-        where   T0:MongoExpressionEncodable,
-                T1:MongoExpressionEncodable,
-                T2:MongoExpressionEncodable,
-                T3:MongoExpressionEncodable
+        where   T0:BSONEncodable,
+                T1:BSONEncodable,
+                T2:BSONEncodable,
+                T3:BSONEncodable
     {
         get
         {
@@ -103,7 +95,7 @@ extension Mongo.ZipDocument
     /// non-[`nil`]() value.
     @inlinable public
     subscript<Encodable>(key:Defaults) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {

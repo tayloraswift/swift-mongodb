@@ -1,11 +1,10 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension Mongo
 {
     @frozen public
-    struct UnwindDocument:BSONRepresentable, BSONDSL, Sendable
+    struct UnwindDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,13 +16,6 @@ extension Mongo
         }
     }
 }
-extension Mongo.UnwindDocument:BSONEncodable
-{
-}
-extension Mongo.UnwindDocument:BSONDecodable
-{
-}
-
 extension Mongo.UnwindDocument
 {
     @inlinable public

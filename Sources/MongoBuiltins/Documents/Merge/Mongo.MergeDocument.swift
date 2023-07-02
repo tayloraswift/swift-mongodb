@@ -1,10 +1,9 @@
-import BSONDecoding
 import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct MergeDocument:BSONRepresentable, BSONDSL, Sendable
+    struct MergeDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -15,12 +14,6 @@ extension Mongo
             self.bson = bson
         }
     }
-}
-extension Mongo.MergeDocument:BSONEncodable
-{
-}
-extension Mongo.MergeDocument:BSONDecodable
-{
 }
 extension Mongo.MergeDocument
 {

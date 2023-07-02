@@ -1,11 +1,9 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
 
 extension Mongo
 {
     @frozen public
-    struct SetDocument:BSONRepresentable, BSONDSL, Sendable
+    struct SetDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,17 +15,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.SetDocument:BSONEncodable
-{
-}
-extension Mongo.SetDocument:BSONDecodable
-{
-}
-
 extension Mongo.SetDocument
 {
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoExpressionEncodable
+    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {

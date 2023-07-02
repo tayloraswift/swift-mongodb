@@ -1,6 +1,6 @@
 import BSONEncoding
 import MongoBuiltins
-import MongoDSL
+import MongoExpressions
 
 func ExampleExpressions()
 {
