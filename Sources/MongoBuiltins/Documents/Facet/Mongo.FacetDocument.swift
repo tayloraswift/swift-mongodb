@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.FacetDocument
 {
     @inlinable public
-    subscript(key:String) -> Mongo.Pipeline?
+    subscript(key:BSON.Key) -> Mongo.Pipeline?
     {
         get
         {

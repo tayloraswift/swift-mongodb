@@ -17,13 +17,13 @@ extension Mongo
 }
 extension Mongo.ProjectionDocument
 {
-    /// Encodes an ``Operator``.
+    /// Encodes a ``ProjectionOperator``.
     ///
     /// This does not require [`@_disfavoredOverload`](), because
-    /// ``Operator`` has no ``String``-keyed subscripts, so it will
-    /// never conflict with ``BSON.Document``.
+    /// ``ProjectionOperator`` has no subscripts that accept string
+    /// literals, so it will never conflict with ``BSON.Document``.
     @inlinable public
-    subscript(key:String) -> Mongo.ProjectionOperator?
+    subscript(key:BSON.Key) -> Mongo.ProjectionOperator?
     {
         get
         {
@@ -35,7 +35,7 @@ extension Mongo.ProjectionDocument
         }
     }
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {

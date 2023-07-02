@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.GroupDocument
 {
     @inlinable public
-    subscript(key:String) -> Mongo.Accumulator?
+    subscript(key:BSON.Key) -> Mongo.Accumulator?
     {
         get
         {

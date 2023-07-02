@@ -19,7 +19,7 @@ extension Mongo
 extension Mongo.BucketOutputDocument
 {
     @inlinable public
-    subscript(key:String) -> Mongo.Accumulator?
+    subscript(key:BSON.Key) -> Mongo.Accumulator?
     {
         get
         {

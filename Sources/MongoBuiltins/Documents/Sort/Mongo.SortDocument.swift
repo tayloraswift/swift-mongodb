@@ -20,7 +20,7 @@ extension Mongo.SortDocument
     @available(*, unavailable,
         message: "pass the `(+)` or `(-)` operator functions to specify sort direction.")
     @inlinable public
-    subscript(key:String) -> Int?
+    subscript(key:BSON.Key) -> Int?
     {
         get
         {
@@ -34,7 +34,7 @@ extension Mongo.SortDocument
 extension Mongo.SortDocument
 {
     @inlinable public
-    subscript(key:String) -> ((Mongo.SortAscending) -> Never)?
+    subscript(key:BSON.Key) -> ((Mongo.SortAscending) -> Never)?
     {
         get
         {
@@ -46,7 +46,7 @@ extension Mongo.SortDocument
         }
     }
     @inlinable public
-    subscript(key:String) -> ((Mongo.SortDescending) -> Never)?
+    subscript(key:BSON.Key) -> ((Mongo.SortDescending) -> Never)?
     {
         get
         {
@@ -58,7 +58,7 @@ extension Mongo.SortDocument
         }
     }
     @inlinable public
-    subscript(key:String) -> Mongo.SortOperator?
+    subscript(key:BSON.Key) -> Mongo.SortOperator?
     {
         get
         {

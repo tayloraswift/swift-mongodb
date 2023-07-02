@@ -19,7 +19,7 @@ extension Mongo
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
 {
     @inlinable public
-    subscript(key:String) -> Int?
+    subscript(key:BSON.Key) -> Int?
     {
         get
         {
@@ -31,7 +31,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
         }
     }
     @inlinable public
-    subscript(key:String) -> Double?
+    subscript(key:BSON.Key) -> Double?
     {
         get
         {
@@ -46,7 +46,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
 {
     @inlinable public
-    subscript(key:String) -> (operator:Mongo.UpdateBitwiseOperator, int32:Int32)?
+    subscript(key:BSON.Key) -> (operator:Mongo.UpdateBitwiseOperator, int32:Int32)?
     {
         get
         {
@@ -64,7 +64,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
         }
     }
     @inlinable public
-    subscript(key:String) -> (operator:Mongo.UpdateBitwiseOperator, int64:Int64)?
+    subscript(key:BSON.Key) -> (operator:Mongo.UpdateBitwiseOperator, int64:Int64)?
     {
         get
         {
@@ -85,7 +85,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
 {
     @inlinable public
-    subscript(key:String) -> BSON.Millisecond.Type?
+    subscript(key:BSON.Key) -> BSON.Millisecond.Type?
     {
         get
         {
@@ -100,7 +100,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
         }
     }
     @inlinable public
-    subscript(key:String) -> UInt64.Type?
+    subscript(key:BSON.Key) -> UInt64.Type?
     {
         get
         {
@@ -118,7 +118,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Pop>
 {
     @inlinable public
-    subscript(key:String) -> Mongo.UpdatePosition?
+    subscript(key:BSON.Key) -> Mongo.UpdatePosition?
     {
         get
         {
@@ -133,7 +133,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pop>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
 {
     @inlinable public
-    subscript(key:String) -> Mongo.PredicateOperator?
+    subscript(key:BSON.Key) -> Mongo.PredicateOperator?
     {
         get
         {
@@ -145,7 +145,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
         }
     }
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -160,7 +160,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Reduction>
 {
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -175,7 +175,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Reduction>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
 {
     @inlinable public
-    subscript(key:String) -> String?
+    subscript(key:BSON.Key) -> String?
     {
         get
         {
@@ -190,7 +190,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Unset>
 {
     @inlinable public
-    subscript(key:String) -> Void?
+    subscript(key:BSON.Key) -> Void?
     {
         get
         {
