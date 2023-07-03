@@ -259,10 +259,9 @@ func ExampleExpressions()
         }
         $0["_"] = .expr
         {
-            $0[.filter] = .init
+            $0[.filter] = .let("x")
             {
                 $0[.input] = [0, 1, 2]
-                $0[.as] = "x"
                 $0[.cond] = .expr
                 {
                     $0[.gt] = ("$$x", 0)
@@ -304,10 +303,9 @@ func ExampleExpressions()
         }
         $0["_"] = .expr
         {
-            $0[.map] = .init
+            $0[.map] = .let("x")
             {
                 $0[.input] = [0, 1, 2]
-                $0[.as] = "x"
                 $0[.in] = .expr
                 {
                     $0[.add] = ("$$x", 1)

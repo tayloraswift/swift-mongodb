@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoExpressions
 
 extension Mongo
 {
@@ -14,6 +15,23 @@ extension Mongo
         {
             self.bson = bson
         }
+    }
+}
+extension Mongo.FilterDocument
+{
+    @inlinable public static
+    func `let`(_ variable:some MongoExpressionVariable,
+        with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        try .let(variable.name, with: populate)
+    }
+    @inlinable public static
+    func `let`(_ variable:String,
+        with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        var document:Self = .init(.init { $0["as"] = variable })
+        try populate(&document)
+        return document
     }
 }
 extension Mongo.FilterDocument
