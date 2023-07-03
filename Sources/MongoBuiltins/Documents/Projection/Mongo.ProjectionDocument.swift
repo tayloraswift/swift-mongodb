@@ -1,11 +1,9 @@
 import BSONEncoding
-import BSONDecoding
-import MongoDSL
 
 extension Mongo
 {
     @frozen public
-    struct ProjectionDocument:BSONRepresentable, BSONDSL, Sendable
+    struct ProjectionDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,21 +15,15 @@ extension Mongo
         }
     }
 }
-extension Mongo.ProjectionDocument:BSONEncodable
-{
-}
-extension Mongo.ProjectionDocument:BSONDecodable
-{
-}
 extension Mongo.ProjectionDocument
 {
-    /// Encodes an ``Operator``.
+    /// Encodes a ``ProjectionOperator``.
     ///
     /// This does not require [`@_disfavoredOverload`](), because
-    /// ``Operator`` has no ``String``-keyed subscripts, so it will
-    /// never conflict with ``BSON.Document``.
+    /// ``ProjectionOperator`` has no subscripts that accept string
+    /// literals, so it will never conflict with ``BSON.Document``.
     @inlinable public
-    subscript(key:String) -> Mongo.ProjectionOperator?
+    subscript(key:BSON.Key) -> Mongo.ProjectionOperator?
     {
         get
         {
@@ -43,7 +35,7 @@ extension Mongo.ProjectionDocument
         }
     }
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoExpressionEncodable
+    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {

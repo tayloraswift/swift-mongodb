@@ -39,14 +39,14 @@ extension BSON.ListEncoder
 extension BSON.ListEncoder
 {
     @inlinable public mutating
-    func append(_ value:some BSONWeakEncodable)
+    func append(_ value:some BSONEncodable)
     {
         self.append(with: value.encode(to:))
     }
     /// Encodes and appends the given value if it is non-`nil`, does
     /// nothing otherwise.
     @inlinable public mutating
-    func push(_ element:(some BSONWeakEncodable)?)
+    func push(_ element:(some BSONEncodable)?)
     {
         element.map
         {
@@ -55,7 +55,7 @@ extension BSON.ListEncoder
     }
     @available(*, deprecated, message: "use append(_:) for non-optional values")
     public mutating
-    func push(_ element:some BSONWeakEncodable)
+    func push(_ element:some BSONEncodable)
     {
         self.push(element as _?)
     }

@@ -1,10 +1,10 @@
-import BSONDecoding
 import BSONEncoding
+import MongoBuiltins
 
 extension Mongo
 {
     @frozen public
-    struct CreateIndexStatement:BSONRepresentable, BSONDSL, Sendable
+    struct CreateIndexStatement:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -15,12 +15,6 @@ extension Mongo
             self.bson = bson
         }
     }
-}
-extension Mongo.CreateIndexStatement:BSONDecodable
-{
-}
-extension Mongo.CreateIndexStatement:BSONEncodable
-{
 }
 extension Mongo.CreateIndexStatement
 {

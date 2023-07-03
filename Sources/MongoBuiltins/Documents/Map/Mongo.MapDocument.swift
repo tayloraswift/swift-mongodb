@@ -1,10 +1,11 @@
+import BSONDecoding
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension Mongo
 {
     @frozen public
-    struct MapDocument:BSONRepresentable, BSONDSL, Sendable
+    struct MapDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,14 +17,27 @@ extension Mongo
         }
     }
 }
-extension Mongo.MapDocument:BSONEncodable
+extension Mongo.MapDocument
 {
+    @inlinable public static
+    func `let`(_ variable:some MongoExpressionVariable,
+        with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        try .let(variable.name, with: populate)
+    }
+    @inlinable public static
+    func `let`(_ variable:String,
+        with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        var document:Self = .init(.init { $0["as"] = variable })
+        try populate(&document)
+        return document
+    }
 }
 extension Mongo.MapDocument
 {
     @inlinable public
-    subscript<Encodable>(key:Argument) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+    subscript<Encodable>(key:Argument) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {

@@ -10,5 +10,8 @@ extension MongoExpression
         case lt     = "$lt"
         case lte    = "$lte"
         case ne     = "$ne"
+
+        case setDifference = "$setDifference"
+        case setIsSubset = "$setIsSubset"
     }
 }

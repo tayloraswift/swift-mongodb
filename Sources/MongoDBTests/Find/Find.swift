@@ -158,7 +158,7 @@ struct Find:MongoTestBattery
                         $0[.projection] = .init
                         {
                             $0["_id"] = 1 as Int32
-                            $0["value"] = .init
+                            $0["value"] = .expr
                             {
                                 $0[.add] = ("$value", 5)
                             }

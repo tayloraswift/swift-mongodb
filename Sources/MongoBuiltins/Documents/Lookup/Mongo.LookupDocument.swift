@@ -1,10 +1,9 @@
-import BSONDecoding
 import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct LookupDocument:BSONRepresentable, BSONDSL, Sendable
+    struct LookupDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,17 +15,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.LookupDocument:BSONEncodable
-{
-}
-extension Mongo.LookupDocument:BSONDecodable
-{
-}
-
 extension Mongo.LookupDocument
 {
     @inlinable public
-    subscript(key:Field) -> String?
+    subscript(key:Field) -> BSON.Key?
     {
         get
         {

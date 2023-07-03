@@ -1,11 +1,9 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
 
 extension Mongo.Accumulator
 {
     @frozen public
-    struct SuperlativeDocument:BSONRepresentable, BSONDSL, Sendable
+    struct SuperlativeDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,18 +15,11 @@ extension Mongo.Accumulator
         }
     }
 }
-extension Mongo.Accumulator.SuperlativeDocument:BSONDecodable
-{
-}
-extension Mongo.Accumulator.SuperlativeDocument:BSONEncodable
-{
-}
-
 extension Mongo.Accumulator.SuperlativeDocument
 {
     @inlinable public
     subscript<Encodable>(key:Mongo.SortDocument.Input) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -41,7 +32,7 @@ extension Mongo.Accumulator.SuperlativeDocument
     }
     @inlinable public
     subscript<Encodable>(key:Mongo.SortDocument.Count) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {

@@ -1,12 +1,10 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
 
 extension Mongo
 {
     /// Not to be confused with ``FilterDocument``.
     @frozen public
-    struct PredicateDocument:BSONRepresentable, BSONDSL, Sendable
+    struct PredicateDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -18,22 +16,15 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateDocument:BSONDecodable
-{
-}
-extension Mongo.PredicateDocument:BSONEncodable
-{
-}
-
 extension Mongo.PredicateDocument
 {
-    /// Encodes an ``Operator``.
+    /// Encodes a ``PredicateOperator``.
     ///
     /// This does not require [`@_disfavoredOverload`](), because
-    /// ``Operator`` has no ``String``-keyed subscripts, so it will
-    /// never conflict with ``BSON.Document``.
+    /// ``PredicateOperator`` has no subscripts that accept string
+    /// literals, so it will never conflict with ``BSON.Document``.
     @inlinable public
-    subscript(key:String) -> Mongo.PredicateOperator?
+    subscript(key:BSON.Key) -> Mongo.PredicateOperator?
     {
         get
         {
@@ -41,11 +32,11 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson[key] = value
+            self.bson.push(key, value)
         }
     }
     @inlinable public
-    subscript(key:String) -> Self?
+    subscript(key:BSON.Key) -> Self?
     {
         get
         {
@@ -53,11 +44,11 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson[key] = value
+            self.bson.push(key, value)
         }
     }
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -65,7 +56,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson[key] = value
+            self.bson.push(key, value)
         }
     }
 }
@@ -108,7 +99,7 @@ extension Mongo.PredicateDocument
         }
     }
     @inlinable public
-    subscript<Encodable>(key:Expr) -> Encodable? where Encodable:MongoExpressionEncodable
+    subscript<Encodable>(key:Expr) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {

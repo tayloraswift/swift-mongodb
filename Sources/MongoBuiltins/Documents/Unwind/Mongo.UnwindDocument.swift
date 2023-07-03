@@ -1,11 +1,10 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension Mongo
 {
     @frozen public
-    struct UnwindDocument:BSONRepresentable, BSONDSL, Sendable
+    struct UnwindDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,18 +16,11 @@ extension Mongo
         }
     }
 }
-extension Mongo.UnwindDocument:BSONEncodable
-{
-}
-extension Mongo.UnwindDocument:BSONDecodable
-{
-}
-
 extension Mongo.UnwindDocument
 {
     @inlinable public
-    subscript<FieldPath>(key:Path) -> FieldPath?
-        where FieldPath:MongoFieldPathEncodable
+    subscript<KeyPath>(key:Path) -> KeyPath?
+        where KeyPath:MongoKeyPathEncodable
     {
         get
         {
@@ -40,7 +32,7 @@ extension Mongo.UnwindDocument
         }
     }
     @inlinable public
-    subscript(key:ArrayIndexAs) -> String?
+    subscript(key:ArrayIndexAs) -> BSON.Key?
     {
         get
         {

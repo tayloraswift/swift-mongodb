@@ -1,5 +1,5 @@
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension MongoExpression
 {
@@ -69,10 +69,10 @@ extension MongoExpression
     @inlinable public
     subscript<Sequence, Element, Start, End>(
         key:Index) -> (in:Sequence?, of:Element?, from:Start?, to:End?)
-        where   Sequence:MongoExpressionEncodable,
-                Element:MongoExpressionEncodable,
-                Start:MongoExpressionEncodable,
-                End:MongoExpressionEncodable
+        where   Sequence:BSONEncodable,
+                Element:BSONEncodable,
+                Start:BSONEncodable,
+                End:BSONEncodable
     {
         get
         {
@@ -98,8 +98,8 @@ extension MongoExpression
     }
     @inlinable public
     subscript<Sequence, Element>(key:Index) -> (in:Sequence?, of:Element?)
-        where   Sequence:MongoExpressionEncodable,
-                Element:MongoExpressionEncodable
+        where   Sequence:BSONEncodable,
+                Element:BSONEncodable
     {
         get
         {

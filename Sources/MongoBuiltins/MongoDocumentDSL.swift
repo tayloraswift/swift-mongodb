@@ -1,23 +1,22 @@
-/// A `BSONDSL` is nothing more than a type that supports an ``init(with:)``
-/// builder API.
+import BSONDecoding
+import BSONEncoding
+
+/// A `MongoDocumentDSL` is nothing more than a type that supports an
+/// ``init(with:)`` builder API.
 ///
 /// The specific encoding API vended and encodability protocol used is up to
 /// the conforming type.
 public
-protocol BSONDSL
+protocol MongoDocumentDSL:BSONRepresentable<BSON.Document>, BSONDecodable, BSONEncodable
 {
-    init()
 }
-extension BSONDSL where Self:BSONRepresentable<BSON.Document>
+extension MongoDocumentDSL
 {
     @inlinable public
     init()
     {
         self.init(.init())
     }
-}
-extension BSONDSL
-{
     /// Creates an empty instance of this type, and initializes it with the
     /// given closure.
     @inlinable public

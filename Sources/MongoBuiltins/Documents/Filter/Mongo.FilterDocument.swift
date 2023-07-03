@@ -1,11 +1,11 @@
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension Mongo
 {
     /// Not to be confused with ``PredicateDocument``.
     @frozen public
-    struct FilterDocument:BSONRepresentable, BSONDSL, Sendable
+    struct FilterDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,14 +17,28 @@ extension Mongo
         }
     }
 }
-extension Mongo.FilterDocument:BSONEncodable
+extension Mongo.FilterDocument
 {
+    @inlinable public static
+    func `let`(_ variable:some MongoExpressionVariable,
+        with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        try .let(variable.name, with: populate)
+    }
+    @inlinable public static
+    func `let`(_ variable:String,
+        with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        var document:Self = .init(.init { $0["as"] = variable })
+        try populate(&document)
+        return document
+    }
 }
 extension Mongo.FilterDocument
 {
     @inlinable public
     subscript<Encodable>(key:Argument) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {

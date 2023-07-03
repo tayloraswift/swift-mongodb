@@ -1,10 +1,9 @@
-import BSONDecoding
 import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct MergeDocument:BSONRepresentable, BSONDSL, Sendable
+    struct MergeDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -15,12 +14,6 @@ extension Mongo
             self.bson = bson
         }
     }
-}
-extension Mongo.MergeDocument:BSONEncodable
-{
-}
-extension Mongo.MergeDocument:BSONDecodable
-{
 }
 extension Mongo.MergeDocument
 {
@@ -50,7 +43,7 @@ extension Mongo.MergeDocument
     }
 
     @inlinable public
-    subscript(key:On) -> String?
+    subscript(key:On) -> BSON.Key?
     {
         get
         {
@@ -62,7 +55,7 @@ extension Mongo.MergeDocument
         }
     }
     @inlinable public
-    subscript(key:On) -> [String]?
+    subscript(key:On) -> [BSON.Key]?
     {
         get
         {

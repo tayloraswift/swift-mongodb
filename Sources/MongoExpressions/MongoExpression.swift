@@ -1,7 +1,8 @@
+import BSONDecoding
 import BSONEncoding
 
 @frozen public
-struct MongoExpression:MongoExpressionEncodable, BSONRepresentable, BSONDSL, Sendable
+struct MongoExpression:BSONRepresentable, BSONDecodable, BSONEncodable, Sendable
 {
     public
     var bson:BSON.Document
@@ -16,34 +17,31 @@ struct MongoExpression:MongoExpressionEncodable, BSONRepresentable, BSONDSL, Sen
 //  operators that take multiple arguments. The other DSLs don't need these.
 extension MongoExpression?
 {
-    @_disfavoredOverload
-    @inlinable public
-    init(with populate:(inout MongoExpression) throws -> ()) rethrows
+    @inlinable public static
+    func expr(with populate:(inout MongoExpression) throws -> ()) rethrows -> Self
     {
-        self = .some(try .init(with: populate))
+        return .some(try .expr(with: populate))
+    }
+}
+//  This must be an extension on ``Optional`` and not ``BSONEncodable``
+//  because SE-299 does not support protocol extension member lookup with
+//  unnamed closure parameters.
+extension BSONEncodable where Self == MongoExpression
+{
+    @inlinable public static
+    func expr(with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        var expr:Self = .init(.init())
+        try populate(&expr)
+        return expr
     }
 }
 
 extension MongoExpression
 {
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoExpressionEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
-        }
-    }
-}
-extension MongoExpression
-{
-    @inlinable public
     subscript<Encodable>(key:Unary) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -62,7 +60,7 @@ extension MongoExpression
     /// or true for `$isArray` (because an array is an array).
     @inlinable public
     subscript<Encodable>(key:UnaryParenthesized) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -82,8 +80,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<First, Second>(key:Binary) -> (_:First?, _:Second?)
-        where   First:MongoExpressionEncodable,
-                Second:MongoExpressionEncodable
+        where   First:BSONEncodable,
+                Second:BSONEncodable
     {
         get
         {
@@ -104,8 +102,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<Array, Index>(key:Element) -> (of:Array?, at:Index?)
-        where   Array:MongoExpressionEncodable,
-                Index:MongoExpressionEncodable
+        where   Array:BSONEncodable,
+                Index:BSONEncodable
     {
         get
         {
@@ -126,8 +124,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<Dividend, Divisor>(key:Division) -> (_:Dividend?, by:Divisor?)
-        where   Dividend:MongoExpressionEncodable,
-                Divisor:MongoExpressionEncodable
+        where   Dividend:BSONEncodable,
+                Divisor:BSONEncodable
     {
         get
         {
@@ -148,8 +146,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<Encodable, Array>(key:In) -> (_:Encodable?, in:Array?)
-        where   Encodable:MongoExpressionEncodable,
-                Array:MongoExpressionEncodable
+        where   Encodable:BSONEncodable,
+                Array:BSONEncodable
     {
         get
         {
@@ -170,8 +168,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<Base, Exponential>(key:Log) -> (base:Base?, of:Exponential?)
-        where   Base:MongoExpressionEncodable,
-                Exponential:MongoExpressionEncodable
+        where   Base:BSONEncodable,
+                Exponential:BSONEncodable
     {
         get
         {
@@ -192,8 +190,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<Base, Exponent>(key:Pow) -> (base:Base?, to:Exponent?)
-        where   Base:MongoExpressionEncodable,
-                Exponent:MongoExpressionEncodable
+        where   Base:BSONEncodable,
+                Exponent:BSONEncodable
     {
         get
         {
@@ -214,7 +212,7 @@ extension MongoExpression
 
     @inlinable public
     subscript<Fraction>(key:Quantization) -> Fraction?
-        where Fraction:MongoExpressionEncodable
+        where Fraction:BSONEncodable
     {
         get
         {
@@ -227,8 +225,8 @@ extension MongoExpression
     }
     @inlinable public
     subscript<Fraction, Places>(key:Quantization) -> (_:Fraction?, places:Places?)
-        where   Fraction:MongoExpressionEncodable,
-                Places:MongoExpressionEncodable
+        where   Fraction:BSONEncodable,
+                Places:BSONEncodable
     {
         get
         {
@@ -249,9 +247,9 @@ extension MongoExpression
 
     @inlinable public
     subscript<Start, End, Step>(key:Range) -> (from:Start?, to:End?, by:Step?)
-        where   Start:MongoExpressionEncodable,
-                End:MongoExpressionEncodable,
-                Step:MongoExpressionEncodable
+        where   Start:BSONEncodable,
+                End:BSONEncodable,
+                Step:BSONEncodable
     {
         get
         {
@@ -272,8 +270,8 @@ extension MongoExpression
     }
     @inlinable public
     subscript<Start, End>(key:Range) -> (from:Start?, to:End?)
-        where   Start:MongoExpressionEncodable,
-                End:MongoExpressionEncodable
+        where   Start:BSONEncodable,
+                End:BSONEncodable
     {
         get
         {
@@ -287,9 +285,9 @@ extension MongoExpression
 
     @inlinable public
     subscript<Array, Index, Distance>(key:Slice) -> (_:Array?, at:Index?, distance:Distance?)
-        where   Array:MongoExpressionEncodable,
-                Index:MongoExpressionEncodable,
-                Distance:MongoExpressionEncodable
+        where   Array:BSONEncodable,
+                Index:BSONEncodable,
+                Distance:BSONEncodable
     {
         get
         {
@@ -310,8 +308,8 @@ extension MongoExpression
     }
     @inlinable public
     subscript<Array, Distance>(key:Slice) -> (_:Array?, distance:Distance?)
-        where   Array:MongoExpressionEncodable,
-                Distance:MongoExpressionEncodable
+        where   Array:BSONEncodable,
+                Distance:BSONEncodable
     {
         get
         {
@@ -325,8 +323,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<Minuend, Difference>(key:Subtract) -> (_:Minuend?, minus:Difference?)
-        where   Minuend:MongoExpressionEncodable,
-                Difference:MongoExpressionEncodable
+        where   Minuend:BSONEncodable,
+                Difference:BSONEncodable
     {
         get
         {
@@ -347,8 +345,8 @@ extension MongoExpression
 
     @inlinable public
     subscript<Count, Array>(key:Superlative) -> (_:Count?, of:Array?)
-        where   Count:MongoExpressionEncodable,
-                Array:MongoExpressionEncodable
+        where   Count:BSONEncodable,
+                Array:BSONEncodable
     {
         get
         {
@@ -369,7 +367,7 @@ extension MongoExpression
 
     @inlinable public
     subscript<Encodable>(key:Variadic) -> Encodable?
-        where Encodable:MongoExpressionEncodable
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -382,8 +380,8 @@ extension MongoExpression
     }
     @inlinable public
     subscript<T0, T1>(key:Variadic) -> (T0?, T1?)
-        where   T0:MongoExpressionEncodable,
-                T1:MongoExpressionEncodable
+        where   T0:BSONEncodable,
+                T1:BSONEncodable
     {
         get
         {
@@ -400,9 +398,9 @@ extension MongoExpression
     }
     @inlinable public
     subscript<T0, T1, T2>(key:Variadic) -> (T0?, T1?, T2?)
-        where   T0:MongoExpressionEncodable,
-                T1:MongoExpressionEncodable,
-                T2:MongoExpressionEncodable
+        where   T0:BSONEncodable,
+                T1:BSONEncodable,
+                T2:BSONEncodable
     {
         get
         {
@@ -420,10 +418,10 @@ extension MongoExpression
     }
     @inlinable public
     subscript<T0, T1, T2, T3>(key:Variadic) -> (T0?, T1?, T2?, T3?)
-        where   T0:MongoExpressionEncodable,
-                T1:MongoExpressionEncodable,
-                T2:MongoExpressionEncodable,
-                T3:MongoExpressionEncodable
+        where   T0:BSONEncodable,
+                T1:BSONEncodable,
+                T2:BSONEncodable,
+                T3:BSONEncodable
     {
         get
         {

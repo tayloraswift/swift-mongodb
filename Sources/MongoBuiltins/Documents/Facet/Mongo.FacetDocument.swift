@@ -1,10 +1,9 @@
-import BSONDecoding
 import BSONEncoding
 
 extension Mongo
 {
     @frozen public
-    struct FacetDocument:BSONRepresentable, BSONDSL, Sendable
+    struct FacetDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -16,17 +15,10 @@ extension Mongo
         }
     }
 }
-extension Mongo.FacetDocument:BSONEncodable
-{
-}
-extension Mongo.FacetDocument:BSONDecodable
-{
-}
-
 extension Mongo.FacetDocument
 {
     @inlinable public
-    subscript(key:String) -> Mongo.Pipeline?
+    subscript(key:BSON.Key) -> Mongo.Pipeline?
     {
         get
         {

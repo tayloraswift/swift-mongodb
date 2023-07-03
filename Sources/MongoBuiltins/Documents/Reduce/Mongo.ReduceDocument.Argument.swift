@@ -5,6 +5,6 @@ extension Mongo.ReduceDocument
     {
         case input
         case initialValue
-        case combine = "in"
+        case `in`
     }
 }

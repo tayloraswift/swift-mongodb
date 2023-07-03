@@ -1,11 +1,10 @@
-import BSONDecoding
 import BSONEncoding
-import MongoDSL
+import MongoExpressions
 
 extension Mongo
 {
     @frozen public
-    struct LetDocument:BSONRepresentable, BSONDSL, Sendable
+    struct LetDocument:MongoDocumentDSL, Sendable
     {
         public
         var bson:BSON.Document
@@ -17,17 +16,11 @@ extension Mongo
         }
     }
 }
-extension Mongo.LetDocument:BSONEncodable
-{
-}
-extension Mongo.LetDocument:BSONDecodable
-{
-}
-
 extension Mongo.LetDocument
 {
     @inlinable public
-    subscript<Encodable>(key:String) -> Encodable? where Encodable:MongoExpressionEncodable
+    subscript<Encodable>(key:BSON.Key) -> Encodable?
+        where Encodable:BSONEncodable
     {
         get
         {
@@ -36,6 +29,19 @@ extension Mongo.LetDocument
         set(value)
         {
             self.bson.push(key, value)
+        }
+    }
+    @inlinable public
+    subscript<Encodable>(`let` binding:some MongoExpressionVariable) -> Encodable?
+        where Encodable:BSONEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(binding.name, value)
         }
     }
 }

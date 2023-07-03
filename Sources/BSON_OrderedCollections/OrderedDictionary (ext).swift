@@ -21,14 +21,9 @@ extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
         }
     }
 }
-extension OrderedDictionary:BSONWeakEncodable
-    where Key == String, Value:BSONWeakEncodable
+extension OrderedDictionary:BSONDocumentEncodable, BSONEncodable
+    where Key == String, Value:BSONEncodable
 {
-    @inlinable public
-    func encode(to field:inout BSON.Field)
-    {
-        self.encode(to: &field[as: BSON.DocumentEncoder<BSON.Key>.self])
-    }
     public
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
@@ -37,8 +32,4 @@ extension OrderedDictionary:BSONWeakEncodable
             bson.append(.init(rawValue: key), value)
         }
     }
-}
-extension OrderedDictionary:BSONDocumentEncodable, BSONEncodable
-    where Key == String, Value:BSONEncodable
-{
 }
