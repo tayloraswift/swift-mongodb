@@ -16,6 +16,11 @@ extension Mongo
         }
     }
 }
+/// You can use an empty dictionary literal (`[:]`) to express an
+/// unconditional predicate.
+extension Mongo.PredicateDocument:ExpressibleByDictionaryLiteral
+{
+}
 extension Mongo.PredicateDocument
 {
     /// Encodes a ``PredicateOperator``.

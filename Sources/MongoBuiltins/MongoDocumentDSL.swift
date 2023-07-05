@@ -26,3 +26,13 @@ extension MongoDocumentDSL
         try populate(&self)
     }
 }
+extension MongoDocumentDSL
+    where Self:ExpressibleByDictionaryLiteral, Key == Never, Value == Never
+{
+    @inlinable public
+    init(dictionaryLiteral:(Never, Never)...)
+    {
+        //  Weirdly, if we try to call `Self.init`, this will call itself instead...
+        self.init(.init())
+    }
+}
