@@ -32,6 +32,7 @@ extension MongoDocumentDSL
     @inlinable public
     init(dictionaryLiteral:(Never, Never)...)
     {
-        self.init()
+        //  Weirdly, if we try to call `Self.init`, this will call itself instead...
+        self.init(.init())
     }
 }
