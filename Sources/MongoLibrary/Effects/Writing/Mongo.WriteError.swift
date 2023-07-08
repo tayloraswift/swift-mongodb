@@ -31,3 +31,11 @@ extension Mongo.WriteError:BSONDocumentDecodable
             code: try bson["code"].decode(to: Int32.self))
     }
 }
+extension Mongo.WriteError:CustomStringConvertible
+{
+    public
+    var description:String
+    {
+        "[\(self.index)]: \(self.message) (\(self.code))"
+    }
+}
