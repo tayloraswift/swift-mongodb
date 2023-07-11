@@ -52,6 +52,18 @@ extension MongoExpression
         }
     }
     @inlinable public
+    subscript(key:Switch) -> Mongo.SwitchDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(key, value)
+        }
+    }
+    @inlinable public
     subscript(key:Zip) -> Mongo.ZipDocument?
     {
         get
