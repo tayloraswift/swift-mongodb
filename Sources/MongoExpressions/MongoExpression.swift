@@ -101,22 +101,24 @@ extension MongoExpression
     }
 
     @inlinable public
-    subscript<Array, Index>(key:Element) -> (of:Array?, at:Index?)
-        where   Array:BSONEncodable,
-                Index:BSONEncodable
+    subscript<Predicate, Then, Else>(key:Cond) -> (if:Predicate?, then:Then?, else:Else?)
+        where   Predicate:BSONEncodable,
+                Then:BSONEncodable,
+                Else:BSONEncodable
     {
         get
         {
-            (of: nil, at: nil)
+            (nil, nil, nil)
         }
         set(value)
         {
-            if case (of: let array?, at: let index?) = value
+            if case (if: let predicate?, then: let first?, else: let second?) = value
             {
                 self.bson[key]
                 {
-                    $0.append(array)
-                    $0.append(index)
+                    $0.append(predicate)
+                    $0.append(first)
+                    $0.append(second)
                 }
             }
         }
@@ -139,6 +141,28 @@ extension MongoExpression
                 {
                     $0.append(dividend)
                     $0.append(divisor)
+                }
+            }
+        }
+    }
+
+    @inlinable public
+    subscript<Array, Index>(key:Element) -> (of:Array?, at:Index?)
+        where   Array:BSONEncodable,
+                Index:BSONEncodable
+    {
+        get
+        {
+            (of: nil, at: nil)
+        }
+        set(value)
+        {
+            if case (of: let array?, at: let index?) = value
+            {
+                self.bson[key]
+                {
+                    $0.append(array)
+                    $0.append(index)
                 }
             }
         }
