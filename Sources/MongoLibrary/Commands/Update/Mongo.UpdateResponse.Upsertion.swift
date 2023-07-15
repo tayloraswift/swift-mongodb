@@ -31,13 +31,13 @@ extension Mongo.UpdateResponse.Upsertion:Sendable where ID:Sendable
 extension Mongo.UpdateResponse.Upsertion:BSONDocumentDecodable
 {
     public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case index
         case id = "_id"
     }
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(index: try bson[.index].decode(), id: try bson[.id].decode())
     }

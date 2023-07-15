@@ -35,7 +35,7 @@ extension Mongo
 extension Mongo.ReplicaSetConfiguration
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case id = "_id"
         case members
@@ -47,7 +47,7 @@ extension Mongo.ReplicaSetConfiguration
 extension Mongo.ReplicaSetConfiguration:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(name: try bson[.id].decode(to: String.self),
             writeConcernMajorityJournalDefault:
@@ -60,7 +60,7 @@ extension Mongo.ReplicaSetConfiguration:BSONDocumentDecodable
 extension Mongo.ReplicaSetConfiguration:BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.id] = self.name
         bson[.writeConcernMajorityJournalDefault] = self.writeConcernMajorityJournalDefault

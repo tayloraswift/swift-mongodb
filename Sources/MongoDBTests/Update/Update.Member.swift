@@ -30,7 +30,7 @@ extension Update
             self.misc2 = misc2
         }
 
-        enum CodingKeys:String
+        enum CodingKey:String
         {
             case id = "_id"
             case member
@@ -41,7 +41,7 @@ extension Update
             case misc2
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
         {
             self.init(id: try bson[.id].decode(),
                 member: try bson[.member].decode(),
@@ -52,7 +52,7 @@ extension Update
                 misc2: try bson[.misc2]?.decode())
         }
 
-        func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+        func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
         {
             bson[.id] = self.id
             bson[.member] = self.member

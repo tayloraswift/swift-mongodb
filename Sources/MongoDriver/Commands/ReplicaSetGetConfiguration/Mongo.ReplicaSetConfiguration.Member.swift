@@ -35,7 +35,7 @@ extension Mongo.ReplicaSetConfiguration
 extension Mongo.ReplicaSetConfiguration.Member
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case arbiterOnly
         case buildsIndexes = "buildIndexes"
@@ -51,7 +51,7 @@ extension Mongo.ReplicaSetConfiguration.Member
 extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         let id:Int64 = try bson[.id].decode(to: Int64.self)
         let host:Mongo.Host = try bson[.host].decode(to: Mongo.Host.self)
@@ -85,7 +85,7 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDocumentDecoda
 extension Mongo.ReplicaSetConfiguration.Member:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.id] = self.id
         bson[.host] = self.host
@@ -107,7 +107,7 @@ extension Mongo.ReplicaSetConfiguration.Member:BSONEncodable, BSONDocumentEncoda
             }
             bson[.buildsIndexes] = resident.buildsIndexes
             bson[.priority] = 0.0
-        
+
         case .citizen(let citizen):
             bson[.priority] = citizen.priority
         }

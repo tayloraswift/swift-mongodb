@@ -20,7 +20,7 @@ extension Delete
             self.points = points
         }
 
-        enum CodingKeys:String
+        enum CodingKey:String
         {
             case location
             case flavor
@@ -28,7 +28,7 @@ extension Delete
             case points
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
+        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
             throws
         {
             self.init(location: try bson[.location].decode(),
@@ -37,7 +37,7 @@ extension Delete
                 points: try bson[.points].decode())
         }
 
-        func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+        func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
         {
             bson[.location] = self.location
             bson[.flavor] = self.flavor

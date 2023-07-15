@@ -48,13 +48,13 @@ extension BSONBuilder
         }
     }
     @inlinable public
-    subscript<CodingKeys>(key:CodingKey,
-        using _:CodingKeys.Type = CodingKeys.self,
-        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ()) -> Void
+    subscript<NestedKey>(key:CodingKey,
+        using _:NestedKey.Type = NestedKey.self,
+        with encode:(inout BSON.DocumentEncoder<NestedKey>) -> ()) -> Void
     {
         mutating get
         {
-            self.append(key) { encode(&$0[as: BSON.DocumentEncoder<CodingKeys>.self]) }
+            self.append(key) { encode(&$0[as: BSON.DocumentEncoder<NestedKey>.self]) }
         }
     }
 }

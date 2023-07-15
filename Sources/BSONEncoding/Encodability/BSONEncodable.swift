@@ -41,11 +41,11 @@ extension BSONEncodable where Self == BSON.Document
     }
 
     @inlinable public
-    init<CodingKeys>(_:CodingKeys.Type = CodingKeys.self,
-        with populate:(inout BSON.DocumentEncoder<CodingKeys>) throws -> ()) rethrows
+    init<CodingKey>(_:CodingKey.Type = CodingKey.self,
+        with populate:(inout BSON.DocumentEncoder<CodingKey>) throws -> ()) rethrows
     {
         self.init()
-        try populate(&self.output[as: BSON.DocumentEncoder<CodingKeys>.self])
+        try populate(&self.output[as: BSON.DocumentEncoder<CodingKey>.self])
     }
     @inlinable public
     init(with populate:(inout BSON.DocumentEncoder<BSON.Key>) throws -> ()) rethrows

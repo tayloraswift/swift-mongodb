@@ -24,7 +24,7 @@ extension Aggregate
             self.tags = tags
         }
 
-        enum CodingKeys:String
+        enum CodingKey:String
         {
             case id = "_id"
             case author
@@ -33,7 +33,7 @@ extension Aggregate
             case tags
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
+        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
             throws
         {
             self.init(id: try bson[.id].decode(),
@@ -43,7 +43,7 @@ extension Aggregate
                 tags: try bson[.tags].decode())
         }
 
-        func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+        func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
         {
             bson[.id] = self.id
             bson[.author] = self.author

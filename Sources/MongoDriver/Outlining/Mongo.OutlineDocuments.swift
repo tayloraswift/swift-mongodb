@@ -51,10 +51,10 @@ extension Mongo.OutlineDocuments
 extension Mongo.OutlineDocuments
 {
     @inlinable public mutating
-    func append<CodingKeys>(_ element:some BSONDocumentEncodable<CodingKeys>)
+    func append<CodingKey>(_ element:some BSONDocumentEncodable<CodingKey>)
     {
         element.encode(to: &self.output[
-            as: BSON.DocumentEncoder<CodingKeys>.self,
+            as: BSON.DocumentEncoder<CodingKey>.self,
             in: BSON.DocumentFrame.self])
     }
     public mutating

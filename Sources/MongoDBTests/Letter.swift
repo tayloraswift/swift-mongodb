@@ -14,21 +14,21 @@ extension Letter:ExpressibleByUnicodeScalarLiteral
 }
 extension Letter
 {
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case id = "_id"
     }
 }
 extension Letter:BSONEncodable, BSONDocumentEncodable
 {
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.id] = self.id
     }
 }
 extension Letter:BSONDecodable, BSONDocumentDecodable
 {
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(id: try bson[.id].decode(to: Unicode.Scalar.self))
     }

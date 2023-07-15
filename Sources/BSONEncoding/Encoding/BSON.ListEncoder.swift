@@ -73,9 +73,9 @@ extension BSON.ListEncoder
         self.append { encode(&$0[as: BSON.DocumentEncoder<BSON.Key>.self]) }
     }
     @inlinable public mutating
-    func append<CodingKeys>(using _:CodingKeys.Type = CodingKeys.self,
-        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ())
+    func append<CodingKey>(using _:CodingKey.Type = CodingKey.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKey>) -> ())
     {
-        self.append { encode(&$0[as: BSON.DocumentEncoder<CodingKeys>.self]) }
+        self.append { encode(&$0[as: BSON.DocumentEncoder<CodingKey>.self]) }
     }
 }

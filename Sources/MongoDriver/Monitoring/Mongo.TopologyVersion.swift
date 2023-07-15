@@ -22,14 +22,14 @@ extension Mongo
 extension Mongo.TopologyVersion:BSONDocumentDecodable, BSONDocumentEncodable
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case process = "processId"
         case counter
     }
 
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
             process: try bson[.process].decode(to: BSON.Identifier.self),
@@ -37,7 +37,7 @@ extension Mongo.TopologyVersion:BSONDocumentDecodable, BSONDocumentEncodable
     }
 
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.process] = self.process
         bson[.counter] = self.counter

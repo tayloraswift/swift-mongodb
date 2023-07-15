@@ -27,7 +27,7 @@ extension Mongo.WriteConcernError
 extension Mongo.WriteConcernError.Details
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case j
         case provenance
@@ -37,7 +37,7 @@ extension Mongo.WriteConcernError.Details
 extension Mongo.WriteConcernError.Details:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
             acknowledgement: try bson[.w].decode(to: Mongo.WriteConcern.Acknowledgement.self),
@@ -48,7 +48,7 @@ extension Mongo.WriteConcernError.Details:BSONDecodable, BSONDocumentDecodable
 extension Mongo.WriteConcernError.Details:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.w] = self.acknowledgement
         bson[.provenance] = self.provenance
