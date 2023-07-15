@@ -13,8 +13,8 @@ extension Mongo.PredicateOperator
         case gte            = "$gte"
         case lt             = "$lt"
         case lte            = "$lte"
-        case neq            = "$neq"
-        
+        case ne             = "$ne"
+
         case size           = "$size"
     }
 }
