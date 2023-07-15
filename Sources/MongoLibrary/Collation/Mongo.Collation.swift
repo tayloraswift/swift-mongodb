@@ -58,7 +58,7 @@ extension Mongo
 extension Mongo.Collation
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case locale
         case strength
@@ -74,7 +74,7 @@ extension Mongo.Collation
 extension Mongo.Collation:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(locale: try bson[.locale].decode(to: String.self),
             alternate: try bson[.alternate]?.decode(to: Alternate.self),
@@ -90,7 +90,7 @@ extension Mongo.Collation:BSONDecodable, BSONDocumentDecodable
 extension Mongo.Collation:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.locale] = self.locale
         bson[.strength] = self.strength

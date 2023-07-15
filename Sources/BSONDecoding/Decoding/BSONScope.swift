@@ -12,8 +12,8 @@ protocol BSONScope<Bytes>
 extension BSONScope
 {
     @inlinable public
-    func decode<CodingKeys, T>(using _:CodingKeys.Type = CodingKeys.self,
-        with decode:(BSON.DocumentDecoder<CodingKeys, Bytes>) throws -> T) throws -> T
+    func decode<CodingKey, T>(using _:CodingKey.Type = CodingKey.self,
+        with decode:(BSON.DocumentDecoder<CodingKey, Bytes>) throws -> T) throws -> T
     {
         try self.decode { try decode(try .init(parsing: $0)) }
     }

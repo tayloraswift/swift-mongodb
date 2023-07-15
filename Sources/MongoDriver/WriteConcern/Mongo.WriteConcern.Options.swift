@@ -49,7 +49,7 @@ extension Mongo.WriteConcern.Options
 extension Mongo.WriteConcern.Options
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case w
         case j
@@ -58,7 +58,7 @@ extension Mongo.WriteConcern.Options
 extension Mongo.WriteConcern.Options:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
             acknowledgement: try bson[.w].decode(to: Mongo.WriteConcern.Acknowledgement.self),
@@ -68,7 +68,7 @@ extension Mongo.WriteConcern.Options:BSONDecodable, BSONDocumentDecodable
 extension Mongo.WriteConcern.Options:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.w] = self.acknowledgement
         bson[.j] = self.journaled

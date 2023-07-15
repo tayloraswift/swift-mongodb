@@ -14,13 +14,13 @@ extension Aggregate
             self.views = views
         }
 
-        enum CodingKeys:String
+        enum CodingKey:String
         {
             case id = "_id"
             case views
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
+        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
             throws
         {
             self.init(id: try bson[.id].decode(), views: try bson[.views].decode())

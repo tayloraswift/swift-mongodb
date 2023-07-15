@@ -18,14 +18,14 @@ extension FindAndModify
             self.since = since
         }
 
-        enum CodingKeys:String
+        enum CodingKey:String
         {
             case id = "_id"
             case party
             case since
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
+        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
             throws
         {
             self.init(id: try bson[.id].decode(),
@@ -33,7 +33,7 @@ extension FindAndModify
                 since: try bson[.since].decode())
         }
 
-        func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+        func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
         {
             bson[.id] = self.id
             bson[.party] = self.party

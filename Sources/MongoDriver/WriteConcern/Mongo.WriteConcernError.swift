@@ -47,7 +47,7 @@ extension Mongo.WriteConcernError:Equatable
 extension Mongo.WriteConcernError
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case code
         case errorDetails = "errInfo"
@@ -58,7 +58,7 @@ extension Mongo.WriteConcernError
 extension Mongo.WriteConcernError:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.DocumentDecoder<CodingKeys, Bytes>) throws
+    init<Bytes>(bson:BSON.DocumentDecoder<CodingKey, Bytes>) throws
     {
         self.init(code: try bson[.code].decode(to: Int32.self),
             message: try bson[.errorMessage].decode(to: String.self),
@@ -71,7 +71,7 @@ extension Mongo.WriteConcernError:BSONDecodable, BSONDocumentDecodable
 extension Mongo.WriteConcernError:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.code] = self.code
         bson[.errorMessage] = self.message
@@ -81,7 +81,7 @@ extension Mongo.WriteConcernError:BSONEncodable, BSONDocumentEncodable
         {
             return
         }
-        
+
         bson[.errorDetails]
         {
             $0["writeConcern"] = details

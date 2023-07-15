@@ -21,7 +21,7 @@ extension Indexes
             self.model = model
         }
 
-        enum CodingKeys:String
+        enum CodingKey:String
         {
             case item
             case manufacturer
@@ -29,7 +29,7 @@ extension Indexes
             case model
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
         {
             self.init(item: try bson[.item].decode(),
                 manufacturer: try bson[.manufacturer].decode(),
@@ -37,7 +37,7 @@ extension Indexes
                 model: try bson[.model].decode())
         }
 
-        func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+        func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
         {
             bson[.item] = self.item
             bson[.manufacturer] = self.manufacturer

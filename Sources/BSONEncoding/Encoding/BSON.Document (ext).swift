@@ -54,9 +54,9 @@ extension BSON.Document
         }
     }
     @inlinable public
-    subscript<CodingKeys>(key:some RawRepresentable<String>,
-        using _:CodingKeys.Type = CodingKeys.self,
-        with encode:(inout BSON.DocumentEncoder<CodingKeys>) -> ()) -> Void
+    subscript<CodingKey>(key:some RawRepresentable<String>,
+        using _:CodingKey.Type = CodingKey.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKey>) -> ()) -> Void
     {
         mutating get
         {

@@ -13,7 +13,7 @@ enum Main:SyncTests
         {
             struct Codable:BSONDocumentDecodable, BSONDocumentEncodable, Equatable
             {
-                enum CodingKeys:String
+                enum CodingKey:String
                 {
                     case a
                     case b
@@ -31,7 +31,7 @@ enum Main:SyncTests
                     self.c = c
                 }
 
-                init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>)
+                init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
                     throws
                 {
                     self.a = try bson[.a].decode()
@@ -39,7 +39,7 @@ enum Main:SyncTests
                     self.c = try bson[.c].decode()
                 }
 
-                func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+                func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
                 {
                     bson[.a] = self.a
                     bson[.b] = self.b

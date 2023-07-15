@@ -25,7 +25,7 @@ extension Mongo
 extension Mongo.Timeseries
 {
     @frozen public
-    enum CodingKeys:String
+    enum CodingKey:String
     {
         case timeField
         case metaField
@@ -35,7 +35,7 @@ extension Mongo.Timeseries
 extension Mongo.Timeseries:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKeys, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
         self.init(
             timeField: try bson[.timeField].decode(to: String.self),
@@ -46,7 +46,7 @@ extension Mongo.Timeseries:BSONDecodable, BSONDocumentDecodable
 extension Mongo.Timeseries:BSONEncodable, BSONDocumentEncodable
 {
     public
-    func encode(to bson:inout BSON.DocumentEncoder<CodingKeys>)
+    func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
         bson[.timeField] = self.timeField
         bson[.metaField] = self.metaField

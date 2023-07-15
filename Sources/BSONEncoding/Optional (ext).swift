@@ -21,8 +21,8 @@ extension Optional:BSONEncodable where Wrapped:BSONEncodable
 extension BSON.Document?
 {
     @inlinable public
-    init<CodingKeys>(_:CodingKeys.Type = CodingKeys.self,
-        with populate:(inout BSON.DocumentEncoder<CodingKeys>) throws -> ()) rethrows
+    init<CodingKey>(_:CodingKey.Type = CodingKey.self,
+        with populate:(inout BSON.DocumentEncoder<CodingKey>) throws -> ()) rethrows
     {
         self = .some(try .init(with: populate))
     }
