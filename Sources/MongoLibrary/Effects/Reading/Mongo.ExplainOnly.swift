@@ -12,7 +12,7 @@ extension Mongo
 extension Mongo.ExplainOnly:MongoReadEffect
 {
     public
-    typealias CommandResponse = Void
+    typealias CommandResponse = String
     public
     typealias Element = Never
     public
@@ -21,7 +21,7 @@ extension Mongo.ExplainOnly:MongoReadEffect
     typealias Stride = Void
 
     public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>)
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) -> String
     {
         var output:String = ""
         let indent:BSON.Indent = "    " + 1
@@ -38,6 +38,6 @@ extension Mongo.ExplainOnly:MongoReadEffect
             }
         }
 
-        print("{\(output)\n}")
+        return "{\(output)\n}"
     }
 }
