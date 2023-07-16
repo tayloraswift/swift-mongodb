@@ -36,7 +36,7 @@ extension Mongo.Explain:MongoImplicitSessionCommand, MongoCommand
     }
 
     public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>)
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) -> String
     {
         Mongo.ExplainOnly.decode(reply: reply)
     }
