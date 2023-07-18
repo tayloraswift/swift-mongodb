@@ -35,7 +35,7 @@ extension BSON.AnyValue
         case .min:
             return "min"
         case .null:
-            return "nil"
+            return "null"
         case .pointer(let database, let id):
             return "\(database) + \(id)"
         case .regex(let regex):
