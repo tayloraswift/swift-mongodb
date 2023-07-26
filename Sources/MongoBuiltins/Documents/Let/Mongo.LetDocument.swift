@@ -1,5 +1,6 @@
 import BSONEncoding
 import MongoExpressions
+import MongoSchema
 
 extension Mongo
 {
@@ -32,7 +33,7 @@ extension Mongo.LetDocument
         }
     }
     @inlinable public
-    subscript<Encodable>(`let` binding:some MongoExpressionVariable) -> Encodable?
+    subscript<Encodable>(`let` binding:Mongo.Variable<some Any>) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
