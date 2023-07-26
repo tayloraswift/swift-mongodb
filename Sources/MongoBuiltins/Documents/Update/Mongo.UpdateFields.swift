@@ -176,7 +176,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Reduction>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
 {
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> BSON.Key?
+    subscript(path:Mongo.KeyPath) -> Mongo.KeyPath?
     {
         get
         {
@@ -184,7 +184,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            self.bson.push(path.stem, value?.stem)
         }
     }
 }

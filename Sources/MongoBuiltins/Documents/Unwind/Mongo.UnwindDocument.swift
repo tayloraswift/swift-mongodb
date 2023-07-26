@@ -1,5 +1,6 @@
 import BSONEncoding
 import MongoExpressions
+import MongoSchema
 
 extension Mongo
 {
@@ -19,8 +20,7 @@ extension Mongo
 extension Mongo.UnwindDocument
 {
     @inlinable public
-    subscript<KeyPath>(key:Path) -> KeyPath?
-        where KeyPath:MongoKeyPathEncodable
+    subscript(key:Field) -> Mongo.KeyPath?
     {
         get
         {
@@ -28,19 +28,7 @@ extension Mongo.UnwindDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
-        }
-    }
-    @inlinable public
-    subscript(key:ArrayIndexAs) -> BSON.Key?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
+            self.bson.push(key, value?.stem)
         }
     }
     @inlinable public

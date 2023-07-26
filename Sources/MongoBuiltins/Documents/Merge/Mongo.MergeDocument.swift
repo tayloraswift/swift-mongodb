@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoSchema
 
 extension Mongo
 {
@@ -43,7 +44,7 @@ extension Mongo.MergeDocument
     }
 
     @inlinable public
-    subscript(key:On) -> BSON.Key?
+    subscript(key:On) -> Mongo.KeyPath?
     {
         get
         {
@@ -51,7 +52,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(key, value?.stem)
         }
     }
     @inlinable public
