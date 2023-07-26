@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoSchema
 
 extension Mongo
 {
@@ -29,7 +30,7 @@ extension Mongo.PredicateDocument
     /// ``PredicateOperator`` has no subscripts that accept string
     /// literals, so it will never conflict with ``BSON.Document``.
     @inlinable public
-    subscript(key:BSON.Key) -> Mongo.PredicateOperator?
+    subscript(path:Mongo.KeyPath) -> Mongo.PredicateOperator?
     {
         get
         {
@@ -37,11 +38,11 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
     @inlinable public
-    subscript(key:BSON.Key) -> Self?
+    subscript(path:Mongo.KeyPath) -> Self?
     {
         get
         {
@@ -49,11 +50,11 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
     @inlinable public
-    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -61,7 +62,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }

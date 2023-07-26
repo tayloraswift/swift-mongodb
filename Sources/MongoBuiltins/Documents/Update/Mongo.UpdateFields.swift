@@ -1,5 +1,6 @@
 import BSONEncoding
 import MongoExpressions
+import MongoSchema
 
 extension Mongo
 {
@@ -19,7 +20,7 @@ extension Mongo
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> Int?
+    subscript(path:Mongo.KeyPath) -> Int?
     {
         get
         {
@@ -27,11 +28,11 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
     @inlinable public
-    subscript(key:BSON.Key) -> Double?
+    subscript(path:Mongo.KeyPath) -> Double?
     {
         get
         {
@@ -39,14 +40,14 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> (operator:Mongo.UpdateBitwiseOperator, int32:Int32)?
+    subscript(path:Mongo.KeyPath) -> (operator:Mongo.UpdateBitwiseOperator, int32:Int32)?
     {
         get
         {
@@ -56,7 +57,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
         {
             if  case let (name, operand)? = value
             {
-                self.bson[key]
+                self.bson[path.stem]
                 {
                     $0[name] = operand
                 }
@@ -64,7 +65,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
         }
     }
     @inlinable public
-    subscript(key:BSON.Key) -> (operator:Mongo.UpdateBitwiseOperator, int64:Int64)?
+    subscript(path:Mongo.KeyPath) -> (operator:Mongo.UpdateBitwiseOperator, int64:Int64)?
     {
         get
         {
@@ -74,7 +75,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
         {
             if  case let (name, operand)? = value
             {
-                self.bson[key]
+                self.bson[path.stem]
                 {
                     $0[name] = operand
                 }
@@ -85,7 +86,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> BSON.Millisecond.Type?
+    subscript(path:Mongo.KeyPath) -> BSON.Millisecond.Type?
     {
         get
         {
@@ -93,14 +94,14 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
         }
         set(value)
         {
-            self.bson[key]
+            self.bson[path.stem]
             {
                 $0["$type"] = "date"
             }
         }
     }
     @inlinable public
-    subscript(key:BSON.Key) -> UInt64.Type?
+    subscript(path:Mongo.KeyPath) -> UInt64.Type?
     {
         get
         {
@@ -108,7 +109,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
         }
         set(value)
         {
-            self.bson[key]
+            self.bson[path.stem]
             {
                 $0["$type"] = "timestamp"
             }
@@ -118,7 +119,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Pop>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> Mongo.UpdatePosition?
+    subscript(path:Mongo.KeyPath) -> Mongo.UpdatePosition?
     {
         get
         {
@@ -126,14 +127,14 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pop>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> Mongo.PredicateOperator?
+    subscript(path:Mongo.KeyPath) -> Mongo.PredicateOperator?
     {
         get
         {
@@ -141,11 +142,11 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
     @inlinable public
-    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -153,14 +154,14 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Reduction>
 {
     @inlinable public
-    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -168,14 +169,14 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Reduction>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> BSON.Key?
+    subscript(path:Mongo.KeyPath) -> BSON.Key?
     {
         get
         {
@@ -183,14 +184,14 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }
 extension Mongo.UpdateFields<Mongo.UpdateDocument.Unset>
 {
     @inlinable public
-    subscript(key:BSON.Key) -> Void?
+    subscript(path:Mongo.KeyPath) -> Void?
     {
         get
         {
@@ -198,7 +199,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Unset>
         }
         set(value)
         {
-            self.bson.append(key, nil as Never?)
+            self.bson.append(path.stem, nil as Never?)
         }
     }
 }

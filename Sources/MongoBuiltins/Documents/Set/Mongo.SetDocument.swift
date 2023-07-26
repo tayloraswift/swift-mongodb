@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoSchema
 
 extension Mongo
 {
@@ -18,7 +19,7 @@ extension Mongo
 extension Mongo.SetDocument
 {
     @inlinable public
-    subscript<Encodable>(key:BSON.Key) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -26,7 +27,7 @@ extension Mongo.SetDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }

@@ -15,6 +15,14 @@ extension Mongo
         }
     }
 }
+extension Mongo.KeyPath:ExpressibleByStringLiteral
+{
+    @inlinable public
+    init(stringLiteral stem:String)
+    {
+        self.init(stem)
+    }
+}
 extension Mongo.KeyPath:CustomStringConvertible
 {
     @inlinable public
