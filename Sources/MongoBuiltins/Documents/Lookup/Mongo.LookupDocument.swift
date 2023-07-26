@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoSchema
 
 extension Mongo
 {
@@ -18,7 +19,7 @@ extension Mongo
 extension Mongo.LookupDocument
 {
     @inlinable public
-    subscript(key:Field) -> BSON.Key?
+    subscript(key:Field) -> Mongo.KeyPath?
     {
         get
         {
@@ -26,7 +27,8 @@ extension Mongo.LookupDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            //  Value does not include leading dollar sign!
+            self.bson.push(key, value?.stem)
         }
     }
     @inlinable public

@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoSchema
 
 extension Mongo
 {
@@ -20,7 +21,7 @@ extension Mongo.SortDocument
     @available(*, unavailable,
         message: "pass the `(+)` or `(-)` operator functions to specify sort direction.")
     @inlinable public
-    subscript(key:BSON.Key) -> Int?
+    subscript(path:Mongo.KeyPath) -> Int?
     {
         get
         {
@@ -34,7 +35,7 @@ extension Mongo.SortDocument
 extension Mongo.SortDocument
 {
     @inlinable public
-    subscript(key:BSON.Key) -> ((Mongo.SortAscending) -> Never)?
+    subscript(path:Mongo.KeyPath) -> ((Mongo.SortAscending) -> Never)?
     {
         get
         {
@@ -42,11 +43,11 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.bson.append(key, 1 as Int32)
+            self.bson.append(path.stem, 1 as Int32)
         }
     }
     @inlinable public
-    subscript(key:BSON.Key) -> ((Mongo.SortDescending) -> Never)?
+    subscript(path:Mongo.KeyPath) -> ((Mongo.SortDescending) -> Never)?
     {
         get
         {
@@ -54,11 +55,11 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.bson.append(key, -1 as Int32)
+            self.bson.append(path.stem, -1 as Int32)
         }
     }
     @inlinable public
-    subscript(key:BSON.Key) -> Mongo.SortOperator?
+    subscript(path:Mongo.KeyPath) -> Mongo.SortOperator?
     {
         get
         {
@@ -66,7 +67,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }

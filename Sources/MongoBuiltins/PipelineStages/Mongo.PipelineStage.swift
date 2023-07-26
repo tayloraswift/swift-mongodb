@@ -1,5 +1,6 @@
 import BSONEncoding
 import MongoExpressions
+import MongoSchema
 
 extension Mongo
 {
@@ -84,7 +85,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript(key:Count) -> BSON.Key?
+    subscript(key:Count) -> Mongo.KeyPath?
     {
         get
         {
@@ -92,7 +93,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(key, value?.stem)
         }
     }
 
@@ -424,7 +425,7 @@ extension Mongo.PipelineStage
     }
 
     @inlinable public
-    subscript(key:Unset) -> BSON.Key?
+    subscript(key:Unset) -> Mongo.KeyPath?
     {
         get
         {
@@ -432,11 +433,11 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(key, value?.stem)
         }
     }
     @inlinable public
-    subscript(key:Unset) -> [BSON.Key]?
+    subscript(key:Unset) -> [Mongo.KeyPath]?
     {
         get
         {
@@ -444,13 +445,21 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.bson.push(key, value)
+            if  let value:[Mongo.KeyPath]
+            {
+                self.bson[key]
+                {
+                    for path:Mongo.KeyPath in value
+                    {
+                        $0.append(path.stem)
+                    }
+                }
+            }
         }
     }
 
     @inlinable public
-    subscript<KeyPath>(key:Unwind) -> KeyPath?
-        where KeyPath:MongoKeyPathEncodable
+    subscript(key:Unwind) -> Mongo.KeyPath?
     {
         get
         {
@@ -458,7 +467,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(key, value?.stem)
         }
     }
     @inlinable public

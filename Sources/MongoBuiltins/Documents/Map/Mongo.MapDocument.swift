@@ -1,6 +1,7 @@
 import BSONDecoding
 import BSONEncoding
 import MongoExpressions
+import MongoSchema
 
 extension Mongo
 {
@@ -20,12 +21,19 @@ extension Mongo
 extension Mongo.MapDocument
 {
     @inlinable public static
-    func `let`(_ variable:some MongoExpressionVariable,
+    func `let`(_ variable:Mongo.Variable<some Any>,
         with populate:(inout Self) throws -> ()) rethrows -> Self
     {
         try .let(variable.name, with: populate)
     }
     @inlinable public static
+    func `let`(_ variable:Mongo.Variable<Any>,
+        with populate:(inout Self) throws -> ()) rethrows -> Self
+    {
+        try .let(variable.name, with: populate)
+    }
+
+    @inlinable internal static
     func `let`(_ variable:String,
         with populate:(inout Self) throws -> ()) rethrows -> Self
     {

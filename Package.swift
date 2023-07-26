@@ -34,6 +34,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "MongoExecutor", targets: ["MongoExecutor"]),
         .library(name: "MongoIO", targets: ["MongoIO"]),
         .library(name: "MongoLibrary", targets: ["MongoLibrary"]),
+        .library(name: "MongoSchema", targets: ["MongoSchema"]),
         .library(name: "MongoTesting", targets: ["MongoTesting"]),
         .library(name: "MongoWire", targets: ["MongoWire"]),
 
@@ -159,8 +160,8 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoBuiltins",
             dependencies:
             [
-                .target(name: "Mongo"),
                 .target(name: "MongoExpressions"),
+                .target(name: "MongoSchema"),
             ]),
 
         .target(name: "MongoConfiguration",
@@ -212,7 +213,13 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONReflection"),
                 .target(name: "MongoBuiltins"),
-                .target(name: "MongoDriver"),
+                .target(name: "MongoDriver")
+            ]),
+
+        .target(name: "MongoSchema",
+            dependencies:
+            [
+                .target(name: "Mongo"),
             ]),
 
         .target(name: "MongoTesting",

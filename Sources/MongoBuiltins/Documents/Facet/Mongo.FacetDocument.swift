@@ -1,4 +1,5 @@
 import BSONEncoding
+import MongoSchema
 
 extension Mongo
 {
@@ -18,7 +19,7 @@ extension Mongo
 extension Mongo.FacetDocument
 {
     @inlinable public
-    subscript(key:BSON.Key) -> Mongo.Pipeline?
+    subscript(path:Mongo.KeyPath) -> Mongo.Pipeline?
     {
         get
         {
@@ -26,7 +27,7 @@ extension Mongo.FacetDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }

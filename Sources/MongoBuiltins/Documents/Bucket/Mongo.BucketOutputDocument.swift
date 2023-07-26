@@ -1,5 +1,6 @@
 import BSONDecoding
 import BSONEncoding
+import MongoSchema
 
 extension Mongo
 {
@@ -19,7 +20,7 @@ extension Mongo
 extension Mongo.BucketOutputDocument
 {
     @inlinable public
-    subscript(key:BSON.Key) -> Mongo.Accumulator?
+    subscript(path:Mongo.KeyPath) -> Mongo.Accumulator?
     {
         get
         {
@@ -27,7 +28,7 @@ extension Mongo.BucketOutputDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
 }

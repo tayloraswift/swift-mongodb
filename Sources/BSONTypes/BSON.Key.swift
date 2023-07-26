@@ -65,6 +65,7 @@ extension BSON.Key
     ///
     /// Some applications that use BSON, such as MongoDB, consider `.`
     /// characters significant.
+    @available(*, deprecated, message: "Prefer 'Mongo.KeyPath' instead.")
     @inlinable public static
     func / (self:Self, next:Self) -> Self
     {

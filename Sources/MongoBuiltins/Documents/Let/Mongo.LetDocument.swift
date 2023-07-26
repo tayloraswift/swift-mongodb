@@ -1,5 +1,6 @@
 import BSONEncoding
 import MongoExpressions
+import MongoSchema
 
 extension Mongo
 {
@@ -19,7 +20,7 @@ extension Mongo
 extension Mongo.LetDocument
 {
     @inlinable public
-    subscript<Encodable>(key:BSON.Key) -> Encodable?
+    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
@@ -28,11 +29,11 @@ extension Mongo.LetDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            self.bson.push(path.stem, value)
         }
     }
     @inlinable public
-    subscript<Encodable>(`let` binding:some MongoExpressionVariable) -> Encodable?
+    subscript<Encodable>(`let` binding:Mongo.Variable<some Any>) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
