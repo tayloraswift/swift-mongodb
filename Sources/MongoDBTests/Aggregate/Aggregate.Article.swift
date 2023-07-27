@@ -1,9 +1,13 @@
 import BSONDecoding
 import BSONEncoding
+import MongoSchema
 
 extension Aggregate
 {
-    struct Article:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable
+    struct Article:Equatable, Hashable,
+        BSONDocumentDecodable,
+        BSONDocumentEncodable,
+        MongoMasterCodingModel
     {
         let id:BSON.Identifier
         let author:String
