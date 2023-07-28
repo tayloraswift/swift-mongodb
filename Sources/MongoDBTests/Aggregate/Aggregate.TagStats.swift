@@ -1,9 +1,10 @@
 import BSONDecoding
 import BSONEncoding
+import MongoSchema
 
 extension Aggregate
 {
-    struct TagStats:Equatable, Hashable, BSONDocumentDecodable
+    struct TagStats:Equatable, Hashable, BSONDocumentDecodable, MongoMasterCodingModel
     {
         let id:String
         let count:Int
@@ -20,8 +21,7 @@ extension Aggregate
             case count
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
-            throws
+        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
         {
             self.init(id: try bson[.id].decode(), count: try bson[.count].decode())
         }

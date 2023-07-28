@@ -64,19 +64,19 @@ struct Aggregate:MongoTestBattery
                         {
                             $0.stage
                             {
-                                $0[.project] = .init { $0["tags"] = 1 }
+                                $0[.project] = .init { $0[Article[.tags]] = 1 }
                             }
                             $0.stage
                             {
-                                $0[.unwind] = "$tags"
+                                $0[.unwind] = Article[.tags]
                             }
                             $0.stage
                             {
                                 $0[.group] = .init
                                 {
-                                    $0[.id] = "$tags"
+                                    $0[.id] = Article[.tags]
 
-                                    $0["count"] = .init { $0[.sum] = 1 }
+                                    $0[TagStats[.count]] = .init { $0[.sum] = 1 }
                                 }
                             }
                         },
@@ -106,17 +106,17 @@ struct Aggregate:MongoTestBattery
                             {
                                 $0[.project] = .init
                                 {
-                                    $0["author"] = 1
-                                    $0["views"] = 1
+                                    $0[Article[.author]] = 1
+                                    $0[Article[.views]] = 1
                                 }
                             }
                             $0.stage
                             {
                                 $0[.group] = .init
                                 {
-                                    $0[.id] = "$author"
+                                    $0[.id] = Article[.author]
 
-                                    $0["views"] = .init { $0[.sum] = "$views" }
+                                    $0[Article[.views]] = .init { $0[.sum] = Article[.views] }
                                 }
                             }
                         },

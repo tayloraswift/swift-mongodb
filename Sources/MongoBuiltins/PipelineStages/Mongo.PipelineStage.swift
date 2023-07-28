@@ -467,7 +467,7 @@ extension Mongo.PipelineStage
         }
         set(value)
         {
-            self.bson.push(key, value?.stem)
+            self.bson.push(key, value) // includes the `$` prefix!
         }
     }
     @inlinable public

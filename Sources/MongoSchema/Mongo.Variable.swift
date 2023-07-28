@@ -22,7 +22,7 @@ extension Mongo.Variable where T:MongoMasterCodingModel
     {
         //  When the key path is encoded, ``Mongo.KeyPath``
         //  will add an additional prefixed dollar sign.
-        .init("$\(self.name).\(key)")
+        .init("$\(self.name).\(key.rawValue)")
     }
 }
 extension Mongo.Variable:ExpressibleByStringLiteral

@@ -37,6 +37,6 @@ extension Mongo.KeyPath
     @inlinable public static
     func / (self:Self, next:Self) -> Self
     {
-        .init("\(self.stem).\(next)")
+        .init("\(self.stem).\(next.stem)")
     }
 }
