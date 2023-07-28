@@ -53,7 +53,7 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
             from: "1.0.4")),
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(
-            from: "2.54.0")),
+            from: "2.57.0")),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(
             from: "2.24.0")),
     ],
