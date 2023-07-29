@@ -8,9 +8,9 @@ extension BSON
         let codingPath:[any CodingKey]
         let allKeys:[Key]
         let items:[BSON.Key: BSON.AnyValue<Bytes>]
-        
+
         init(_ dictionary:BSON.DocumentDecoder<BSON.Key, Storage>,
-            path:[any CodingKey]) 
+            path:[any CodingKey])
         {
             self.codingPath = path
             self.items = dictionary.index
@@ -21,7 +21,7 @@ extension BSON
 extension BSON.KeyedDecoder
 {
     public
-    func contains(_ key:Key) -> Bool 
+    func contains(_ key:Key) -> Bool
     {
         self.items.keys.contains(.init(key))
     }
@@ -30,17 +30,17 @@ extension BSON.KeyedDecoder
         _ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
     {
         var path:[any CodingKey]
-        { 
-            self.codingPath + CollectionOfOne<any CodingKey>.init(key) 
+        {
+            self.codingPath + CollectionOfOne<any CodingKey>.init(key)
         }
         guard let value:BSON.AnyValue<Bytes> = self.items[.init(key)]
-        else 
+        else
         {
-            let context:DecodingError.Context = .init(codingPath: path, 
+            let context:DecodingError.Context = .init(codingPath: path,
                 debugDescription: "key '\(key)' not found")
             throw DecodingError.keyNotFound(key, context)
         }
-        do 
+        do
         {
             if let decoded:T = try decode(value)
             {
@@ -61,7 +61,7 @@ extension BSON.KeyedDecoder
     }
 }
 
-extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol 
+extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
 {
     public
     func decode<T>(_:T.Type, forKey key:Key) throws -> T where T:Decodable
@@ -142,36 +142,36 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
     {
         try self.diagnose(key) { try $0.as(UInt8.self) }
     }
-    
+
     func superDecoder() throws -> any Decoder
     {
         try self.singleValueContainer(forKey: Super.super, typed: Super.self)
     }
-    public 
+    public
     func superDecoder(forKey key:Key) throws -> any Decoder
     {
         try self.singleValueContainer(forKey: key) as any Decoder
     }
-    
-    public 
-    func singleValueContainer<Key>(forKey key:Key,
-        typed _:Key.Type = Key.self) throws -> BSON.SingleValueDecoder<Bytes>
-        where Key:CodingKey
+
+    public
+    func singleValueContainer<T>(forKey key:T,
+        typed _:T.Type = T.self) throws -> BSON.SingleValueDecoder<Bytes>
+        where T:CodingKey
     {
         let value:BSON.AnyValue<Bytes> = try self.diagnose(key){ $0 }
-        let decoder:BSON.SingleValueDecoder<Bytes> = .init(value, 
+        let decoder:BSON.SingleValueDecoder<Bytes> = .init(value,
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder
     }
-    public 
-    func nestedUnkeyedContainer(forKey key:Key) throws -> UnkeyedDecodingContainer
+    public
+    func nestedUnkeyedContainer(forKey key:Key) throws -> any UnkeyedDecodingContainer
     {
         let path:[any CodingKey] = self.codingPath + CollectionOfOne<any CodingKey>.init(key)
         let container:BSON.UnkeyedDecoder<Bytes> =
             .init(try self.diagnose(key) { try .init(parsing: $0) }, path: path)
-        return container as UnkeyedDecodingContainer
+        return container as any UnkeyedDecodingContainer
     }
-    public 
+    public
     func nestedContainer<NestedKey>(keyedBy _:NestedKey.Type,
         forKey key:Key) throws -> KeyedDecodingContainer<NestedKey>
     {
