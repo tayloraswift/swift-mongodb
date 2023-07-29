@@ -37,9 +37,9 @@ extension Mongo.TransactionResult
             return success
 
         case    .commit(_, .unknown(let error)),
-                .unavailable(let error as Error),
-                .unsupported(let error as Error),
-                .rejection(let error as Error),
+                .unavailable(let error as any Error),
+                .unsupported(let error as any Error),
+                .rejection(let error as any Error),
                 .abortion(let error, _):
             throw error
         }
