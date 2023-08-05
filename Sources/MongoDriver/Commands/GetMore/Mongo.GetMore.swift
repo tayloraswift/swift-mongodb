@@ -34,7 +34,7 @@ extension Mongo.GetMore:MongoCommand
     var type:Mongo.CommandType { .getMore }
 
     public
-    typealias Response = Mongo.Cursor<Element>
+    typealias Response = Mongo.Cursor<Element>.Batch
 
     public
     var fields:BSON.Document

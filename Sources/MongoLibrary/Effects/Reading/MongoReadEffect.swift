@@ -1,22 +1,22 @@
 import BSONDecoding
+import MongoDriver
 import NIOCore
 
 public
 protocol MongoReadEffect
 {
-    associatedtype Response:Sendable
-
-    associatedtype Element:Sendable// & BSONDecodable
-    associatedtype Tailing:Sendable
+    associatedtype Tailing:Sendable = Mongo.Tailing
     associatedtype Stride:Sendable
+    associatedtype Batch:Sendable
+    associatedtype BatchElement:Sendable & BSONDecodable
 
     static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Batch
 }
-extension MongoReadEffect where Response:BSONDocumentDecodable<BSON.Key>
+extension MongoReadEffect where Batch:BSONDocumentDecodable<BSON.Key>
 {
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Batch
     {
         try .init(bson: reply)
     }

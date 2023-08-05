@@ -218,11 +218,11 @@ extension Mongo.Session
     func run<Query, Success>(command:Query, against database:Query.Database,
         on preference:Mongo.ReadPreference = .primary,
         by deadline:ContinuousClock.Instant? = nil,
-        with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
+        with consumer:(Mongo.Cursor<Query.Element>) async throws -> Success)
         async throws -> Success
         where Query:MongoIterableCommand
     {
-        let batches:Mongo.Batches<Query.Element> = try await self.begin(query: command,
+        let batches:Mongo.Cursor<Query.Element> = try await self.begin(query: command,
             against: database,
             on: preference,
             by: deadline)
@@ -245,7 +245,7 @@ extension Mongo.Session
     func begin<Query>(query:Query,
         against database:Query.Database,
         on preference:Mongo.ReadPreference,
-        by deadline:ContinuousClock.Instant?) async throws -> Mongo.Batches<Query.Element>
+        by deadline:ContinuousClock.Instant?) async throws -> Mongo.Cursor<Query.Element>
         where Query:MongoIterableCommand
     {
         switch self.transaction.phase
@@ -295,7 +295,7 @@ extension Mongo.Session
         against database:Query.Database,
         over connections:Mongo.ConnectionPool,
         on preference:Mongo.ReadPreference,
-        by deadlines:Mongo.Deadlines) async throws -> Mongo.Batches<Query.Element>
+        by deadlines:Mongo.Deadlines) async throws -> Mongo.Cursor<Query.Element>
         where Query:MongoIterableCommand
     {
         let connection:Mongo.Connection = try await .init(from: connections,

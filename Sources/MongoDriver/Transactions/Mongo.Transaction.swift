@@ -66,7 +66,7 @@ extension Mongo.Transaction
     {
         let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(
             clamping: deadline)
-        
+
         let connection:Mongo.Connection = try await .init(from: self.pinned,
             by: deadlines.connection)
 
@@ -79,14 +79,14 @@ extension Mongo.Transaction
     func run<Query, Success>(command:Query, against database:Query.Database,
         on preference:Mongo.ReadPreference = .primary,
         by deadline:ContinuousClock.Instant? = nil,
-        with consumer:(Mongo.Batches<Query.Element>) async throws -> Success)
+        with consumer:(Mongo.Cursor<Query.Element>) async throws -> Success)
         async throws -> Success
         where Query:MongoTransactableCommand & MongoIterableCommand
     {
         let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(
             clamping: deadline)
 
-        let batches:Mongo.Batches<Query.Element> = try await self.session.begin(query: command,
+        let batches:Mongo.Cursor<Query.Element> = try await self.session.begin(query: command,
             against: database,
             over: self.pinned,
             on: preference,

@@ -1,15 +1,18 @@
 extension Mongo
 {
-    public
+    @frozen public
     struct CursorIdentifierError:Equatable, Error
     {
         public
-        let id:CursorIdentifier
-
+        let expected:CursorIdentifier
         public
-        init(invalid id:CursorIdentifier)
+        let invalid:CursorIdentifier
+
+        @inlinable public
+        init(expected:CursorIdentifier, invalid:CursorIdentifier)
         {
-            self.id = id
+            self.expected = expected
+            self.invalid = invalid
         }
     }
 }
@@ -18,6 +21,6 @@ extension Mongo.CursorIdentifierError:CustomStringConvertible
     public
     var description:String
     {
-        "invalid cursor identifier '\(self.id)'"
+        "invalid cursor identifier '\(self.invalid)', expected '\(self.expected)'"
     }
 }

@@ -32,17 +32,14 @@ extension Mongo
     }
 }
 extension Mongo.Aggregate:MongoIterableCommand
-    where   Effect.Response == Mongo.Cursor<Effect.Element>,
-            Effect.Stride == Int
+    where   Effect.Stride == Int,
+            Effect.Batch == Mongo.Cursor<Effect.BatchElement>.Batch
 {
     public
-    typealias Element = Effect.Element
+    typealias Element = Effect.BatchElement
 
     @inlinable public
-    var tailing:Mongo.Tailing?
-    {
-        nil
-    }
+    var tailing:Mongo.Tailing? { nil }
 }
 extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand, MongoCommand
 {
@@ -50,10 +47,10 @@ extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand,
     var type:Mongo.CommandType { .aggregate }
 
     public
-    typealias Response = Effect.Response
+    typealias Response = Effect.Batch
 
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Effect.Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Effect.Batch
     {
         try Effect.decode(reply: reply)
     }
@@ -95,7 +92,40 @@ extension Mongo.Aggregate where Effect.Stride == Int
         try populate(&self)
     }
 }
+extension Mongo.Aggregate where Effect.Stride == Never?
+{
+    public
+    init(_ collection:Mongo.Collection,
+        writeConcern:WriteConcern? = nil,
+        readConcern:ReadConcern? = nil,
+        pipeline:Mongo.Pipeline)
+    {
+        self.init(
+            writeConcern: writeConcern,
+            readConcern: readConcern,
+            stride: nil,
+            fields: Self.type(collection))
 
+        self.fields["pipeline"] = pipeline
+        self.fields["cursor"]
+        {
+            $0["batchSize"] = Int.max
+        }
+    }
+    @inlinable public
+    init(_ collection:Mongo.Collection,
+        writeConcern:WriteConcern? = nil,
+        readConcern:ReadConcern? = nil,
+        pipeline:Mongo.Pipeline,
+        with populate:(inout Self) throws -> ()) rethrows
+    {
+        self.init(collection,
+            writeConcern: writeConcern,
+            readConcern: readConcern,
+            pipeline: pipeline)
+        try populate(&self)
+    }
+}
 extension Mongo.Aggregate<Mongo.ExplainOnly>
 {
     public
