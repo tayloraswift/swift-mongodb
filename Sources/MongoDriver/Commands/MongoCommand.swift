@@ -2,6 +2,7 @@ import BSONDecoding
 import BSONEncoding
 import Durations
 import MongoWire
+import MongoSchema
 import NIOCore
 
 /// A type that represents a MongoDB command. All public command types

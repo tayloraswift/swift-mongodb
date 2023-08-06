@@ -1,5 +1,6 @@
 import BSONDecoding
 import BSONEncoding
+import MongoSchema
 import NIOCore
 
 extension Mongo
@@ -17,7 +18,7 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
 {
     @inlinable public static
     var type:Mongo.CommandType { .replicaSetGetConfiguration }
-    
+
     /// `ReplicaSetGetConfiguration` must be run against to the `admin` database.
     public
     typealias Database = Mongo.Database.Admin

@@ -1,6 +1,6 @@
 import BSONDecoding
 import BSONEncoding
-import MongoSchema
+import MongoQL
 
 extension Aggregate
 {

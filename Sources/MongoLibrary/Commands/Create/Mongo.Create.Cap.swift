@@ -1,3 +1,5 @@
+import MongoQL
+
 extension Mongo.Create<Mongo.Collection>
 {
     @frozen public

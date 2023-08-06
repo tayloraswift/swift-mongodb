@@ -1,3 +1,5 @@
+import MongoClusters
+
 extension Mongo
 {
     public

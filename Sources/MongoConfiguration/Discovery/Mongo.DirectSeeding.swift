@@ -1,3 +1,5 @@
+import MongoClusters
+
 extension Mongo
 {
     /// Under this discovery mode, the driver will use a predefined list

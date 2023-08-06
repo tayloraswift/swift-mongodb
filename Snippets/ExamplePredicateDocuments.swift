@@ -1,5 +1,5 @@
 import BSONEncoding
-import MongoBuiltins
+import MongoQL
 
 func ExamplePredicateDocuments()
 {

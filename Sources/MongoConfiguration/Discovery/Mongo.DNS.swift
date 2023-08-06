@@ -1,3 +1,5 @@
+import MongoClusters
+
 extension Mongo
 {
     /// Under this discovery mode, the driver will query a domain name

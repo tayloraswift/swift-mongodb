@@ -1,6 +1,5 @@
-@_exported import MongoBuiltins
 @_exported import MongoConfiguration
+@_exported import MongoClusters
 @_exported import MongoDriver
-@_exported import MongoExpressions
 @_exported import MongoLibrary
-@_exported import MongoSchema
+@_exported import MongoQL

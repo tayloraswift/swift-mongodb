@@ -1,3 +1,5 @@
+import MongoSchema
+
 extension Mongo.URI
 {
     /// The first three significant components of a connection string URI.

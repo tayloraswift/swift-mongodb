@@ -1,5 +1,6 @@
 import BSONDecoding
 import MongoDriver
+import MongoQL
 
 extension Mongo
 {

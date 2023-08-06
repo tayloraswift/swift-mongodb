@@ -3,6 +3,7 @@ import BSONEncoding
 import BSON_Durations
 import BSON_OrderedCollections
 import Durations
+import MongoClusters
 import OrderedCollections
 
 extension OrderedDictionary:@unchecked Sendable where Key:Sendable, Value:Sendable

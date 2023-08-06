@@ -1,3 +1,5 @@
+import MongoQL
+
 extension Mongo.CollectionOptions
 {
     @frozen public

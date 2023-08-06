@@ -1,4 +1,3 @@
-import BSONDecoding
 import BSONEncoding
 
 extension Mongo
