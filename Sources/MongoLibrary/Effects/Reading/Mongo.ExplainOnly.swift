@@ -12,13 +12,15 @@ extension Mongo
 extension Mongo.ExplainOnly:MongoReadEffect
 {
     public
-    typealias CommandResponse = String
-    public
-    typealias Element = Never
-    public
     typealias Tailing = Never
+    /// This is ``Void`` and not `Never?` because we reserve `Never?` for read effects
+    /// that return a single batch of results.
     public
     typealias Stride = Void
+    public
+    typealias Batch = String
+    public
+    typealias BatchElement = Never
 
     public static
     func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) -> String

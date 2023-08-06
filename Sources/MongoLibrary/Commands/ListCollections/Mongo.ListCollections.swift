@@ -16,9 +16,11 @@ extension Mongo
     /// `ListCollections` only supports filtering, it does not support sorting or
     /// projection.
     ///
-    /// > See:  https://www.mongodb.com/docs/manual/reference/command/listCollections/
+    /// >   See:
+    ///     https://www.mongodb.com/docs/manual/reference/command/listCollections/
     ///
-    /// > See:  https://github.com/mongodb/specifications/blob/master/source/enumerate-collections.rst
+    /// >   See:
+    ///     https://github.com/mongodb/specifications/blob/master/source/enumerate-collections.rst
     public
     struct ListCollections<Element>:Sendable where Element:BSONDocumentViewDecodable & Sendable
     {
@@ -43,7 +45,7 @@ extension Mongo.ListCollections:MongoIterableCommand
     typealias ExecutionPolicy = Mongo.Retry
 
     public
-    typealias Response = Mongo.Cursor<Element>
+    typealias Response = Mongo.Cursor<Element>.Batch
 
     @inlinable public
     var tailing:Mongo.Tailing?

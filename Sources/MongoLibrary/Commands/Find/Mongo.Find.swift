@@ -42,22 +42,22 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
     typealias ExecutionPolicy = Mongo.Retry
 
     public
-    typealias Response = Effect.Response
+    typealias Response = Effect.Batch
 
     @inlinable public static
     func decode(
-        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Effect.Response
+        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Effect.Batch
     {
         try Effect.decode(reply: reply)
     }
 }
 extension Mongo.Find:MongoIterableCommand
-    where   Effect.Response == Mongo.Cursor<Effect.Element>,
-            Effect.Tailing == Mongo.Tailing,
-            Effect.Stride == Int
+    where   Effect.Tailing == Mongo.Tailing,
+            Effect.Stride == Int,
+            Effect.Batch == Mongo.Cursor<Effect.BatchElement>.Batch
 {
     public
-    typealias Element = Effect.Element
+    typealias Element = Effect.BatchElement
 }
 extension Mongo.Find where Effect.Tailing == Mongo.Tailing, Effect.Stride == Int
 {
@@ -98,7 +98,7 @@ extension Mongo.Find where Effect.Tailing == Mongo.Tailing, Effect.Stride == Int
         try populate(&self)
     }
 }
-extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Void
+extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Never?
 {
     public
     init(_ collection:Mongo.Collection,
@@ -108,7 +108,7 @@ extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Void
     {
         self.init(readConcern: readConcern,
             tailing: nil,
-            stride: (),
+            stride: nil,
             fields: Self.type(collection))
 
         self.fields["singleBatch"] = true

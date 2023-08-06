@@ -313,6 +313,18 @@ extension Mongo.PipelineStage
             self.bson.push(key, value)
         }
     }
+    @inlinable public
+    subscript(key:ReplaceWith) -> Mongo.SetDocument?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(key, value)
+        }
+    }
 
     @inlinable public
     subscript(key:Sample) -> Mongo.SampleDocument?

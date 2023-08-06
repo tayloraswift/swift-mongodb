@@ -12,25 +12,26 @@ extension Mongo
 extension Mongo.SingleBatch:MongoReadEffect
 {
     public
-    typealias Response = [Element]
-    public
     typealias Tailing = Never
     public
-    typealias Stride = Void
+    typealias Stride = Never?
+    public
+    typealias Batch = [Element]
+    public
+    typealias BatchElement = Element
 
     @inlinable public static
     func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> [Element]
     {
         try bson["cursor"].decode
         {
-            if  let cursor:Mongo.CursorIdentifier = .init(
-                    rawValue: try $0["id"].decode(to: Int64.self))
+            if  let cursor:Mongo.CursorIdentifier = .init(rawValue: try $0["id"].decode())
             {
-                throw Mongo.CursorIdentifierError.init(invalid: cursor)
+                throw Mongo.SingleOutputError.cursor(cursor)
             }
             else
             {
-                return try $0["firstBatch"].decode(to: [Element].self)
+                return try $0["firstBatch"].decode()
             }
         }
     }

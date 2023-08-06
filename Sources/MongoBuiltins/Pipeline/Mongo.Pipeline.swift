@@ -1,6 +1,7 @@
 import BSONDecoding
 import BSONEncoding
 import BSON
+import MongoSchema
 
 extension Mongo
 {
@@ -80,4 +81,16 @@ extension Mongo.Pipeline
     {
         self.append(try .init(with: populate))
     }
+
+    @inlinable public static
+    var CLUSTER_TIME:Mongo.Variable<UInt64> { .init(name: "CLUSTER_TIME") }
+
+    @inlinable public static
+    var NOW:Mongo.Variable<BSON.Millisecond> { .init(name: "NOW") }
+
+    @inlinable public static
+    var CURRENT:Mongo.Variable<Any> { .init(name: "CURRENT") }
+
+    @inlinable public static
+    var ROOT:Mongo.Variable<Any> { .init(name: "ROOT") }
 }

@@ -18,8 +18,8 @@ struct CausalConsistency:MongoTestBattery
         //  A new session should have no precondition time.
         tests.expect(nil: session.preconditionTime)
 
-        //  We should have a test deployment with six members, including one
-        //  arbiter, one (non-voting) hidden replica, and four visible
+        //  We should have a test deployment with seven members, including one
+        //  arbiter, one (non-voting) hidden replica, and five visible
         //  replicas.
         //
         //  Therefore, writes must propogate to at least three replicas
@@ -28,9 +28,9 @@ struct CausalConsistency:MongoTestBattery
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection,
-                    writeConcern: .acknowledged(by: 4, journaled: true),
+                    writeConcern: .acknowledged(by: 5, journaled: true),
                     encoding: [a]),
-                    //  We should ensure the write propogates to all four visible replicas.
+                    //  We should ensure the write propogates to all five visible replicas.
                 against: database,
                 on: .primary)
 

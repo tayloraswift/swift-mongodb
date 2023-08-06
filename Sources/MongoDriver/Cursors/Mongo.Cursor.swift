@@ -1,48 +1,80 @@
+import Durations
 import BSONDecoding
 
 extension Mongo
 {
-    @frozen public
-    struct Cursor<Element>:Sendable
-        where Element:BSONDecodable & Sendable
+    public
+    struct Cursor<BatchElement> where BatchElement:BSONDecodable & Sendable
     {
-        public
-        let namespace:Namespaced<Collection>
-        public
-        let elements:[Element]
-        public
-        let position:Int64
+        @usableFromInline internal
+        let iterator:AsyncIterator
 
-        @inlinable public
-        init(namespace:Namespaced<Collection>, elements:[Element], position:Int64)
+        init(iterator:AsyncIterator)
         {
-            self.namespace = namespace
-            self.elements = elements
-            self.position = position
+            self.iterator = iterator
         }
     }
-}
-extension Mongo.Cursor:Equatable where Element:Equatable
-{
 }
 extension Mongo.Cursor
 {
-    @inlinable public
-    var id:Mongo.CursorIdentifier?
+    public
+    var cursor:Mongo.CursorIterator?
     {
-        .init(rawValue: self.position)
+        self.iterator.cursor
     }
 }
-extension Mongo.Cursor:BSONDecodable, BSONDocumentDecodable
+extension Mongo.Cursor
 {
-    @inlinable public
-    init<Bytes>(bson:BSON.DocumentDecoder<BSON.Key, Bytes>) throws
+    @usableFromInline internal static
+    func create(preference:Mongo.ReadPreference,
+        lifecycle:Mongo.CursorLifecycle,
+        timeout:Milliseconds,
+        initial:Batch,
+        stride:Int,
+        pinned:
+        (
+            connection:Mongo.Connection,
+            session:Mongo.Session
+        )) -> Self
     {
-        self = try bson["cursor"].decode()
+        let iterator:AsyncIterator
+        if  let cursor:Mongo.CursorIdentifier = initial.id
         {
-            .init(namespace: try $0["ns"].decode(to: Mongo.Namespaced<Mongo.Collection>.self),
-                elements: try ($0["firstBatch"] ?? $0["nextBatch"]).decode(to: [Element].self),
-                position: try $0["id"].decode(to: Int64.self))
+            iterator = .init(cursor: .init(cursor: cursor,
+                    preference: preference,
+                    namespace: initial.namespace,
+                    lifecycle: lifecycle,
+                    timeout: timeout,
+                    stride: stride,
+                    pinned: pinned),
+                first: initial.elements)
         }
+        else
+        {
+            // connection will be dropped and returned to its pool automatically.
+            iterator = .init(cursor: nil, first: initial.elements)
+        }
+        return .init(iterator: iterator)
+    }
+    @usableFromInline internal
+    func destroy() async
+    {
+        if  let cursor:Mongo.CursorIterator = self.iterator.cursor
+        {
+            let _:Mongo.KillCursorsResponse? = try? await cursor.kill()
+            self.iterator.cursor = nil
+        }
+    }
+}
+
+extension Mongo.Cursor:AsyncSequence
+{
+    public
+    typealias Element = [BatchElement]
+
+    @inlinable public
+    func makeAsyncIterator() -> AsyncIterator
+    {
+        self.iterator
     }
 }
