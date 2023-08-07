@@ -1,6 +1,7 @@
 import BSONDecoding
 import BSONEncoding
 import MongoDriver
+import MongoQL
 import NIOCore
 
 extension Mongo.ListDatabases

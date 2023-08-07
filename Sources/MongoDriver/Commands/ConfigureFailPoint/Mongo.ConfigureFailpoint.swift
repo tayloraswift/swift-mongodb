@@ -1,4 +1,6 @@
 import BSONEncoding
+import MongoClusters
+import MongoSchema
 
 extension Mongo
 {
@@ -41,21 +43,21 @@ extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
             case .always(let options):
                 $0["data"] = options
                 $0["mode"] = "alwaysOn"
-            
+
             case .random(let options, probability: let probability):
                 $0["data"] = options
                 $0["mode"]
                 {
                     $0["activationProbability"] = probability
                 }
-            
+
             case .times(let options, count: let count):
                 $0["data"] = options
                 $0["mode"]
                 {
                     $0["times"] = count
                 }
-            
+
             case .off:
                 $0["mode"] = "off"
             }

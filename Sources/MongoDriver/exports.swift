@@ -1,1 +1,1 @@
-@_exported import Mongo
+@_exported import enum Mongo.Mongo

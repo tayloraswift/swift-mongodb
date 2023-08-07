@@ -1,4 +1,5 @@
 import Durations
+import MongoClusters
 import NIOCore
 
 extension Mongo
@@ -63,28 +64,28 @@ extension Mongo.DriverOptions
     @available(*, unavailable, renamed: "authentication")
     public
     var authMechanism:Authentication? { fatalError() }
-    
+
     @available(*, unavailable, renamed: "connectionTimeout")
     public
     var connectTimeoutMS:Milliseconds { fatalError() }
-    
+
     @available(*, unavailable, renamed: "monitorInterval")
     public
     var heartbeatFrequencyMS:Milliseconds { fatalError() }
-    
+
     @available(*, unavailable, renamed: "tls")
     public
     var ssl:Mongo.TLS? { fatalError() }
-    
+
     @available(*, unavailable,
         message: "specify an authentication database as a URI path component instead.")
     public
     var authSource:Int { fatalError() }
-    
+
     @available(*, unavailable, message: "use the 'connectionPoolSize' option instead.")
     public
     var minPoolSize:Int { fatalError() }
-    
+
     @available(*, unavailable, message: "use the 'connectionPoolSize' option instead.")
     public
     var maxPoolSize:Int { fatalError() }

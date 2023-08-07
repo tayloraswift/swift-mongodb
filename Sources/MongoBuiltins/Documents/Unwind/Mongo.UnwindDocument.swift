@@ -1,5 +1,4 @@
 import BSONEncoding
-import MongoExpressions
 import MongoSchema
 
 extension Mongo

@@ -1,4 +1,5 @@
 import BSONDecoding
+import MongoQL
 
 extension Mongo
 {

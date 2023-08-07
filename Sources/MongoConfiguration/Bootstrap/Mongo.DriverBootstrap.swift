@@ -1,4 +1,5 @@
 import Durations
+import MongoClusters
 import NIOCore
 
 extension Mongo
@@ -54,7 +55,7 @@ extension Mongo
             {
             case .direct:
                 self.tls = options.tls ?? .disabled
-            
+
             case .dns:
                 self.tls = options.tls ?? .enabled
             }

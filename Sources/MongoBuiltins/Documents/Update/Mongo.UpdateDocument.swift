@@ -1,5 +1,4 @@
 import BSONEncoding
-import MongoExpressions
 
 extension Mongo
 {

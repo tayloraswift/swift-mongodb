@@ -1,6 +1,7 @@
 import Atomics
 import Durations
 import Durations_Atomics
+import MongoClusters
 
 extension Mongo
 {

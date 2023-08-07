@@ -1,3 +1,5 @@
+import MongoClusters
+
 extension Mongo
 {
     public
@@ -26,22 +28,22 @@ extension Mongo.LoggingEvent:CustomStringConvertible
             {
             case .sampled(let duration, metric: let metric):
                 description += "sampled (\(duration), metric: \(metric))"
-            
+
             case .errored(let error):
                 description += "errored (\(error))"
             }
-        
+
         case .listener(host: let host, generation: let generation, event: let event):
             description = "[listener (\(host), \(generation))]: "
             switch event
             {
             case .updated(let version):
                 description += "updated (\(version))"
-            
+
             case .errored(let error):
                 description += "errored (\(error))"
             }
-        
+
         case .topology(host: let host, generation: let generation, event: .removed):
             description = "[topology (\(host), \(generation))]: removed"
 
@@ -51,22 +53,22 @@ extension Mongo.LoggingEvent:CustomStringConvertible
             {
             case .creating(_):
                 description += "creating"
-            
+
             case .draining(because: let error):
                 description += "draining (\(error))"
-            
+
             case .drained:
                 description += "drained"
 
             case .expanding(id: let id):
                 description += "expanding (\(id))"
-            
+
             case .expanded(id: let id):
                 description += "expanded (\(id))"
-            
+
             case .perished(id: let id, because: _):
                 description += "perished (\(id))"
-            
+
             case .removed(id: let id):
                 description += "removed (\(id))"
 

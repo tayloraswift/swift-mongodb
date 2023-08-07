@@ -1,3 +1,5 @@
+import MongoSchema
+
 extension Mongo.URI
 {
     /// The first two significant components of a connection string URI.
@@ -31,7 +33,7 @@ extension Mongo.URI.Authority<Mongo.User>
     {
         .init(userinfo: self.userinfo, domains: self.domains, path: path)
     }
-    
+
     @inlinable public static
     func / (self:Self, path:Mongo.Database) -> Mongo.DriverBootstrap
     {

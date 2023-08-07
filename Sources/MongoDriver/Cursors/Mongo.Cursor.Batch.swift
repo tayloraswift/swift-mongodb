@@ -1,4 +1,5 @@
 import BSONDecoding
+import MongoSchema
 
 extension Mongo.Cursor
 {

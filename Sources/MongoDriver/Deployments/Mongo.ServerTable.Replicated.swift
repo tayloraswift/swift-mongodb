@@ -1,4 +1,5 @@
 import Durations
+import MongoClusters
 
 extension Mongo.ServerTable
 {
@@ -47,7 +48,7 @@ extension Mongo.ServerTable.Replicated
         if  let primary:Mongo.Server<Mongo.Replica>
         {
             let freshest:Mongo.Replica.PrimaryBaseline = .init(primary.metadata.timings)
-            
+
             self.init(capabilities: capabilities,
                 unreachables: unreachables,
                 undesirables: undesirables,
@@ -94,7 +95,7 @@ extension Mongo.ServerTable.Replicated
         else
         {
             assert(secondaries.isEmpty)
-            
+
             self.init(capabilities: capabilities,
                 unreachables: unreachables,
                 undesirables: undesirables)
@@ -112,7 +113,7 @@ extension Mongo.ServerTable.Replicated
 
         for (host, state):
         (
-            Mongo.Host, 
+            Mongo.Host,
             Mongo.ServerDescription<Mongo.ReplicaSetMember, Mongo.TopologyModel.Canary>
         )
             in topology
@@ -124,11 +125,11 @@ extension Mongo.ServerTable.Replicated
             case .connected(let metadata, let owner):
                 member = metadata
                 pool = owner.pool
-            
+
             case .errored(let error):
                 unreachables[host] = .errored(error)
                 continue
-            
+
             case .queued:
                 unreachables[host] = .queued
                 continue
@@ -138,22 +139,22 @@ extension Mongo.ServerTable.Replicated
             {
             case .primary(let metadata):
                 primary = .init(metadata: metadata, pool: pool)
-                
+
                 logicalSessionTimeoutMinutes = min(logicalSessionTimeoutMinutes,
                     metadata.capabilities.logicalSessionTimeoutMinutes)
-            
+
             case .secondary(let metadata):
                 secondaries.append(.init(metadata: metadata, pool: pool))
-                
+
                 logicalSessionTimeoutMinutes = min(logicalSessionTimeoutMinutes,
                     metadata.capabilities.logicalSessionTimeoutMinutes)
-            
+
             case .arbiter:
                 undesirables[host] = .arbiter
-            
+
             case .other:
                 undesirables[host] = .other
-            
+
             case .ghost:
                 undesirables[host] = .ghost
             }

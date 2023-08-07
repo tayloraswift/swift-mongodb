@@ -1,3 +1,5 @@
+import MongoSchema
+
 extension Mongo.Database
 {
     @frozen public

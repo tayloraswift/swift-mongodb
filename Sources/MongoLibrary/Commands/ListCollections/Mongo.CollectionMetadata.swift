@@ -1,4 +1,5 @@
 import BSONDecoding
+import MongoQL
 
 extension Mongo
 {
@@ -38,7 +39,7 @@ extension Mongo.CollectionMetadata:BSONDecodable, BSONDocumentDecodable
             collection: try bson["name"].decode(to: Mongo.Collection.self),
             options: try bson["options"].decode
             {
-                try .init(bson: $0, 
+                try .init(bson: $0,
                     type: try bson["type"].decode(to: Mongo.CollectionType.self))
             },
             info: try bson["info"].decode(to: Info.self))

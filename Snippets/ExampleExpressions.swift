@@ -1,6 +1,5 @@
 import BSONEncoding
-import MongoBuiltins
-import MongoExpressions
+import MongoQL
 
 func ExampleExpressions()
 {
@@ -59,7 +58,7 @@ func ExampleExpressions()
             }
         }
     }
-    let _:MongoExpression = .expr
+    let _:Mongo.Expression = .expr
     {
         $0[.abs] = .expr
         {
