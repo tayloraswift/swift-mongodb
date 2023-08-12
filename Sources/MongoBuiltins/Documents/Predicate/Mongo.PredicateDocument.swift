@@ -53,8 +53,31 @@ extension Mongo.PredicateDocument
             self.bson.push(path.stem, value)
         }
     }
+    //  Note: `@_disfavoredOverload` prevents a compiler crash due to the
+    //  ``_MongoExpressionRestrictedEncodable``-gated diagnostic subscript.
+    @_disfavoredOverload
     @inlinable public
     subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            self.bson.push(path.stem, value)
+        }
+    }
+}
+extension Mongo.PredicateDocument
+{
+    @available(*, deprecated, message: """
+        You cannot use expressions at the top-level of a predicate document, \
+        even in a '$match' stage of an aggregation pipeline.
+        """)
+    public
+    subscript<Expression>(path:Mongo.KeyPath) -> Expression?
+        where Expression:_MongoExpressionRestrictedEncodable
     {
         get
         {
