@@ -15,6 +15,7 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONReflection", targets: ["BSONReflection"]),
         .library(name: "BSONDecoding", targets: ["BSONDecoding"]),
         .library(name: "BSONEncoding", targets: ["BSONEncoding"]),
+        .library(name: "BSONTesting", targets: ["BSONTesting"]),
         .library(name: "BSONTypes", targets: ["BSONTypes"]),
 
         .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
@@ -94,6 +95,14 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "BSON"),
+            ]),
+
+        .target(name: "BSONTesting",
+            dependencies:
+            [
+                .target(name: "BSONEncoding"),
+                .target(name: "BSONDecoding"),
+                .product(name: "Testing", package: "swift-grammar"),
             ]),
 
         .target(name: "BSON_UUID",
