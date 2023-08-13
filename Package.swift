@@ -96,6 +96,14 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSON"),
             ]),
 
+        .target(name: "BSONTesting",
+            dependencies:
+            [
+                .target(name: "BSONEncoding"),
+                .target(name: "BSONDecoding"),
+                .product(name: "Testing", package: "swift-grammar"),
+            ]),
+
         .target(name: "BSON_UUID",
             dependencies:
             [
