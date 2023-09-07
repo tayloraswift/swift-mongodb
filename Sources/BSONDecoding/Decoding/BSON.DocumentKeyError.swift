@@ -1,3 +1,5 @@
+import TraceableErrors
+
 extension BSON
 {
     /// A document had an invalid key scheme.
@@ -13,10 +15,19 @@ extension BSON
 extension BSON.DocumentKeyError:Equatable where Key:Equatable
 {
 }
-extension BSON.DocumentKeyError:CustomStringConvertible
+extension BSON.DocumentKeyError:NamedError
 {
+    /// The name of the error.
+    ///
+    /// We customize this because otherwise the catcher of this error will mostly likely see
+    /// the coding key type name as `CodingKey`, and that wouldn’t be very helpful.
     public
-    var description:String
+    var name:String
+    {
+        "DocumentKeyError<\(String.init(reflecting: Key.self))>"
+    }
+    public
+    var message:String
     {
         switch self
         {
