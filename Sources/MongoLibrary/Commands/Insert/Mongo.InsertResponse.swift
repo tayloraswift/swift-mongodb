@@ -26,12 +26,21 @@ extension Mongo
 }
 extension Mongo.InsertResponse
 {
+    /// Throws a ``WriteConcernError`` if one took place, or the first ``WriteError`` that took
+    /// place if no write concern error took place.
     @inlinable public
-    var error:any Error
+    func insertions() throws -> Mongo.Insertions
     {
-        self.writeConcernError as (any Error)? ??
-        self.writeErrors.first as (any Error)? ??
-        Mongo.InsertError.init(inserted: self.inserted)
+        if  let error:any Error =
+                self.writeConcernError ??
+                self.writeErrors.first
+        {
+            throw error
+        }
+        else
+        {
+            return .init(inserted: self.inserted)
+        }
     }
 }
 extension Mongo.InsertResponse:BSONDocumentDecodable

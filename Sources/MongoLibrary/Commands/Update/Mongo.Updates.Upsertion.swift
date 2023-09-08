@@ -1,7 +1,7 @@
 import BSONDecoding
 import MongoDriver
 
-extension Mongo.UpdateResponse
+extension Mongo.Updates
 {
     public
     struct Upsertion
@@ -19,16 +19,19 @@ extension Mongo.UpdateResponse
         }
     }
 }
-extension Mongo.UpdateResponse.Upsertion:Identifiable where ID:Hashable
+extension Mongo.Updates.Upsertion:Identifiable where ID:Hashable
 {
 }
-extension Mongo.UpdateResponse.Upsertion:Equatable where ID:Equatable
+extension Mongo.Updates.Upsertion:Equatable where ID:Equatable
 {
 }
-extension Mongo.UpdateResponse.Upsertion:Sendable where ID:Sendable
+extension Mongo.Updates.Upsertion:Sendable where ID:Sendable
 {
 }
-extension Mongo.UpdateResponse.Upsertion:BSONDocumentDecodable
+extension Mongo.Updates.Upsertion:
+    BSONDocumentDecodable,
+    BSONDocumentViewDecodable,
+    BSONDecodable where ID:BSONDecodable
 {
     public
     enum CodingKey:String
