@@ -1,7 +1,8 @@
 extension Mongo
 {
+    /// Stores information about an insert operation.
     @frozen public
-    struct InsertError:Error, Equatable, Sendable
+    struct Insertions:Error, Equatable, Sendable
     {
         public
         let inserted:Int

@@ -20,12 +20,12 @@ extension Mongo
         public
         let modified:Int
         public
-        let upserted:[Upsertion]
+        let upserted:[Updates<ID>.Upsertion]
 
         public
         init(selected:Int,
             modified:Int,
-            upserted:[Upsertion] = [],
+            upserted:[Updates<ID>.Upsertion] = [],
             writeConcernError:WriteConcernError? = nil,
             writeErrors:[WriteError] = [])
         {
@@ -42,6 +42,28 @@ extension Mongo.UpdateResponse:Equatable where ID:Equatable
 }
 extension Mongo.UpdateResponse:Sendable where ID:Sendable
 {
+}
+extension Mongo.UpdateResponse
+{
+    /// Throws a ``WriteConcernError`` if one took place, or the first ``WriteError`` that took
+    /// place if no write concern error took place.
+    @inlinable public
+    func updates() throws -> Mongo.Updates<ID>
+    {
+        if  let error:any Error =
+                self.writeConcernError ??
+                self.writeErrors.first
+        {
+            throw error
+        }
+        else
+        {
+            return .init(
+                selected: self.selected,
+                modified: self.modified,
+                upserted: self.upserted)
+        }
+    }
 }
 extension Mongo.UpdateResponse:BSONDocumentDecodable
 {
