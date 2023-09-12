@@ -59,7 +59,7 @@ extension Mongo
         ///
         /// This can also be obtained by accessing `pool.deployment`, but is
         /// stored inline to speed up access.
-        @usableFromInline
+        @usableFromInline internal
         let deployment:Deployment
         /// The pool this session came from. The pool cannot be drained until
         /// this session object is deinitialized.
@@ -241,7 +241,7 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
-    @inlinable public
+    @inlinable internal
     func begin<Query>(query:Query,
         against database:Query.Database,
         on preference:Mongo.ReadPreference,
@@ -290,7 +290,7 @@ extension Mongo.Session
             throw Mongo.TransactionInProgressError.init()
         }
     }
-    @inlinable public
+    @inlinable internal
     func begin<Query>(query:Query,
         against database:Query.Database,
         over connections:Mongo.ConnectionPool,
@@ -459,7 +459,7 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
-    @inlinable public
+    @inlinable internal
     func run<Command>(command:Command, against database:Command.Database,
         over connection:Mongo.Connection,
         on preference:Mongo.ReadPreference,
@@ -509,7 +509,7 @@ extension Mongo.Session
     /// if the next command fails with an error.
     ///
     /// See: https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#constructing-the-first-command-within-a-transaction
-    @usableFromInline
+    @usableFromInline internal
     func labels(writeConcern:Mongo.WriteConcern?, readConcern:Mongo.ReadConcern??,
         preference:Mongo.ReadPreference,
         autocommit:Bool) -> Mongo.SessionLabels
@@ -585,7 +585,7 @@ extension Mongo.Session
     ///         pessimistic assumption of when the server last observed a usage
     ///         of this session, and is used by the driver to estimate its
     ///         freshness.
-    @usableFromInline
+    @usableFromInline internal
     func combine(operationTime:Mongo.Timestamp?,
         clusterTime:Mongo.ClusterTime?,
         reuse:Bool,
