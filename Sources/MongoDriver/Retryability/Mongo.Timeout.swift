@@ -17,18 +17,26 @@ extension Mongo
 }
 extension Mongo.Timeout
 {
-    @inlinable public
+    @inlinable internal
     func deadline(from start:ContinuousClock.Instant = .now) -> ContinuousClock.Instant
     {
         start.advanced(by: .milliseconds(self.default))
     }
 
-    public
+    @inlinable internal
     func deadlines(from started:ContinuousClock.Instant = .now,
         clamping deadline:ContinuousClock.Instant?) -> Mongo.Deadlines
     {
         let connection:ContinuousClock.Instant = self.deadline(from: started)
-        return .init(connection: connection,
-            operation: deadline.map { min(connection, $0) } ?? connection)
+        if  let deadline:ContinuousClock.Instant
+        {
+            //  It will never make sense to have a connection timeout that is longer than
+            //  the operation timeout.
+            return .init(connection: min(connection, deadline), operation: deadline)
+        }
+        else
+        {
+            return .init(connection: connection, operation: connection)
+        }
     }
 }
