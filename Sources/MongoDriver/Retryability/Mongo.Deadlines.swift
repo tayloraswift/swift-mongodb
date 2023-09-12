@@ -30,6 +30,7 @@ extension Mongo
         public
         let operation:ContinuousClock.Instant
 
+        @inlinable public
         init(connection:ContinuousClock.Instant, operation:ContinuousClock.Instant)
         {
             self.connection = connection
