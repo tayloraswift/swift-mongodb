@@ -1,6 +1,6 @@
 <div align="center">
 
-***`mongodb`***<br>`0.8.2`
+***`mongodb`***<br>`0.8.3`
 
 [![ci status](https://github.com/tayloraswift/swift-mongodb/actions/workflows/build.yml/badge.svg)](https://github.com/tayloraswift/swift-mongodb/actions/workflows/build.yml)
 
@@ -76,7 +76,7 @@ Other packages:
 
 ## toolchain requirement
 
-This package requires swift 5.8 or greater.
+This package requires swift 5.9 or greater.
 
 ## acknowledgements
 
