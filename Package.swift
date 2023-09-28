@@ -44,10 +44,13 @@ let package:Package = .init(name: "swift-mongodb",
             from: "1.1.0")),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
             from: "1.0.4")),
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(
-            from: "2.58.0")),
-        .package(url: "https://github.com/apple/swift-nio-ssl.git", .upToNextMinor(
-            from: "2.24.0")),
+
+        /// swift-nio has a low rate of breakage, and can be trusted with a major-only
+        /// version requirement.
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.5.0"),
+        /// swift-nio-ssl has a low rate of breakage, and can be trusted with a
+        /// major-only version requirement.
+        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.25.0"),
     ],
     targets:
     [
