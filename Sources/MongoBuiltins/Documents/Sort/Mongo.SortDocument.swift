@@ -35,6 +35,21 @@ extension Mongo.SortDocument
 extension Mongo.SortDocument
 {
     @inlinable public
+    subscript(natural:Natural) -> ((Mongo.SortAscending) -> Never)?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            if  case _? = value
+            {
+                self.bson.append(natural, 1 as Int32)
+            }
+        }
+    }
+    @inlinable public
     subscript(path:Mongo.KeyPath) -> ((Mongo.SortAscending) -> Never)?
     {
         get
@@ -43,7 +58,26 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.bson.append(path.stem, 1 as Int32)
+            if  case _? = value
+            {
+                self.bson.append(path.stem, 1 as Int32)
+            }
+        }
+    }
+
+    @inlinable public
+    subscript(natural:Natural) -> ((Mongo.SortDescending) -> Never)?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            if  case _? = value
+            {
+                self.bson.append(natural, -1 as Int32)
+            }
         }
     }
     @inlinable public
@@ -55,7 +89,10 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.bson.append(path.stem, -1 as Int32)
+            if  case _? = value
+            {
+                self.bson.append(path.stem, -1 as Int32)
+            }
         }
     }
     @inlinable public
