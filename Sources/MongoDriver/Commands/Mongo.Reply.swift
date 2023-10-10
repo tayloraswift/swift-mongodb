@@ -45,10 +45,20 @@ extension Mongo.Reply
         {
         case .success(let bson):
             return bson
-        
+
         case .failure(let error):
-            if  let code:Mongo.ServerError.Code = error.code,
-                    code.indicatesTimeLimitExceeded
+            guard
+            let code:Mongo.ServerError.Code = error.code
+            else
+            {
+                throw error
+            }
+
+            if      code == 26
+            {
+                throw Mongo.NamespaceError.init()
+            }
+            else if code.indicatesTimeLimitExceeded
             {
                 throw Mongo.TimeoutError.server(code: code)
             }
@@ -73,7 +83,7 @@ extension Mongo.Reply
             to: Mongo.Timestamp.self)
         let clusterTime:Mongo.ClusterTime? = try bson["$clusterTime"]?.decode(
             to: Mongo.ClusterTime.self)
-        
+
         if  status.ok
         {
             self.init(result: .success(bson),
