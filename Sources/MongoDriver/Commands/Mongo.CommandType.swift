@@ -29,6 +29,7 @@ extension Mongo
         case listCollections
         case listDatabases
         case listIndexes
+        case modifyCollection = "collMod"
         case ping
         case refreshSessions
         case replicaSetGetConfiguration = "replSetGetConfig"
