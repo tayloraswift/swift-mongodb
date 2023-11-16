@@ -14,7 +14,7 @@ extension Mongo.SessionPool
     ///     MongoDB database creation is lazy, generally MongoDB servers will
     ///     not actually create a database until you run a command that
     ///     references it.
-    public
+    public nonisolated
     func withTemporaryDatabase(_ database:Mongo.Database,
         run body:() async throws -> ()) async throws
     {
