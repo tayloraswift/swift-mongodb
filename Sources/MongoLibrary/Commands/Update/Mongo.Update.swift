@@ -7,7 +7,10 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Update<Effect, ID>:Sendable where Effect:MongoWriteEffect, ID:BSONDecodable
+    struct Update<Effect, ID>:Sendable
+        where   Effect:MongoWriteEffect,
+                ID:BSONDecodable,
+                ID:Sendable
     {
         public
         let writeConcern:WriteConcern?

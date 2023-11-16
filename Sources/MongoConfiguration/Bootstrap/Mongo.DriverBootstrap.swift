@@ -6,7 +6,7 @@ extension Mongo
 {
     /// A driver configuration, which can be used to create session pools.
     public
-    struct DriverBootstrap
+    struct DriverBootstrap:Sendable
     {
         public
         let credentials:Credentials?

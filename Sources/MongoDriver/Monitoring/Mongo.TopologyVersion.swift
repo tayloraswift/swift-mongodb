@@ -22,7 +22,7 @@ extension Mongo
 extension Mongo.TopologyVersion:BSONDocumentDecodable, BSONDocumentEncodable
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case process = "processId"
         case counter

@@ -11,7 +11,7 @@ extension Mongo.ConnectionPool
         /// and are believed to be healthy.
         private
         var released:[UInt: any Channel]
-        /// Connections that are currently allocated and are 
+        /// Connections that are currently allocated and are
         /// believed to be healthy.
         private
         var retained:[UInt: any Channel]
@@ -41,7 +41,7 @@ extension Mongo.ConnectionPool
         /// connections perish.
         private(set)
         var phase:Phase
-        
+
         /// Monotonically-increasing counters used to generate request
         /// and connection identifiers.
         private
@@ -171,7 +171,7 @@ extension Mongo.ConnectionPool.Allocations
         {
             fatalError("unreachable (reindexing unknown allocation id!)")
         }
-        guard   case nil = self.released.updateValue(allocation.channel, 
+        guard   case nil = self.released.updateValue(allocation.channel,
                     forKey: allocation.id),
                 channel === allocation.channel
         else
@@ -228,7 +228,7 @@ extension Mongo.ConnectionPool.Allocations
             {
                 return .blocked(self.request())
             }
-        
+
         case .draining(let error):
             return .failure(error)
         }
@@ -311,14 +311,14 @@ extension Mongo.ConnectionPool.Allocations
         else
         {
             //  Lost the race with ``deindex(_:)``, so we can just forget about
-            //  the allocation. 
+            //  the allocation.
         }
 
         switch self.phase
         {
         case .connecting(let connector):
             return self.reserve(connector: connector, releasing: releasing, settings: settings)
-        
+
         case .draining:
             if  self.isEmpty
             {
@@ -335,7 +335,7 @@ extension Mongo.ConnectionPool.Allocations
         {
         case .connecting(let connector):
             return self.reserve(connector: connector, releasing: releasing, settings: settings)
-        
+
         case .draining:
             return nil
         }
@@ -398,7 +398,7 @@ extension Mongo.ConnectionPool.Allocations
             self.observers.resume()
         }
     }
-    
+
     mutating
     func drain(throwing error:Mongo.ConnectionPoolDrainedError, erase:Bool = false)
     {
@@ -427,7 +427,7 @@ extension Mongo.ConnectionPool.Allocations
             {
                 self.crosscancel(throwing: error)
             }
-        
+
         case .draining:
             if  self.isEmpty
             {

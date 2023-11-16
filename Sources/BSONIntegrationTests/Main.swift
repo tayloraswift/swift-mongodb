@@ -13,7 +13,7 @@ enum Main:SyncTests
         {
             struct Codable:BSONDocumentDecodable, BSONDocumentEncodable, Equatable
             {
-                enum CodingKey:String
+                enum CodingKey:String, Sendable
                 {
                     case a
                     case b

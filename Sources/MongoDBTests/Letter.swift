@@ -14,7 +14,7 @@ extension Letter:ExpressibleByUnicodeScalarLiteral
 }
 extension Letter
 {
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case id = "_id"
     }

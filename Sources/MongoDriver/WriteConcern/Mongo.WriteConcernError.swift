@@ -47,7 +47,7 @@ extension Mongo.WriteConcernError:Equatable
 extension Mongo.WriteConcernError
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case code
         case errorDetails = "errInfo"

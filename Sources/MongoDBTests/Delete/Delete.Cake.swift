@@ -20,7 +20,7 @@ extension Delete
             self.points = points
         }
 
-        enum CodingKey:String
+        enum CodingKey:String, Sendable
         {
             case location
             case flavor

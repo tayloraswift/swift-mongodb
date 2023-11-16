@@ -9,7 +9,7 @@ struct Record<Value>:Hashable, Sendable
 }
 extension Record
 {
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case id = "_id"
         case value

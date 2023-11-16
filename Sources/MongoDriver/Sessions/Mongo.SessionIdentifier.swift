@@ -29,7 +29,7 @@ extension Mongo.SessionIdentifier
 extension Mongo.SessionIdentifier
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         //  note: no leading underscore
         case id

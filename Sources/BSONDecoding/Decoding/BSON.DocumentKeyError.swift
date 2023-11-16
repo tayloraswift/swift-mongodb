@@ -4,7 +4,7 @@ extension BSON
 {
     /// A document had an invalid key scheme.
     @frozen public
-    enum DocumentKeyError<Key>:Error
+    enum DocumentKeyError<Key>:Error where Key:Sendable
     {
         /// A document contained more than one field with the same key.
         case duplicate(Key)
