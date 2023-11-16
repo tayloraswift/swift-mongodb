@@ -28,7 +28,7 @@ extension Aggregate
             self.tags = tags
         }
 
-        enum CodingKey:String
+        enum CodingKey:String, Sendable
         {
             case id = "_id"
             case author

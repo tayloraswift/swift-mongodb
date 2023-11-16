@@ -49,7 +49,7 @@ extension Mongo.WriteConcern.Options
 extension Mongo.WriteConcern.Options
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case w
         case j

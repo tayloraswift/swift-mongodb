@@ -27,7 +27,7 @@ extension Mongo.WriteConcernError
 extension Mongo.WriteConcernError.Details
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case j
         case provenance

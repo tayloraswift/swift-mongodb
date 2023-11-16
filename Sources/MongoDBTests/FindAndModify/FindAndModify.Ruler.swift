@@ -18,7 +18,7 @@ extension FindAndModify
             self.since = since
         }
 
-        enum CodingKey:String
+        enum CodingKey:String, Sendable
         {
             case id = "_id"
             case party

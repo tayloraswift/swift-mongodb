@@ -36,7 +36,7 @@ extension Mongo.ReplicaSetConfiguration
 extension Mongo.ReplicaSetConfiguration.Member
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case arbiterOnly
         case buildsIndexes = "buildIndexes"

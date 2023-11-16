@@ -29,7 +29,7 @@ extension Mongo.ClusterTime:MongoInstant
 extension Mongo.ClusterTime
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case clusterTime
         case signature

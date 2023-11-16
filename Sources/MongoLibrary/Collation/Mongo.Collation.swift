@@ -58,7 +58,7 @@ extension Mongo
 extension Mongo.Collation
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case locale
         case strength

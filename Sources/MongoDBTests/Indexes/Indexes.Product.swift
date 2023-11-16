@@ -21,7 +21,7 @@ extension Indexes
             self.model = model
         }
 
-        enum CodingKey:String
+        enum CodingKey:String, Sendable
         {
             case item
             case manufacturer

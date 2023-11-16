@@ -30,7 +30,7 @@ extension Update
             self.misc2 = misc2
         }
 
-        enum CodingKey:String
+        enum CodingKey:String, Sendable
         {
             case id = "_id"
             case member

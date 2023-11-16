@@ -25,7 +25,7 @@ extension Mongo
 extension Mongo.Timeseries
 {
     @frozen public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case timeField
         case metaField

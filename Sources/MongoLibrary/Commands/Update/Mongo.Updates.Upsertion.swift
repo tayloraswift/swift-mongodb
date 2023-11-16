@@ -34,7 +34,7 @@ extension Mongo.Updates.Upsertion:
     BSONDecodable where ID:BSONDecodable
 {
     public
-    enum CodingKey:String
+    enum CodingKey:String, Sendable
     {
         case index
         case id = "_id"
