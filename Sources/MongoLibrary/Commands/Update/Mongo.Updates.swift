@@ -2,7 +2,7 @@ extension Mongo
 {
     /// Stores information about an update operation.
     @frozen public
-    struct Updates<ID>:Error
+    struct Updates<ID>:Error where ID:Sendable
     {
         public
         let selected:Int

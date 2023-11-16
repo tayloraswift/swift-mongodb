@@ -321,7 +321,7 @@ for target:PackageDescription.Target in package.targets
         settings.append(.enableUpcomingFeature("BareSlashRegexLiterals"))
         settings.append(.enableUpcomingFeature("ConciseMagicFile"))
         settings.append(.enableUpcomingFeature("ExistentialAny"))
-        settings.append(.enableUpcomingFeature("StrictConcurrency"))
+        settings.append(.enableExperimentalFeature("StrictConcurrency"))
 
         $0 = settings
     } (&target.swiftSettings)

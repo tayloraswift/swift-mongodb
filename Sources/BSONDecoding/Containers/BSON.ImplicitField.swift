@@ -5,7 +5,7 @@ extension BSON
     /// is useful for obtaining structured diagnostics for “key-not-found”
     /// scenarios.
     @frozen public
-    struct ImplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ImplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>, Key:Sendable
     {
         public
         let key:Key
@@ -45,9 +45,9 @@ extension BSON.ImplicitField
     {
         if let value:BSON.AnyValue<Bytes> = self.value
         {
-            return value 
+            return value
         }
-        else 
+        else
         {
             throw BSON.DocumentKeyError<Key>.undefined(self.key)
         }
@@ -61,15 +61,15 @@ extension BSON.ImplicitField:BSONScope
     @inlinable public
     func decode<T>(with decode:(BSON.AnyValue<Bytes>) throws -> T) throws -> T
     {
-        // we cannot *quite* shove this into the `do` block, because we 
-        // do not want to throw a ``DecodingError`` just because the key 
+        // we cannot *quite* shove this into the `do` block, because we
+        // do not want to throw a ``DecodingError`` just because the key
         // was not found.
         let value:BSON.AnyValue<Bytes> = try self.decode()
-        do 
+        do
         {
             return try decode(value)
         }
-        catch let error 
+        catch let error
         {
             throw BSON.DecodingError.init(error, in: key)
         }

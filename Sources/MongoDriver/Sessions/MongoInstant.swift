@@ -1,4 +1,4 @@
-protocol MongoInstant
+protocol MongoInstant:Sendable
 {
     static
     func < (lhs:Self, rhs:Self) -> Bool

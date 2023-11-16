@@ -6,7 +6,7 @@ import MongoSchema
 extension Mongo
 {
     @frozen public
-    struct GetMore<Element>:Sendable where Element:BSONDecodable
+    struct GetMore<Element>:Sendable where Element:BSONDecodable & Sendable
     {
         public
         let cursor:CursorIdentifier

@@ -21,7 +21,7 @@ extension BSONDecodable where Self:BSONRepresentable, BSONRepresentation:BSONDec
         self.init(try .init(bson: bson))
     }
 }
-extension BSONDecodable where Self:RawRepresentable, RawValue:BSONDecodable
+extension BSONDecodable where Self:RawRepresentable, RawValue:BSONDecodable & Sendable
 {
     @inlinable public
     init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws

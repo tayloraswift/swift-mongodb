@@ -4,7 +4,7 @@ import MongoDriver
 extension Mongo.Updates
 {
     public
-    struct Upsertion
+    struct Upsertion:Sendable
     {
         public
         let index:Int
@@ -23,9 +23,6 @@ extension Mongo.Updates.Upsertion:Identifiable where ID:Hashable
 {
 }
 extension Mongo.Updates.Upsertion:Equatable where ID:Equatable
-{
-}
-extension Mongo.Updates.Upsertion:Sendable where ID:Sendable
 {
 }
 extension Mongo.Updates.Upsertion:

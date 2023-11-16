@@ -1,7 +1,7 @@
 extension BSON
 {
     @frozen public
-    struct ExplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ExplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>, Key:Sendable
     {
         public
         let key:Key
@@ -28,7 +28,7 @@ extension BSON.ExplicitField:BSONScope
         {
             return try decode(self.value)
         }
-        catch let error 
+        catch let error
         {
             throw BSON.DecodingError.init(error, in: self.key)
         }

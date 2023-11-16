@@ -4,8 +4,8 @@ import BSONEncoding
 public
 protocol MongoModificationEffect
 {
-    associatedtype ID:BSONDecodable
-    associatedtype Value:BSONDecodable
+    associatedtype ID:BSONDecodable & Sendable
+    associatedtype Value:BSONDecodable & Sendable
 
     associatedtype Phase:MongoModificationPhase
     associatedtype Upsert:BSONEncodable

@@ -2,7 +2,7 @@
 public
 protocol BSONDocumentDecodable<CodingKey>:BSONDocumentViewDecodable
 {
-    associatedtype CodingKey:RawRepresentable<String> & Hashable = BSON.Key
+    associatedtype CodingKey:RawRepresentable<String> & Hashable & Sendable = BSON.Key
 
     init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
 }

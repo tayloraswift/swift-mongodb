@@ -1,7 +1,7 @@
 extension Mongo
 {
     public
-    struct SelectionDiagnostics:Equatable
+    struct SelectionDiagnostics:Equatable, Sendable
     {
         public
         var unreachable:[Host: Unreachable]
@@ -37,7 +37,7 @@ extension Mongo.SelectionDiagnostics
             {
             case .stale(let milliseconds):
                 reason = "it is too stale (\(milliseconds) ms)."
-            
+
             case .tags(let tags):
                 reason = "its tags don’t match any tag sets (\(tags))."
             }
@@ -66,7 +66,7 @@ extension Mongo.SelectionDiagnostics
             {
             case .queued:
                 reason = " it has not completed its handshake."
-            
+
             case .errored(let error):
                 reason = ":\n" + String.init(describing: error).split(separator: "\n",
                     omittingEmptySubsequences: false).lazy.map

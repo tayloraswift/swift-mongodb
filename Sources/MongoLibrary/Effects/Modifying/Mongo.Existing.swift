@@ -4,7 +4,7 @@ import BSONEncoding
 extension Mongo
 {
     @frozen public
-    enum Existing<Document>:MongoModificationEffect where Document:BSONDecodable
+    enum Existing<Document>:MongoModificationEffect where Document:BSONDecodable & Sendable
     {
         public
         typealias Phase = Mongo.UpdatePhase

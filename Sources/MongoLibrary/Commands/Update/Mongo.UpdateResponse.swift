@@ -4,7 +4,7 @@ import MongoDriver
 extension Mongo
 {
     public
-    struct UpdateResponse<ID> where ID:BSONDecodable
+    struct UpdateResponse<ID>:Sendable where ID:BSONDecodable & Sendable
     {
         public
         let writeConcernError:WriteConcernError?
@@ -38,9 +38,6 @@ extension Mongo
     }
 }
 extension Mongo.UpdateResponse:Equatable where ID:Equatable
-{
-}
-extension Mongo.UpdateResponse:Sendable where ID:Sendable
 {
 }
 extension Mongo.UpdateResponse
