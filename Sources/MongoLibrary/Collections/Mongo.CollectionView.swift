@@ -22,7 +22,7 @@ extension Mongo.CollectionView
 {
     @inlinable public
     init(on collection:Mongo.Collection,
-        pipeline populate:(inout Mongo.Pipeline) throws -> ()) rethrows
+        pipeline populate:(inout Mongo.PipelineEncoder) throws -> ()) rethrows
     {
         self.init(on: collection, pipeline: try .init(with: populate))
     }

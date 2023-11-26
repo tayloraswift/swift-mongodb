@@ -232,17 +232,15 @@ extension BSON.Output<[UInt8]>
     @inlinable public
     subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSONEncoder
     {
-        get
+        _read
         {
-            .init(output: self)
+            let encoder:Encoder = .init(self)
+            yield encoder
         }
         _modify
         {
-            var encoder:Encoder = .init(output: self)
-
-            self = .init(preallocated: [])
-            defer { self = encoder.output }
-
+            var encoder:Encoder = .init(consume self)
+            defer { self = encoder.move() }
             yield &encoder
         }
     }

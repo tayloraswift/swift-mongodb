@@ -3,8 +3,10 @@ import BSONTypes
 public
 protocol BSONEncoder
 {
-    init(output:BSON.Output<[UInt8]>)
-    var output:BSON.Output<[UInt8]> { get }
+    init(_:consuming BSON.Output<[UInt8]>)
+
+    consuming
+    func move() -> BSON.Output<[UInt8]>
 
     static
     var type:BSON { get }

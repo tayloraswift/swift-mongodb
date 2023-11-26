@@ -62,22 +62,13 @@ struct Aggregate:MongoTestBattery
                         readConcern: .majority,
                         pipeline: .init
                         {
-                            $0.stage
+                            $0[.project] = .init { $0[Article[.tags]] = 1 }
+                            $0[.unwind] = Article[.tags]
+                            $0[.group] = .init
                             {
-                                $0[.project] = .init { $0[Article[.tags]] = 1 }
-                            }
-                            $0.stage
-                            {
-                                $0[.unwind] = Article[.tags]
-                            }
-                            $0.stage
-                            {
-                                $0[.group] = .init
-                                {
-                                    $0[.id] = Article[.tags]
+                                $0[.id] = Article[.tags]
 
-                                    $0[TagStats[.count]] = .init { $0[.sum] = 1 }
-                                }
+                                $0[TagStats[.count]] = .init { $0[.sum] = 1 }
                             }
                         },
                         stride: 10),
