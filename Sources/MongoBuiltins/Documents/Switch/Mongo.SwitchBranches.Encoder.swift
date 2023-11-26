@@ -8,17 +8,23 @@ extension Mongo.SwitchBranches
         @usableFromInline internal
         var list:BSON.ListEncoder
 
-        @inlinable public
-        init(output:BSON.Output<[UInt8]>)
+        @inlinable internal
+        init(list:BSON.ListEncoder)
         {
-            self.list = .init(output: output)
+            self.list = list
         }
     }
 }
 extension Mongo.SwitchBranches.Encoder:BSONEncoder
 {
     @inlinable public
-    var output:BSON.Output<[UInt8]> { self.list.output }
+    init(_ output:consuming BSON.Output<[UInt8]>)
+    {
+        self.init(list: .init(output))
+    }
+
+    @inlinable public consuming
+    func move() -> BSON.Output<[UInt8]> { self.list.move() }
 
     @inlinable public static
     var type:BSON { .list }
