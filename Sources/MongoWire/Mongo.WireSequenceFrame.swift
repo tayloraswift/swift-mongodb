@@ -1,9 +1,9 @@
 import BSONTraversal
 
-extension MongoWire
+extension Mongo
 {
     public
-    enum SequenceFrame:VariableLengthBSONFrame
+    enum WireSequenceFrame:VariableLengthBSONFrame
     {
         @inlinable public static
         var skipped:Int { -4 }

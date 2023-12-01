@@ -45,7 +45,7 @@ extension Mongo.Reply
 extension Mongo.Reply
 {
     public
-    init(message:MongoWire.Message<ByteBufferView>) throws
+    init(message:Mongo.WireMessage<ByteBufferView>) throws
     {
         let bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView> = try .init(
             parsing: message.sections.body)

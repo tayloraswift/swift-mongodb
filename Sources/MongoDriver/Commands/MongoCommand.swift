@@ -152,10 +152,10 @@ extension MongoCommand
     /// as a field with the key [`"$db"`]().
     public __consuming
     func encode(database:Database, labels:Mongo.SessionLabels?,
-        by deadline:ContinuousClock.Instant) -> MongoWire.Message<[UInt8]>.Sections?
+        by deadline:ContinuousClock.Instant) -> Mongo.WireMessage<[UInt8]>.Sections?
     {
         // do this first, so we never have to access `self` after reading `self.fields`
-        let outlined:[MongoWire.Message<[UInt8]>.Outline]? = self.outline.map
+        let outlined:[Mongo.WireMessage<[UInt8]>.Outline]? = self.outline.map
         {
             [.init(id: $0.type.rawValue, slice: $0.documents.slice)]
         }

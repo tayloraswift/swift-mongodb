@@ -5,9 +5,9 @@ extension Mongo
     public
     struct WireMessageRoutingError:Error
     {
-        let request:MongoWire.MessageIdentifier
+        let request:Mongo.WireMessageIdentifier
 
-        init(unknown request:MongoWire.MessageIdentifier)
+        init(unknown request:Mongo.WireMessageIdentifier)
         {
             self.request = request
         }

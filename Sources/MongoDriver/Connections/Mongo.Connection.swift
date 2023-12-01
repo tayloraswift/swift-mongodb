@@ -96,7 +96,7 @@ extension Mongo.Connection
     {
         let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
         guard
-        let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
+        let command:Mongo.WireMessage<[UInt8]>.Sections = command.encode(
             database: database,
             labels: labels,
             by: deadline)
@@ -105,7 +105,7 @@ extension Mongo.Connection
             throw Mongo.DriverTimeoutError.init()
         }
 
-        let message:MongoWire.Message<ByteBufferView>
+        let message:Mongo.WireMessage<ByteBufferView>
 
         do
         {

@@ -24,7 +24,7 @@ extension MongoExecutor
         try Task.checkCancellation()
 
         let now:ContinuousClock.Instant = .now
-        let sections:MongoWire.Message<[UInt8]>.Sections
+        let sections:Mongo.WireMessage<[UInt8]>.Sections
 
         guard now < deadline
         else

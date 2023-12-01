@@ -1,11 +1,11 @@
-extension MongoWire
+extension Mongo
 {
     @frozen public
-    struct Flags:OptionSet, Sendable 
+    struct WireFlags:OptionSet, Sendable
     {
         public
         var rawValue:UInt32
-    
+
         @inlinable public
         init(rawValue:UInt32)
         {
@@ -13,14 +13,14 @@ extension MongoWire
         }
     }
 }
-extension MongoWire.Flags
+extension Mongo.WireFlags
 {
     /// The message ends with 4 bytes containing a CRC-32C [1] checksum.
     /// See [Checksum](https://www.mongodb.com/docs/manual/reference/mongodb-wire-protocol/#std-label-wire-msg-checksum)
     /// for details.
     public static
     let checksumPresent:Self = .init(rawValue: 1 << 0)
-    
+
     /// Another message will follow this one without further action from the receiver.
     /// The receiver MUST NOT send another message until receiving one with `moreToCome`
     /// set to 0 as sends may block, causing deadlock. Requests with the `moreToCome`
@@ -28,7 +28,7 @@ extension MongoWire.Flags
     /// to requests with the `exhaustAllowed` bit set.
     public static
     let moreToCome:Self = .init(rawValue: 1 << 1)
-    
+
     /// The client is prepared for multiple replies to this request using the
     /// `moreToCome` bit. The server will never produce replies with the `moreToCome`
     /// bit set unless the request has this bit set.
@@ -41,7 +41,7 @@ extension MongoWire.Flags
     @inlinable public
     init(validating flags:UInt32) throws
     {
-        if let error:MongoWire.FlagsError = .init(flags: flags)
+        if let error:Mongo.WireFlagsError = .init(flags: flags)
         {
             throw error
         }

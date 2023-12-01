@@ -1,13 +1,13 @@
-extension MongoWire
+extension Mongo
 {
     public
-    enum BodyCountError:Equatable, Error
+    enum WireBodyCountError:Equatable, Error
     {
         case none
         case multiple
     }
 }
-extension MongoWire.BodyCountError:CustomStringConvertible
+extension Mongo.WireBodyCountError:CustomStringConvertible
 {
     public
     var description:String

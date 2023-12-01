@@ -25,7 +25,6 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "Durations", targets: ["Durations"]),
         .library(name: "Durations_Atomics", targets: ["Durations_Atomics"]),
 
-        .library(name: "Mongo", targets: ["Mongo"]),
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoQL", targets: ["MongoQL"]),
         .library(name: "MongoTesting", targets: ["MongoTesting"]),
@@ -249,7 +248,9 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoWire",
             dependencies:
             [
-                .target(name: "BSON"),
+                .target(name: "BSONDecoding"),
+                .target(name: "BSONEncoding"),
+                .target(name: "Mongo"),
                 .product(name: "CRC", package: "swift-hash"),
             ]),
 

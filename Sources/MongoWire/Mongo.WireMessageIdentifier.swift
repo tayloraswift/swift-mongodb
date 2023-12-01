@@ -1,7 +1,7 @@
-extension MongoWire
+extension Mongo
 {
     @frozen public
-    struct MessageIdentifier:Hashable, Sendable
+    struct WireMessageIdentifier:Hashable, Sendable
     {
         public
         var value:Int32
@@ -13,7 +13,7 @@ extension MongoWire
         }
     }
 }
-extension MongoWire.MessageIdentifier
+extension Mongo.WireMessageIdentifier
 {
     @inlinable public mutating
     func next() -> Self
@@ -22,12 +22,12 @@ extension MongoWire.MessageIdentifier
         return self
     }
 }
-extension MongoWire.MessageIdentifier
+extension Mongo.WireMessageIdentifier
 {
     public static
     let none:Self = .init(0)
 }
-extension MongoWire.MessageIdentifier:CustomStringConvertible
+extension Mongo.WireMessageIdentifier:CustomStringConvertible
 {
     public
     var description:String

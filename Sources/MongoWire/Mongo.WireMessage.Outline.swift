@@ -1,4 +1,4 @@
-extension MongoWire.Message
+extension Mongo.WireMessage
 {
     @frozen public
     struct Outline:Identifiable
@@ -19,7 +19,7 @@ extension MongoWire.Message
         }
     }
 }
-extension MongoWire.Message.Outline
+extension Mongo.WireMessage.Outline
 {
     /// The size of this outline, in bytes, when encoded in a message
     /// with its header.
@@ -29,6 +29,6 @@ extension MongoWire.Message.Outline
         5 + self.id.utf8.count + self.slice.count
     }
 }
-extension MongoWire.Message.Outline:Sendable where Bytes:Sendable
+extension Mongo.WireMessage.Outline:Sendable where Bytes:Sendable
 {
 }

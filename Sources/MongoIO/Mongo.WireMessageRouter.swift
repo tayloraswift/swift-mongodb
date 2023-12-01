@@ -8,7 +8,7 @@ extension Mongo
     class WireMessageRouter
     {
         private
-        var request:MongoWire.MessageIdentifier
+        var request:Mongo.WireMessageIdentifier
         private
         var state:State
 
@@ -53,14 +53,14 @@ extension Mongo.WireMessageRouter
 extension Mongo.WireMessageRouter:ChannelInboundHandler
 {
     public
-    typealias InboundIn = MongoWire.Message<ByteBufferView>
+    typealias InboundIn = Mongo.WireMessage<ByteBufferView>
     public
     typealias InboundOut = Never
 
     public
     func channelRead(context:ChannelHandlerContext, data:NIOAny)
     {
-        let message:MongoWire.Message<ByteBufferView> = self.unwrapInboundIn(data)
+        let message:Mongo.WireMessage<ByteBufferView> = self.unwrapInboundIn(data)
 
         switch self.state
         {
@@ -117,8 +117,8 @@ extension Mongo.WireMessageRouter:ChannelOutboundHandler
             context.channel.close(mode: .all, promise: nil)
 
         case .request(let command, let caller):
-            let request:MongoWire.MessageIdentifier = self.request.next()
-            let message:MongoWire.Message<[UInt8]> = .init(
+            let request:Mongo.WireMessageIdentifier = self.request.next()
+            let message:Mongo.WireMessage<[UInt8]> = .init(
                 sections: command,
                 checksum: false,
                 id: request)

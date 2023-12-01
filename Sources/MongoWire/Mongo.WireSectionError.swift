@@ -1,12 +1,12 @@
-extension MongoWire
+extension Mongo
 {
     /// The subtype byte of a binary array was matched a reserved bit pattern.
     @frozen public
-    struct SectionError:Equatable, Error
+    struct WireSectionError:Equatable, Error
     {
         public
         let code:UInt8
-        
+
         @inlinable public
         init(invalid code:UInt8)
         {
@@ -14,9 +14,9 @@ extension MongoWire
         }
     }
 }
-extension MongoWire.SectionError:CustomStringConvertible
+extension Mongo.WireSectionError:CustomStringConvertible
 {
-    public 
+    public
     var description:String
     {
         "invalid MongoDB message section type code (\(self.code))"

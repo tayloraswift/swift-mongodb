@@ -1,7 +1,7 @@
-extension MongoWire
+extension Mongo
 {
     @frozen public
-    struct MessageTypeError:Equatable, Error
+    struct WireMessageTypeError:Equatable, Error
     {
         public
         let code:Int32
@@ -13,7 +13,7 @@ extension MongoWire
         }
     }
 }
-extension MongoWire.MessageTypeError:CustomStringConvertible
+extension Mongo.WireMessageTypeError:CustomStringConvertible
 {
     public
     var description:String
