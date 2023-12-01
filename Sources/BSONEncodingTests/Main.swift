@@ -9,9 +9,9 @@ enum Main:TestMain
         LiteralInference.self,
         TypeInference.self,
 
-        ArrayEncoding.self,
-        DocumentEncoding.self,
-        StringEncoding.self,
+        EncodeDocument.self,
+        EncodeList.self,
+        EncodeString.self,
 
         FieldDuplication.self,
         FieldElision.self,

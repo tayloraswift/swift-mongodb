@@ -3,11 +3,11 @@ import Testing
 
 extension Main
 {
-    enum ArrayEncoding
+    enum EncodeList
     {
     }
 }
-extension Main.ArrayEncoding:TestBattery
+extension Main.EncodeList:TestBattery
 {
     static
     func run(tests:TestGroup)
