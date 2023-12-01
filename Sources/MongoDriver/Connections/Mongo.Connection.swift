@@ -1,5 +1,6 @@
 import MongoExecutor
 import MongoWire
+import NIOCore
 
 extension Mongo
 {
@@ -94,23 +95,28 @@ extension Mongo.Connection
         where Command:MongoCommand
     {
         let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
-        guard   let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
-                    database: database,
-                    labels: labels,
-                    by: deadline)
+        guard
+        let command:MongoWire.Message<[UInt8]>.Sections = command.encode(
+            database: database,
+            labels: labels,
+            by: deadline)
         else
         {
-            throw Mongo.TimeoutError.driver(written: false)
+            throw Mongo.DriverTimeoutError.init()
         }
 
-        switch await self.allocation.request(sections: command, deadline: deadline)
+        let message:MongoWire.Message<ByteBufferView>
+
+        do
         {
-        case .success(let message):
-            return try .init(message: message)
-
-        case .failure(let error):
-            self.reuse = false
-            throw try Mongo.NetworkError.init(triaging: error)
+            message = try await self.allocation.request(sections: command, deadline: deadline)
         }
+        catch let error
+        {
+            self.reuse = false
+            throw error
+        }
+
+        return try .init(message: message)
     }
 }

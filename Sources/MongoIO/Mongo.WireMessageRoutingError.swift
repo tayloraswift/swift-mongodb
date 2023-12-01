@@ -1,9 +1,9 @@
 import MongoWire
 
-extension MongoIO
+extension Mongo
 {
     public
-    struct MessageRoutingError:Error
+    struct WireMessageRoutingError:Error
     {
         let request:MongoWire.MessageIdentifier
 
@@ -13,7 +13,7 @@ extension MongoIO
         }
     }
 }
-extension MongoIO.MessageRoutingError:CustomStringConvertible
+extension Mongo.WireMessageRoutingError:CustomStringConvertible
 {
     public
     var description:String

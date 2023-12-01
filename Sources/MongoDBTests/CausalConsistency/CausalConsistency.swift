@@ -190,9 +190,16 @@ struct CausalConsistency:MongoTestBattery
         //  secondary, we should be asking it for data from a time in its future
         //  that it doesn’t have. We should have prevented it from getting the
         //  new data by locking it earlier.
-        await (tests ! "timeout").do(catching: Mongo.TimeoutError.self)
+        await (tests ! "timeout").do(catching: AnyTimeoutError.self)
         {
-            let _:[Letter] = try await ReadLetters()
+            do
+            {
+                let _:[Letter] = try await ReadLetters()
+            }
+            catch let error
+            {
+                throw AnyTimeoutError.init(error) ?? error
+            }
         }
 
         //  We should be able to read all four writes from a different,
@@ -217,9 +224,16 @@ struct CausalConsistency:MongoTestBattery
         //  We should still receive a timeout error if we try to read from the
         //  locked secondary from the current session, because running the last
         //  command didn’t lower the precondition time.
-        await (tests ! "timeout-again").do(catching: Mongo.TimeoutError.self)
+        await (tests ! "timeout-again").do(catching:AnyTimeoutError.self)
         {
-            let _:[Letter] = try await ReadLetters()
+            do
+            {
+                let _:[Letter] = try await ReadLetters()
+            }
+            catch let error
+            {
+                throw AnyTimeoutError.init(error) ?? error
+            }
         }
         //  We should still be able to read from the locked secondary/slave from
         //  a different session. Because that session’s timeline should have no
@@ -247,7 +261,7 @@ struct CausalConsistency:MongoTestBattery
         //  We should still receive a timeout error if we try to read from the
         //  locked secondary/slave using a session that was forked from the
         //  current session, however.
-        await (tests ! "timeout-forked").do(catching: Mongo.TimeoutError.self)
+        await (tests ! "timeout-forked").do(catching: AnyTimeoutError.self)
         {
             let forked:Mongo.Session = try await .init(from: pool, forking: session)
 
@@ -255,11 +269,18 @@ struct CausalConsistency:MongoTestBattery
             //  time as the session it was forked from.
             tests.expect(forked.preconditionTime ==? head)
 
-            let _:[Letter] = try await forked.run(
-                command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
-                    limit: 10),
-                against: database,
-                on: secondary)
+            do
+            {
+                let _:[Letter] = try await forked.run(
+                    command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
+                        limit: 10),
+                    against: database,
+                    on: secondary)
+            }
+            catch let error
+            {
+                throw AnyTimeoutError.init(error) ?? error
+            }
         }
 
         //  We should be able to unlock the secondary/slave.

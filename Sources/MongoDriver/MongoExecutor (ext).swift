@@ -5,7 +5,7 @@ import MongoWire
 extension MongoExecutor
 {
     /// Encodes the given command to a document, adding the given database
-    /// as a field with the key [`"$db"`](), sends it over this channel, and
+    /// as a field with the key `"$db"`, sends it over this channel, and
     /// awaits its reply.
     ///
     /// If the deadline passes before this function can start executing, this
@@ -22,28 +22,22 @@ extension MongoExecutor
         where Command:BSONDocumentEncodable
     {
         try Task.checkCancellation()
-        
+
         let now:ContinuousClock.Instant = .now
         let sections:MongoWire.Message<[UInt8]>.Sections
 
-        if now < deadline
-        {
-            var document:BSON.Document = .init(encoding: command)
-                document["$db"] = database.name
-            sections = .init(body: .init(document))
-        }
+        guard now < deadline
         else
         {
-            throw Mongo.TimeoutError.driver(written: false)
+            throw Mongo.DriverTimeoutError.init()
         }
 
-        switch await self.request(sections: sections, deadline: deadline)
-        {
-        case .success(let message):
-            return try .init(message: message)
+        var document:BSON.Document = .init(encoding: command)
+            document["$db"] = database.name
+        sections = .init(body: .init(document))
 
-        case .failure(let error):
-            throw try Mongo.NetworkError.init(triaging: error)
-        }
+        return try .init(message: try await self.request(
+            sections: sections,
+            deadline: deadline))
     }
 }

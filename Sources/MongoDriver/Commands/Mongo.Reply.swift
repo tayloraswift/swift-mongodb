@@ -7,17 +7,15 @@ extension Mongo
     @frozen public
     struct Reply
     {
-        private
-        let result:Result<BSON.DocumentDecoder<BSON.Key, ByteBufferView>,
-            Mongo.ServerError>
+        @usableFromInline internal
+        let result:Result<BSON.DocumentDecoder<BSON.Key, ByteBufferView>, any Error>
 
-        @usableFromInline
+        @usableFromInline internal
         let operationTime:Timestamp?
-        @usableFromInline
+        @usableFromInline internal
         let clusterTime:ClusterTime?
 
-        init(result:Result<BSON.DocumentDecoder<BSON.Key, ByteBufferView>,
-                Mongo.ServerError>,
+        init(result:Result<BSON.DocumentDecoder<BSON.Key, ByteBufferView>, any Error>,
             operationTime:Timestamp?,
             clusterTime:ClusterTime?)
         {
@@ -38,35 +36,10 @@ extension Mongo.Reply
         }
     }
 
-    @usableFromInline
+    @inlinable internal
     func callAsFunction() throws -> BSON.DocumentDecoder<BSON.Key, ByteBufferView>
     {
-        switch self.result
-        {
-        case .success(let bson):
-            return bson
-
-        case .failure(let error):
-            guard
-            let code:Mongo.ServerError.Code = error.code
-            else
-            {
-                throw error
-            }
-
-            if      code == 26
-            {
-                throw Mongo.NamespaceError.init()
-            }
-            else if code.indicatesTimeLimitExceeded
-            {
-                throw Mongo.TimeoutError.server(code: code)
-            }
-            else
-            {
-                throw error
-            }
-        }
+        try self.result.get()
     }
 }
 extension Mongo.Reply
@@ -89,12 +62,32 @@ extension Mongo.Reply
             self.init(result: .success(bson),
                 operationTime: operationTime,
                 clusterTime: clusterTime)
+            return
+        }
+
+        let message:String = try bson["errmsg"]?.decode(to: String.self) ?? ""
+
+        guard
+        let code:Int32 = try bson["code"]?.decode()
+        else
+        {
+            self.init(result: .failure(Mongo.ReplyError.uncoded(message: message)),
+                operationTime: operationTime,
+                clusterTime: clusterTime)
+            return
+        }
+
+        if  code == 26
+        {
+            self.init(result: .failure(Mongo.NamespaceError.init()),
+                operationTime: operationTime,
+                clusterTime: clusterTime)
         }
         else
         {
-            self.init(result: .failure(.init(try bson["code"]?.decode(
-                        to: Mongo.ServerError.Code.self),
-                    message: try bson["errmsg"]?.decode(to: String.self) ?? "")),
+            self.init(result: .failure(Mongo.ServerError.init(
+                        Mongo.ServerError.Code.init(rawValue: code),
+                        message: message)),
                 operationTime: operationTime,
                 clusterTime: clusterTime)
         }

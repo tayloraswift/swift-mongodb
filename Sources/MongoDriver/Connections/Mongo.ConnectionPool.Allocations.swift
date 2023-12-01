@@ -441,7 +441,9 @@ extension Mongo.ConnectionPool.Allocations
     {
         for channel:any Channel in [self.retained.values, self.released.values].joined()
         {
-            channel.writeAndFlush(MongoIO.Action.cancel(throwing: .crosscancelled(error)),
+            channel.writeAndFlush(Mongo.WireAction.cancel(throwing: Mongo.NetworkError.init(
+                    underlying: error,
+                    provenance: .crosscancellation)),
                 promise: nil)
         }
     }

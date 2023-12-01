@@ -20,13 +20,10 @@ extension Mongo.Reply
     /// -   [`.double(0.0)`]().
     ///
     /// All other BSON values will produce a decoding error.
-    @frozen public
     struct Status:Equatable
     {
-        public
         let ok:Bool
 
-        @inlinable public
         init(ok:Bool)
         {
             self.ok = ok
@@ -35,7 +32,6 @@ extension Mongo.Reply
 }
 extension Mongo.Reply.Status:BSONDecodable
 {
-    @inlinable public
     init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
         self.init(ok: try bson.cast

@@ -216,6 +216,7 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoIO",
             dependencies:
             [
+                .target(name: "Mongo"),
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore", package: "swift-nio"),
             ]),

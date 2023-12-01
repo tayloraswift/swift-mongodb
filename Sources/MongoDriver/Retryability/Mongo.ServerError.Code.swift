@@ -60,6 +60,12 @@ extension Mongo.ServerError.Code
             return false
         }
     }
+    /// A command was timed-out by the server, most likely according to `maxTimeMS`
+    /// (``MaxTime``).
+    ///
+    /// Server-side timeouts are efficient, because the driver can reuse the connection used to
+    /// run the original command to run another command.
+    public
     var indicatesTimeLimitExceeded:Bool
     {
         switch self.rawValue
