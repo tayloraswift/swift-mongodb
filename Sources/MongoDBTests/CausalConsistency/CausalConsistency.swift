@@ -224,7 +224,7 @@ struct CausalConsistency:MongoTestBattery
         //  We should still receive a timeout error if we try to read from the
         //  locked secondary from the current session, because running the last
         //  command didn’t lower the precondition time.
-        await (tests ! "timeout-again").do(catching:AnyTimeoutError.self)
+        await (tests ! "timeout-again").do(catching: AnyTimeoutError.self)
         {
             do
             {

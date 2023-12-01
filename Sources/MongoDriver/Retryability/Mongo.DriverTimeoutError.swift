@@ -1,5 +1,3 @@
-import MongoIO
-
 extension Mongo
 {
     /// A command was timed-out by the driver because the its deadline has already passed.
