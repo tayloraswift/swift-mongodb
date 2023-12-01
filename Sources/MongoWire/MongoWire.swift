@@ -1,6 +1,7 @@
 /// A MongoDB wire protocol version. This is not the same thing as a server version.
 ///
-/// See: https://github.com/mongodb/specifications/blob/master/source/wireversion-featurelist.rst
+/// >   See:
+/// https://github.com/mongodb/specifications/blob/master/source/wireversion-featurelist.rst
 @frozen public
 struct MongoWire:RawRepresentable
 {

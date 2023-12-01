@@ -18,10 +18,10 @@ extension Mongo
     /// projection.
     ///
     /// >   See:
-    ///     https://www.mongodb.com/docs/manual/reference/command/listCollections/
+    /// https://www.mongodb.com/docs/manual/reference/command/listCollections/
     ///
     /// >   See:
-    ///     https://github.com/mongodb/specifications/blob/master/source/enumerate-collections.rst
+    /// https://github.com/mongodb/specifications/blob/master/source/enumerate-collections.rst
     public
     struct ListCollections<Element>:Sendable where Element:BSONDocumentViewDecodable & Sendable
     {

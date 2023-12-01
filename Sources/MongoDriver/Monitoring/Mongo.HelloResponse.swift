@@ -15,7 +15,8 @@ extension Mongo
         /// Type-specific information about the server and its role in a topology model.
         let topologyUpdate:TopologyUpdate
         /// Returns the local server time in UTC. This value is an
-        /// [ISO date](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-ISODate).
+        /// [ISO
+        /// date](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-ISODate).
         let localTime:BSON.Millisecond
 
         init(topologyVersion:TopologyVersion,

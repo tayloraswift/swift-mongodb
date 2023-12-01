@@ -12,7 +12,8 @@ extension BSON
         case binary(BSON.BinaryView<Bytes>)
         /// A boolean.
         case bool(Bool)
-        /// An [IEEE 754-2008 128-bit decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
+        /// An [IEEE 754-2008 128-bit
+        /// decimal](https://en.wikipedia.org/wiki/Decimal128_floating-point_format).
         case decimal128(BSON.Decimal128)
         /// A double-precision float.
         case double(Double)

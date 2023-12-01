@@ -54,13 +54,12 @@ extension MongoExecutor
         channel.writeAndFlush(Mongo.WireAction.cancel(throwing: Mongo.WireTimeoutError.init()),
             promise: nil)
     }
-    /// Sends the given command document over this connection, unchanged, and
-    /// awaits its message-response.
+    /// Sends the given command document over this connection, unchanged, and awaits its
+    /// message-response.
     ///
-    /// If the deadline passes without a reply from the server, the channel
-    /// will be closed. This will happen even if the deadline has already passed;
-    /// therefore it is the responsibility of the calling code to check if the
-    /// deadline is sensible.
+    /// If the deadline passes without a reply from the server, the channel will be closed. This
+    /// will happen even if the deadline has already passed; therefore it is the responsibility
+    /// of the calling code to check if the deadline is sensible.
     private static
     func request(_ channel:any Channel,
         sections:__owned MongoWire.Message<[UInt8]>.Sections,
