@@ -1,6 +1,6 @@
-import UUID
 import BSONDecoding
 import BSONEncoding
+import UUID
 
 extension UUID:BSONDecodable, BSONBinaryViewDecodable
 {

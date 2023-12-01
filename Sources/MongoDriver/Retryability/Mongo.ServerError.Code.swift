@@ -1,5 +1,5 @@
-import BSONEncoding
 import BSONDecoding
+import BSONEncoding
 
 extension Mongo.ServerError
 {

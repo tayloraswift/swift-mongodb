@@ -1,6 +1,6 @@
 import Atomics
-import Durations
 import DequeModule
+import Durations
 
 extension Mongo
 {

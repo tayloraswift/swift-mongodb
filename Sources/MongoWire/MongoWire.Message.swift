@@ -1,5 +1,5 @@
-import CRC
 import BSON
+import CRC
 
 extension MongoWire
 {

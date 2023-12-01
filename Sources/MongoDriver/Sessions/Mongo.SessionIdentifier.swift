@@ -1,6 +1,6 @@
+import BSON_UUID
 import BSONDecoding
 import BSONEncoding
-import BSON_UUID
 import UUID
 
 extension Mongo

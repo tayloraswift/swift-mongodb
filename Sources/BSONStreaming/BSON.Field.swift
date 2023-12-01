@@ -1,5 +1,5 @@
-import BSONTypes
 import BSONTraversal
+import BSONTypes
 
 extension BSON
 {

@@ -1,5 +1,5 @@
-import NIOPosix
 import MongoDB
+import NIOPosix
 import Testing
 
 @main

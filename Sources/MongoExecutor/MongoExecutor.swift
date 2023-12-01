@@ -1,6 +1,6 @@
-import NIOCore
 import MongoIO
 import MongoWire
+import NIOCore
 
 public
 protocol MongoExecutor

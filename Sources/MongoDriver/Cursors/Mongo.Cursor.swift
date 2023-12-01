@@ -1,5 +1,5 @@
-import Durations
 import BSONDecoding
+import Durations
 
 extension Mongo
 {

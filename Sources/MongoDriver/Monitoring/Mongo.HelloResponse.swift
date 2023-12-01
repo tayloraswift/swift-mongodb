@@ -1,5 +1,5 @@
-import BSONDecoding
 import BSON_Durations
+import BSONDecoding
 import Durations
 import MongoWire
 

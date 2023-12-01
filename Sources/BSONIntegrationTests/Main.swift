@@ -1,7 +1,7 @@
-import Testing
-import BSONReflection
 import BSONDecoding
 import BSONEncoding
+import BSONReflection
+import Testing
 
 @main
 enum Main:SyncTests
