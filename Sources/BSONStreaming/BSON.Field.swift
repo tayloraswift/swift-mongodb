@@ -120,7 +120,7 @@ extension BSON.Field
 extension BSON.Field
 {
     @inlinable internal
-    subscript(type:BSON) -> Void
+    subscript(type:BSON.AnyType) -> Void
     {
         mutating get
         {
@@ -129,7 +129,7 @@ extension BSON.Field
         }
     }
     @inlinable internal
-    subscript(type:BSON) -> BSON.Output<[UInt8]>
+    subscript(type:BSON.AnyType) -> BSON.Output<[UInt8]>
     {
         mutating get
         {

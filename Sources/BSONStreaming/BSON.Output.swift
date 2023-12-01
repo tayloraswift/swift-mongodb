@@ -54,7 +54,7 @@ extension BSON.Output
 extension BSON.Output
 {
     @inlinable public mutating
-    func serialize(type:BSON)
+    func serialize(type:BSON.AnyType)
     {
         self.append(type.rawValue)
     }

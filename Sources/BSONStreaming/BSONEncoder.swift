@@ -9,5 +9,5 @@ protocol BSONEncoder
     func move() -> BSON.Output<[UInt8]>
 
     static
-    var type:BSON { get }
+    var type:BSON.AnyType { get }
 }

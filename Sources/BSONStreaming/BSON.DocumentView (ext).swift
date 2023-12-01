@@ -31,7 +31,7 @@ extension BSON.DocumentView
         var input:BSON.Input<Bytes> = .init(self.slice)
         while let code:UInt8 = input.next()
         {
-            let type:BSON = try .init(code: code)
+            let type:BSON.AnyType = try .init(code: code)
             let key:String = try input.parse(as: String.self)
             //  We must parse the value always, even if we are ignoring the key
             let value:BSON.AnyValue<Bytes.SubSequence> = try input.parse(variant: type)
@@ -63,7 +63,7 @@ extension BSON.DocumentView
         return elements
     }
 }
-extension BSON.DocumentView:ExpressibleByDictionaryLiteral 
+extension BSON.DocumentView:ExpressibleByDictionaryLiteral
     where   Bytes:RangeReplaceableCollection<UInt8>,
             Bytes:RandomAccessCollection<UInt8>,
             Bytes.Index == Int
@@ -77,7 +77,7 @@ extension BSON.DocumentView:ExpressibleByDictionaryLiteral
         let size:Int = fields.reduce(0) { $0 + 2 + $1.key.rawValue.utf8.count + $1.value.size }
         var output:BSON.Output<Bytes> = .init(capacity: size)
             output.serialize(fields: fields)
-        
+
         assert(output.destination.count == size,
             "precomputed size (\(size)) does not match output size (\(output.destination.count))")
 

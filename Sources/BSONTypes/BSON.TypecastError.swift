@@ -1,14 +1,14 @@
 extension BSON
 {
     /// A decoder failed to cast a variant to an expected value type.
-    @frozen public 
+    @frozen public
     struct TypecastError<Value>:Equatable, Error
     {
         public
-        let variant:BSON
+        let variant:AnyType
 
         @inlinable public
-        init(invalid variant:BSON)
+        init(invalid variant:AnyType)
         {
             self.variant = variant
         }
@@ -17,7 +17,7 @@ extension BSON
 extension BSON.TypecastError:CustomStringConvertible
 {
     public
-    var description:String 
+    var description:String
     {
         "cannot cast variant of type '\(self.variant)' to type '\(Value.self)'"
     }

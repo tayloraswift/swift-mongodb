@@ -30,7 +30,7 @@ extension Mongo.PredicateOperator
         }
     }
     @inlinable public
-    subscript(key:Metatype) -> BSON?
+    subscript(key:Metatype) -> BSON.AnyType?
     {
         get
         {
@@ -42,7 +42,7 @@ extension Mongo.PredicateOperator
         }
     }
     @inlinable public
-    subscript(key:Metatype) -> [BSON]?
+    subscript(key:Metatype) -> [BSON.AnyType]?
     {
         get
         {

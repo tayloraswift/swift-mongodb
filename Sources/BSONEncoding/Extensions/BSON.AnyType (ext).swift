@@ -1,4 +1,4 @@
-extension BSON:BSONEncodable
+extension BSON.AnyType:BSONEncodable
 {
     /// Encodes this metatype as a value of type ``BSON.int32``.
     @inlinable public

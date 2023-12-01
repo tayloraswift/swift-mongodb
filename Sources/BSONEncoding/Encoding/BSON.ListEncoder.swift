@@ -28,7 +28,7 @@ extension BSON.ListEncoder:BSONEncoder
     func move() -> BSON.Output<[UInt8]> { self.output }
 
     @inlinable public static
-    var type:BSON { .list }
+    var type:BSON.AnyType { .list }
 }
 extension BSON.ListEncoder
 {

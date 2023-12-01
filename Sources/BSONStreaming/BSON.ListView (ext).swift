@@ -15,7 +15,7 @@ extension BSON.ListView<[UInt8]>
 extension BSON.ListView
 {
     /// Parses this list into key-value pairs in order, yielding each value to the
-    /// provided closure. Parsing a list is slightly faster than parsing a general 
+    /// provided closure. Parsing a list is slightly faster than parsing a general
     /// ``DocumentView``, because this method ignores the document keys.
     ///
     /// This method does *not* perform any key validation.
@@ -31,7 +31,7 @@ extension BSON.ListView
         var input:BSON.Input<Bytes> = .init(self.slice)
         while let code:UInt8 = input.next()
         {
-            let type:BSON = try .init(code: code)
+            let type:BSON.AnyType = try .init(code: code)
             try input.parse(through: 0x00)
             try decode(try input.parse(variant: type))
         }
@@ -48,7 +48,7 @@ extension BSON.ListView
         return elements
     }
     /// Splits this list’s inline key-value pairs into an array containing the
-    /// values only. Parsing a list is slightly faster than parsing a general 
+    /// values only. Parsing a list is slightly faster than parsing a general
     /// ``DocumentView``, because this method ignores the document keys.
     ///
     /// This method does *not* perform any key validation.
@@ -82,7 +82,7 @@ extension BSON.ListView:ExpressibleByArrayLiteral
         self.init(slice: document.slice)
     }
 
-    @inlinable public 
+    @inlinable public
     init(arrayLiteral:BSON.AnyValue<Bytes>...)
     {
         self.init(elements: arrayLiteral)

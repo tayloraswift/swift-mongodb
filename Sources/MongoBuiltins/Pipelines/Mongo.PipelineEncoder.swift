@@ -30,7 +30,7 @@ extension Mongo.PipelineEncoder:BSONEncoder
     func move() -> BSON.Output<[UInt8]> { self.list.move() }
 
     @inlinable public static
-    var type:BSON { .list }
+    var type:BSON.AnyType { .list }
 }
 extension Mongo.PipelineEncoder
 {

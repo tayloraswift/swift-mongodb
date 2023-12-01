@@ -216,7 +216,7 @@ extension BSON.Input
 {
     /// Parses a variant BSON value, assuming it is of the specified `variant` type.
     @inlinable public mutating
-    func parse(variant:BSON) throws -> BSON.AnyValue<Source.SubSequence>
+    func parse(variant:BSON.AnyType) throws -> BSON.AnyValue<Source.SubSequence>
     {
         switch variant
         {

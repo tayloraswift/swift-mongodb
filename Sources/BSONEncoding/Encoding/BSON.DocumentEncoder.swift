@@ -19,7 +19,7 @@ extension BSON.DocumentEncoder:BSONEncoder
     func move() -> BSON.Output<[UInt8]> { self.output }
 
     @inlinable public static
-    var type:BSON { .document }
+    var type:BSON.AnyType { .document }
 }
 extension BSON.DocumentEncoder:BSONBuilder
 {
