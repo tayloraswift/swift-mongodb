@@ -64,6 +64,6 @@ extension Mongo.WireMessageDecoder:ByteToMessageDecoder
         buffer:inout ByteBuffer,
         seenEOF _:Bool) throws -> DecodingState
     {
-        return try decode(context: context, buffer: &buffer)
+        try self.decode(context: context, buffer: &buffer)
     }
 }

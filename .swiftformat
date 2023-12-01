@@ -1,0 +1,3 @@
+--rules braces,redundantSelf
+--allman true
+--self insert
