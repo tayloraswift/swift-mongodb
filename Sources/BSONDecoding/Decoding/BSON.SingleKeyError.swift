@@ -26,9 +26,9 @@ extension BSON.SingleKeyError:NamedError
         switch self
         {
         case .none:
-            return "no keys in single-field document"
+            "no keys in single-field document"
         case .multiple:
-            return "multiple keys in single-field document"
+            "multiple keys in single-field document"
         }
     }
 }

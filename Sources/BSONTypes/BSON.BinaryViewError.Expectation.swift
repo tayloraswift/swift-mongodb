@@ -17,9 +17,9 @@ extension BSON.BinaryViewError.Expectation:CustomStringConvertible
         switch self
         {
         case .subtype:
-            return "subtype (1 byte)"
+            "subtype (1 byte)"
         case .subheader:
-            return "subheader (4 bytes)"
+            "subheader (4 bytes)"
         }
     }
 }

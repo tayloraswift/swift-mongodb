@@ -21,11 +21,11 @@ extension BSON.InputError.Expectation:CustomStringConvertible
         switch self
         {
         case .end:
-            return "end-of-input"
+            "end-of-input"
         case .byte(let byte):
-            return "terminator byte (\(byte))"
+            "terminator byte (\(byte))"
         case .bytes(let count):
-            return "\(count) byte(s)"
+            "\(count) byte(s)"
         }
     }
 }

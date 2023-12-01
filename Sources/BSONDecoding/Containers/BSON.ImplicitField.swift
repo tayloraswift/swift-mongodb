@@ -27,11 +27,11 @@ extension BSON.ImplicitField
     {
         if case nil = lhs.value
         {
-            return rhs()
+            rhs()
         }
         else
         {
-            return lhs
+            lhs
         }
     }
 }

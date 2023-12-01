@@ -187,11 +187,11 @@ extension Mongo.SessionPool
     {
         if case ()? = self.requests.popFirst()?.resume(returning: allocation)
         {
-            return true
+            true
         }
         else
         {
-            return false
+            false
         }
     }
 }

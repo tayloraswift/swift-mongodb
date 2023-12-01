@@ -45,9 +45,9 @@ extension Mongo.ServerError.Code
         {
         case    6, 7, 89, 91, 134, 189, 262, 317, 358, 384, 9001,
                 10107, 11600, 11602, 13435, 13436, 50915:
-            return true
+            true
         case _:
-            return false
+            false
         }
     }
     var indicatesInterruption:Bool
@@ -55,9 +55,9 @@ extension Mongo.ServerError.Code
         switch self.rawValue
         {
         case    24, 50, 237, 262, 279, 281, 282, 290, 355, 11600, 11601, 11602, 46841:
-            return true
+            true
         case _:
-            return false
+            false
         }
     }
     /// A command was timed-out by the server, most likely according to `maxTimeMS`
@@ -71,9 +71,9 @@ extension Mongo.ServerError.Code
         switch self.rawValue
         {
         case    50, 202, 262, 290:
-            return true
+            true
         case _:
-            return false
+            false
         }
     }
     var indicatesNotPrimary:Bool
@@ -81,9 +81,9 @@ extension Mongo.ServerError.Code
         switch self.rawValue
         {
         case    189, 10107, 11602, 13435, 13436:
-            return true
+            true
         case _:
-            return false
+            false
         }
     }
 }

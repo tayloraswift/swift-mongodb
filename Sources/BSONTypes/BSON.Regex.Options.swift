@@ -59,12 +59,12 @@ extension BSON.Regex.Option
     {
         switch self
         {
-        case .i: return "i"
-        case .l: return "l"
-        case .m: return "m"
-        case .s: return "s"
-        case .u: return "u"
-        case .x: return "x"
+        case .i: "i"
+        case .l: "l"
+        case .m: "m"
+        case .s: "s"
+        case .u: "u"
+        case .x: "x"
         }
     }
     @inlinable public

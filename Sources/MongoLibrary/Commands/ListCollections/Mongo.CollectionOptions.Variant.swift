@@ -22,9 +22,9 @@ extension Mongo.CollectionOptions.Variant
     {
         switch self
         {
-        case .collection:   return .collection
-        case .timeseries:   return .timeseries
-        case .view:         return .view
+        case .collection:   .collection
+        case .timeseries:   .timeseries
+        case .view:         .view
         }
     }
     @inlinable public
@@ -33,9 +33,9 @@ extension Mongo.CollectionOptions.Variant
         switch self
         {
         case .collection(cap: let cap?, validationAction: _, validationLevel: _, validator: _):
-            return cap
+            cap
         default:
-            return nil
+            nil
         }
     }
     @inlinable public
@@ -44,9 +44,9 @@ extension Mongo.CollectionOptions.Variant
         switch self
         {
         case .timeseries(let timeseries):
-            return timeseries
+            timeseries
         default:
-            return nil
+            nil
         }
     }
     @inlinable public
@@ -55,9 +55,9 @@ extension Mongo.CollectionOptions.Variant
         switch self
         {
         case .view(let view):
-            return view
+            view
         default:
-            return nil
+            nil
         }
     }
 }

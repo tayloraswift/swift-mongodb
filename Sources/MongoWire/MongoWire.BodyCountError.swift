@@ -15,9 +15,9 @@ extension MongoWire.BodyCountError:CustomStringConvertible
         switch self
         {
         case .none:
-            return "reply contained no body document"
+            "reply contained no body document"
         case .multiple:
-            return "reply contained multiple body documents"
+            "reply contained multiple body documents"
         }
     }
 }

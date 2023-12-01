@@ -27,11 +27,11 @@ extension Mongo.Topology.Unknown
     {
         if case ()? = self.ghosts[host]?.clear(status: status)
         {
-            return .accepted
+            .accepted
         }
         else
         {
-            return .rejected
+            .rejected
         }
     }
     func topology<Metadata>(
@@ -42,9 +42,9 @@ extension Mongo.Topology.Unknown
             switch $0
             {
             case .errored(let error):
-                return .errored(error)
+                .errored(error)
             case .queued:
-                return .queued
+                .queued
             }
         }
     }
@@ -56,11 +56,11 @@ extension Mongo.Topology.Unknown
     {
         if case _? = self.ghosts.removeValue(forKey: host), self.ghosts.isEmpty
         {
-            return true
+            true
         }
         else
         {
-            return false
+            false
         }
     }
 }

@@ -9,10 +9,10 @@ extension Mongo.NetworkError:TraceableError
         switch self.provenance
         {
         case nil:
-            return []
+            []
 
         case .crosscancellation:
-            return ["error propogated via cross-cancellation"]
+            ["error propogated via cross-cancellation"]
         }
     }
 }

@@ -26,8 +26,8 @@ extension VariableLengthBSONFrame
     {
         switch self.trailer
         {
-        case nil:   return 0
-        case _?:    return 1
+        case nil:   0
+        case _?:    1
         }
     }
 }

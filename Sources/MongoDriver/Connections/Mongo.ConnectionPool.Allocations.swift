@@ -132,8 +132,8 @@ extension Mongo.ConnectionPool.Allocations
     {
         switch self.requests.popFirst()?.value.resume(returning: allocation)
         {
-        case nil: return false
-        case ()?: return true
+        case nil: false
+        case ()?: true
         }
     }
     mutating
@@ -334,10 +334,10 @@ extension Mongo.ConnectionPool.Allocations
         switch self.phase
         {
         case .connecting(let connector):
-            return self.reserve(connector: connector, releasing: releasing, settings: settings)
+            self.reserve(connector: connector, releasing: releasing, settings: settings)
 
         case .draining:
-            return nil
+            nil
         }
     }
     private mutating
@@ -348,11 +348,11 @@ extension Mongo.ConnectionPool.Allocations
         if  self.pending < settings.rate,
             self.expandable(releasing: releasing, settings: settings)
         {
-            return self.reserve(connector: connector)
+            self.reserve(connector: connector)
         }
         else
         {
-            return nil
+            nil
         }
     }
     private mutating

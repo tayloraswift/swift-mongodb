@@ -33,7 +33,7 @@ extension Mongo.ReadPreference.Eligibility
     {
         if let maxStaleness:Milliseconds = self.maxStaleness?.milliseconds
         {
-            return candidates.reduce(into: [:])
+            candidates.reduce(into: [:])
             {
                 $0[$1.host] = $1.metadata.staleness > maxStaleness ?
                     .stale($1.metadata.staleness) :
@@ -42,7 +42,7 @@ extension Mongo.ReadPreference.Eligibility
         }
         else
         {
-            return candidates.reduce(into: [:])
+            candidates.reduce(into: [:])
             {
                 $0[$1.host] = .tags($1.metadata.tags)
             }

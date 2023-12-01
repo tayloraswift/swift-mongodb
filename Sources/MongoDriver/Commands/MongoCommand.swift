@@ -173,7 +173,7 @@ extension MongoCommand
             switch $0
             {
             case .auto:
-                return .init(truncating: now.duration(to: deadline))
+                .init(truncating: now.duration(to: deadline))
             }
         }
 

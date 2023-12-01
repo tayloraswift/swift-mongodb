@@ -73,25 +73,25 @@ extension BSON.AnyValue
     {
         switch self
         {
-        case .document:         return .document
-        case .list:             return .list
-        case .binary:           return .binary
-        case .bool:             return .bool
-        case .decimal128:       return .decimal128
-        case .double:           return .double
-        case .id:               return .id
-        case .int32:            return .int32
-        case .int64:            return .int64
-        case .javascript:       return .javascript
-        case .javascriptScope:  return .javascriptScope
-        case .max:              return .max
-        case .millisecond:      return .millisecond
-        case .min:              return .min
-        case .null:             return .null
-        case .pointer:          return .pointer
-        case .regex:            return .regex
-        case .string:           return .string
-        case .uint64:           return .uint64
+        case .document:         .document
+        case .list:             .list
+        case .binary:           .binary
+        case .bool:             .bool
+        case .decimal128:       .decimal128
+        case .double:           .double
+        case .id:               .id
+        case .int32:            .int32
+        case .int64:            .int64
+        case .javascript:       .javascript
+        case .javascriptScope:  .javascriptScope
+        case .max:              .max
+        case .millisecond:      .millisecond
+        case .min:              .min
+        case .null:             .null
+        case .pointer:          .pointer
+        case .regex:            .regex
+        case .string:           .string
+        case .uint64:           .uint64
         }
     }
     /// The size of this variant value when encoded.
@@ -101,43 +101,43 @@ extension BSON.AnyValue
         switch self
         {
         case .document(let document):
-            return document.size
+            document.size
         case .list(let list):
-            return list.size
+            list.size
         case .binary(let binary):
-            return binary.size
+            binary.size
         case .bool:
-            return 1
+            1
         case .decimal128:
-            return 16
+            16
         case .double:
-            return 8
+            8
         case .id:
-            return 12
+            12
         case .int32:
-            return 4
+            4
         case .int64:
-            return 8
+            8
         case .javascript(let utf8):
-            return utf8.size
+            utf8.size
         case .javascriptScope(let scope, let utf8):
-            return 4 + utf8.size + scope.size
+            4 + utf8.size + scope.size
         case .max:
-            return 0
+            0
         case .millisecond:
-            return 8
+            8
         case .min:
-            return 0
+            0
         case .null:
-            return 0
+            0
         case .pointer(let database, _):
-            return 12 + database.size
+            12 + database.size
         case .regex(let regex):
-            return regex.size
+            regex.size
         case .string(let string):
-            return string.size
+            string.size
         case .uint64:
-            return 8
+            8
         }
     }
 }
@@ -175,8 +175,8 @@ extension BSON.AnyValue
     {
         switch self 
         {
-        case .bool(let bool):   return bool
-        default:                return nil 
+        case .bool(let bool):   bool
+        default:                nil 
         }
     }
     /// Attempts to load an instance of some ``FixedWidthInteger`` from this variant.
@@ -256,8 +256,8 @@ extension BSON.AnyValue
     {
         switch self 
         {
-        case .decimal128(let decimal):  return decimal
-        default:                        return nil 
+        case .decimal128(let decimal):  decimal
+        default:                        nil 
         }
     }
     /// Attempts to load an instance of ``Identifier`` from this variant.
@@ -271,11 +271,11 @@ extension BSON.AnyValue
         switch self 
         {
         case .id(let id):
-            return id
+            id
         case .pointer(_, let id):
-            return id
+            id
         default:
-            return nil 
+            nil 
         }
     }
     /// Attempts to load an instance of ``Millisecond`` from this variant.
@@ -289,9 +289,9 @@ extension BSON.AnyValue
         switch self 
         {
         case .millisecond(let millisecond):
-            return millisecond
+            millisecond
         default:
-            return nil 
+            nil 
         }
     }
     /// Attempts to load an instance of ``Regex`` from this variant.
@@ -305,9 +305,9 @@ extension BSON.AnyValue
         switch self 
         {
         case .regex(let regex):
-            return regex
+            regex
         default:
-            return nil 
+            nil 
         }
     }
     /// Attempts to load an instance of ``String`` from this variant.
@@ -338,8 +338,8 @@ extension BSON.AnyValue
     {
         switch self 
         {
-        case .null: return (nil as Never?) as Never??
-        default:    return  nil            as Never??
+        case .null: (nil as Never?) as Never??
+        default:    nil            as Never??
         }
     }
     /// Attempts to load a ``max`` key from this variant.
@@ -351,8 +351,8 @@ extension BSON.AnyValue
     {
         switch self 
         {
-        case .max:  return .init()
-        default:    return nil
+        case .max:  .init()
+        default:    nil
         }
     }
     /// Attempts to load a ``min`` key from this variant.
@@ -364,8 +364,8 @@ extension BSON.AnyValue
     {
         switch self 
         {
-        case .min:  return .init()
-        default:    return nil
+        case .min:  .init()
+        default:    nil
         }
     }
 }
@@ -383,9 +383,9 @@ extension BSON.AnyValue
         switch self 
         {
         case .binary(let binary):
-            return binary
+            binary
         default:
-            return nil 
+            nil 
         }
     }
     /// Attempts to unwrap a document from this variant.
@@ -404,11 +404,11 @@ extension BSON.AnyValue
         switch self 
         {
         case .document(let document):
-            return document
+            document
         case .list(let list):
-            return list.document
+            list.document
         default:
-            return nil 
+            nil 
         }
     }
     /// Attempts to unwrap a list from this variant.
@@ -423,8 +423,8 @@ extension BSON.AnyValue
     {
         switch self 
         {
-        case .list(let list):   return list
-        default:                return nil
+        case .list(let list):   list
+        default:                nil
         }
     }
     /// Attempts to unwrap an instance of ``UTF8View`` from this variant. Its UTF-8
@@ -441,9 +441,9 @@ extension BSON.AnyValue
     {
         switch self 
         {
-        case .javascript(let code): return code
-        case .string(let code):     return code
-        default:                    return nil
+        case .javascript(let code): code
+        case .string(let code):     code
+        default:                    nil
         }
     }
 }

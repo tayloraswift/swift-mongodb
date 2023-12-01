@@ -14,8 +14,8 @@ extension Mongo.Accumulator.SuperlativeSort
     {
         switch self
         {
-        case .bottom:   return "$bottomN"
-        case .top:      return "$topN"
+        case .bottom:   "$bottomN"
+        case .top:      "$topN"
         }
     }
 }

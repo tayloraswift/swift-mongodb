@@ -48,11 +48,11 @@ extension Mongo.Timestamp:BSONDecodable
         {
             if case .uint64(let value) = $0
             {
-                return value
+                value
             }
             else
             {
-                return nil
+                nil
             }
         })
     }

@@ -72,10 +72,10 @@ extension Mongo.CursorIterator
         switch self.lifecycle
         {
         case .iterable(let timeout):
-            return .now.advanced(by: .milliseconds(timeout ?? self.timeout))
+            .now.advanced(by: .milliseconds(timeout ?? self.timeout))
 
         case .expires(let deadline):
-            return deadline
+            deadline
         }
     }
 }

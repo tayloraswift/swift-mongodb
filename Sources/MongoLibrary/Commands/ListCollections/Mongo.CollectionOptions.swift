@@ -42,11 +42,11 @@ extension Mongo.CollectionOptions
     {
         if case _? = self.variant.cap
         {
-            return true
+            true
         }
         else
         {
-            return false
+            false
         }
     }
     @inlinable public
@@ -65,9 +65,9 @@ extension Mongo.CollectionOptions
         switch self.variant
         {
         case .collection(cap: _, validationAction: let action, validationLevel: _, validator: _):
-            return action
+            action
         default:
-            return nil
+            nil
         }
     }
     @inlinable public
@@ -76,9 +76,9 @@ extension Mongo.CollectionOptions
         switch self.variant
         {
         case .collection(cap: _, validationAction: _, validationLevel: let level, validator: _):
-            return level
+            level
         default:
-            return nil
+            nil
         }
     }
     @inlinable public

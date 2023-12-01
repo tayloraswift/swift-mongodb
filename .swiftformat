@@ -1,3 +1,4 @@
---rules braces,redundantSelf
+--rules braces,redundantSelf,duplicateImports,linebreakAtEndOfFile,redundantReturn
+--swiftversion 5.9.1
 --allman true
 --self insert

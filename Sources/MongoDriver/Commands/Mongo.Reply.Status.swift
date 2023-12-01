@@ -39,11 +39,11 @@ extension Mongo.Reply.Status:BSONDecodable
             switch $0
             {
             case .bool(true), .int32(1), .int64(1), .double(1.0):
-                return true
+                true
             case .bool(false), .int32(0), .int64(0), .double(0.0):
-                return false
+                false
             default:
-                return nil
+                nil
             }
         })
     }

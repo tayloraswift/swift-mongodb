@@ -5,6 +5,6 @@ extension Mongo.Expression?
     @inlinable public static
     func expr(with populate:(inout Mongo.Expression) throws -> ()) rethrows -> Self
     {
-        return .some(try .expr(with: populate))
+        .some(try .expr(with: populate))
     }
 }

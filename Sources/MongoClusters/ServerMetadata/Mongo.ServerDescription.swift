@@ -18,11 +18,11 @@ extension Mongo.ServerDescription
     {
         if case .connected(let metadata, _) = self
         {
-            return metadata
+            metadata
         }
         else
         {
-            return nil
+            nil
         }
     }
     @inlinable public
@@ -30,11 +30,11 @@ extension Mongo.ServerDescription
     {
         if case .connected(_, let owner) = self
         {
-            return owner
+            owner
         }
         else
         {
-            return nil
+            nil
         }
     }
     /// Returns the stored error, if this descriptor currently has one.
@@ -43,11 +43,11 @@ extension Mongo.ServerDescription
     {
         if case .errored(let error) = self
         {
-            return error
+            error
         }
         else
         {
-            return nil
+            nil
         }
     }
 }

@@ -40,6 +40,6 @@ extension Mongo.Replica.SecondaryBaseline
         //  we get rid of the “update” terms.
         //
         //      (0 - candidate.write) - (0 - self.write)
-        return .init(rawValue: self.write.value - candidate.write.value)
+        .init(rawValue: self.write.value - candidate.write.value)
     }
 }

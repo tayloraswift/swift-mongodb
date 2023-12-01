@@ -81,11 +81,11 @@ extension Mongo.ReadPreference
     {
         switch self
         {
-        case .secondary:            return .secondary
-        case .secondaryPreferred:   return .secondaryPreferred
-        case .nearest:              return .nearest
-        case .primaryPreferred:     return .primaryPreferred
-        case .primary:              return .primary
+        case .secondary:            .secondary
+        case .secondaryPreferred:   .secondaryPreferred
+        case .nearest:              .nearest
+        case .primaryPreferred:     .primaryPreferred
+        case .primary:              .primary
         }
     }
     var eligibility:Eligibility?
@@ -96,9 +96,9 @@ extension Mongo.ReadPreference
                 .secondaryPreferred (let eligibility, hedge: _),
                 .nearest            (let eligibility, hedge: _),
                 .primaryPreferred   (let eligibility, hedge: _):
-            return eligibility
+            eligibility
         case _:
-            return nil
+            nil
         }
     }
     var maxStaleness:Seconds?
@@ -117,9 +117,9 @@ extension Mongo.ReadPreference
                 .secondaryPreferred (_, hedge: let hedging),
                 .nearest            (_, hedge: let hedging),
                 .primaryPreferred   (_, hedge: let hedging):
-            return hedging
+            hedging
         case _:
-            return nil
+            nil
         }
     }
 }

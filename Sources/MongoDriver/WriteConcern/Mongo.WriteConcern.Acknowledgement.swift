@@ -19,7 +19,7 @@ extension Mongo.WriteConcern.Acknowledgement
     {
         if 0 < votes
         {
-            return .votes(votes)
+            .votes(votes)
         }
         else
         {

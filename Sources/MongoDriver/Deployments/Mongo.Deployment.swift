@@ -189,11 +189,11 @@ extension Mongo.Deployment
     {
         if  let capabilities:Mongo.DeploymentCapabilities = self.capabilities
         {
-            return capabilities
+            capabilities
         }
         else
         {
-            return try await self.capabilities(by: deadline).get()
+            try await self.capabilities(by: deadline).get()
         }
     }
     private

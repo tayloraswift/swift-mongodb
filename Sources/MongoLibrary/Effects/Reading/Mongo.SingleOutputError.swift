@@ -17,9 +17,9 @@ extension Mongo.SingleOutputError:CustomStringConvertible
         switch self
         {
         case .cursor(let cursor):
-            return "single-output command returned additional batches (with cursor '\(cursor)')"
+            "single-output command returned additional batches (with cursor '\(cursor)')"
         case .count(let count):
-            return "single-output command returned \(count) elements"
+            "single-output command returned \(count) elements"
         }
     }
 }

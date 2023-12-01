@@ -31,8 +31,8 @@ extension Mongo.Reply
     {
         switch self.result
         {
-        case .success: return true
-        case .failure: return false
+        case .success: true
+        case .failure: false
         }
     }
 

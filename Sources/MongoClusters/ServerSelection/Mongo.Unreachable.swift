@@ -18,11 +18,11 @@ extension Mongo.Unreachable:Equatable
         switch (lhs, rhs)
         {
         case (.queued, .queued):
-            return true
+            true
         case (.errored(let lhs), .errored(let rhs)):
-            return lhs == rhs
+            lhs == rhs
         case (_, _):
-            return false
+            false
         }
     }
 }

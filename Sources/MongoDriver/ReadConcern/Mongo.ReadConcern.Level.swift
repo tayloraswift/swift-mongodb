@@ -17,9 +17,9 @@ extension Mongo.ReadConcern.Level:CustomStringConvertible
         switch self
         {
         case .snapshot:
-            return "snapshot"
+            "snapshot"
         case .ratification(let level):
-            return level.rawValue
+            level.rawValue
         }
     }
 }

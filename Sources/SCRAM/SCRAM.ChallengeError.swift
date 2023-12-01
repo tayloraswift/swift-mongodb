@@ -15,10 +15,10 @@ extension SCRAM.ChallengeError:CustomStringConvertible
         switch self
         {
         case .attribute(missing: let attribute):
-            return "missing expected attribute '\(attribute)'"
+            "missing expected attribute '\(attribute)'"
         
         case .nonce(let received, sent: let sent):
-            return "received nonce '\(received)' is inconsistent with sent nonce '\(sent)'"
+            "received nonce '\(received)' is inconsistent with sent nonce '\(sent)'"
         }
     }
 }
