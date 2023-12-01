@@ -67,29 +67,20 @@ extension Mongo.Reply
 
         let message:String = try bson["errmsg"]?.decode(to: String.self) ?? ""
 
-        guard
-        let code:Int32 = try bson["code"]?.decode()
-        else
-        {
-            self.init(result: .failure(Mongo.ReplyError.uncoded(message: message)),
-                operationTime: operationTime,
-                clusterTime: clusterTime)
-            return
-        }
-
-        if  code == 26
-        {
-            self.init(result: .failure(Mongo.NamespaceError.init()),
-                operationTime: operationTime,
-                clusterTime: clusterTime)
-        }
-        else
+        if  let code:Int32 = try bson["code"]?.decode()
         {
             self.init(result: .failure(Mongo.ServerError.init(
                         Mongo.ServerError.Code.init(rawValue: code),
                         message: message)),
                 operationTime: operationTime,
                 clusterTime: clusterTime)
+        }
+        else
+        {
+            self.init(result: .failure(Mongo.ReplyError.uncoded(message: message)),
+                operationTime: operationTime,
+                clusterTime: clusterTime)
+            return
         }
     }
 }
