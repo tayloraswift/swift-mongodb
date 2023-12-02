@@ -1,6 +1,4 @@
 import BSON
-import BSONDecoding
-import BSONEncoding
 
 extension Mongo.WriteConcern
 {
@@ -36,7 +34,7 @@ extension Mongo.WriteConcern.Acknowledgement:BSONEncodable
         {
         case .mode(let mode):
             mode.encode(to: &field)
-        
+
         case .votes(let votes):
             votes.encode(to: &field)
         }

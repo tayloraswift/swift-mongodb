@@ -15,7 +15,7 @@ extension BSON
         }
     }
 }
-extension BSON.ListDecoder:BSONDecoder
+extension BSON.ListDecoder:BSON.Decoder
 {
     /// Attempts to unwrap and parse an array-decoder from the given variant.
     ///
@@ -70,7 +70,7 @@ extension BSON.ListDecoder:RandomAccessCollection
         self.elements.endIndex
     }
     @inlinable public
-    subscript(index:Int) -> BSON.ExplicitField<Int, Bytes>
+    subscript(index:Int) -> BSON.FieldDecoder<Int, Bytes>
     {
         .init(key: index, value: self.elements[index])
     }

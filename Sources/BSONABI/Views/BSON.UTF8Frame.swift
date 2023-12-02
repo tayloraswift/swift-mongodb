@@ -1,10 +1,8 @@
-import BSONTraversal
-
 extension BSON
 {
     /// Specifies the interpretation of a length header attached to UTF-8 ``string``.
     @frozen public
-    enum UTF8Frame:VariableLengthBSONFrame
+    enum UTF8Frame:FrameType
     {
         /// A UTF-8 string’s length header does not count its own length.
         @inlinable public static

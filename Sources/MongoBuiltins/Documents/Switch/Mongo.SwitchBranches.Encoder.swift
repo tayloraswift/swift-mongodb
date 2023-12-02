@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo.SwitchBranches
 {
@@ -15,7 +15,7 @@ extension Mongo.SwitchBranches
         }
     }
 }
-extension Mongo.SwitchBranches.Encoder:BSONEncoder
+extension Mongo.SwitchBranches.Encoder:BSON.Encoder
 {
     @inlinable public
     init(_ output:consuming BSON.Output<[UInt8]>)

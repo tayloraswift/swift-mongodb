@@ -1,12 +1,12 @@
 public
-protocol BSONBuilder<CodingKey>
+protocol _BSONBuilder<CodingKey>
 {
     associatedtype CodingKey
 
     mutating
     func append(_ key:CodingKey, with encode:(inout BSON.Field) -> ())
 }
-extension BSONBuilder
+extension _BSONBuilder
 {
     @inlinable public mutating
     func append(_ key:CodingKey, _ value:some BSONEncodable)
@@ -28,7 +28,7 @@ extension BSONBuilder
         self.push(key, value as _?)
     }
 }
-extension BSONBuilder
+extension _BSONBuilder
 {
     @inlinable public
     subscript(key:CodingKey, with encode:(inout BSON.ListEncoder) -> ()) -> Void
@@ -59,7 +59,7 @@ extension BSONBuilder
     }
 }
 
-extension BSONBuilder
+extension _BSONBuilder
 {
     /// Appends the given key-value pair to this document builder, encoding the
     /// value as the field value using its ``BSONEncodable`` implementation.

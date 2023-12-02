@@ -13,7 +13,7 @@ extension BSON
         }
     }
 }
-extension BSON.DocumentEncoder:BSONEncoder
+extension BSON.DocumentEncoder:BSON.Encoder
 {
     @inlinable public consuming
     func move() -> BSON.Output<[UInt8]> { self.output }
@@ -21,7 +21,7 @@ extension BSON.DocumentEncoder:BSONEncoder
     @inlinable public static
     var type:BSON.AnyType { .document }
 }
-extension BSON.DocumentEncoder:BSONBuilder
+extension BSON.DocumentEncoder:_BSONBuilder
 {
     @inlinable public mutating
     func append(_ key:CodingKey, with encode:(inout BSON.Field) -> ())

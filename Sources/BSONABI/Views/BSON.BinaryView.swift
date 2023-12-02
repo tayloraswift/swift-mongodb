@@ -1,5 +1,3 @@
-import BSONTraversal
-
 extension BSON
 {
     /// A BSON binary array.
@@ -8,7 +6,7 @@ extension BSON
     {
         /// The contents of this binary array. This collection does *not*
         /// include the leading subtype byte.
-        public 
+        public
         let slice:Bytes
         /// The subtype of this binary array.
         public
@@ -36,11 +34,11 @@ extension BSON.BinaryView:Equatable
 extension BSON.BinaryView:Sendable where Bytes:Sendable
 {
 }
-extension BSON.BinaryView:VariableLengthBSON where Bytes.SubSequence == Bytes
+extension BSON.BinaryView:BSON.FrameTraversable where Bytes.SubSequence == Bytes
 {
     public
     typealias Frame = BSON.BinaryFrame
-    
+
     /// Removes the first element of the argument, attempts to cast it to a
     /// ``BinarySubtype``, and stores the remainder in ``slice``.
     ///
@@ -79,7 +77,10 @@ extension BSON.BinaryView:VariableLengthBSON where Bytes.SubSequence == Bytes
         }
     }
 }
-extension BSON.BinaryView:BSONView
+extension BSON.BinaryView:BSON.FrameView where Bytes.SubSequence == Bytes
+{
+}
+extension BSON.BinaryView
 {
     @inlinable public
     init(_ value:BSON.AnyValue<Bytes>) throws

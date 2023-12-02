@@ -1,5 +1,3 @@
-import BSONTypes
-
 extension BSON.InputError
 {
     @frozen public

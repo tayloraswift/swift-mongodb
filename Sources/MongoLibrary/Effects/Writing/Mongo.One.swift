@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 import MongoDriver
 
 extension Mongo

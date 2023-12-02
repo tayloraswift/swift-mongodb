@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 import Durations
 
 extension Mongo
@@ -142,20 +142,20 @@ extension Mongo.ReadPreference
         {
         case .none(let unreachable):
             return .init(unreachable: unreachable)
-        
+
         case .single(let standalone):
             switch self
             {
             case .primary, .primaryPreferred, .nearest, .secondaryPreferred:
                 return .init()
-            
+
             case .secondary:
                 return .init(undesirable: [standalone.server.host: .standalone])
             }
-        
+
         case .sharded(let routers):
             return .init(unreachable: routers.unreachables)
-        
+
         case .replicated(let members):
             let undesirable:[Mongo.Host: Mongo.Undesirable]
             let unsuitable:[Mongo.Host: Mongo.Unsuitable]
@@ -168,12 +168,12 @@ extension Mongo.ReadPreference
                     $0[$1.host] = .secondary
                 }
                 unsuitable = [:]
-            
+
             case    .primaryPreferred   (let eligibility, hedge: _),
                     .secondaryPreferred (let eligibility, hedge: _):
                 undesirable = members.undesirables
                 unsuitable = eligibility.diagnose(unsuitable: members.candidates.secondaries)
-                
+
             case    .secondary          (let eligibility, hedge: _):
                 var undesirables:[Mongo.Host: Mongo.Undesirable] = members.undesirables
                 if  let primary:Mongo.Host = members.candidates.primary?.host
@@ -182,7 +182,7 @@ extension Mongo.ReadPreference
                 }
                 undesirable = undesirables
                 unsuitable = eligibility.diagnose(unsuitable: members.candidates.secondaries)
-            
+
             case    .nearest            (let eligibility, hedge: _):
                 undesirable = members.undesirables
                 unsuitable = eligibility.diagnose(unsuitable: members.candidates.replicas)

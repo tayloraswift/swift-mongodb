@@ -1,6 +1,3 @@
-import BSONTraversal
-import BSONTypes
-
 extension BSON
 {
     /// A type for managing BSON parsing state. Most users of this module
@@ -153,7 +150,7 @@ extension BSON.Input
 
     @inlinable public mutating
     func parse<Frame>(_:Frame.Type) throws -> Source.SubSequence
-        where Frame:VariableLengthBSONFrame
+        where Frame:BSON.FrameType
     {
         let header:Int = .init(try self.parse(as: Int32.self))
         let stride:Int = header + Frame.skipped
@@ -179,7 +176,7 @@ extension BSON.Input
     /// which allows decoders to skip over regions of a BSON document.
     @inlinable public mutating
     func parse<View>(as _:View.Type = View.self) throws -> View
-        where View:VariableLengthBSON<Source.SubSequence>
+        where View:BSON.FrameTraversable<Source.SubSequence>
     {
         try .init(slicing: try self.parse(View.Frame.self))
     }

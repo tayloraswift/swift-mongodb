@@ -1,5 +1,5 @@
+import BSON
 import BSON_UUID
-import BSONDecoding
 import UUID
 
 extension Mongo.CollectionMetadata

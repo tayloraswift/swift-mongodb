@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 //  This must be an extension on ``Optional`` and not ``BSONEncodable``
 //  because SE-299 does not support protocol extension member lookup with

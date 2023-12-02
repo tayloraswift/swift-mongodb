@@ -1,6 +1,4 @@
 import BSON
-import BSONDecoding
-import BSONEncoding
 import MongoSchema
 
 extension Mongo

@@ -1,5 +1,5 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
+
 extension Delete
 {
     struct Cake:Equatable, Hashable, BSONDocumentDecodable, BSONDocumentEncodable

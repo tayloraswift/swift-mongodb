@@ -1,6 +1,13 @@
-/// A type that represents a scope for decoding operations.
+extension BSON
+{
+    /// A type that represents a scope for decoding operations.
+    public
+    typealias TraceableDecoder = _BSONTraceableDecoder
+}
+
+/// The name of this protocol is ``BSON.TracingDecoder``.
 public
-protocol BSONScope<Bytes>
+protocol _BSONTraceableDecoder<Bytes>
 {
     associatedtype Bytes:RandomAccessCollection<UInt8>
 
@@ -9,7 +16,8 @@ protocol BSONScope<Bytes>
     /// should annotate the error with appropriate context and re-throw it.
     func decode<T>(with decode:(BSON.AnyValue<Bytes>) throws -> T) throws -> T
 }
-extension BSONScope
+
+extension BSON.TraceableDecoder
 {
     @inlinable public
     func decode<CodingKey, T>(using _:CodingKey.Type = CodingKey.self,
@@ -31,7 +39,7 @@ extension BSONScope
     //  We should probably replace this with a dedicated API for binary subschema.
     @inlinable public
     func decode<View, T>(as _:View.Type,
-        with decode:(View) throws -> T) throws -> T where View:BSONView<Bytes>
+        with decode:(View) throws -> T) throws -> T where View:BSON.FrameView<Bytes>
     {
         try self.decode { try decode(try .init($0)) }
     }

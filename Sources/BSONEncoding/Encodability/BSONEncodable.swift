@@ -1,3 +1,5 @@
+import BSONABI
+
 /// A type that can be encoded to a BSON variant value.
 public
 protocol BSONEncodable

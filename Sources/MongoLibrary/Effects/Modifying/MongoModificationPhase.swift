@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 public
 protocol MongoModificationPhase:BSONEncodable

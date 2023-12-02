@@ -1,4 +1,4 @@
-import BSONDecoding
+import BSON
 import BSONReflection
 import NIOCore
 
@@ -27,7 +27,7 @@ extension Mongo.ExplainOnly:MongoReadEffect
     {
         var output:String = ""
         let indent:BSON.Indent = "    " + 1
-        for field:BSON.ExplicitField<BSON.Key, ByteBufferView> in
+        for field:BSON.FieldDecoder<BSON.Key, ByteBufferView> in
             reply.sorted(by: { $0.key < $1.key })
         {
             switch field.key

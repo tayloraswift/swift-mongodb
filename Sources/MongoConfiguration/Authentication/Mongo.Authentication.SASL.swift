@@ -1,12 +1,11 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 import Mongo
 
 extension Mongo.Authentication
 {
     /// A namespace for SASL (Simple Authentication and Security Layer) types.
     @frozen public
-    enum SASL:String, Hashable, Sendable 
+    enum SASL:String, Hashable, Sendable
     {
         case aws        = "MONGODB-AWS"
         case gssapi     = "GSSAPI"

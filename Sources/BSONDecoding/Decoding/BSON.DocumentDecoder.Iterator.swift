@@ -16,7 +16,7 @@ extension BSON.DocumentDecoder
 extension BSON.DocumentDecoder.Iterator:IteratorProtocol
 {
     @inlinable public mutating
-    func next() -> BSON.ExplicitField<CodingKey, Storage.SubSequence>?
+    func next() -> BSON.FieldDecoder<CodingKey, Storage.SubSequence>?
     {
         self.base.next().map { .init(key: $0.key, value: $0.value) }
     }

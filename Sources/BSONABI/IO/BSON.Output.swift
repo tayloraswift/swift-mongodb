@@ -1,6 +1,3 @@
-import BSONTraversal
-import BSONTypes
-
 extension BSON
 {
     @frozen public
@@ -213,7 +210,7 @@ extension BSON.Output<[UInt8]>
     /// -   See also: ``subscript(as:)``.
     @inlinable public
     subscript<Encoder>(as _:Encoder.Type, in frame:BSON.DocumentFrame.Type) -> Encoder
-        where Encoder:BSONEncoder
+        where Encoder:BSON.Encoder
     {
         get
         {
@@ -230,7 +227,7 @@ extension BSON.Output<[UInt8]>
     ///
     /// -   See also: ``subscript(with:)``.
     @inlinable public
-    subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSONEncoder
+    subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSON.Encoder
     {
         _read
         {
@@ -260,7 +257,7 @@ extension BSON.Output<[UInt8]>
         }
     }
     @inlinable internal
-    subscript(in frame:(some VariableLengthBSONFrame).Type) -> Self
+    subscript(in frame:(some BSON.FrameType).Type) -> Self
     {
         get
         {

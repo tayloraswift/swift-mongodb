@@ -1,5 +1,3 @@
-import BSONTypes
-
 extension BSON
 {
     /// The `Document` type models the “universal” BSON DSL.

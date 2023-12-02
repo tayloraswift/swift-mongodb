@@ -1,4 +1,77 @@
-import BSONTypes
+extension BSON
+{
+    /// A BSON document. The backing storage of this type is opaque,
+    /// permitting lazy parsing of its inline content.
+    @frozen public
+    struct DocumentView<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    {
+        /// The raw data backing this document. This collection *does not*
+        /// include the trailing null byte that typically appears after its
+        /// inline field list.
+        public
+        let slice:Bytes
+
+        /// Stores the argument in ``slice`` unchanged.
+        ///
+        /// >   Complexity: O(1)
+        @inlinable public
+        init(slice:Bytes)
+        {
+            self.slice = slice
+        }
+    }
+}
+extension BSON.DocumentView:Equatable
+{
+    /// Performs an exact byte-wise comparison on two lists.
+    /// Does not parse or validate the operands.
+    @inlinable public static
+    func == (lhs:Self, rhs:BSON.DocumentView<some RandomAccessCollection<UInt8>>) -> Bool
+    {
+        lhs.slice.elementsEqual(rhs.slice)
+    }
+}
+extension BSON.DocumentView:Sendable where Bytes:Sendable
+{
+}
+extension BSON.DocumentView:BSON.FrameTraversable
+{
+    public
+    typealias Frame = BSON.DocumentFrame
+
+    /// Stores the argument in ``slice`` unchanged. Equivalent to ``init(slice:)``.
+    ///
+    /// >   Complexity: O(1)
+    @inlinable public
+    init(slicing bytes:Bytes)
+    {
+        self.init(slice: bytes)
+    }
+}
+extension BSON.DocumentView:BSON.FrameView
+{
+    @inlinable public
+    init(_ value:BSON.AnyValue<Bytes>) throws
+    {
+        self = try value.cast(with: \.document)
+    }
+}
+extension BSON.DocumentView
+{
+    /// Indicates if this document contains no fields.
+    @inlinable public
+    var isEmpty:Bool { self.slice.isEmpty }
+
+    /// The length that would be encoded in this document’s prefixed header.
+    /// Equal to ``size``.
+    @inlinable public
+    var header:Int32 { .init(self.size) }
+
+    /// The size of this document when encoded with its header and trailing
+    /// null byte. This *is* the same as the length encoded in the header itself.
+    @inlinable public
+    var size:Int { 5 + self.slice.count }
+}
 
 extension BSON.DocumentView<[UInt8]>
 {
@@ -12,6 +85,7 @@ extension BSON.DocumentView<[UInt8]>
         self.init(slice: document.bytes)
     }
 }
+
 extension BSON.DocumentView
 {
     /// Parses this document into key-value pairs in order, yielding each key-value
@@ -25,7 +99,7 @@ extension BSON.DocumentView
     ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
     func parse<CodingKey>(
-        to decode:(_ key:CodingKey, _ value:BSON.AnyValue<Bytes.SubSequence>) throws -> ()) throws
+        to decode:(CodingKey, BSON.AnyValue<Bytes.SubSequence>) throws -> ()) throws
         where CodingKey:RawRepresentable<String>
     {
         var input:BSON.Input<Bytes> = .init(self.slice)
@@ -72,14 +146,19 @@ extension BSON.DocumentView:ExpressibleByDictionaryLiteral
     /// the list of fields in order to encode the output without reallocations.
     /// The order of the fields will be preserved.
     @inlinable public
-    init(fields:some Collection<(key:BSON.Key, value:BSON.AnyValue<some RandomAccessCollection<UInt8>>)>)
+    init(fields:some Collection<
+        (
+            key:BSON.Key,
+            value:BSON.AnyValue<some RandomAccessCollection<UInt8>>
+        )>)
     {
         let size:Int = fields.reduce(0) { $0 + 2 + $1.key.rawValue.utf8.count + $1.value.size }
         var output:BSON.Output<Bytes> = .init(capacity: size)
             output.serialize(fields: fields)
 
-        assert(output.destination.count == size,
-            "precomputed size (\(size)) does not match output size (\(output.destination.count))")
+        assert(output.destination.count == size, """
+            precomputed size (\(size)) does not match output size (\(output.destination.count))
+            """)
 
         self.init(slice: output.destination)
     }
@@ -89,8 +168,8 @@ extension BSON.DocumentView:ExpressibleByDictionaryLiteral
     init<Other>(key:BSON.Key, value:BSON.AnyValue<Other>)
         where Other:RandomAccessCollection<UInt8>
     {
-        self.init(
-            fields: CollectionOfOne<(key:BSON.Key, value:BSON.AnyValue<Other>)>.init((key, value)))
+        self.init(fields:
+            CollectionOfOne<(key:BSON.Key, value:BSON.AnyValue<Other>)>.init((key, value)))
     }
 
     @inlinable public

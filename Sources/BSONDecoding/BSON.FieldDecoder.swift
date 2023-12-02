@@ -1,7 +1,13 @@
 extension BSON
 {
+    @available(*, deprecated, renamed: "FieldDecoder")
+    public
+    typealias ExplicitField = FieldDecoder
+}
+extension BSON
+{
     @frozen public
-    struct ExplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>, Key:Sendable
+    struct FieldDecoder<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>, Key:Sendable
     {
         public
         let key:Key
@@ -16,7 +22,7 @@ extension BSON
         }
     }
 }
-extension BSON.ExplicitField:BSONScope
+extension BSON.FieldDecoder:BSON.TraceableDecoder
 {
     /// Decodes the value of this field with the given decoder.
     /// Throws a ``BSON/DecodingError`` wrapping the underlying

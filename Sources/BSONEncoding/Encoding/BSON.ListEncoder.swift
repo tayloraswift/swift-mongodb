@@ -22,7 +22,7 @@ extension BSON
         }
     }
 }
-extension BSON.ListEncoder:BSONEncoder
+extension BSON.ListEncoder:BSON.Encoder
 {
     @inlinable public consuming
     func move() -> BSON.Output<[UInt8]> { self.output }

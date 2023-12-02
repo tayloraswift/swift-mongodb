@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 /// A `MongoListDSL` is nothing more than a type that supports an
 /// ``init(with:)`` builder API.
@@ -9,7 +8,7 @@ import BSONEncoding
 public
 protocol MongoListDSL:BSONRepresentable<BSON.List>, BSONDecodable, BSONEncodable
 {
-    associatedtype Encoder:BSONEncoder
+    associatedtype Encoder:BSON.Encoder
 }
 extension MongoListDSL
 {

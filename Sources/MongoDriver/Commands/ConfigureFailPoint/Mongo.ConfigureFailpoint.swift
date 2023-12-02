@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 import MongoClusters
 import MongoSchema
 

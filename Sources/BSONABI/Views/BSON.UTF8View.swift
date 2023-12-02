@@ -1,5 +1,3 @@
-import BSONTraversal
-
 extension BSON
 {
     /// A BSON UTF-8 string. This string is allowed to contain null bytes.
@@ -17,7 +15,7 @@ extension BSON
         /// The UTF-8 code units backing this string. This collection does *not*
         /// include the trailing null byte that typically appears when this value
         /// occurs inline in a document.
-        public 
+        public
         let slice:Bytes
 
         @inlinable public
@@ -45,7 +43,7 @@ extension BSON.UTF8View where Bytes:RangeReplaceableCollection
     }
 }
 extension BSON.UTF8View<String.UTF8View>:ExpressibleByStringLiteral,
-    ExpressibleByExtendedGraphemeClusterLiteral, 
+    ExpressibleByExtendedGraphemeClusterLiteral,
     ExpressibleByUnicodeScalarLiteral
 {
     @inlinable public
@@ -119,7 +117,7 @@ extension BSON.UTF8View:CustomStringConvertible
         .init(bson: self)
     }
 }
-extension BSON.UTF8View:VariableLengthBSON where Bytes:RandomAccessCollection<UInt8>
+extension BSON.UTF8View:BSON.FrameTraversable where Bytes:RandomAccessCollection<UInt8>
 {
     public
     typealias Frame = BSON.UTF8Frame
@@ -133,7 +131,7 @@ extension BSON.UTF8View:VariableLengthBSON where Bytes:RandomAccessCollection<UI
         self.init(slice: bytes)
     }
 }
-extension BSON.UTF8View:BSONView where Bytes:RandomAccessCollection<UInt8>
+extension BSON.UTF8View:BSON.FrameView where Bytes:RandomAccessCollection<UInt8>
 {
     @inlinable public
     init(_ value:BSON.AnyValue<Bytes>) throws

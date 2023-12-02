@@ -1,14 +1,12 @@
-import BSONTraversal
-
 extension BSON
 {
-    public
-    struct HeaderError<Frame>:Equatable, Error where Frame:VariableLengthBSONFrame
+    @frozen public
+    struct HeaderError<Frame>:Equatable, Error where Frame:FrameType
     {
         public
         let length:Int
 
-        public
+        @inlinable public
         init(length:Int)
         {
             self.length = length

@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo
 {
@@ -15,7 +15,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateListEncoder:BSONEncoder
+extension Mongo.PredicateListEncoder:BSON.Encoder
 {
     @inlinable public
     init(_ output:consuming BSON.Output<[UInt8]>)

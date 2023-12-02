@@ -1,11 +1,9 @@
-import BSONTraversal
-
 extension BSON
 {
     /// Specifies the interpretation of a length header attached to a ``binary``
     /// array.
     @frozen public
-    enum BinaryFrame:VariableLengthBSONFrame
+    enum BinaryFrame:FrameType
     {
         /// A binary array header starts its count after skipping the interceding
         /// subtype byte.

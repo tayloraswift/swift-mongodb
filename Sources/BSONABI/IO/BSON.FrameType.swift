@@ -1,8 +1,15 @@
-/// A type that specifies the layout of a variable-length BSON view.
-/// Parsers use conforming types to decide how to interpret BSON
-/// length headers read from input data.
+extension BSON
+{
+    /// A type that specifies the layout of a variable-length BSON view.
+    /// Parsers use conforming types to decide how to interpret BSON
+    /// length headers read from input data.
+    public
+    typealias FrameType = _BSONFrameType
+}
+
+/// The name of this protocol is ``BSON.FrameType``.
 public
-protocol VariableLengthBSONFrame
+protocol _BSONFrameType
 {
     /// The number of (conceptual) bytes in the frame prefix of the type
     /// this frame type is associated with.
@@ -16,12 +23,13 @@ protocol VariableLengthBSONFrame
     static
     var trailer:UInt8? { get }
 }
-extension VariableLengthBSONFrame
+
+extension BSON.FrameType
 {
     /// The number of (conceptual) bytes in the frame suffix of the type
     /// this frame type is associated with. This is 0 if ``trailer`` is
     /// nil, and 1 otherwise.
-    @inlinable public static
+    @inlinable internal static
     var suffix:Int
     {
         switch self.trailer

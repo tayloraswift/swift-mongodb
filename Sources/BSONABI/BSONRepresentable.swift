@@ -1,5 +1,3 @@
-import BSONTypes
-
 public
 protocol BSONRepresentable<BSONRepresentation>
 {

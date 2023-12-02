@@ -1,11 +1,17 @@
 extension BSON
 {
+    @available(*, deprecated, renamed: "OptionalDecoder")
+    public
+    typealias ImplicitField = OptionalDecoder
+}
+extension BSON
+{
     /// A field that may or may not exist in a document. This type is
     /// the return value of ``Dictionary``’s non-optional subscript, and
     /// is useful for obtaining structured diagnostics for “key-not-found”
     /// scenarios.
     @frozen public
-    struct ImplicitField<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>, Key:Sendable
+    struct OptionalDecoder<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>, Key:Sendable
     {
         public
         let key:Key
@@ -20,7 +26,7 @@ extension BSON
         }
     }
 }
-extension BSON.ImplicitField
+extension BSON.OptionalDecoder
 {
     @inlinable public static
     func ?? (lhs:Self, rhs:@autoclosure () -> Self) -> Self
@@ -35,7 +41,7 @@ extension BSON.ImplicitField
         }
     }
 }
-extension BSON.ImplicitField
+extension BSON.OptionalDecoder
 {
     /// Gets the value of this key, throwing a ``BSON.DocumentKeyError``
     /// if it is [`nil`](). This is a distinct condition from an explicit
@@ -53,7 +59,7 @@ extension BSON.ImplicitField
         }
     }
 }
-extension BSON.ImplicitField:BSONScope
+extension BSON.OptionalDecoder:BSON.TraceableDecoder
 {
     /// Decodes the value of this implicit field with the given decoder, throwing a
     /// ``BSON.DocumentKeyError`` if it does not exist. Throws a

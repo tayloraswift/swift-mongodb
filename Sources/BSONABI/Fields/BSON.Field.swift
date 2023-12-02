@@ -1,6 +1,3 @@
-import BSONTraversal
-import BSONTypes
-
 extension BSON
 {
     /// A type that can serialize any BSON container element.
@@ -150,7 +147,7 @@ extension BSON.Field
     /// newly-written bytes with the appropriate headers or trailers, if performing a
     /// mutation. The getter has no effect.
     @inlinable public
-    subscript<Encoder>(as _:Encoder.Type = Encoder.self) -> Encoder where Encoder:BSONEncoder
+    subscript<Encoder>(as _:Encoder.Type = Encoder.self) -> Encoder where Encoder:BSON.Encoder
     {
         get
         {

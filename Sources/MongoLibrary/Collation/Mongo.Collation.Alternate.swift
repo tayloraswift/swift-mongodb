@@ -1,9 +1,8 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 extension Mongo.Collation
 {
-    @frozen public 
+    @frozen public
     enum Alternate:String, Sendable
     {
         /// Whitespace and punctuation are considered base characters.

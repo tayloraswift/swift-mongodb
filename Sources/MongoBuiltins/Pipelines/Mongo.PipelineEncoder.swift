@@ -1,6 +1,4 @@
 import BSON
-import BSONDecoding
-import BSONEncoding
 import MongoSchema
 
 extension Mongo
@@ -18,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PipelineEncoder:BSONEncoder
+extension Mongo.PipelineEncoder:BSON.Encoder
 {
     @inlinable public
     init(_ output:consuming BSON.Output<[UInt8]>)

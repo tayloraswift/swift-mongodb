@@ -9,10 +9,10 @@ var mongodb:Mongo.URI.Base<Mongo.Guest, Mongo.DirectSeeding>
 }
 
 @main
-enum Main:AsyncTests
+enum Main:TestMain, TestBattery
 {
     static
-    func run(tests:Tests) async
+    func run(tests:TestGroup) async
     {
         let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
         if  let tests:TestGroup = tests / "replicated"

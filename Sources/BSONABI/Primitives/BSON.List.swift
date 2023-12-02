@@ -1,5 +1,3 @@
-import BSONTypes
-
 extension BSON
 {
     @frozen public

@@ -19,7 +19,7 @@ extension BSON
         }
     }
 }
-extension BSON.DocumentDecoder:BSONDecoder
+extension BSON.DocumentDecoder:BSON.Decoder
 {
     /// Attempts to load a document decoder from the given variant.
     ///
@@ -94,10 +94,10 @@ extension BSON.DocumentDecoder:Sequence
 extension BSON.DocumentDecoder
 {
     @inlinable public __consuming
-    func single() throws -> BSON.ExplicitField<CodingKey, Bytes>
+    func single() throws -> BSON.FieldDecoder<CodingKey, Bytes>
     {
-        var single:BSON.ExplicitField<CodingKey, Bytes>? = nil
-        for field:BSON.ExplicitField<CodingKey, Bytes> in self
+        var single:BSON.FieldDecoder<CodingKey, Bytes>? = nil
+        for field:BSON.FieldDecoder<CodingKey, Bytes> in self
         {
             if case nil = single
             {
@@ -117,13 +117,13 @@ extension BSON.DocumentDecoder
     }
 
     @inlinable public
-    subscript(key:CodingKey) -> BSON.ExplicitField<CodingKey, Bytes>?
-    {
-        self.index[key].map { .init(key: key, value: $0) }
-    }
-    @inlinable public
-    subscript(key:CodingKey) -> BSON.ImplicitField<CodingKey, Bytes>
+    subscript(key:CodingKey) -> BSON.OptionalDecoder<CodingKey, Bytes>
     {
         .init(key: key, value: self.index[key])
+    }
+    @inlinable public
+    subscript(key:CodingKey) -> BSON.FieldDecoder<CodingKey, Bytes>?
+    {
+        self.index[key].map { .init(key: key, value: $0) }
     }
 }

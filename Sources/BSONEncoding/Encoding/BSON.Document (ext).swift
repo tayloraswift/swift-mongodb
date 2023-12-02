@@ -6,7 +6,7 @@ extension BSON.Document:BSONEncodable
         field.encode(document: .init(self))
     }
 }
-extension BSON.Document:BSONBuilder
+extension BSON.Document:_BSONBuilder
 {
 }
 extension BSON.Document
