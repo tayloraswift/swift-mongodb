@@ -4,7 +4,7 @@ extension [String: Never]:BSONEncodable
 {
     /// Encodes this dictionary as an empty document.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         field.encode(document: .init(slice: []))
     }

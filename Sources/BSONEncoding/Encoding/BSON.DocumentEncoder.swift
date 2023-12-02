@@ -24,7 +24,7 @@ extension BSON.DocumentEncoder:BSON.Encoder
 extension BSON.DocumentEncoder:_BSONBuilder
 {
     @inlinable public mutating
-    func append(_ key:CodingKey, with encode:(inout BSON.Field) -> ())
+    func append(_ key:CodingKey, with encode:(inout BSON.FieldEncoder) -> ())
     {
         encode(&self.output[with: .init(key)])
     }

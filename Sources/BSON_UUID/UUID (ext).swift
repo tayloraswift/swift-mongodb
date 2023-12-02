@@ -15,7 +15,7 @@ extension UUID:BSONDecodable, BSONBinaryViewDecodable
 extension UUID:BSONEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         field.encode(binary: .init(subtype: .uuid, slice: self))
     }

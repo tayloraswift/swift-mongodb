@@ -33,7 +33,7 @@ extension BSON.ListEncoder:BSON.Encoder
 extension BSON.ListEncoder
 {
     @inlinable public mutating
-    func append(with encode:(inout BSON.Field) -> ())
+    func append(with encode:(inout BSON.FieldEncoder) -> ())
     {
         encode(&self.output[with: .init(index: self.count)])
         self.count += 1

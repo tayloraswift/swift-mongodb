@@ -4,7 +4,7 @@ protocol _BSONBuilder<CodingKey>
     associatedtype CodingKey
 
     mutating
-    func append(_ key:CodingKey, with encode:(inout BSON.Field) -> ())
+    func append(_ key:CodingKey, with encode:(inout BSON.FieldEncoder) -> ())
 }
 extension _BSONBuilder
 {

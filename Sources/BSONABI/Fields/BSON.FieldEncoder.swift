@@ -1,8 +1,14 @@
 extension BSON
 {
+    @available(*, deprecated, renamed: "FieldEncoder")
+    public
+    typealias Field = BSON.FieldEncoder
+}
+extension BSON
+{
     /// A type that can serialize any BSON container element.
     @frozen public
-    struct Field
+    struct FieldEncoder
     {
         public
         let key:Key
@@ -17,7 +23,7 @@ extension BSON
         }
     }
 }
-extension BSON.Field
+extension BSON.FieldEncoder
 {
     @inlinable public mutating
     func encode(double:Double)
@@ -114,7 +120,7 @@ extension BSON.Field
         self[.javascript].serialize(utf8: javascript)
     }
 }
-extension BSON.Field
+extension BSON.FieldEncoder
 {
     @inlinable internal
     subscript(type:BSON.AnyType) -> Void
@@ -140,7 +146,7 @@ extension BSON.Field
         }
     }
 }
-extension BSON.Field
+extension BSON.FieldEncoder
 {
     /// Writes the stored type code and ``key`` to the output buffer, temporarily rebinds
     /// the output’s storage buffer to an encoder of the specified type, and brackets any

@@ -29,7 +29,7 @@ extension BSONStringEncodable
     /// who implement ``LosslessStringConvertible``, but expect to be
     /// encoded as something besides a UTF-8 string.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.description.encode(to: &field)
     }

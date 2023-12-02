@@ -26,7 +26,7 @@ protocol BSONListEncodable:BSONEncodable
 extension BSONListEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.encode(to: &field[as: BSON.ListEncoder.self])
     }

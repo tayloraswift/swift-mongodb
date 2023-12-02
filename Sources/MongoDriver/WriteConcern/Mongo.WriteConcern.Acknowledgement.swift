@@ -28,7 +28,7 @@ extension Mongo.WriteConcern.Acknowledgement
 extension Mongo.WriteConcern.Acknowledgement:BSONEncodable
 {
     public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         switch self
         {

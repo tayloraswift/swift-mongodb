@@ -80,7 +80,7 @@ extension BSON.Document
         self.output.append(other.bytes)
     }
     @inlinable public mutating
-    func append(_ key:String, with encode:(inout BSON.Field) -> ())
+    func append(_ key:String, with encode:(inout BSON.FieldEncoder) -> ())
     {
         encode(&self.output[with: .init(rawValue: key)])
     }

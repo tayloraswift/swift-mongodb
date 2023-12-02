@@ -242,7 +242,7 @@ extension BSON.Output<[UInt8]>
         }
     }
     @inlinable public
-    subscript(with key:BSON.Key) -> BSON.Field
+    subscript(with key:BSON.Key) -> BSON.FieldEncoder
     {
         get
         {
@@ -250,7 +250,7 @@ extension BSON.Output<[UInt8]>
         }
         _modify
         {
-            var field:BSON.Field = self[with: key]
+            var field:BSON.FieldEncoder = self[with: key]
             self = .init(preallocated: [])
             defer { self = field.output }
             yield &field

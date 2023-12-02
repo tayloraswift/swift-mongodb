@@ -59,7 +59,7 @@ extension Mongo.Timestamp:BSONEncodable
 {
     /// Encodes this timestamp as a ``BSON.uint64``.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         field.encode(uint64: self.value)
     }

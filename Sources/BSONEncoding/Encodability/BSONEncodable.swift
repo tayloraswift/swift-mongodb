@@ -4,12 +4,12 @@ import BSONABI
 public
 protocol BSONEncodable
 {
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
 }
 extension BSONEncodable where Self:BSONRepresentable, BSONRepresentation:BSONEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.bson.encode(to: &field)
     }
@@ -18,7 +18,7 @@ extension BSONEncodable where Self:RawRepresentable, RawValue:BSONEncodable
 {
     /// Returns the ``encode(to:)`` witness of this type’s ``RawRepresentable.rawValue``.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.rawValue.encode(to: &field)
     }
@@ -85,7 +85,7 @@ extension UInt64:BSONEncodable
 {
     /// Encodes this integer as a value of type ``BSON.uint64``.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         field.encode(uint64: self)
     }
@@ -96,7 +96,7 @@ extension UInt:BSONEncodable
 {
     /// Encodes this integer as a value of type ``BSON.uint64``.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         field.encode(uint64: .init(self))
     }
