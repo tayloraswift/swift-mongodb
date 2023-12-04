@@ -29,3 +29,18 @@ extension BSON.DocumentEncoder:_BSONBuilder
         encode(&self.output[with: .init(key)])
     }
 }
+extension BSON.DocumentEncoder<BSON.Key>
+{
+    @inlinable public
+    subscript(with key:some RawRepresentable<String>) -> BSON.FieldEncoder
+    {
+        _read
+        {
+            yield  self.output[with: .init(key)]
+        }
+        _modify
+        {
+            yield &self.output[with: .init(key)]
+        }
+    }
+}

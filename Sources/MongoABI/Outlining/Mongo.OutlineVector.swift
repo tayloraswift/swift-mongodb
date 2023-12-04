@@ -1,4 +1,4 @@
-import MongoWire
+import BSON
 
 extension Mongo
 {
@@ -6,14 +6,14 @@ extension Mongo
     struct OutlineVector:Sendable
     {
         public
-        let documents:OutlineDocuments
+        let bson:BSON.Output<[UInt8]>
         public
         let type:OutlineType
 
         @inlinable public
-        init(_ documents:OutlineDocuments, type:OutlineType)
+        init(bson:BSON.Output<[UInt8]>, type:OutlineType)
         {
-            self.documents = documents
+            self.bson = bson
             self.type = type
         }
     }

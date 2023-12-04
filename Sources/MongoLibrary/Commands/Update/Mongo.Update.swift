@@ -13,15 +13,16 @@ extension Mongo
     {
         public
         let writeConcern:WriteConcern?
-        public
-        let updates:Mongo.OutlineDocuments
+
+        @usableFromInline internal
+        var updates:BSON.Output<[UInt8]>
 
         public
         var fields:BSON.Document
 
         @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            updates:Mongo.OutlineDocuments,
+            updates:BSON.Output<[UInt8]>,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -45,7 +46,7 @@ extension Mongo.Update:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     @inlinable public
     var outline:Mongo.OutlineVector?
     {
-        .init(self.updates, type: .updates)
+        .init(bson: self.updates, type: .updates)
     }
 }
 extension Mongo.Update
@@ -53,22 +54,24 @@ extension Mongo.Update
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates statements:some Sequence<Mongo.UpdateStatement<Effect>>)
+        updates encode:(inout Mongo.UpdateEncoder<Effect>) throws -> ()) rethrows
     {
+        var updates:Mongo.UpdateEncoder<Effect> = .init()
+        try encode(&updates)
+
         self.init(writeConcern: writeConcern,
-            updates: .init(statements),
+            updates: updates.move(),
             fields: Self.type(collection))
     }
+
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates statements:some Sequence<Mongo.UpdateStatement<Effect>>,
-        with populate:(inout Self) throws -> ()) rethrows
+        with configure:(inout Self) throws -> (),
+        updates encode:(inout Mongo.UpdateEncoder<Effect>) throws -> ()) rethrows
     {
-        self.init(collection,
-            writeConcern: writeConcern,
-            updates: statements)
-        try populate(&self)
+        try self.init(collection, writeConcern: writeConcern, updates: encode)
+        try configure(&self)
     }
 }
 extension Mongo.Update

@@ -113,31 +113,31 @@ struct Update:MongoTestBattery
                 let expected:Mongo.UpdateResponse<Int> = .init(selected: 1, modified: 1)
                 let response:Mongo.UpdateResponse<Int> = try await session.run(
                     command: Mongo.Update<Mongo.One, Int>.init(collection,
-                        writeConcern: .majority,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
                         updates:
-                        [
-                            .init
-                            {
-                                $0[.q] = .init
-                                {
-                                    $0["member"] = "abc123"
-                                }
-                                $0[.u] = .init
-                                {
-                                    $0[.set] = .init
-                                    {
-                                        $0["status"] = "A"
-                                    }
-                                    $0[.inc] = .init
-                                    {
-                                        $0["points"] = 1
-                                    }
-                                }
-                            },
-                        ])
+                    {
+                        $0
                         {
-                            $0[.ordered] = false
-                        },
+                            $0[.q] = .init
+                            {
+                                $0["member"] = "abc123"
+                            }
+                            $0[.u] = .init
+                            {
+                                $0[.set] = .init
+                                {
+                                    $0["status"] = "A"
+                                }
+                                $0[.inc] = .init
+                                {
+                                    $0["points"] = 1
+                                }
+                            }
+                        }
+                    },
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -161,29 +161,29 @@ struct Update:MongoTestBattery
                 let expected:Mongo.UpdateResponse<Int> = .init(selected: 2, modified: 2)
                 let response:Mongo.UpdateResponse<Int> = try await session.run(
                     command: Mongo.Update<Mongo.Many, Int>.init(collection,
-                        writeConcern: .majority,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
                         updates:
-                        [
-                            .init
-                            {
-                                $0[.q] = .init()
-                                $0[.u] = .init
-                                {
-                                    $0[.set] = .init
-                                    {
-                                        $0["status"] = "A"
-                                    }
-                                    $0[.inc] = .init
-                                    {
-                                        $0["points"] = 1
-                                    }
-                                }
-                                $0[.multi] = true
-                            },
-                        ])
+                    {
+                        $0
                         {
-                            $0[.ordered] = false
-                        },
+                            $0[.q] = .init()
+                            $0[.u] = .init
+                            {
+                                $0[.set] = .init
+                                {
+                                    $0["status"] = "A"
+                                }
+                                $0[.inc] = .init
+                                {
+                                    $0["points"] = 1
+                                }
+                            }
+                            $0[.multi] = true
+                        }
+                    },
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -207,33 +207,33 @@ struct Update:MongoTestBattery
                 let expected:Mongo.UpdateResponse<Int> = .init(selected: 2, modified: 2)
                 let response:Mongo.UpdateResponse<Int> = try await session.run(
                     command: Mongo.Update<Mongo.Many, Int>.init(collection,
-                        writeConcern: .majority,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
                         updates:
-                        [
-                            .init
+                    {
+                        $0
+                        {
+                            $0[.q] = .init()
+                            $0[.u] = .init
                             {
-                                $0[.q] = .init()
-                                $0[.u] = .init
+                                $0.stage
                                 {
-                                    $0.stage
+                                    $0[.set] = .init
                                     {
-                                        $0[.set] = .init
-                                        {
-                                            $0["status"] = "Modified"
-                                            $0["comments"] = ["$misc1", "$misc2"]
-                                        }
-                                    }
-                                    $0.stage
-                                    {
-                                        $0[.unset] = ["misc1", "misc2"]
+                                        $0["status"] = "Modified"
+                                        $0["comments"] = ["$misc1", "$misc2"]
                                     }
                                 }
-                                $0[.multi] = true
-                            },
-                        ])
-                        {
-                            $0[.ordered] = false
-                        },
+                                $0.stage
+                                {
+                                    $0[.unset] = ["misc1", "misc2"]
+                                }
+                            }
+                            $0[.multi] = true
+                        }
+                    },
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -259,22 +259,22 @@ struct Update:MongoTestBattery
                     upserted: [.init(index: 0, id: 3)])
                 let response:Mongo.UpdateResponse<Int> = try await session.run(
                     command: Mongo.Update<Mongo.One, Int>.init(collection,
-                        writeConcern: .majority,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
                         updates:
-                        [
-                            .init
-                            {
-                                $0[.q] = .init
-                                {
-                                    $0["_id"] = 3
-                                }
-                                $0[.u] = states.4.last
-                                $0[.upsert] = true
-                            },
-                        ])
+                    {
+                        $0
                         {
-                            $0[.ordered] = false
-                        },
+                            $0[.q] = .init
+                            {
+                                $0["_id"] = 3
+                            }
+                            $0[.u] = states.4.last
+                            $0[.upsert] = true
+                        }
+                    },
                     against: database)
 
                 tests.expect(response ==? expected)

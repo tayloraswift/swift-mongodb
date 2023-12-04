@@ -1,6 +1,6 @@
 import BSON
 import Durations
-import MongoSchema
+import MongoABI
 
 extension Mongo
 {

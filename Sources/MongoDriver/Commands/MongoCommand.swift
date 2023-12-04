@@ -1,6 +1,6 @@
 import BSON
 import Durations
-import MongoSchema
+import MongoABI
 import MongoWire
 import NIOCore
 
@@ -156,7 +156,7 @@ extension MongoCommand
         // do this first, so we never have to access `self` after reading `self.fields`
         let outlined:[Mongo.WireMessage<[UInt8]>.Outline]? = self.outline.map
         {
-            [.init(id: $0.type.rawValue, slice: $0.documents.slice)]
+            [.init(id: $0.type.rawValue, slice: $0.bson.destination)]
         }
 
         let now:ContinuousClock.Instant = .now

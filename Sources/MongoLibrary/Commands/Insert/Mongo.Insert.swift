@@ -13,15 +13,16 @@ extension Mongo
     {
         public
         let writeConcern:WriteConcern?
-        public
-        let documents:Mongo.OutlineDocuments
+
+        @usableFromInline internal
+        var documents:BSON.Output<[UInt8]>
 
         public
         var fields:BSON.Document
 
         @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            documents:Mongo.OutlineDocuments,
+            documents:BSON.Output<[UInt8]>,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -45,30 +46,52 @@ extension Mongo.Insert:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     @inlinable public
     var outline:Mongo.OutlineVector?
     {
-        .init(self.documents, type: .documents)
+        .init(bson: self.documents, type: .documents)
     }
 }
 extension Mongo.Insert
 {
+    @inlinable public
+    init(_ collection:Mongo.Collection,
+        writeConcern:Mongo.WriteConcern? = nil,
+        documents encode:(inout Mongo.InsertEncoder) throws -> ()) rethrows
+    {
+        var documents:Mongo.InsertEncoder = .init()
+        try encode(&documents)
+
+        self.init(writeConcern: writeConcern,
+            documents: documents.move(),
+            fields: Self.type(collection))
+    }
+
+    @inlinable public
+    init(_ collection:Mongo.Collection,
+        writeConcern:Mongo.WriteConcern? = nil,
+        with configure:(inout Self) throws -> (),
+        documents encode:(inout Mongo.InsertEncoder) throws -> ()) rethrows
+    {
+        try self.init(collection, writeConcern: writeConcern, documents: encode)
+        try configure(&self)
+    }
+
     @inlinable public
     init<Elements>(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         encoding elements:Elements)
         where Elements:Sequence, Elements.Element:BSONDocumentEncodable
     {
-        self.init(writeConcern: writeConcern,
-            documents: .init(elements),
-            fields: Self.type(collection))
+        self.init(collection, writeConcern: writeConcern) { $0 += elements }
     }
+
     @inlinable public
     init<Elements>(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         encoding elements:Elements,
-        with populate:(inout Self) throws -> ()) rethrows
+        with configure:(inout Self) throws -> ()) rethrows
         where Elements:Sequence, Elements.Element:BSONDocumentEncodable
     {
         self.init(collection, writeConcern: writeConcern, encoding: elements)
-        try populate(&self)
+        try configure(&self)
     }
 }
 extension Mongo.Insert
