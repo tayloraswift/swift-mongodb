@@ -31,6 +31,19 @@ extension Mongo.InsertEncoder
         }
     }
 
+    @inlinable public
+    subscript<CodingKey>(_:CodingKey.Type,
+        yield:(inout BSON.DocumentEncoder<CodingKey>) -> ()) -> Void
+    {
+        mutating
+        get
+        {
+            yield(&self.output[
+                as: BSON.DocumentEncoder<CodingKey>.self,
+                in: BSON.DocumentFrame.self])
+        }
+    }
+
     @inlinable public mutating
     func append<CodingKey>(_ element:some BSONDocumentEncodable<CodingKey>)
     {
