@@ -5,7 +5,7 @@
 /// representations. A master coding model is a type that defines the full set of
 /// coding keys used to encode the documents.
 public
-protocol MongoMasterCodingModel
+protocol MongoMasterCodingModel<CodingKey>
 {
     associatedtype CodingKey:RawRepresentable<String>
 }
