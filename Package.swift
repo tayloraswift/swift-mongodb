@@ -35,7 +35,7 @@ let package:Package = .init(name: "swift-mongodb",
     dependencies:
     [
         .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
-            from: "0.3.2")),
+            from: "0.3.4")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
             from: "0.5.0")),
 
@@ -46,7 +46,7 @@ let package:Package = .init(name: "swift-mongodb",
 
         /// swift-nio has a low rate of breakage, and can be trusted with a major-only
         /// version requirement.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.59.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.62.0"),
         /// swift-nio-ssl has a low rate of breakage, and can be trusted with a
         /// major-only version requirement.
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.25.0"),
