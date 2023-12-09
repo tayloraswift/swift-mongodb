@@ -64,6 +64,10 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
+            ],
+            exclude:
+            [
+                "README.md",
             ]),
 
             .target(name: "BSONABI"),
