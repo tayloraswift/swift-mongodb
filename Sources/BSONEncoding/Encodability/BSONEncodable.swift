@@ -16,7 +16,8 @@ extension BSONEncodable where Self:BSONRepresentable, BSONRepresentation:BSONEnc
 }
 extension BSONEncodable where Self:RawRepresentable, RawValue:BSONEncodable
 {
-    /// Returns the ``encode(to:)`` witness of this type’s ``RawRepresentable.rawValue``.
+    /// Returns the ``encode(to:) [7NT06]`` witness of this type’s
+    /// ``RawRepresentable/rawValue``.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
@@ -83,7 +84,7 @@ extension BSONEncodable where Self == BSON.List
     message: "UInt64 is not recommended for BSON that will be handled by MongoDB.")
 extension UInt64:BSONEncodable
 {
-    /// Encodes this integer as a value of type ``BSON.uint64``.
+    /// Encodes this integer as a value of type ``BSON.AnyType/uint64``.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
@@ -94,7 +95,7 @@ extension UInt64:BSONEncodable
     message: "UInt is not recommended for BSON that will be handled by MongoDB.")
 extension UInt:BSONEncodable
 {
-    /// Encodes this integer as a value of type ``BSON.uint64``.
+    /// Encodes this integer as a value of type ``BSON.AnyType/uint64``.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {

@@ -69,7 +69,7 @@ struct Transactions:MongoTestBattery
                 //  before.
                 let _:Mongo.Timestamp? = tests.expect(value: transaction.preconditionTime)
                 //  We should be able to start a transaction with a write command,
-                //  even though it also has a non-[`nil`]() precondition time.
+                //  even though it also has a non-nil precondition time.
                 await (tests ! "insert").do
                 {
                     let response:Mongo.InsertResponse = try await transaction.run(

@@ -20,7 +20,7 @@ extension Mongo
         let deployment:Deployment
 
         /// The number of sessions currently being re-indexed by this pool.
-        /// Session deinitializers increment this counter, and the pool 
+        /// Session deinitializers increment this counter, and the pool
         /// decrements it once the session has been re-indexed and made available
         /// for reuse.
         private nonisolated
@@ -42,7 +42,7 @@ extension Mongo
         private
         var phase:Phase
 
-        init(deployment:Deployment) 
+        init(deployment:Deployment)
         {
             self.deployment = deployment
             self.releasing = .create(0)
@@ -133,7 +133,7 @@ extension Mongo.SessionPool
             by: deadlines.connection)
         //  this creates the connection before creating the session, because
         //  connections are limited but sessions are unlimited. so ordering it
-        //  like this 
+        //  like this
         let connection:Mongo.Connection = try await .init(from: connections,
             by: deadlines.connection)
         let session:Mongo.Session = try await .init(from: self)
@@ -180,8 +180,8 @@ extension Mongo.SessionPool
     /// Unblocks an awaiting request with the given session, if one exists.
     ///
     /// -   Returns:
-    ///     [`true`]() if there was a request that was unblocked by this call,
-    ///     [`false`]() otherwise.
+    ///     `true` if there was a request that was unblocked by this call,
+    ///     `false` otherwise.
     private
     func yield(_ allocation:Allocation) -> Bool
     {
@@ -302,7 +302,7 @@ extension Mongo.SessionPool
                 self.released.append(allocation)
                 return
             }
-        
+
         case .draining:
             self.retained.remove(allocation.id)
             self.released.append(allocation)

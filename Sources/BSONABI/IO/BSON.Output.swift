@@ -21,7 +21,8 @@ extension BSON
         /// number of bytes in the destination buffer.
         ///
         /// The size hint is only effective if `Destination` provides a real,
-        /// non-defaulted witness for ``RangeReplaceableCollection.reserveCapacity(_:)``.
+        /// non-defaulted witness for
+        /// ``RangeReplaceableCollection.reserveCapacity(_:) [2YKV1]``.
         @inlinable public
         init(capacity:Int)
         {

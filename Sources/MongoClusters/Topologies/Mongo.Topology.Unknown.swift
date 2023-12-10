@@ -48,8 +48,8 @@ extension Mongo.Topology.Unknown
             }
         }
     }
-    /// Removes the given host from the topology if present, returning [`true`]()
-    /// if it was the only ghost in the topology. Returns [`false`]() otherwise.
+    /// Removes the given host from the topology if present, returning `true`
+    /// if it was the only ghost in the topology. Returns `false` otherwise.
     @discardableResult
     mutating
     func pick(host:Mongo.Host) -> Bool

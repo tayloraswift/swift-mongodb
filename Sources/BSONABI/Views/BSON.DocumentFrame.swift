@@ -1,7 +1,7 @@
 extension BSON
 {
-    /// Specifies the interpretation of a length header attached to a ``document``,
-    /// or a ``list`` document.
+    /// Specifies the interpretation of a length header attached to a ``BSON.AnyType/document``,
+    /// or a ``BSON.AnyType/list`` document.
     @frozen public
     enum DocumentFrame:FrameType
     {

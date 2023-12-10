@@ -28,8 +28,8 @@ extension Mongo.Unreachable:Equatable
 }
 extension Mongo.Unreachable
 {
-    /// Updates the stored error with the given error, if non-[`nil`]().
-    /// If `status` is [`nil`]() and the descriptor is already in an
+    /// Updates the stored error with the given error, if non-nil.
+    /// If `status` is nil and the descriptor is already in an
     /// errored state, the descriptor will remain in that state, and the
     /// stored error will not be overwritten.
     @inlinable public mutating

@@ -5,7 +5,7 @@ extension Mongo
     /// A typed wrapper around a BSON ``UInt64`` value. Unlike
     /// ``UInt64`` itself, this type’s ``BSONDecodable`` and
     /// ``BSONEncodable`` implementations only use the
-    /// ``BSON.uint64`` data type, and will fail on all other
+    /// ``BSON.AnyType/uint64`` data type, and will fail on all other
     /// BSON integer types.
     ///
     /// Despite its name, this is not a true ``InstantProtocol``,
@@ -38,7 +38,7 @@ extension Mongo.Timestamp:BSONDecodable
 {
     /// Attempts to cast a BSON variant backed by some storage type to a
     /// MongoDB timestamp. The conversion is not a integer case, and will
-    /// succeed if and only if the variant has type ``BSON.uint64``.
+    /// succeed if and only if the variant has type ``BSON.AnyType/uint64``.
     @inlinable public
     init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {
@@ -57,7 +57,7 @@ extension Mongo.Timestamp:BSONDecodable
 }
 extension Mongo.Timestamp:BSONEncodable
 {
-    /// Encodes this timestamp as a ``BSON.uint64``.
+    /// Encodes this timestamp as a ``BSON.AnyValue/uint64(_:)``.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {

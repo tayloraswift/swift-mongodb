@@ -60,7 +60,7 @@ protocol MongoCommand<Response>:Sendable
 }
 extension MongoCommand
 {
-    /// Returns [`nil`]().
+    /// Returns nil.
     @inlinable public
     var outline:Mongo.OutlineVector?
     {

@@ -92,7 +92,7 @@ extension Mongo.ZipDocument
     }
 
     /// This subscript automatically sets `useLongestLength` if set to a
-    /// non-[`nil`]() value.
+    /// non-nil value.
     @inlinable public
     subscript<Encodable>(key:Defaults) -> Encodable?
         where Encodable:BSONEncodable

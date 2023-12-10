@@ -1,6 +1,6 @@
 extension BSON
 {
-    /// Specifies the interpretation of a length header attached to a ``binary``
+    /// Specifies the interpretation of a length header attached to a ``BSON.AnyType/binary``
     /// array.
     @frozen public
     enum BinaryFrame:FrameType

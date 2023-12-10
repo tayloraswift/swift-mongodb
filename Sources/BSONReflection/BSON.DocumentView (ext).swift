@@ -37,7 +37,7 @@ extension BSON.DocumentView
     /// Some documents that do not compare equal under byte-wise
     /// `==` comparison may compare equal under this operator, due to normalization
     /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
-    /// will compare equal to a ``BSON Value.string(_:)`` value with the same contents.
+    /// will compare equal to a ``BSON.AnyValue/string(_:)`` value with the same contents.
     @inlinable public static
     func ~~ <Other>(lhs:Self, rhs:BSON.DocumentView<Other>) -> Bool
     {

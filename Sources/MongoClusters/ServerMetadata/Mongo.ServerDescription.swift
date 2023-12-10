@@ -66,14 +66,14 @@ extension Mongo.ServerDescription
         case .connected(_, let owner):
             self = .connected(metadata, owner)
             return .accepted
-        
+
         case .errored, .queued:
             return .dropped
         }
     }
 
     /// Places this descriptor in an ``case errored(_:)`` or ``case queued``
-    /// state. If `status` is [`nil`]() and the descriptor is already in
+    /// state. If `status` is nil and the descriptor is already in
     /// an errored state, the descriptor will remain in that state, and the
     /// stored error will not be overwritten.
     mutating

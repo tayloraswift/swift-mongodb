@@ -4,7 +4,7 @@ extension Mongo.URI
 {
     /// The first two significant components of a connection string URI.
     /// It contains login credentials (which may be empty), and a list of
-    /// domains. To append a path component to it, use the ``/(self:path:)``
+    /// domains. To append a path component to it, use the ``Authority//(_:_:)``
     /// operator, which returns a ``Location``.
     @frozen public
     struct Authority<LoginMode> where LoginMode:MongoLoginMode

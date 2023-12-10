@@ -15,7 +15,7 @@ extension BSON.ListView:CustomStringConvertible
 extension BSON.ListView
 {
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
-    /// comparing the elements, ignoring list key names. Returns [`false`]() if either
+    /// comparing the elements, ignoring list key names. Returns `false` if either
     /// operand fails to parse.
     ///
     /// Some embedded documents that do not compare equal under byte-wise

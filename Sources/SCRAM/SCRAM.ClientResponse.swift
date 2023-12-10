@@ -65,7 +65,7 @@ extension SCRAM.ClientResponse
 }
 extension SCRAM.ClientResponse
 {
-    /// Returns [`true`]() if the given server response is consistent with
+    /// Returns `true` if the given server response is consistent with
     /// the server signature computed for this client response.
     @inlinable public
     func verify(_ response:SCRAM.ServerResponse) -> Bool

@@ -1,7 +1,7 @@
 extension Int:BSONEncodable
 {
-    /// Encodes this integer as a value of type ``BSON.int32`` if it can be represented
-    /// exactly, or ``BSON.int64`` otherwise.
+    /// Encodes this integer as a value of type ``BSON.AnyType/int32`` if it can be represented
+    /// exactly, or ``BSON.AnyType/int64`` otherwise.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {

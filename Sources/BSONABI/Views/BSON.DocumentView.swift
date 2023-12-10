@@ -91,7 +91,7 @@ extension BSON.DocumentView
     /// Parses this document into key-value pairs in order, yielding each key-value
     /// pair to the provided closure.
     ///
-    /// Unlike ``parse``, this method does not allocate storage for the parsed key-value
+    /// Unlike ``parse(_:)``, this method does not allocate storage for the parsed key-value
     /// pairs. (But it does allocate storage to provide a ``String`` representation for
     /// each visited key.)
     ///

@@ -102,9 +102,9 @@ struct Cursors:MongoTestBattery
                     //  We should have encountered ten batches in total.
                     tests.expect(batch ==? 10)
 
-                    //  The iterator should be [`nil`]() after the last batch is queried,
+                    //  The iterator should be nil after the last batch is queried,
                     //  and we have exited the loop. The iterator is not guaranteed to be
-                    //  [`nil`]() in the last loop iteration, because empty trailing batches
+                    //  nil in the last loop iteration, because empty trailing batches
                     //  are not provided to the caller.
                     tests.expect(nil: $0.cursor)
 

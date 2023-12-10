@@ -14,7 +14,7 @@ extension Mongo
     /// on a database, you want each task to checkout its own session from a
     /// ``SessionPool``, which is ``Sendable``.
     ///
-    /// Create a session by calling ``init(from:)`` with a session pool.
+    /// Create a session by calling ``init(from:forking:by:)`` with a session pool.
     ///
     /// ```swift
     /// bootstrap.withSessionPool
@@ -116,7 +116,7 @@ extension Mongo.Session
             fork: original)
     }
     /// Fast-forwards this session’s precondition time to the other session’s
-    /// precondition time, if it is non-[`nil`]() and greater than this
+    /// precondition time, if it is non-nil and greater than this
     /// session’s precondition time. The other session’s precondition time
     /// is unaffected.
     public
@@ -142,7 +142,7 @@ extension Mongo.Session
     ///     -   preference:
     ///         The read preference to use for server selection.
     ///     -   deadline:
-    ///         A deadline used to enforce operation timeouts. If [`nil`](),
+    ///         A deadline used to enforce operation timeouts. If nil,
     ///         the default driver connection timeout will also be used as
     ///         the timeout for the entire operation.
     @inlinable public
@@ -198,7 +198,7 @@ extension Mongo.Session
     ///
     /// -   Parameters:
     ///     -   consumer:
-    ///         A closure that will be called with an iterable sequence of ``Batches``.
+    ///         A closure that will be called with an iterable ``Mongo.Cursor``.
     ///         if the closure returns while the cursor is still open, this method will
     ///         run ``KillCursors`` and wait for it to either complete or error.
     ///
@@ -502,7 +502,7 @@ extension Mongo.Session
     ///         transaction is in progress, otherwise the transaction’s read level
     ///         takes precedence.
     ///         If the outer optional is inhabited, the precondition time will be
-    ///         encoded even if the inner optional is [`nil`]().
+    ///         encoded even if the inner optional is nil.
     ///
     /// If the transaction state was in the starting phase, it will transition to
     /// the started phase, and this transition will be sticky — it will not revert
@@ -604,6 +604,6 @@ extension Mongo.Session
     /// Observed operation times will not necessarily be monotonic, if commands
     /// are being sent to different servers across the same session. Therefore,
     /// to enforce causal consistency, this method only updates the precondition
-    /// time if the operation time is non-[`nil`]() and greater than the current
+    /// time if the operation time is non-nil and greater than the current
     /// precondition time.
 }

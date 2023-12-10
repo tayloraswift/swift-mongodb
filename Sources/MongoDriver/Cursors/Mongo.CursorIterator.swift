@@ -82,17 +82,17 @@ extension Mongo.CursorIterator
 extension Mongo.CursorIterator
 {
     /// Runs a ``GetMore`` command from this cursor. This operation will set a
-    /// deadline for itself depending on the cursor’s ``lifecycle`` mode.
+    /// deadline for itself depending on the cursor’s lifecycle mode.
     ///
     /// -   If the cursor is **tailable** with a user-specified timeout
-    ///     (``case CursorLifecycle.iterable(_:)``), the deadline will be the
+    ///     (``CursorLifecycle.iterable(_:)``), the deadline will be the
     ///     current time, advanced by that timeout.
     ///
     /// -   If the cursor is **tailable** with no user-specified timeout
-    ///     (``case CursorLifecycle.iterable(_:)``), the deadline will be the
+    ///     (``CursorLifecycle.iterable(_:)``), the deadline will be the
     ///     current time, advanced by the default operation timeout.
     ///
-    /// -   If the cursor is **non-tailable** (``case CursorLifecycle.expires(_:)``),
+    /// -   If the cursor is **non-tailable** (``CursorLifecycle.expires(_:)``),
     ///     the deadline will be the same as the deadline that was set for the
     ///     command that obtained the cursor.
     ///

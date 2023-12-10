@@ -5,7 +5,7 @@ extension BSON
     typealias TraceableDecoder = _BSONTraceableDecoder
 }
 
-/// The name of this protocol is ``BSON.TracingDecoder``.
+/// The name of this protocol is ``BSON.TraceableDecoder``.
 public
 protocol _BSONTraceableDecoder<Bytes>
 {

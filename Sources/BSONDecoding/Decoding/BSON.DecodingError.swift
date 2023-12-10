@@ -24,8 +24,8 @@ extension BSON
 extension BSON.DecodingError:Equatable where Location:Equatable
 {
     /// Compares the ``location`` properties and the ``underlying``
-    /// errors of the operands for equality, returning [`true`]()
-    /// if they are equal. Always returns [`false`]() if (any of)
+    /// errors of the operands for equality, returning `true`
+    /// if they are equal. Always returns `false` if (any of)
     /// the underlying ``Error`` existentials are not ``Equatable``.
     public static
     func == (lhs:Self, rhs:Self) -> Bool

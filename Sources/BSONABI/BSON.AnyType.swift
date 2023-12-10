@@ -32,7 +32,7 @@ extension BSON
 extension BSON.AnyType
 {
     /// Calls ``init(rawValue:)``, but throws a ``TypeError`` instead of returning
-    /// [`nil`]().
+    /// nil.
     @inlinable public
     init(code:UInt8) throws
     {

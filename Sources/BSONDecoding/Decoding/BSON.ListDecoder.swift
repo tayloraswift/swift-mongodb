@@ -24,7 +24,7 @@ extension BSON.ListDecoder:BSON.Decoder
     ///
     /// -   Returns:
     ///     The payload of the variant, parsed to a list decoder, if it matches
-    ///     ``case list(_:)`` and could be successfully parsed, [`nil`]() otherwise.
+    ///     ``case list(_:)`` and could be successfully parsed, nil otherwise.
     ///
     /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.

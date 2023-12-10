@@ -67,10 +67,10 @@ extension _BSONBuilder
     /// Type inference will always prefer one of the concretely-typed subscript
     /// overloads over this one.
     ///
-    /// The getter always returns [`nil`]().
+    /// The getter always returns nil.
     ///
-    /// Every non-[`nil`]() assignment to this subscript (including mutations
-    /// that leave the value in a non-[`nil`]() state after returning) will add
+    /// Every non-nil assignment to this subscript (including mutations
+    /// that leave the value in a non-nil state after returning) will add
     /// a new field to the document, even if the key is the same.
     @inlinable public
     subscript<Value>(key:CodingKey) -> Value? where Value:BSONEncodable

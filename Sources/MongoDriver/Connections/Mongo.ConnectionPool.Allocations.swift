@@ -125,8 +125,8 @@ extension Mongo.ConnectionPool.Allocations
     /// Unblocks an awaiting request with the given channel, if one exists.
     ///
     /// -   Returns:
-    ///     [`true`]() if there was a request that was unblocked by this call,
-    ///     [`false`]() otherwise.
+    ///     `true` if there was a request that was unblocked by this call,
+    ///     `false` otherwise.
     mutating
     func yield(_ allocation:Mongo.ConnectionPool.Allocation) -> Bool
     {

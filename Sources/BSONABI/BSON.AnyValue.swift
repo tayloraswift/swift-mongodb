@@ -144,12 +144,12 @@ extension BSON.AnyValue
 }
 extension BSON.AnyValue
 {
-    /// Promotes a [`nil`]() result to a thrown ``TypecastError``.
+    /// Promotes a nil result to a thrown ``TypecastError``.
     ///
     /// If `T` conforms to ``BSONDecodable``, prefer calling its throwing
-    /// ``BSONDecodable/.init(bson:)`` to calling this method directly.
+    /// ``BSONDecodable/init(bson:)`` to calling this method directly.
     ///
-    /// >   Throws: A ``TypecastError`` if the given curried method returns [`nil`]().
+    /// >   Throws: A ``TypecastError`` if the given curried method returns nil.
     @inline(__always)
     @inlinable public
     func cast<T>(with cast:(Self) throws -> T?) throws -> T
@@ -169,8 +169,8 @@ extension BSON.AnyValue
     /// Attempts to load an instance of ``Bool`` from this variant.
     ///
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case bool(_:)``,
-    ///     [`nil`]() otherwise.
+    ///     The payload of this variant if it matches ``bool(_:)``,
+    ///     nil otherwise.
     @inlinable public
     func `as`(_:Bool.Type) -> Bool?
     {
@@ -184,16 +184,16 @@ extension BSON.AnyValue
     ///
     /// -   Returns:
     ///     An integer derived from the payload of this variant
-    ///     if it matches one of ``case int32(_:)``, ``case int64(_:)``, or
-    ///     ``case uint64(_:)``, and it can be represented exactly by [`T`]();
-    ///     [`nil`]() otherwise.
+    ///     if it matches one of ``int32(_:)``, ``int64(_:)``, or
+    ///     ``uint64(_:)``, and it can be represented exactly by `T`;
+    ///     nil otherwise.
     ///
-    /// The ``case decimal128(_:)``, ``case double(_:)``, and ``case millisecond(_:)``
+    /// The ``decimal128(_:)``, ``double(_:)``, and ``millisecond(_:)``
     /// variants will *not* match.
     ///
-    /// This method reports failure in two ways — it returns [`nil`]() on a type
-    /// mismatch, and it [`throws`]() an ``IntegerOverflowError`` if this variant
-    /// was an integer, but it could not be represented exactly by [`T`]().
+    /// This method reports failure in two ways — it returns nil on a type
+    /// mismatch, and it throws an ``IntegerOverflowError`` if this variant
+    /// was an integer, but it could not be represented exactly by `T`.
     @inlinable public
     func `as`<Integer>(_:Integer.Type) throws -> Integer?
         where Integer:FixedWidthInteger
@@ -235,8 +235,8 @@ extension BSON.AnyValue
     /// this variant.
     ///
     /// -   Returns:
-    ///     The closest value of [`T`]() to the payload of this
-    ///     variant if it matches ``case double(_:)``, [`nil`]() otherwise.
+    ///     The closest value of `T` to the payload of this
+    ///     variant if it matches ``double(_:)``, nil otherwise.
     @inlinable public
     func `as`<Fraction>(_:Fraction.Type) -> Fraction?
         where Fraction:BinaryFloatingPoint
@@ -250,8 +250,8 @@ extension BSON.AnyValue
     /// Attempts to load an instance of ``Decimal128`` from this variant.
     ///
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case decimal128(_:)``,
-    ///     [`nil`]() otherwise.
+    ///     The payload of this variant if it matches ``decimal128(_:)``,
+    ///     nil otherwise.
     @inlinable public
     func `as`(_:BSON.Decimal128.Type) -> BSON.Decimal128?
     {
@@ -264,8 +264,8 @@ extension BSON.AnyValue
     /// Attempts to load an instance of ``Identifier`` from this variant.
     ///
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case id(_:)`` or
-    ///     ``case pointer(_:_:)``, [`nil`]() otherwise.
+    ///     The payload of this variant if it matches ``id(_:)`` or
+    ///     ``pointer(_:_:)``, nil otherwise.
     @inlinable public
     func `as`(_:BSON.Identifier.Type) -> BSON.Identifier?
     {
@@ -282,8 +282,8 @@ extension BSON.AnyValue
     /// Attempts to load an instance of ``Millisecond`` from this variant.
     ///
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case millisecond(_:)``,
-    ///     [`nil`]() otherwise.
+    ///     The payload of this variant if it matches ``millisecond(_:)``,
+    ///     nil otherwise.
     @inlinable public
     func `as`(_:BSON.Millisecond.Type) -> BSON.Millisecond?
     {
@@ -298,8 +298,8 @@ extension BSON.AnyValue
     /// Attempts to load an instance of ``Regex`` from this variant.
     ///
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case regex(_:)``,
-    ///     [`nil`]() otherwise.
+    ///     The payload of this variant if it matches ``regex(_:)``,
+    ///     nil otherwise.
     @inlinable public
     func `as`(_:BSON.Regex.Type) -> BSON.Regex?
     {
@@ -316,7 +316,7 @@ extension BSON.AnyValue
     ///
     /// -   Returns:
     ///     The payload of this variant, decoded to a ``String``, if it matches
-    ///     either ``case string(_:)`` or ``case javascript(_:)``, [`nil`]()
+    ///     either ``string(_:)`` or ``javascript(_:)``, nil
     ///     otherwise.
     ///
     /// >   Complexity:
@@ -332,8 +332,8 @@ extension BSON.AnyValue
     /// Attempts to load an explicit ``null`` from this variant.
     ///
     /// -   Returns:
-    ///     [`nil`]() in the inner optional this variant is ``null``,
-    //      [`nil`]() in the outer optional otherwise.
+    ///     nil in the inner optional this variant is ``null``,
+    //      nil in the outer optional otherwise.
     @inlinable public
     func `as`(_:Never?.Type) -> Never??
     {
@@ -346,7 +346,7 @@ extension BSON.AnyValue
     /// Attempts to load a ``max`` key from this variant.
     ///
     /// -   Returns:
-    ///     ``Max.max`` if this variant is ``max``, [`nil`]() otherwise.
+    ///     A (the) instance of ``Max`` if this variant is ``max``, nil otherwise.
     @inlinable public
     func `as`(_:BSON.Max.Type) -> BSON.Max?
     {
@@ -359,7 +359,7 @@ extension BSON.AnyValue
     /// Attempts to load a ``min`` key from this variant.
     ///
     /// -   Returns:
-    ///     ``Min.min`` if this variant is ``min``, [`nil`]() otherwise.
+    ///     A (the) instance of ``min`` if this variant is ``min``, nil otherwise.
     @inlinable public
     func `as`(_:BSON.Min.Type) -> BSON.Min?
     {
@@ -374,8 +374,8 @@ extension BSON.AnyValue
 {
     /// Attempts to unwrap a binary array from this variant.
     ///
-    /// -   Returns: The payload of this variant if it matches ``case binary(_:)``,
-    ///     [`nil`]() otherwise.
+    /// -   Returns: The payload of this variant if it matches ``binary(_:)``,
+    ///     nil otherwise.
     ///
     /// >   Complexity: O(1).
     @inlinable public
@@ -391,8 +391,8 @@ extension BSON.AnyValue
     }
     /// Attempts to unwrap a document from this variant.
     ///
-    /// -   Returns: The payload of this variant if it matches ``case document(_:)``
-    ///     or ``case list(_:)``, [`nil`]() otherwise.
+    /// -   Returns: The payload of this variant if it matches ``document(_:)``
+    ///     **or** ``list(_:)``, nil otherwise.
     ///
     /// If the variant was a list, the string keys of the returned document are likely
     /// (but not guaranteed) to be the list indices encoded as base-10 strings, without
@@ -415,8 +415,8 @@ extension BSON.AnyValue
     /// Attempts to unwrap a list from this variant.
     ///
     /// -   Returns:
-    ///     The payload of this variant if it matches ``case list(_:)``,
-    ///     [`nil`]() otherwise.
+    ///     The payload of this variant if it matches ``list(_:)``,
+    ///     nil otherwise.
     ///
     /// >   Complexity: O(1).
     @inlinable public
@@ -433,8 +433,8 @@ extension BSON.AnyValue
     /// in constant time.
     ///
     /// -   Returns:
-    ///     The payload of this variant if it matches either ``case string(_:)``
-    ///     or ``case javascript(_:)``, [`nil`]() otherwise.
+    ///     The payload of this variant if it matches either ``string(_:)``
+    ///     or ``javascript(_:)``, nil otherwise.
     ///
     /// >   Complexity: O(1).
     @inlinable public

@@ -33,7 +33,7 @@ extension BSONListEncodable
 }
 extension BSONListEncodable where Self:Sequence, Element:BSONEncodable
 {
-    /// Encodes this sequence as a value of type ``BSON.list``.
+    /// Encodes this sequence as a value of type ``BSON.AnyType/list``.
     @inlinable public
     func encode(to bson:inout BSON.ListEncoder)
     {

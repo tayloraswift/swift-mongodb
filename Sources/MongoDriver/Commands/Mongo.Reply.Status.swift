@@ -4,14 +4,14 @@ extension Mongo.Reply
 {
     /// A type that can decode a MongoDB status indicator.
     ///
-    /// The following BSON values encode a “success” status (``ok`` is [`true`]()):
+    /// The following BSON values encode a “success” status (``ok`` is `true`):
     ///
     /// -   [`.bool(true)`](),
     /// -   [`.int32(1)`](),
     /// -   [`.int64(1)`](), and
     /// -   [`.double(1.0)`]().
     ///
-    /// The following BSON values encode a “failure” status (``ok`` is [`false`]()):
+    /// The following BSON values encode a “failure” status (``ok`` is `false`):
     ///
     /// -   [`.bool(false)`](),
     /// -   [`.int32(0)`](),

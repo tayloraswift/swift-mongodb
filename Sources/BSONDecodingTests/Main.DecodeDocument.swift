@@ -88,7 +88,7 @@ extension Main.DecodeDocument:TestBattery
             try $0["inhabited"]?.decode(to: Bool?.self)
         }
 
-        // should throw an error instead of returning [`nil`]().
+        // should throw an error instead of returning nil.
         Self.run(tests / "key-optional-not-inhabited", bson: bson,
             catching: BSON.DecodingError<BSON.Key>.init(
                 BSON.TypecastError<Bool>.init(invalid: .null),

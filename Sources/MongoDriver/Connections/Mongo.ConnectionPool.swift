@@ -127,8 +127,8 @@ extension Mongo.ConnectionPool
     /// The number of non-perished connections, including pending connections,
     /// currently in the pool.
     ///
-    /// Connection count is regulated by the pool’s ``Parameters size`` and
-    /// ``Parameters rate`` parameters.
+    /// Connection count is regulated by the pool’s ``Parameters/size`` and
+    /// ``Parameters/rate`` parameters.
     public
     var count:Int
     {
@@ -209,7 +209,7 @@ extension Mongo.ConnectionPool
     /// pool when the actor services the request.
     ///
     /// If the deadline passes while the pool is creating a connection for the
-    /// caller, the call will return [`nil`](), but the allocation will still be
+    /// caller, the call will return nil, but the allocation will still be
     /// created and added to the pool, and may be used to complete a different
     /// request.
     func create(by deadline:ContinuousClock.Instant) async throws -> Allocation
@@ -253,18 +253,18 @@ extension Mongo.ConnectionPool
     ///         pool.
     ///     -   reuse:
     ///         Indicates if the connection should be reused.
-    ///         If [`false`](), the channel will be asynchronously closed and
+    ///         If `false`, the channel will be asynchronously closed and
     ///         removed from the pool.
     ///
     /// Every *successful* call to ``create(by:)`` must be paired with a call
     /// to `destroy(_:reuse:)`.
     ///
-    /// If `reuse` is [`true`](), later calls to ``create(by:)`` will wait for
+    /// If `reuse` is `true`, later calls to ``create(by:)`` will wait for
     /// the destroyed connection to be re-indexed, instead of establishing a new
     /// one, provided that there are more un-indexed connections than
     /// currently-blocked requests.
     ///
-    /// If `reuse` is [`false`](), this method does not replace the connection,
+    /// If `reuse` is `false`, this method does not replace the connection,
     /// because replacement is performed when the underlying channel closes,
     /// which may take place before the wrapping connection is destroyed.
     nonisolated

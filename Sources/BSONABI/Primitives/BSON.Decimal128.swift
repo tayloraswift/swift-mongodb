@@ -8,15 +8,15 @@ extension BSON
     ///
     /// Take caution when using this type’s ``Hashable`` and ``Equatable`` conformances.
     /// Two `Decimal128` values can encode the same numeric value, yet compare unequal
-    /// under ``Equatable/.==(_:_:)``.
+    /// under ``Equatable.==(_:_:)``.
     @frozen public
     struct Decimal128:Hashable, Equatable, Sendable
     {
         /// The low 64 bits of this decimal value.
-        public 
+        public
         var low:UInt64
         /// The high 64 bits of this decimal value.
-        public 
+        public
         var high:UInt64
 
         @inlinable public

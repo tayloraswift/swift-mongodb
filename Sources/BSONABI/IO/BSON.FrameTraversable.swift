@@ -5,7 +5,7 @@ extension BSON
     /// BSON parsers typically parse conforming types by reading a length
     /// header from raw input data, and using it to slice the input,
     /// ideally without copying backing storage. The interpretation of the
-    /// length header is specified by the ``Frame`` type requirement, and
+    /// length header is specified by the ``FrameTraversable/Frame`` type requirement, and
     /// the exact slicing behavior is determined by the implementation’s
     /// ``init(slicing:)`` witness.
     public
