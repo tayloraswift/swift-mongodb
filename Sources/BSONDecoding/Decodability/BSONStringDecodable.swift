@@ -14,7 +14,7 @@ protocol BSONStringDecodable:BSONDecodable
 extension BSONStringDecodable
 {
     /// Attempts to cast the given variant value to a string, and then
-    /// delegates to this type’s ``init(bson:)`` witness.
+    /// delegates to this type’s ``init(bson:) [6DO67]`` witness.
     @inlinable public
     init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
     {

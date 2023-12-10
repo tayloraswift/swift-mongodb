@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 struct Record<Value>:Hashable, Sendable
     where Value:Hashable & Sendable & BSONDecodable & BSONEncodable

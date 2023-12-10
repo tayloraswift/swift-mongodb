@@ -66,7 +66,7 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
     public
     func decode<T>(_:T.Type, forKey key:Key) throws -> T where T:Decodable
     {
-        return try .init(from: try self.singleValueContainer(forKey: key))
+        try .init(from: try self.singleValueContainer(forKey: key))
     }
     func decodeNil(forKey key:Key) throws -> Bool
     {

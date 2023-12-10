@@ -1,4 +1,4 @@
-import BSONDecoding
+import BSON
 import BSON_UUID
 import UUID
 

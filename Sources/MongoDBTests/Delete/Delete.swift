@@ -152,22 +152,22 @@ struct Delete:MongoTestBattery
                 let expected:Mongo.DeleteResponse = .init(deleted: 1)
                 let response:Mongo.DeleteResponse = try await session.run(
                     command: Mongo.Delete<Mongo.One>.init(collection,
-                        writeConcern: .majority,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
                         deletes:
-                        [
-                            .init
-                            {
-                                $0[.limit] = .one
-                                $0[.q] = .init
-                                {
-                                    $0["flavor"] = "styrene"
-                                    $0["status"] = "B"
-                                }
-                            },
-                        ])
+                    {
+                        $0
                         {
-                            $0[.ordered] = false
-                        },
+                            $0[.limit] = .one
+                            $0[.q] = .init
+                            {
+                                $0["flavor"] = "styrene"
+                                $0["status"] = "B"
+                            }
+                        }
+                    },
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -190,22 +190,22 @@ struct Delete:MongoTestBattery
                 let expected:Mongo.DeleteResponse = .init(deleted: 2)
                 let response:Mongo.DeleteResponse = try await session.run(
                     command: Mongo.Delete<Mongo.Many>.init(collection,
-                        writeConcern: .majority,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
                         deletes:
-                        [
-                            .init
-                            {
-                                $0[.limit] = .unlimited
-                                $0[.collation] = .init(locale: "fr", strength: .primary)
-                                $0[.q] = .init
-                                {
-                                    $0["flavor"] = "acrylic"
-                                }
-                            },
-                        ])
+                    {
+                        $0
                         {
-                            $0[.ordered] = false
-                        },
+                            $0[.limit] = .unlimited
+                            $0[.collation] = .init(locale: "fr", strength: .primary)
+                            $0[.q] = .init
+                            {
+                                $0["flavor"] = "acrylic"
+                            }
+                        }
+                    },
                     against: database)
 
                 tests.expect(response ==? expected)
@@ -228,25 +228,25 @@ struct Delete:MongoTestBattery
                 let expected:Mongo.DeleteResponse = .init(deleted: 3)
                 let response:Mongo.DeleteResponse = try await session.run(
                     command: Mongo.Delete<Mongo.Many>.init(collection,
-                        writeConcern: .majority,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
                         deletes:
-                        [
-                            .init
-                            {
-                                $0[.limit] = .unlimited
-                                $0[.hint] = "points_index"
-                                $0[.q] = .init
-                                {
-                                    $0["points"] = .init
-                                    {
-                                        $0[.lt] = 70
-                                    }
-                                }
-                            },
-                        ])
+                    {
+                        $0
                         {
-                            $0[.ordered] = false
-                        },
+                            $0[.limit] = .unlimited
+                            $0[.hint] = "points_index"
+                            $0[.q] = .init
+                            {
+                                $0["points"] = .init
+                                {
+                                    $0[.lt] = 70
+                                }
+                            }
+                        }
+                    },
                     against: database)
 
                 tests.expect(response ==? expected)

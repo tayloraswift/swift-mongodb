@@ -125,15 +125,15 @@ extension Mongo.ConnectionPool.Allocations
     /// Unblocks an awaiting request with the given channel, if one exists.
     ///
     /// -   Returns:
-    ///     [`true`]() if there was a request that was unblocked by this call,
-    ///     [`false`]() otherwise.
+    ///     `true` if there was a request that was unblocked by this call,
+    ///     `false` otherwise.
     mutating
     func yield(_ allocation:Mongo.ConnectionPool.Allocation) -> Bool
     {
         switch self.requests.popFirst()?.value.resume(returning: allocation)
         {
-        case nil: return false
-        case ()?: return true
+        case nil: false
+        case ()?: true
         }
     }
     mutating
@@ -334,10 +334,10 @@ extension Mongo.ConnectionPool.Allocations
         switch self.phase
         {
         case .connecting(let connector):
-            return self.reserve(connector: connector, releasing: releasing, settings: settings)
+            self.reserve(connector: connector, releasing: releasing, settings: settings)
 
         case .draining:
-            return nil
+            nil
         }
     }
     private mutating
@@ -348,11 +348,11 @@ extension Mongo.ConnectionPool.Allocations
         if  self.pending < settings.rate,
             self.expandable(releasing: releasing, settings: settings)
         {
-            return self.reserve(connector: connector)
+            self.reserve(connector: connector)
         }
         else
         {
-            return nil
+            nil
         }
     }
     private mutating
@@ -441,7 +441,9 @@ extension Mongo.ConnectionPool.Allocations
     {
         for channel:any Channel in [self.retained.values, self.released.values].joined()
         {
-            channel.writeAndFlush(MongoIO.Action.cancel(throwing: .crosscancelled(error)),
+            channel.writeAndFlush(Mongo.WireAction.cancel(throwing: Mongo.NetworkError.init(
+                    underlying: error,
+                    provenance: .crosscancellation)),
                 promise: nil)
         }
     }

@@ -1,34 +1,36 @@
-import BSONEncoding
+import BSON
 import MongoQL
 
 extension Mongo
 {
     @frozen public
-    struct DeleteStatement<Effect>:MongoDocumentDSL, Sendable where Effect:MongoWriteEffect
+    struct DeleteStatement<Effect> where Effect:MongoWriteEffect
     {
-        public
-        var bson:BSON.Document
+        @usableFromInline internal
+        var bson:BSON.DocumentEncoder<BSON.Key>
 
         @inlinable public
-        init(_ bson:BSON.Document)
+        init(_ output:consuming BSON.Output<[UInt8]>)
         {
-            self.bson = bson
+            self.bson = .init(output)
         }
     }
+}
+extension Mongo.DeleteStatement:BSON.Encoder
+{
+    @inlinable public consuming
+    func move() -> BSON.Output<[UInt8]> { self.bson.move() }
+
+    @inlinable public static
+    var type:BSON.AnyType { .document }
 }
 extension Mongo.DeleteStatement
 {
     @inlinable public
     subscript(key:Limit) -> Effect.DeletePlurality?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
 extension Mongo.DeleteStatement
@@ -36,51 +38,28 @@ extension Mongo.DeleteStatement
     @inlinable public
     subscript(key:Q) -> Mongo.PredicateDocument?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 
     @inlinable public
     subscript(key:Collation) -> Mongo.Collation?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 
     @inlinable public
     subscript(key:Hint) -> String?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.bson[with: key]) }
     }
+
     @inlinable public
     subscript(key:Hint) -> Mongo.SortDocument?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson.push(key, value)
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }

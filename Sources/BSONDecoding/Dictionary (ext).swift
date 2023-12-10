@@ -10,7 +10,7 @@ extension Dictionary:BSONDocumentViewDecodable, BSONDecodable
         self.init()
         try bson.parse
         {
-            (field:BSON.ExplicitField<BSON.Key, Bytes.SubSequence>) in
+            (field:BSON.FieldDecoder<BSON.Key, Bytes.SubSequence>) in
 
             if case _? = self.updateValue(try field.decode(to: Value.self),
                 forKey: field.key.rawValue)

@@ -1,4 +1,4 @@
-import BSONDecoding
+import BSON
 import BSON_Durations
 import Durations
 import MongoWire
@@ -15,7 +15,8 @@ extension Mongo
         /// Type-specific information about the server and its role in a topology model.
         let topologyUpdate:TopologyUpdate
         /// Returns the local server time in UTC. This value is an
-        /// [ISO date](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-ISODate).
+        /// [ISO
+        /// date](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-ISODate).
         let localTime:BSON.Millisecond
 
         init(topologyVersion:TopologyVersion,
@@ -32,11 +33,9 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
 {
     init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
     {
-        let minWireVersion:MongoWire = try bson["minWireVersion"].decode(as: Int32.self,
-            with: MongoWire.init(rawValue:))
-        let maxWireVersion:MongoWire = try bson["maxWireVersion"].decode(as: Int32.self,
-            with: MongoWire.init(rawValue:))
-        
+        let minWireVersion:Mongo.WireVersion = try bson["minWireVersion"].decode()
+        let maxWireVersion:Mongo.WireVersion = try bson["maxWireVersion"].decode()
+
         //  consider maxWireVersion authoritative
         guard maxWireVersion >= 17
         else
@@ -64,7 +63,7 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
         {
             let tags:[String: String]? = try bson["tags"]?.decode(
                 to: [String: String].self)
-            
+
             let peerlist:Mongo.Peerlist = .init(set: set,
                 primary: try bson["primary"]?.decode(to: Mongo.Host.self),
                 arbiters: try bson["arbiters"]?.decode(to: [Mongo.Host].self) ?? [],
@@ -72,8 +71,8 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
                 hosts: try bson["hosts"].decode(to: [Mongo.Host].self),
                 me: try bson["me"].decode(to: Mongo.Host.self))
 
-            if      case true? =
-                    try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(to: Bool.self)
+            if  case true? = try (bson["isWritablePrimary"] ?? bson["ismaster"])?.decode(
+                to: Bool.self)
             {
                 let replica:Mongo.Replica = .init(capabilities: try capabilities(),
                     timings: try bson["lastWrite"].decode(to: Mongo.Replica.Timings.self),
@@ -83,14 +82,16 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
                         version: try bson["setVersion"].decode(to: Int64.self))),
                     peerlist)
             }
-            else if case true? = try bson["secondary"]?.decode(to: Bool.self)
+            else if
+                case true? = try bson["secondary"]?.decode(to: Bool.self)
             {
                 let replica:Mongo.Replica = .init(capabilities: try capabilities(),
                     timings: try bson["lastWrite"].decode(to: Mongo.Replica.Timings.self),
                     tags: tags ?? [:])
                 topologyUpdate = .slave(.secondary(replica), peerlist)
             }
-            else if case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
+            else if
+                case true? = try bson["arbiterOnly"]?.decode(to: Bool.self)
             {
                 topologyUpdate = .slave(.arbiter, peerlist)
             }
@@ -101,19 +102,18 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
         }
         else
         {
-            if      case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
+            if  case true? = try bson["isreplicaset"]?.decode(to: Bool.self)
             {
                 topologyUpdate = .ghost
             }
-            else if case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
+            else if
+                case "isdbgrid"? = try bson["msg"]?.decode(to: String.self)
             {
-                topologyUpdate = .router(.init(
-                    capabilities: try capabilities()))
+                topologyUpdate = .router(.init(capabilities: try capabilities()))
             }
             else
             {
-                topologyUpdate = .standalone(.init(
-                    capabilities: try capabilities()))
+                topologyUpdate = .standalone(.init(capabilities: try capabilities()))
             }
         }
 

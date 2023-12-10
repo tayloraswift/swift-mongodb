@@ -1,4 +1,4 @@
-import MongoSchema
+import MongoABI
 
 extension Mongo.Database
 {

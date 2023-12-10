@@ -1,5 +1,4 @@
-import BSONEncoding
-import BSONDecoding
+import BSON
 
 extension Mongo
 {

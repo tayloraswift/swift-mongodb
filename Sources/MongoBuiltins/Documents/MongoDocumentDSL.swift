@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 /// A `MongoDocumentDSL` is nothing more than a type that supports an
 /// ``init(with:)`` builder API.

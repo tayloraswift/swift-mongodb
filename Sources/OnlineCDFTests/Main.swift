@@ -5,13 +5,13 @@
 import OnlineCDF
 import Testing
 
-@main 
-enum Main:SyncTests
+@main
+enum Main:TestMain, TestBattery
 {
     static
-    func run(tests:Tests)
+    func run(tests:TestGroup)
     {
-        if  let tests:TestGroup = tests / "insert-one"
+        if  let tests:TestGroup = tests / "InsertOne"
         {
 
             let histogram:OnlineCDF = .init(resolution: 100, seed: 2)
@@ -30,7 +30,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.999) ==? 2)
             tests.expect(histogram.estimate(quantile: 1.000) ==? 2)
         }
-        if  let tests:TestGroup = tests / "insert-many"
+        if  let tests:TestGroup = tests / "InsertMany"
         {
 
             var histogram:OnlineCDF = .init(resolution: 100, seed: 1)
@@ -53,7 +53,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.999) ==? 100)
             tests.expect(histogram.estimate(quantile: 1.000) ==? 100)
         }
-        if  let tests:TestGroup = tests / "insert-one-batch"
+        if  let tests:TestGroup = tests / "InsertOneBatch"
         {
 
             let histogram:OnlineCDF = .init(resolution: 100,
@@ -73,7 +73,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.999) ==? 100)
             tests.expect(histogram.estimate(quantile: 1.000) ==? 100)
         }
-        if  let tests:TestGroup = tests / "insert-many-batches"
+        if  let tests:TestGroup = tests / "InsertManyBatches"
         {
 
             var histogram:OnlineCDF = .init(resolution: 100,
@@ -95,7 +95,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.999) ==? 200)
             tests.expect(histogram.estimate(quantile: 1.000) ==? 200)
         }
-        if  let tests:TestGroup = tests / "large"
+        if  let tests:TestGroup = tests / "Large"
         {
 
             let histogram:OnlineCDF = .init(resolution: 100,
@@ -115,7 +115,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.999) ==? 999.5)
             tests.expect(histogram.estimate(quantile: 1.000) ==? 1000)
         }
-        if  let tests:TestGroup = tests / "signed"
+        if  let tests:TestGroup = tests / "Signed"
         {
 
             let histogram:OnlineCDF = .init(resolution: 100,
@@ -137,7 +137,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.999) ==?  100)
             tests.expect(histogram.estimate(quantile: 1.000) ==?  100)
         }
-        if  let tests:TestGroup = tests / "outliers"
+        if  let tests:TestGroup = tests / "Outliers"
         {
 
             var histogram:OnlineCDF = .init(resolution: 100,
@@ -151,7 +151,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.900) ==? 90.5)
             tests.expect(histogram.estimate(quantile: 1.000) ==? 1_000_000)
         }
-        if  let tests:TestGroup = tests / "steps-balanced"
+        if  let tests:TestGroup = tests / "StepsBalanced"
         {
 
             var histogram:OnlineCDF = .init(resolution: 100,
@@ -173,7 +173,7 @@ enum Main:SyncTests
             tests.expect(histogram.estimate(quantile: 0.9) ==? 3)
             tests.expect(histogram.estimate(quantile: 1.0) ==? 3)
         }
-        if  let tests:TestGroup = tests / "steps-unbalanced"
+        if  let tests:TestGroup = tests / "StepsUnbalanced"
         {
 
             var histogram:OnlineCDF = .init(resolution: 100,

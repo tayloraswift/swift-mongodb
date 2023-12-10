@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 import MongoDriver
 import MongoQL
 import NIOCore
@@ -10,7 +9,7 @@ extension Mongo
     /// This command must run against the `admin` database.
     ///
     /// This command never enables the `nameOnly` option. To enable it, use the
-    /// ``ListDatabaseNames`` command.
+    /// ``ListDatabases.NameOnly`` command.
     ///
     /// > See:  https://www.mongodb.com/docs/manual/reference/command/listDatabases/
     public

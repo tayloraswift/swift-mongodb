@@ -16,10 +16,10 @@ extension Mongo.Accumulator.Superlative
     {
         switch self
         {
-        case .first:    return "$firstN"
-        case .last:     return "$lastN"
-        case .max:      return "$maxN"
-        case .min:      return "$minN"
+        case .first:    "$firstN"
+        case .last:     "$lastN"
+        case .max:      "$maxN"
+        case .min:      "$minN"
         }
     }
 }

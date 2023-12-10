@@ -15,7 +15,7 @@ extension Mongo
         let appname:String?
         private
         let tls:TLS
-        
+
         init(executors:any EventLoopGroup, appname:String?, tls:TLS)
         {
             self.executors = executors
@@ -43,31 +43,31 @@ extension Mongo.ConnectorFactory
     func bootstrap(timeout:Milliseconds, host:Mongo.Host) -> ClientBootstrap
     {
         .init(group: self.executors)
-            .channelOption(ChannelOptions.Types.ConnectTimeoutOption.init(), 
+            .channelOption(ChannelOptions.Types.ConnectTimeoutOption.init(),
                 value: .milliseconds(timeout.rawValue))
             .channelOption(ChannelOptions.Types.SocketOption.init(
                     level: Int.init(SOL_SOCKET),
-                    name: SO_REUSEADDR), 
+                    name: SO_REUSEADDR),
                 value: 1)
             .channelInitializer
-        { 
+        {
             (channel:any Channel) in
 
-            let decoder:ByteToMessageHandler<MongoIO.MessageDecoder> = .init(.init())
-            let router:MongoIO.MessageRouter = .init()
+            let decoder:ByteToMessageHandler<Mongo.WireMessageDecoder> = .init(.init())
+            let router:Mongo.WireMessageRouter = .init()
 
             guard case .enabled = self.tls
             else
             {
                 return channel.pipeline.addHandlers(decoder, router)
             }
-            do 
+            do
             {
                 let tls:NIOSSLClientHandler = try .init(context: .init(
-                        configuration: .clientDefault), 
+                        configuration: .clientDefault),
                     serverHostname: host.name)
                 return channel.pipeline.addHandlers(tls, decoder, router)
-            } 
+            }
             catch let error
             {
                 return channel.eventLoop.makeFailedFuture(error)

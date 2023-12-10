@@ -1,5 +1,4 @@
-import BSONDecoding
-import Durations
+import BSON
 
 public
 protocol MongoIterableCommand<Element>:MongoCommand

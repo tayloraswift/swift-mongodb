@@ -1,4 +1,4 @@
-import BSONDecoding
+import BSON
 import SCRAM
 
 extension Mongo

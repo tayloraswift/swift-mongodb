@@ -21,7 +21,7 @@ protocol BSONDocumentEncodable<CodingKey>:BSONEncodable
 extension BSONDocumentEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.encode(to: &field[as: BSON.DocumentEncoder<CodingKey>.self])
     }

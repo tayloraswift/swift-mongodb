@@ -1,10 +1,9 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 extension Mongo.Collation
 {
-    @frozen public 
-    enum CaseFirst:String, Sendable 
+    @frozen public
+    enum CaseFirst:String, Sendable
     {
         case lower
         case upper

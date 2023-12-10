@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo.SwitchBranches
 {
@@ -15,7 +15,7 @@ extension Mongo.SwitchBranches
         }
     }
 }
-extension Mongo.SwitchBranches.Encoder:BSONEncoder
+extension Mongo.SwitchBranches.Encoder:BSON.Encoder
 {
     @inlinable public
     init(_ output:consuming BSON.Output<[UInt8]>)
@@ -27,7 +27,7 @@ extension Mongo.SwitchBranches.Encoder:BSONEncoder
     func move() -> BSON.Output<[UInt8]> { self.list.move() }
 
     @inlinable public static
-    var type:BSON { .list }
+    var type:BSON.AnyType { .list }
 }
 extension Mongo.SwitchBranches.Encoder
 {

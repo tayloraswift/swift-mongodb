@@ -16,9 +16,9 @@ extension Mongo.TopologyUpdate.Slave
     {
         switch self
         {
-        case .secondary(let replica):   return .secondary(replica)
-        case .arbiter:                  return .arbiter
-        case .other:                    return .other
+        case .secondary(let replica):   .secondary(replica)
+        case .arbiter:                  .arbiter
+        case .other:                    .other
         }
     }
 }

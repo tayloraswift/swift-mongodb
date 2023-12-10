@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 import MongoDriver
 import MongoQL
 import NIOCore
@@ -11,15 +10,16 @@ extension Mongo
     {
         public
         let writeConcern:WriteConcern?
-        public
-        let deletes:Mongo.OutlineDocuments
+
+        @usableFromInline internal
+        var deletes:BSON.Output<[UInt8]>
 
         public
         var fields:BSON.Document
 
         @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            deletes:Mongo.OutlineDocuments,
+            deletes:BSON.Output<[UInt8]>,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -43,7 +43,7 @@ extension Mongo.Delete:MongoImplicitSessionCommand, MongoTransactableCommand, Mo
     @inlinable public
     var outline:Mongo.OutlineVector?
     {
-        .init(self.deletes, type: .deletes)
+        .init(bson: self.deletes, type: .deletes)
     }
 }
 extension Mongo.Delete
@@ -51,22 +51,24 @@ extension Mongo.Delete
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        deletes statements:some Sequence<Mongo.DeleteStatement<Effect>>)
+        deletes encode:(inout Mongo.DeleteEncoder<Effect>) throws -> ()) rethrows
     {
+        var deletes:Mongo.DeleteEncoder<Effect> = .init()
+        try encode(&deletes)
+
         self.init(writeConcern: writeConcern,
-            deletes: .init(statements),
+            deletes: deletes.move(),
             fields: Self.type(collection))
     }
+
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        deletes statements:some Sequence<Mongo.DeleteStatement<Effect>>,
-        with populate:(inout Self) throws -> ()) rethrows
+        with configure:(inout Self) throws -> (),
+        deletes encode:(inout Mongo.DeleteEncoder<Effect>) throws -> ()) rethrows
     {
-        self.init(collection,
-            writeConcern: writeConcern,
-            deletes: statements)
-        try populate(&self)
+        try self.init(collection, writeConcern: writeConcern, deletes: encode)
+        try configure(&self)
     }
 }
 extension Mongo.Delete

@@ -1,4 +1,4 @@
-import BSONDecoding
+import BSON
 
 extension Mongo.Replica
 {

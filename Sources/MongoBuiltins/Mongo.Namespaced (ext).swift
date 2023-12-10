@@ -1,5 +1,5 @@
 import BSON
-import MongoSchema
+import MongoABI
 
 extension Mongo.Namespaced<Mongo.Collection>
 {

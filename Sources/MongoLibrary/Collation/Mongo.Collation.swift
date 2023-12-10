@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 extension Mongo
 {
@@ -18,8 +17,8 @@ extension Mongo
         public
         let caseLevel:Bool?
         /// Determines up to which characters are considered ignorable when
-        /// ``alternate`` is ``Alternate/.shifted``.
-        /// Has no effect ``Alternate/.nonignorable``.
+        /// ``alternate`` is ``Alternate/shifted``. Has no effect when using
+        /// ``Alternate/nonignorable``.
         ///
         /// This is modeled as a separate property from ``alternate`` because
         /// it depends the value of ``alternate``, rather than its presence.

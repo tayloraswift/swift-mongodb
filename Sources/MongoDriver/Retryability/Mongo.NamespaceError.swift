@@ -1,24 +1,11 @@
-import TraceableErrors
-
 extension Mongo
 {
+    @available(*, deprecated, message: """
+        This type no longer functions properly; \
+        clients should check for ServerError(26) instead.
+        """)
     @frozen public
     struct NamespaceError:Equatable, Error
     {
-        @inlinable public
-        init()
-        {
-        }
-    }
-}
-extension Mongo.NamespaceError:NamedError
-{
-    public
-    var name:String { "NamespaceError" }
-
-    public
-    var message:String
-    {
-        "namespace does not exist"
     }
 }

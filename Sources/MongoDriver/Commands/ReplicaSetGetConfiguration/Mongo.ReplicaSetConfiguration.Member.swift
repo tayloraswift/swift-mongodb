@@ -1,5 +1,4 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 import BSON_Durations
 import BSON_OrderedCollections
 import Durations
@@ -19,7 +18,7 @@ extension Mongo.ReplicaSetConfiguration
         let id:Int64
         public
         let host:Mongo.Host
-        /// Information about this member if it is a replica, [`nil`]()
+        /// Information about this member if it is a replica, nil
         /// if (and only if) it is an arbiter.
         public
         let replica:Replica?

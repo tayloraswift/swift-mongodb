@@ -1,6 +1,5 @@
-import BSONDecoding
-import BSONEncoding
-import MongoSchema
+import BSON
+import MongoABI
 import NIOCore
 
 extension Mongo

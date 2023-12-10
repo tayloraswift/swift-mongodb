@@ -15,14 +15,12 @@ extension Mongo.PolicyError:CustomStringConvertible
         switch self
         {
         case .sha256Iterations(let iterations):
-            return 
-                """
+            """
                 security policy prohibits connecting to server with SCRAM-SHA-256 \
                 iteration count set to '\(iterations)'
                 """
         case .serverSignature:
-            return 
-                """
+            """
                 security policy prohibits connecting to server that failed SCRAM \
                 authentication
                 """

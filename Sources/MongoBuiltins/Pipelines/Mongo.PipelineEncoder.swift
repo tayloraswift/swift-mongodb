@@ -1,7 +1,5 @@
-import BSONDecoding
-import BSONEncoding
 import BSON
-import MongoSchema
+import MongoABI
 
 extension Mongo
 {
@@ -18,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PipelineEncoder:BSONEncoder
+extension Mongo.PipelineEncoder:BSON.Encoder
 {
     @inlinable public
     init(_ output:consuming BSON.Output<[UInt8]>)
@@ -30,7 +28,7 @@ extension Mongo.PipelineEncoder:BSONEncoder
     func move() -> BSON.Output<[UInt8]> { self.list.move() }
 
     @inlinable public static
-    var type:BSON { .list }
+    var type:BSON.AnyType { .list }
 }
 extension Mongo.PipelineEncoder
 {

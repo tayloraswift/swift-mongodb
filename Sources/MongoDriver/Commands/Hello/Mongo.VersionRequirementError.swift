@@ -6,9 +6,9 @@ extension Mongo
     struct VersionRequirementError:Equatable, Error
     {
         public
-        let wireVersions:ClosedRange<MongoWire>
+        let wireVersions:ClosedRange<Mongo.WireVersion>
 
-        init(invalid:ClosedRange<MongoWire>)
+        init(invalid:ClosedRange<Mongo.WireVersion>)
         {
             self.wireVersions = invalid
         }

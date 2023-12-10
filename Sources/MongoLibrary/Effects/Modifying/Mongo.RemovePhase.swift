@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo
 {
@@ -11,7 +11,7 @@ extension Mongo
 extension Mongo.RemovePhase:BSONEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         (true).encode(to: &field)
     }

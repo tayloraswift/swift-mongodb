@@ -1,8 +1,7 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 import Durations
+import MongoABI
 import MongoWire
-import MongoSchema
 import NIOCore
 
 /// A type that represents a MongoDB command. All public command types
@@ -61,7 +60,7 @@ protocol MongoCommand<Response>:Sendable
 }
 extension MongoCommand
 {
-    /// Returns [`nil`]().
+    /// Returns nil.
     @inlinable public
     var outline:Mongo.OutlineVector?
     {
@@ -152,12 +151,12 @@ extension MongoCommand
     /// as a field with the key [`"$db"`]().
     public __consuming
     func encode(database:Database, labels:Mongo.SessionLabels?,
-        by deadline:ContinuousClock.Instant) -> MongoWire.Message<[UInt8]>.Sections?
+        by deadline:ContinuousClock.Instant) -> Mongo.WireMessage<[UInt8]>.Sections?
     {
         // do this first, so we never have to access `self` after reading `self.fields`
-        let outlined:[MongoWire.Message<[UInt8]>.Outline]? = self.outline.map
+        let outlined:[Mongo.WireMessage<[UInt8]>.Outline]? = self.outline.map
         {
-            [.init(id: $0.type.rawValue, slice: $0.documents.slice)]
+            [.init(id: $0.type.rawValue, slice: $0.bson.destination)]
         }
 
         let now:ContinuousClock.Instant = .now
@@ -173,7 +172,7 @@ extension MongoCommand
             switch $0
             {
             case .auto:
-                return .init(truncating: now.duration(to: deadline))
+                .init(truncating: now.duration(to: deadline))
             }
         }
 

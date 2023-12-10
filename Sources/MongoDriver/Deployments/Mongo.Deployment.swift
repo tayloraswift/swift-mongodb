@@ -189,11 +189,11 @@ extension Mongo.Deployment
     {
         if  let capabilities:Mongo.DeploymentCapabilities = self.capabilities
         {
-            return capabilities
+            capabilities
         }
         else
         {
-            return try await self.capabilities(by: deadline).get()
+            try await self.capabilities(by: deadline).get()
         }
     }
     private
@@ -268,8 +268,8 @@ extension Mongo.Deployment
     ///         sending any command if `sessions` is empty.
     ///
     /// -   Returns:
-    ///     [`true`]() if `sessions` was empty or the command was sent
-    ///     and successfully executed; [`false`]() if at least one session was
+    ///     `true` if `sessions` was empty or the command was sent
+    ///     and successfully executed; `false` if at least one session was
     ///     provided, but there were no suitable servers to send the command
     ///     to, or if the command was sent but it failed on the server’s side.
     ///

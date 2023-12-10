@@ -1,10 +1,9 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 extension Mongo.Collation
 {
-    @frozen public 
-    enum MaxVariable:String, Sendable 
+    @frozen public
+    enum MaxVariable:String, Sendable
     {
         /// Both whitespace and punctuation are ignorable and not considered
         /// base characters.

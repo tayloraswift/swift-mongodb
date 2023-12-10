@@ -19,13 +19,13 @@ extension BSON
         }
     }
 }
-extension BSON.DocumentDecoder:BSONDecoder
+extension BSON.DocumentDecoder:BSON.Decoder
 {
     /// Attempts to load a document decoder from the given variant.
     ///
     /// - Returns:
     ///     A document decoder derived from the payload of this variant if it matches
-    ///     ``case document(_:)`` or ``case list(_:)``, [`nil`]() otherwise.
+    ///     ``document(_:)`` **or** ``list(_:)``, nil otherwise.
     @inlinable public
     init(parsing bson:__shared BSON.AnyValue<Storage>) throws
     {
@@ -53,7 +53,7 @@ extension BSON.DocumentDecoder
     /// comparison would drop one of the values.
     ///
     /// To get a plain array of key-value pairs with no decoding interface, call the
-    /// document view’s ``BSON.DocumentView parse()`` method instead.
+    /// document view’s ``BSON.DocumentView/parse()`` method instead.
     ///
     /// >   Complexity:
     ///     O(*n*), where *n* is the number of fields in the source document.
@@ -94,10 +94,10 @@ extension BSON.DocumentDecoder:Sequence
 extension BSON.DocumentDecoder
 {
     @inlinable public __consuming
-    func single() throws -> BSON.ExplicitField<CodingKey, Bytes>
+    func single() throws -> BSON.FieldDecoder<CodingKey, Bytes>
     {
-        var single:BSON.ExplicitField<CodingKey, Bytes>? = nil
-        for field:BSON.ExplicitField<CodingKey, Bytes> in self
+        var single:BSON.FieldDecoder<CodingKey, Bytes>? = nil
+        for field:BSON.FieldDecoder<CodingKey, Bytes> in self
         {
             if case nil = single
             {
@@ -117,13 +117,13 @@ extension BSON.DocumentDecoder
     }
 
     @inlinable public
-    subscript(key:CodingKey) -> BSON.ExplicitField<CodingKey, Bytes>?
-    {
-        self.index[key].map { .init(key: key, value: $0) }
-    }
-    @inlinable public
-    subscript(key:CodingKey) -> BSON.ImplicitField<CodingKey, Bytes>
+    subscript(key:CodingKey) -> BSON.OptionalDecoder<CodingKey, Bytes>
     {
         .init(key: key, value: self.index[key])
+    }
+    @inlinable public
+    subscript(key:CodingKey) -> BSON.FieldDecoder<CodingKey, Bytes>?
+    {
+        self.index[key].map { .init(key: key, value: $0) }
     }
 }

@@ -18,11 +18,11 @@ extension Mongo.ServerDescription
     {
         if case .connected(let metadata, _) = self
         {
-            return metadata
+            metadata
         }
         else
         {
-            return nil
+            nil
         }
     }
     @inlinable public
@@ -30,11 +30,11 @@ extension Mongo.ServerDescription
     {
         if case .connected(_, let owner) = self
         {
-            return owner
+            owner
         }
         else
         {
-            return nil
+            nil
         }
     }
     /// Returns the stored error, if this descriptor currently has one.
@@ -43,11 +43,11 @@ extension Mongo.ServerDescription
     {
         if case .errored(let error) = self
         {
-            return error
+            error
         }
         else
         {
-            return nil
+            nil
         }
     }
 }
@@ -66,14 +66,14 @@ extension Mongo.ServerDescription
         case .connected(_, let owner):
             self = .connected(metadata, owner)
             return .accepted
-        
+
         case .errored, .queued:
             return .dropped
         }
     }
 
     /// Places this descriptor in an ``case errored(_:)`` or ``case queued``
-    /// state. If `status` is [`nil`]() and the descriptor is already in
+    /// state. If `status` is nil and the descriptor is already in
     /// an errored state, the descriptor will remain in that state, and the
     /// stored error will not be overwritten.
     mutating

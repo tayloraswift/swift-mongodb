@@ -28,20 +28,20 @@ extension Mongo.ServerTable
     {
         switch self
         {
-        case .none(let unreachable):        return unreachable
-        case .single(_):                    return [:]
-        case .sharded(let sharded):         return sharded.unreachables
-        case .replicated(let replicated):   return replicated.unreachables
+        case .none(let unreachable):        unreachable
+        case .single(_):                    [:]
+        case .sharded(let sharded):         sharded.unreachables
+        case .replicated(let replicated):   replicated.unreachables
         }
     }
     var capabilities:Mongo.DeploymentCapabilities?
     {
         switch self
         {
-        case .none:                         return nil
-        case .single(let single):           return single.capabilities
-        case .sharded(let sharded):         return sharded.capabilities
-        case .replicated(let replicated):   return replicated.capabilities
+        case .none:                         nil
+        case .single(let single):           single.capabilities
+        case .sharded(let sharded):         sharded.capabilities
+        case .replicated(let replicated):   replicated.capabilities
         }
     }
 }
@@ -90,37 +90,37 @@ extension Mongo.ServerTable
         switch self
         {
         case .none:
-            return nil
+            nil
         
         case .single(let standalone):
             switch preference
             {
             case .primary, .primaryPreferred, .nearest, .secondaryPreferred:
-                return standalone.server.pool
+                standalone.server.pool
             case .secondary:
-                return nil
+                nil
             }
         
         case .sharded(let routers):
-            return routers.candidates.first?.pool
+            routers.candidates.first?.pool
         
         case .replicated(let members):
             switch preference
             {
             case .primary:
-                return members.primary
+                members.primary
             
             case .primaryPreferred      (let eligibility, hedge: _):
-                return members.primary ?? members.secondary(by: eligibility)
+                members.primary ?? members.secondary(by: eligibility)
             
             case .nearest               (let eligibility, hedge: _):
-                return members.nearest(by: eligibility)
+                members.nearest(by: eligibility)
             
             case .secondaryPreferred    (let eligibility, hedge: _):
-                return members.secondary(by: eligibility) ?? members.primary
+                members.secondary(by: eligibility) ?? members.primary
             
             case .secondary             (let eligibility, hedge: _):
-                return members.secondary(by: eligibility)
+                members.secondary(by: eligibility)
             }
         }
     }

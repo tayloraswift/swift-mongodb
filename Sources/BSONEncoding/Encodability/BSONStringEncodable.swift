@@ -16,7 +16,7 @@ protocol BSONStringEncodable:BSONEncodable
 {
     /// Converts an instance of this type to a string. This requirement
     /// restates its counterpart in ``LosslessStringConvertible`` if
-    /// [`Self`]() also conforms to it.
+    /// `Self` also conforms to it.
     var description:String { get }
 }
 extension BSONStringEncodable
@@ -29,7 +29,7 @@ extension BSONStringEncodable
     /// who implement ``LosslessStringConvertible``, but expect to be
     /// encoded as something besides a UTF-8 string.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.description.encode(to: &field)
     }

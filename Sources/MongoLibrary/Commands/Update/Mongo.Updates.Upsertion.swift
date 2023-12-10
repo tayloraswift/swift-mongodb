@@ -1,4 +1,4 @@
-import BSONDecoding
+import BSON
 import MongoDriver
 
 extension Mongo.Updates

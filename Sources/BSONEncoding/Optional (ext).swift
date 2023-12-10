@@ -1,8 +1,8 @@
 extension Optional:BSONEncodable where Wrapped:BSONEncodable
 {
-    /// Encodes this optional as an explicit ``BSON.null``, if nil.
+    /// Encodes this optional as an explicit ``BSON.AnyType/null``, if nil.
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         if let self:Wrapped
         {

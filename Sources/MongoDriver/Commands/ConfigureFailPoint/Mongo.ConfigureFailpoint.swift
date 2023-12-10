@@ -1,6 +1,6 @@
-import BSONEncoding
+import BSON
 import MongoClusters
-import MongoSchema
+import MongoABI
 
 extension Mongo
 {

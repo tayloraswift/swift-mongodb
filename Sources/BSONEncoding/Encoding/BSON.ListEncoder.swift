@@ -2,10 +2,9 @@ extension BSON
 {
     /// A type that can encode BSON list elements directly to an output buffer.
     ///
-    /// Unlike ``DocumentEncoder``, which works with ``BSONDocumentEncodable``,
-    /// this type currently doesn’t have a companion protocol. That’s because
-    /// we currently only use it to bootstrap faster ``BSONWeakEncodable``
-    /// conformances for ``Sequence``s.
+    /// Like ``DocumentEncoder``, which works with ``BSONDocumentEncodable``,
+    /// this type has its own companion protocol ``BSONListEncodable``, which is used to
+    /// bootstrap faster ``BSONEncodable`` conformances for ``Sequence``s.
     @frozen public
     struct ListEncoder
     {
@@ -22,18 +21,18 @@ extension BSON
         }
     }
 }
-extension BSON.ListEncoder:BSONEncoder
+extension BSON.ListEncoder:BSON.Encoder
 {
     @inlinable public consuming
     func move() -> BSON.Output<[UInt8]> { self.output }
 
     @inlinable public static
-    var type:BSON { .list }
+    var type:BSON.AnyType { .list }
 }
 extension BSON.ListEncoder
 {
     @inlinable public mutating
-    func append(with encode:(inout BSON.Field) -> ())
+    func append(with encode:(inout BSON.FieldEncoder) -> ())
     {
         encode(&self.output[with: .init(index: self.count)])
         self.count += 1

@@ -1,7 +1,6 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 import Durations
-import MongoSchema
+import MongoABI
 
 extension Mongo
 {

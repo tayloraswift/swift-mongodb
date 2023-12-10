@@ -18,18 +18,18 @@ extension Mongo.Unreachable:Equatable
         switch (lhs, rhs)
         {
         case (.queued, .queued):
-            return true
+            true
         case (.errored(let lhs), .errored(let rhs)):
-            return lhs == rhs
+            lhs == rhs
         case (_, _):
-            return false
+            false
         }
     }
 }
 extension Mongo.Unreachable
 {
-    /// Updates the stored error with the given error, if non-[`nil`]().
-    /// If `status` is [`nil`]() and the descriptor is already in an
+    /// Updates the stored error with the given error, if non-nil.
+    /// If `status` is nil and the descriptor is already in an
     /// errored state, the descriptor will remain in that state, and the
     /// stored error will not be overwritten.
     @inlinable public mutating

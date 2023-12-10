@@ -15,7 +15,7 @@ extension BSON
         }
     }
 }
-extension BSON.ListDecoder:BSONDecoder
+extension BSON.ListDecoder:BSON.Decoder
 {
     /// Attempts to unwrap and parse an array-decoder from the given variant.
     ///
@@ -24,7 +24,7 @@ extension BSON.ListDecoder:BSONDecoder
     ///
     /// -   Returns:
     ///     The payload of the variant, parsed to a list decoder, if it matches
-    ///     ``case list(_:)`` and could be successfully parsed, [`nil`]() otherwise.
+    ///     ``case list(_:)`` and could be successfully parsed, nil otherwise.
     ///
     /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.
@@ -70,7 +70,7 @@ extension BSON.ListDecoder:RandomAccessCollection
         self.elements.endIndex
     }
     @inlinable public
-    subscript(index:Int) -> BSON.ExplicitField<Int, Bytes>
+    subscript(index:Int) -> BSON.FieldDecoder<Int, Bytes>
     {
         .init(key: index, value: self.elements[index])
     }

@@ -14,8 +14,8 @@ extension Mongo.Authentication:RawRepresentable
     {
         switch self
         {
-        case .sasl(let sasl):   return sasl.rawValue
-        case .x509:             return "MONGODB-X509"
+        case .sasl(let sasl):   sasl.rawValue
+        case .x509:             "MONGODB-X509"
         }
     }
     @inlinable public

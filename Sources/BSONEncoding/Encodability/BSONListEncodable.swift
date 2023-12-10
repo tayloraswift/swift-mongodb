@@ -26,14 +26,14 @@ protocol BSONListEncodable:BSONEncodable
 extension BSONListEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.encode(to: &field[as: BSON.ListEncoder.self])
     }
 }
 extension BSONListEncodable where Self:Sequence, Element:BSONEncodable
 {
-    /// Encodes this sequence as a value of type ``BSON.list``.
+    /// Encodes this sequence as a value of type ``BSON.AnyType/list``.
     @inlinable public
     func encode(to bson:inout BSON.ListEncoder)
     {

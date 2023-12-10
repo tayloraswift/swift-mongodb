@@ -19,8 +19,8 @@ extension Mongo.CursorLifecycle
         {
         //  maxTimeMS can only be sent for tailable
         //  (iteration-based lifecycle) cursors.
-        case .iterable: return .auto
-        case .expires:  return nil
+        case .iterable: .auto
+        case .expires:  nil
         }
     }
 }

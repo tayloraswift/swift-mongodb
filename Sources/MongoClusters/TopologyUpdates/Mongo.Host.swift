@@ -1,22 +1,21 @@
-import BSONDecoding
-import BSONEncoding
+import BSON
 
 extension Mongo
 {
-    @frozen public 
+    @frozen public
     struct Host:Hashable, Sendable
     {
-        /// The hostname, such as [`"localhost"`](), [`"example.com"`](), 
+        /// The hostname, such as [`"localhost"`](), [`"example.com"`](),
         /// or [`"127.0.0.1"`]().
-        public 
+        public
         var name:String
 
         /// The port. The default MongoDB port is 27017.
-        public 
+        public
         var port:Int
 
-        @inlinable public 
-        init(name:String, port:Int? = nil) 
+        @inlinable public
+        init(name:String, port:Int? = nil)
         {
             self.name = name
             self.port = port ?? 27017
@@ -32,7 +31,7 @@ extension Mongo.Host:Comparable
     }
 }
 extension Mongo.Host
-{        
+{
     // @inlinable public static
     // func srv(_ name:String) -> Self
     // {

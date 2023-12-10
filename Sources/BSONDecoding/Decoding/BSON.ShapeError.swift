@@ -26,13 +26,13 @@ extension BSON.ShapeError:CustomStringConvertible
         switch self.expected
         {
         case nil:
-            return "Invalid length (\(self.length))."
+            "Invalid length (\(self.length))."
 
         case .length(let length)?:
-            return "Invalid length (\(self.length)), expected \(length) elements."
+            "Invalid length (\(self.length)), expected \(length) elements."
 
         case .multiple(of: let stride)?:
-            return "Invalid length (\(self.length)), expected multiple of \(stride)."
+            "Invalid length (\(self.length)), expected multiple of \(stride)."
         }
     }
 }

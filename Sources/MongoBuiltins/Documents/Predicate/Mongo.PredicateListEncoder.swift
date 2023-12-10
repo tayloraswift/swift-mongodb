@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo
 {
@@ -15,7 +15,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateListEncoder:BSONEncoder
+extension Mongo.PredicateListEncoder:BSON.Encoder
 {
     @inlinable public
     init(_ output:consuming BSON.Output<[UInt8]>)
@@ -27,7 +27,7 @@ extension Mongo.PredicateListEncoder:BSONEncoder
     func move() -> BSON.Output<[UInt8]> { self.list.move() }
 
     @inlinable public static
-    var type:BSON { .list }
+    var type:BSON.AnyType { .list }
 }
 extension Mongo.PredicateListEncoder
 {

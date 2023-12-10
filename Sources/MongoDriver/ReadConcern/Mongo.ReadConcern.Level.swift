@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo.ReadConcern
 {
@@ -17,16 +17,16 @@ extension Mongo.ReadConcern.Level:CustomStringConvertible
         switch self
         {
         case .snapshot:
-            return "snapshot"
+            "snapshot"
         case .ratification(let level):
-            return level.rawValue
+            level.rawValue
         }
     }
 }
 extension Mongo.ReadConcern.Level:BSONEncodable
 {
     public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         self.description.encode(to: &field)
     }

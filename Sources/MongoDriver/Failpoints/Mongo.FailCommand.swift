@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo
 {
@@ -49,14 +49,14 @@ extension Mongo.FailCommand:BSONEncodable, BSONDocumentEncodable
             {
             case .error(let code):
                 bson["errorCode"] = code
-            
+
             case .writeConcernError(let error):
                 bson["writeConcernError"] = error
             }
-        
+
         case .closeConnection?:
             bson["closeConnection"] = true
-        
+
         case nil:
             break
         }

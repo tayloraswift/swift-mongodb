@@ -1,5 +1,3 @@
-import BSONDecoding
-import BSONEncoding
 import BSON
 
 extension Mongo.WriteConcern
@@ -19,7 +17,7 @@ extension Mongo.WriteConcern.Acknowledgement
     {
         if 0 < votes
         {
-            return .votes(votes)
+            .votes(votes)
         }
         else
         {
@@ -30,13 +28,13 @@ extension Mongo.WriteConcern.Acknowledgement
 extension Mongo.WriteConcern.Acknowledgement:BSONEncodable
 {
     public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         switch self
         {
         case .mode(let mode):
             mode.encode(to: &field)
-        
+
         case .votes(let votes):
             votes.encode(to: &field)
         }

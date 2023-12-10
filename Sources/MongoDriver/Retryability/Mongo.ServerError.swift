@@ -8,10 +8,10 @@ extension Mongo
         public
         let message:String
         public
-        let code:Code?
+        let code:Code
 
         public
-        init(_ code:Code?, message:String)
+        init(_ code:Code, message:String)
         {
             self.message = message
             self.code = code
@@ -23,7 +23,7 @@ extension Mongo.ServerError:NamedError
     public
     var name:String
     {
-        self.code.map { "ServerError (\($0))" } ?? "ServerError"
+        "ServerError (\(self.code))"
     }
 }
 extension Mongo.ServerError:MongoRetryableError
@@ -31,6 +31,6 @@ extension Mongo.ServerError:MongoRetryableError
     public
     var isRetryable:Bool
     {
-        self.code?.indicatesRetryability ?? false
+        self.code.indicatesRetryability
     }
 }

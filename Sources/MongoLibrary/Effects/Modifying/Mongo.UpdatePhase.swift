@@ -1,4 +1,4 @@
-import BSONEncoding
+import BSON
 
 extension Mongo
 {
@@ -12,7 +12,7 @@ extension Mongo
 extension Mongo.UpdatePhase:BSONEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.Field)
+    func encode(to field:inout BSON.FieldEncoder)
     {
         (self == .new).encode(to: &field)
     }

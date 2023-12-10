@@ -27,11 +27,11 @@ extension Mongo.Topology.Unknown
     {
         if case ()? = self.ghosts[host]?.clear(status: status)
         {
-            return .accepted
+            .accepted
         }
         else
         {
-            return .rejected
+            .rejected
         }
     }
     func topology<Metadata>(
@@ -42,25 +42,25 @@ extension Mongo.Topology.Unknown
             switch $0
             {
             case .errored(let error):
-                return .errored(error)
+                .errored(error)
             case .queued:
-                return .queued
+                .queued
             }
         }
     }
-    /// Removes the given host from the topology if present, returning [`true`]()
-    /// if it was the only ghost in the topology. Returns [`false`]() otherwise.
+    /// Removes the given host from the topology if present, returning `true`
+    /// if it was the only ghost in the topology. Returns `false` otherwise.
     @discardableResult
     mutating
     func pick(host:Mongo.Host) -> Bool
     {
         if case _? = self.ghosts.removeValue(forKey: host), self.ghosts.isEmpty
         {
-            return true
+            true
         }
         else
         {
-            return false
+            false
         }
     }
 }
