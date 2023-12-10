@@ -70,19 +70,31 @@ let package:Package = .init(name: "swift-mongodb",
                 "README.md",
             ]),
 
-            .target(name: "BSONABI"),
+            .target(name: "BSONABI",
+                exclude:
+                [
+                    "README.md",
+                ]),
 
             .target(name: "BSONDecoding",
                 dependencies:
                 [
                     .target(name: "BSONABI"),
                     .product(name: "TraceableErrors", package: "swift-grammar"),
+                ],
+                exclude:
+                [
+                    "README.md",
                 ]),
 
             .target(name: "BSONEncoding",
                 dependencies:
                 [
                     .target(name: "BSONABI"),
+                ],
+                exclude:
+                [
+                    "README.md",
                 ]),
 
 

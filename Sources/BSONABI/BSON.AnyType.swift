@@ -1,7 +1,7 @@
-/// A BSON metatype. The raw value of this enumeration is the type code of the associated case
-/// in BSON’s ABI.
 extension BSON
 {
+    /// A BSON metatype. The raw value of this enumeration is the type code of the associated
+    /// case in BSON’s ABI.
     @frozen public
     enum AnyType:UInt8, Equatable, Hashable, Sendable
     {
