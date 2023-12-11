@@ -3,10 +3,7 @@ import MongoDriver
 import NIOPosix
 import Testing
 
-var mongodb:Mongo.URI.Base<Mongo.Guest, Mongo.DirectSeeding>
-{
-    .init(userinfo: .init())
-}
+var mongodb:Mongo.URI.Base<Mongo.Guest, Mongo.DirectSeeding> { .init(userinfo: ()) }
 
 @main
 enum Main:TestMain, TestBattery
