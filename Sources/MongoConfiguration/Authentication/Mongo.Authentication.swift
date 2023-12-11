@@ -1,7 +1,7 @@
 extension Mongo
 {
     @frozen public
-    enum Authentication:Hashable, Sendable 
+    enum Authentication:Hashable, Sendable
     {
         case sasl(SASL)
         case x509

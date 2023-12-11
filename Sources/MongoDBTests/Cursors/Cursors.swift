@@ -1,16 +1,10 @@
 import MongoDB
 import MongoTesting
 
-struct Cursors:MongoTestBattery
+struct Cursors<Configuration>:MongoTestBattery where Configuration:CursorTestConfiguration
 {
-    let servers:[Mongo.ReadPreference]
-
-    init(servers:[Mongo.ReadPreference])
-    {
-        self.servers = servers
-    }
-
-    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
+    static
+    func run(tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
         let collection:Mongo.Collection = "ordinals"
         let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
@@ -42,7 +36,7 @@ struct Cursors:MongoTestBattery
         }
 
         for (server, name):(Mongo.ReadPreference, String)
-            in zip(self.servers, ["primary", "b", "c"])
+            in zip(Configuration.servers, ["primary", "b", "c"])
         {
             guard let tests:TestGroup = tests / name / "cursor-cleanup-normal"
             else
@@ -148,7 +142,7 @@ struct Cursors:MongoTestBattery
             }
         }
         for (server, name):(Mongo.ReadPreference, String)
-            in zip(self.servers, ["primary", "b", "c"])
+            in zip(Configuration.servers, ["primary", "b", "c"])
         {
             guard let tests:TestGroup = tests / name / "cursor-cleanup-interrupted"
             else
@@ -220,7 +214,7 @@ struct Cursors:MongoTestBattery
             }
         }
         for (server, name):(Mongo.ReadPreference, String)
-            in zip(self.servers, ["primary", "b", "c"])
+            in zip(Configuration.servers, ["primary", "b", "c"])
         {
             guard let tests:TestGroup = tests / name / "cursor-concurrent-commands"
             else

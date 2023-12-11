@@ -7,23 +7,20 @@ extension Mongo.URI
     /// domains. To append a path component to it, use the ``Authority//(_:_:) [1DYBW]``
     /// operator, which returns a ``Location``.
     @frozen public
-    struct Authority<LoginMode> where LoginMode:MongoLoginMode
+    struct Authority<Login>:Sendable where Login:Mongo.LoginMode
     {
         public
-        let userinfo:LoginMode
+        let userinfo:Login.Userinfo
         public
         let domains:Mongo.SeedingMethod
 
         @inlinable public
-        init(userinfo:LoginMode, domains:Mongo.SeedingMethod)
+        init(userinfo:Login.Userinfo, domains:Mongo.SeedingMethod)
         {
             self.userinfo = userinfo
             self.domains = domains
         }
     }
-}
-extension Mongo.URI.Authority:Sendable where LoginMode:Sendable
-{
 }
 extension Mongo.URI.Authority<Mongo.User>
 {
@@ -40,11 +37,8 @@ extension Mongo.URI.Authority<Mongo.User>
         .init(locator: self / path)
     }
 }
-extension Mongo.URI.Authority:MongoServiceLocator
+extension Mongo.URI.Authority:Mongo.ServiceLocator
 {
     @inlinable public
-    var database:LoginMode.Database?
-    {
-        nil
-    }
+    var database:Login.Database? { nil }
 }

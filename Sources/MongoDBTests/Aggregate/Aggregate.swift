@@ -1,9 +1,10 @@
 import MongoDB
 import MongoTesting
 
-struct Aggregate:MongoTestBattery
+struct Aggregate<Configuration>:MongoTestBattery where Configuration:MongoTestConfiguration
 {
-    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
+    static
+    func run(tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
         let session:Mongo.Session = try await .init(from: pool)
 

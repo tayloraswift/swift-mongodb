@@ -3,82 +3,39 @@ import NIOPosix
 import Testing
 
 @main
-enum Main:TestMain, TestBattery
+enum Main:TestMain
 {
     static
-    func run(tests:TestGroup) async
-    {
-        let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
+    let all:[any TestBattery.Type] =
+    [
+        Aggregate           <ReplicatedConfiguration>.self,
+        Collections         <ReplicatedConfiguration>.self,
+        Cursors             <ReplicatedConfiguration>.self,
+        Databases           <ReplicatedConfiguration>.self,
+        Delete              <ReplicatedConfiguration>.self,
+        Find                <ReplicatedConfiguration>.self,
+        FindAndModify       <ReplicatedConfiguration>.self,
+        Fsync               <ReplicatedConfiguration>.self,
+        Indexes             <ReplicatedConfiguration>.self,
+        Insert              <ReplicatedConfiguration>.self,
+        Update              <ReplicatedConfiguration>.self,
 
-        if  let tests:TestGroup = tests / "Replicated"
-        {
-            let members:Mongo.Seedlist =
-            [
-                "mongo-0": 27017,
-                "mongo-1": 27017,
-                "mongo-2": 27017,
-                "mongo-3": 27017,
-                "mongo-4": 27017,
-                "mongo-5": 27017,
-                "mongo-6": 27017,
-            ]
+        Transactions        <ReplicatedConfiguration>.self,
+        CausalConsistency   <ReplicatedConfigurationWithLongerTimeout>.self,
 
-            let bootstrap:Mongo.DriverBootstrap = MongoDB / members /?
-            {
-                $0.executors = .shared(executors)
-                $0.connectionTimeout = .milliseconds(1000)
-            }
-
-            await bootstrap.run(tests,
-                Aggregate.init(),
-                Collections.init(),
-                Cursors.init(servers: [
-                    .primary,
-                    //  We should be able to run this test on a specific server.
-                    .nearest(tagSets: [["name": "B"]]),
-                    //  We should be able to run this test on a secondary.
-                    .nearest(tagSets: [["name": "C"]]),
-                ]),
-                Databases.init(),
-                Delete.init(),
-                Find.init(),
-                FindAndModify.init(),
-                Fsync.init(),
-                Indexes.init(),
-                Insert.init(),
-                Transactions.init(),
-                Update.init())
-
-            let slow:Mongo.DriverBootstrap = MongoDB / members /?
-            {
-                $0.executors = .shared(executors)
-                $0.connectionTimeout = .milliseconds(2000)
-            }
-
-            await slow.run(tests, CausalConsistency.init())
-        }
-
-        if  let tests:TestGroup = tests / "Single"
-        {
-            let seedlist:Mongo.Seedlist = ["mongo-single": 27017]
-            let bootstrap:Mongo.DriverBootstrap = MongoDB / ("root", "80085") * seedlist /?
-            {
-                $0.authentication = .sasl(.sha256)
-                $0.executors = .shared(executors)
-            }
-
-            await bootstrap.run(tests,
-                Aggregate.init(),
-                Collections.init(),
-                Cursors.init(servers: [.primary]),
-                Databases.init(),
-                Delete.init(),
-                Find.init(),
-                FindAndModify.init(),
-                Fsync.init(),
-                Indexes.init(),
-                Insert.init(),
-                Update.init())
-        }
-    }
+        //  Note: these tests generally fail in debug mode because it takes a long time to
+        //  complete cryptographic authentication, and the driver will time out before it
+        //  completes.
+        Aggregate           <SingleConfiguration>.self,
+        Collections         <SingleConfiguration>.self,
+        Cursors             <SingleConfiguration>.self,
+        Databases           <SingleConfiguration>.self,
+        Delete              <SingleConfiguration>.self,
+        Find                <SingleConfiguration>.self,
+        FindAndModify       <SingleConfiguration>.self,
+        Fsync               <SingleConfiguration>.self,
+        Indexes             <SingleConfiguration>.self,
+        Insert              <SingleConfiguration>.self,
+        Update              <SingleConfiguration>.self,
+    ]
 }

@@ -4,15 +4,16 @@ extension Mongo
     struct Guest:Sendable
     {
         @inlinable public
-        init()
+        init(_:Never?)
         {
         }
     }
 }
-extension Mongo.Guest:MongoLoginMode
+extension Mongo.Guest:Mongo.LoginMode
 {
+    /// Always returns nil.
     @inlinable public
-    func credentials(authentication _:Never?, database _:Never?) -> Mongo.Credentials?
+    func credentials(userinfo _:Void, database _:Never?) -> Mongo.Credentials?
     {
         nil
     }

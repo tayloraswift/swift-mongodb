@@ -1,9 +1,10 @@
 import MongoDB
 import MongoTesting
 
-struct Find:MongoTestBattery
+struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfiguration
 {
-    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
+    static
+    func run(tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
         let collection:Mongo.Collection = "ordinals"
         let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
