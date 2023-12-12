@@ -26,7 +26,7 @@ extension Mongo.SwitchDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -40,7 +40,7 @@ extension Mongo.SwitchDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

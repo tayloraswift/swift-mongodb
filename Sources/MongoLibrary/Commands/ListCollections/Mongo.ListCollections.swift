@@ -66,11 +66,14 @@ extension Mongo.ListCollections<Mongo.CollectionBinding>
     init(stride:Int)
     {
         self.init(stride: stride, fields: Self.type(1))
-        self.fields["cursor"]
+        ;
         {
-            $0["batchSize"] = stride
-        }
-        self.fields["nameOnly"] = true
+            $0["cursor"]
+            {
+                $0["batchSize"] = stride
+            }
+            $0["nameOnly"] = true
+        } (&self.fields[BSON.Key.self])
     }
     @inlinable public
     init(stride:Int, with populate:(inout Self) throws -> ()) rethrows
@@ -85,7 +88,7 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
     init(stride:Int)
     {
         self.init(stride: stride, fields: Self.type(1))
-        self.fields["cursor"]
+        self.fields[BSON.Key.self]["cursor"]
         {
             $0["batchSize"] = stride
         }
@@ -111,7 +114,7 @@ extension Mongo.ListCollections
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -124,7 +127,7 @@ extension Mongo.ListCollections
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }

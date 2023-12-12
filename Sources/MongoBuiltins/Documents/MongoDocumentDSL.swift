@@ -8,6 +8,7 @@ import BSON
 public
 protocol MongoDocumentDSL:BSONRepresentable<BSON.Document>, BSONDecodable, BSONEncodable
 {
+    associatedtype Encoder = Self
 }
 extension MongoDocumentDSL
 {
@@ -16,13 +17,27 @@ extension MongoDocumentDSL
     {
         self.init(.init())
     }
-    /// Creates an empty instance of this type, and initializes it with the
-    /// given closure.
+}
+//  Legacy API
+extension MongoDocumentDSL where Encoder == Self
+{
     @inlinable public
     init(with populate:(inout Self) throws -> ()) rethrows
     {
         self.init()
         try populate(&self)
+    }
+}
+extension MongoDocumentDSL where Encoder:BSON.Encoder
+{
+    /// Creates an empty instance of this type, and initializes it with the
+    /// given closure.
+    @inlinable public
+    init(with populate:(inout Encoder) throws -> ()) rethrows
+    {
+        var bson:BSON.Document = .init()
+        try populate(&bson.output[as: Encoder.self])
+        self.init(bson)
     }
 }
 extension MongoDocumentDSL

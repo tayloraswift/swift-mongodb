@@ -85,7 +85,7 @@ extension Mongo.Update
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -98,7 +98,7 @@ extension Mongo.Update
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }

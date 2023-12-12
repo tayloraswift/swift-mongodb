@@ -27,7 +27,7 @@ extension Mongo.UnwindDocument
         }
         set(value)
         {
-            self.bson.push(key, value?.stem)
+            value?.stem.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -39,7 +39,7 @@ extension Mongo.UnwindDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

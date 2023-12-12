@@ -73,12 +73,14 @@ extension Mongo.Find where Effect.Tailing == Mongo.Tailing, Effect.Stride == Int
             tailing: tailing,
             stride: stride,
             fields: Self.type(collection))
-
-        self.fields["awaitData"] = tailing.flatMap { $0.awaits ? true : nil }
-        self.fields["tailable"] = tailing.map { _ in true }
-        self.fields["batchSize"] = stride
-        self.fields["limit"] = limit
-        self.fields["skip"] = skip
+        ;
+        {
+            $0["awaitData"] = tailing.flatMap { $0.awaits ? true : nil }
+            $0["tailable"] = tailing.map { _ in true }
+            $0["batchSize"] = stride
+            $0["limit"] = limit
+            $0["skip"] = skip
+        } (&self.fields[BSON.Key.self])
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -110,11 +112,13 @@ extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Never?
             tailing: nil,
             stride: nil,
             fields: Self.type(collection))
-
-        self.fields["singleBatch"] = true
-        self.fields["batchSize"] = limit
-        self.fields["limit"] = limit
-        self.fields["skip"] = skip
+        ;
+        {
+            $0["singleBatch"] = true
+            $0["batchSize"] = limit
+            $0["limit"] = limit
+            $0["skip"] = skip
+        } (&self.fields[BSON.Key.self])
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -142,7 +146,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -155,7 +159,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -168,7 +172,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -181,7 +185,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -193,7 +197,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -206,7 +210,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -219,7 +223,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -232,7 +236,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -245,7 +249,7 @@ extension Mongo.Find
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }

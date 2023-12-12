@@ -6,10 +6,10 @@ extension Mongo
     struct Variable<T>:Equatable, Hashable, Sendable
     {
         public
-        let name:String
+        let name:BSON.Key
 
         @inlinable public
-        init(name:String)
+        init(name:BSON.Key)
         {
             self.name = name
         }
@@ -22,7 +22,7 @@ extension Mongo.Variable where T:MongoMasterCodingModel
     {
         //  When the key path is encoded, ``Mongo.KeyPath``
         //  will add an additional prefixed dollar sign.
-        .init("$\(self.name).\(key.rawValue)")
+        .init(rawValue: "$\(self.name).\(key.rawValue)")
     }
 }
 extension Mongo.Variable:ExpressibleByStringLiteral
@@ -30,7 +30,7 @@ extension Mongo.Variable:ExpressibleByStringLiteral
     @inlinable public
     init(stringLiteral:String)
     {
-        self.init(name: stringLiteral)
+        self.init(name: .init(rawValue: stringLiteral))
     }
 }
 extension Mongo.Variable:CustomStringConvertible

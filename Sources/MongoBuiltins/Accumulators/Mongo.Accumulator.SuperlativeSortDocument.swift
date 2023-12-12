@@ -26,7 +26,7 @@ extension Mongo.Accumulator.SuperlativeSortDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -39,7 +39,7 @@ extension Mongo.Accumulator.SuperlativeSortDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }
@@ -55,7 +55,7 @@ extension Mongo.Accumulator.SuperlativeSortDocument<Mongo.SortDocument.Count>
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

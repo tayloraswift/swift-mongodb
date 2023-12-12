@@ -26,7 +26,7 @@ extension Mongo.StorageStatsDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

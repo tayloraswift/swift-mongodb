@@ -6,61 +6,21 @@ extension BSON.Document:BSONEncodable
         field.encode(document: .init(self))
     }
 }
-extension BSON.Document:_BSONBuilder
-{
-}
 extension BSON.Document
 {
-    @inlinable public mutating
-    func append(_ key:some RawRepresentable<String>, _ value:some BSONEncodable)
+    @inlinable public
+    subscript<CodingKey>(_:CodingKey.Type) -> BSON.DocumentEncoder<CodingKey>
     {
-        self.append(key.rawValue, value)
-    }
-
-    @inlinable public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:(some BSONEncodable)?)
-    {
-        value.map
-        {
-            self.append(key, $0)
-        }
-    }
-
-    @available(*, deprecated, message: "use append(_:_:) for non-optional values")
-    public mutating
-    func push(_ key:some RawRepresentable<String>, _ value:some BSONEncodable)
-    {
-        self.push(key, value as _?)
+        _read   { yield  self.output[as: BSON.DocumentEncoder<CodingKey>.self] }
+        _modify { yield &self.output[as: BSON.DocumentEncoder<CodingKey>.self] }
     }
 }
 extension BSON.Document
 {
     @inlinable public
-    subscript(key:some RawRepresentable<String>,
-        with encode:(inout BSON.ListEncoder) -> ()) -> Void
+    subscript(with key:some RawRepresentable<String>) -> BSON.FieldEncoder
     {
-        mutating get
-        {
-            self[key.rawValue, with: encode]
-        }
-    }
-    @inlinable public
-    subscript(key:some RawRepresentable<String>,
-        with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ()) -> Void
-    {
-        mutating get
-        {
-            self[key.rawValue, with: encode]
-        }
-    }
-    @inlinable public
-    subscript<CodingKey>(key:some RawRepresentable<String>,
-        using _:CodingKey.Type = CodingKey.self,
-        with encode:(inout BSON.DocumentEncoder<CodingKey>) -> ()) -> Void
-    {
-        mutating get
-        {
-            self[key.rawValue, with: encode]
-        }
+        _read   { yield  self.output[with: .init(key)] }
+        _modify { yield &self.output[with: .init(key)] }
     }
 }

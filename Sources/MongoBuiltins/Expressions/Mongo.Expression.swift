@@ -31,7 +31,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -50,12 +50,11 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if let value:Encodable
+            if  let value:Encodable
             {
-                self.bson[key]
                 {
                     $0.append(value)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -71,13 +70,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (let first?, let second?) = value
+            if  case (let first?, let second?) = value
             {
-                self.bson[key]
                 {
                     $0.append(first)
                     $0.append(second)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -94,14 +92,13 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (if: let predicate?, then: let first?, else: let second?) = value
+            if  case (if: let predicate?, then: let first?, else: let second?) = value
             {
-                self.bson[key]
                 {
                     $0.append(predicate)
                     $0.append(first)
                     $0.append(second)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -117,13 +114,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (let dividend?, by: let divisor?) = value
+            if  case (let dividend?, by: let divisor?) = value
             {
-                self.bson[key]
                 {
                     $0.append(dividend)
                     $0.append(divisor)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -139,13 +135,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (of: let array?, at: let index?) = value
+            if  case (of: let array?, at: let index?) = value
             {
-                self.bson[key]
                 {
                     $0.append(array)
                     $0.append(index)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -161,13 +156,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (let element?, in: let array?) = value
+            if  case (let element?, in: let array?) = value
             {
-                self.bson[key]
                 {
                     $0.append(element)
                     $0.append(array)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -183,13 +177,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (base: let base?, of: let exponential?) = value
+            if  case (base: let base?, of: let exponential?) = value
             {
-                self.bson[key]
                 {
                     $0.append(base)
                     $0.append(exponential)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -205,13 +198,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (base: let base?, to: let exponent?) = value
+            if  case (base: let base?, to: let exponent?) = value
             {
-                self.bson[key]
                 {
                     $0.append(base)
                     $0.append(exponent)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -240,13 +232,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (let fraction?, let places) = value
+            if  case (let fraction?, let places) = value
             {
-                self.bson[key]
                 {
                     $0.append(fraction)
                     $0.push(places)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -263,14 +254,13 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (from: let start?, to: let end?, by: let step) = value
+            if  case (from: let start?, to: let end?, by: let step) = value
             {
-                self.bson[key]
                 {
                     $0.append(start)
                     $0.append(end)
                     $0.push(step)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -301,14 +291,13 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (let array?, at: let index, distance: let distance?) = value
+            if  case (let array?, at: let index, distance: let distance?) = value
             {
-                self.bson[key]
                 {
                     $0.append(array)
                     $0.push(index)
                     $0.append(distance)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -338,13 +327,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (let minuend?, minus: let difference?) = value
+            if  case (let minuend?, minus: let difference?) = value
             {
-                self.bson[key]
                 {
                     $0.append(minuend)
                     $0.append(difference)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -360,13 +348,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (let count?, of: let array?) = value
+            if  case (let count?, of: let array?) = value
             {
-                self.bson[key]
                 {
                     $0.append(count)
                     $0.append(array)
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }
@@ -381,7 +368,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -395,11 +382,10 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson[key]
             {
                 $0.push(value.0)
                 $0.push(value.1)
-            }
+            } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
     @inlinable public
@@ -414,12 +400,11 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson[key]
             {
                 $0.push(value.0)
                 $0.push(value.1)
                 $0.push(value.2)
-            }
+            } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
     @inlinable public
@@ -435,13 +420,12 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson[key]
             {
                 $0.push(value.0)
                 $0.push(value.1)
                 $0.push(value.2)
                 $0.push(value.3)
-            }
+            } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
 }
@@ -457,7 +441,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -469,7 +453,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -481,7 +465,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -493,7 +477,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -505,7 +489,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -517,7 +501,7 @@ extension Mongo.Expression
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }
@@ -538,19 +522,18 @@ extension Mongo.Expression
         }
         set(value)
         {
-            if case (in: let sequence?, of: let element?, let start, let end) = value
+            if  case (in: let sequence?, of: let element?, let start, let end) = value
             {
-                self.bson[key]
                 {
                     $0.append(sequence)
                     $0.append(element)
 
-                    if let start:Start
+                    if  let start:Start
                     {
                         $0.append(start)
                         $0.push(end)
                     }
-                }
+                } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
     }

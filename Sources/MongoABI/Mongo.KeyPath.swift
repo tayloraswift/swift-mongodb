@@ -6,21 +6,32 @@ extension Mongo
     struct KeyPath:Equatable, Hashable, Sendable
     {
         public
-        var stem:String
+        var stem:BSON.Key
 
         @inlinable internal
-        init(_ stem:String)
+        init(stem:BSON.Key)
         {
             self.stem = stem
         }
     }
 }
+extension Mongo.KeyPath
+{
+    @inlinable public
+    init(rawValue:String)
+    {
+        self.init(stem: .init(rawValue: rawValue))
+    }
+
+    @inlinable public
+    var rawValue:String { self.stem.rawValue }
+}
 extension Mongo.KeyPath:ExpressibleByStringLiteral
 {
     @inlinable public
-    init(stringLiteral stem:String)
+    init(stringLiteral:String)
     {
-        self.init(stem)
+        self.init(rawValue: stringLiteral)
     }
 }
 extension Mongo.KeyPath:CustomStringConvertible
@@ -37,6 +48,6 @@ extension Mongo.KeyPath
     @inlinable public static
     func / (self:Self, next:Self) -> Self
     {
-        .init("\(self.stem).\(next.stem)")
+        .init(rawValue: "\(self.stem).\(next.stem)")
     }
 }

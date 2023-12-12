@@ -28,13 +28,15 @@ extension BSONEncodable where Self:RawRepresentable, RawValue:BSONEncodable
 extension BSONEncodable where Self == BSON.Document
 {
     @inlinable public
-    init<Encodable>(encoding fields:__shared some Sequence<(key:String, value:Encodable)>)
+    init<Encodable>(encoding fields:__shared some Sequence<(key:BSON.Key, value:Encodable)>)
         where Encodable:BSONEncodable
     {
-        self.init()
-        for (key, value):(String, Encodable) in fields
+        self.init
         {
-            self.append(key, value)
+            for (key, value):(BSON.Key, Encodable) in fields
+            {
+                $0[key] = value
+            }
         }
     }
     @inlinable public

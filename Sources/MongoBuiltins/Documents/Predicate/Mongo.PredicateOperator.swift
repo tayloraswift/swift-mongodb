@@ -26,7 +26,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -38,7 +38,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -50,7 +50,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -62,7 +62,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }
@@ -77,7 +77,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -91,7 +91,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -105,7 +105,7 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -118,17 +118,18 @@ extension Mongo.PredicateOperator
         }
         set(value)
         {
-            guard   let divisor:Divisor = value.by,
-                    let remainder:Remainder = value.is
+            guard
+            let divisor:Divisor = value.by,
+            let remainder:Remainder = value.is
             else
             {
                 return
             }
-            self.bson[key]
+
             {
                 $0.append(divisor)
                 $0.append(remainder)
-            }
+            } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
 }

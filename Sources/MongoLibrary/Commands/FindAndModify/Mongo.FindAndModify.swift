@@ -89,7 +89,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -102,7 +102,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -115,7 +115,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -128,7 +128,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -140,7 +140,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -153,7 +153,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -166,7 +166,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -179,7 +179,7 @@ extension Mongo.FindAndModify
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }
@@ -194,7 +194,7 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -206,7 +206,7 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -219,7 +219,7 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -232,7 +232,7 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -244,7 +244,7 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
         }
         set(value)
         {
-            self.fields.append(key, value)
+            value.encode(to: &self.fields[with: key])
         }
     }
 }

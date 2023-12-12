@@ -33,7 +33,7 @@ extension Mongo.FilterDocument
     }
 
     @inlinable internal static
-    func `let`(_ variable:String,
+    func `let`(_ variable:BSON.Key,
         with populate:(inout Self) throws -> ()) rethrows -> Self
     {
         var document:Self = .init(.init { $0["as"] = variable })
@@ -53,7 +53,7 @@ extension Mongo.FilterDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

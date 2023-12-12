@@ -61,8 +61,7 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
 
         if  let set:String = try bson["setName"]?.decode(to: String.self)
         {
-            let tags:[String: String]? = try bson["tags"]?.decode(
-                to: [String: String].self)
+            let tags:[BSON.Key: String]? = try bson["tags"]?.decode()
 
             let peerlist:Mongo.Peerlist = .init(set: set,
                 primary: try bson["primary"]?.decode(to: Mongo.Host.self),

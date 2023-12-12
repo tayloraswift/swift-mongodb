@@ -38,7 +38,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
     @inlinable public
@@ -50,7 +50,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
     //  Note: `@_disfavoredOverload` prevents a compiler crash due to the
@@ -65,7 +65,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }
@@ -85,7 +85,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }
@@ -100,7 +100,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -112,7 +112,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.append(key, value)
+            value.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -124,7 +124,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -136,7 +136,7 @@ extension Mongo.PredicateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

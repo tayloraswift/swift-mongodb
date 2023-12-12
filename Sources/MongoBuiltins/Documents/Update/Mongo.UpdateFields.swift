@@ -27,7 +27,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
     @inlinable public
@@ -39,7 +39,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Arithmetic>
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }
@@ -56,10 +56,10 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
         {
             if  case let (name, operand)? = value
             {
-                self.bson[path.stem]
                 {
                     $0[name] = operand
-                }
+                } (&self.bson[with: path.stem][
+                    as: BSON.DocumentEncoder<Mongo.UpdateBitwiseOperator>.self])
             }
         }
     }
@@ -74,10 +74,10 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Bit>
         {
             if  case let (name, operand)? = value
             {
-                self.bson[path.stem]
                 {
                     $0[name] = operand
-                }
+                } (&self.bson[with: path.stem][
+                    as: BSON.DocumentEncoder<Mongo.UpdateBitwiseOperator>.self])
             }
         }
     }
@@ -93,25 +93,9 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.CurrentDate>
         }
         set(value)
         {
-            self.bson[path.stem]
             {
                 $0["$type"] = "date"
-            }
-        }
-    }
-    @inlinable public
-    subscript(path:Mongo.KeyPath) -> UInt64.Type?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            self.bson[path.stem]
-            {
-                $0["$type"] = "timestamp"
-            }
+            } (&self.bson[with: path.stem][as: BSON.DocumentEncoder<BSON.Key>.self])
         }
     }
 }
@@ -126,7 +110,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pop>
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }
@@ -141,7 +125,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
     @inlinable public
@@ -153,7 +137,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Pull>
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }
@@ -168,7 +152,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Reduction>
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }
@@ -183,7 +167,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Rename>
         }
         set(value)
         {
-            self.bson.push(path.stem, value?.stem)
+            value?.stem.encode(to: &self.bson[with: path.stem])
         }
     }
 }
@@ -198,7 +182,7 @@ extension Mongo.UpdateFields<Mongo.UpdateDocument.Unset>
         }
         set(value)
         {
-            self.bson.append(path.stem, nil as Never?)
+            (nil as Never?).encode(to: &self.bson[with: path.stem])
         }
     }
 }

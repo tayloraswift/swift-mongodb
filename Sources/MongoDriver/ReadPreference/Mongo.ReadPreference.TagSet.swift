@@ -10,10 +10,10 @@ extension Mongo.ReadPreference
         /// are like ordered dictionaries, but they never perform key
         /// lookups, so this is modeled as a plain array.
         public
-        let patterns:[(key:String, value:String)]
+        let patterns:[(key:BSON.Key, value:String)]
 
         @inlinable public
-        init(patterns:[(key:String, value:String)])
+        init(patterns:[(key:BSON.Key, value:String)])
         {
             self.patterns = patterns
         }
@@ -30,7 +30,7 @@ extension Mongo.ReadPreference.TagSet:Equatable
 extension Mongo.ReadPreference.TagSet:ExpressibleByDictionaryLiteral
 {
     @inlinable public
-    init(dictionaryLiteral:(String, String)...)
+    init(dictionaryLiteral:(BSON.Key, String)...)
     {
         self.init(patterns: dictionaryLiteral)
     }
@@ -38,9 +38,9 @@ extension Mongo.ReadPreference.TagSet:ExpressibleByDictionaryLiteral
 extension Mongo.ReadPreference.TagSet
 {
     @inlinable public static
-    func ~= (lhs:Self, rhs:[String: String]) -> Bool
+    func ~= (lhs:Self, rhs:[BSON.Key: String]) -> Bool
     {
-        for (key, value):(String, String) in lhs.patterns
+        for (key, value):(BSON.Key, String) in lhs.patterns
         {
             guard case value? = rhs[key]
             else
@@ -56,9 +56,9 @@ extension Mongo.ReadPreference.TagSet:BSONEncodable, BSONDocumentEncodable
     public
     func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        for (key, value):(String, String) in self.patterns
+        for (key, value):(BSON.Key, String) in self.patterns
         {
-            bson.append(.init(rawValue: key), value)
+            bson[key] = value
         }
     }
 }

@@ -32,8 +32,10 @@ extension MongoExecutor
             throw Mongo.DriverTimeoutError.init()
         }
 
+
         var document:BSON.Document = .init(encoding: command)
-            document["$db"] = database.name
+            document[BSON.Key.self]["$db"] = database.name
+
         sections = .init(body: .init(document))
 
         return try .init(message: try await self.request(

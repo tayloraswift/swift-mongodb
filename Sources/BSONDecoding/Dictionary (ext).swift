@@ -1,5 +1,5 @@
 extension Dictionary:BSONDocumentViewDecodable, BSONDecodable
-    where Key == String, Value:BSONDecodable
+    where Key == BSON.Key, Value:BSONDecodable
 {
     /// Decodes an unordered dictionary from the given document. Dictionaries
     /// are not ``BSONEncodable``, because round-tripping them loses the field
@@ -12,8 +12,7 @@ extension Dictionary:BSONDocumentViewDecodable, BSONDecodable
         {
             (field:BSON.FieldDecoder<BSON.Key, Bytes.SubSequence>) in
 
-            if case _? = self.updateValue(try field.decode(to: Value.self),
-                forKey: field.key.rawValue)
+            if  case _? = self.updateValue(try field.decode(to: Value.self), forKey: field.key)
             {
                 throw BSON.DocumentKeyError<String>.duplicate(field.key.rawValue)
             }

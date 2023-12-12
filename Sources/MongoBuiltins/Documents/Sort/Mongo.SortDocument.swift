@@ -45,7 +45,7 @@ extension Mongo.SortDocument
         {
             if  case _? = value
             {
-                self.bson.append(natural, 1 as Int32)
+                (1 as Int32).encode(to: &self.bson[with: natural])
             }
         }
     }
@@ -60,7 +60,7 @@ extension Mongo.SortDocument
         {
             if  case _? = value
             {
-                self.bson.append(path.stem, 1 as Int32)
+                (1 as Int32).encode(to: &self.bson[with: path.stem])
             }
         }
     }
@@ -76,7 +76,7 @@ extension Mongo.SortDocument
         {
             if  case _? = value
             {
-                self.bson.append(natural, -1 as Int32)
+                (-1 as Int32).encode(to: &self.bson[with: natural])
             }
         }
     }
@@ -91,7 +91,7 @@ extension Mongo.SortDocument
         {
             if  case _? = value
             {
-                self.bson.append(path.stem, -1 as Int32)
+                (-1 as Int32).encode(to: &self.bson[with: path.stem])
             }
         }
     }
@@ -104,7 +104,7 @@ extension Mongo.SortDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }

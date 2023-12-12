@@ -1,3 +1,4 @@
+import BSON
 import Durations
 
 extension Mongo
@@ -7,6 +8,6 @@ extension Mongo
     enum Unsuitable:Equatable, Sendable
     {
         case stale(Milliseconds)
-        case tags([String: String])
+        case tags([BSON.Key: String])
     }
 }

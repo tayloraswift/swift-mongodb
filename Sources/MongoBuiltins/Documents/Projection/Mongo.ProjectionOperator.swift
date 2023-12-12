@@ -26,7 +26,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }
@@ -41,7 +41,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }
@@ -57,7 +57,7 @@ extension Mongo.ProjectionOperator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -75,14 +75,14 @@ extension Mongo.ProjectionOperator
             {
                 return
             }
-            self.bson[key]
+
             {
                 if let index:Index = value.at
                 {
                     $0.append(index)
                 }
                 $0.append(count)
-            }
+            } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
 }

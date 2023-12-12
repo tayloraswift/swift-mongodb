@@ -27,7 +27,7 @@ extension Mongo.FacetDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
 }

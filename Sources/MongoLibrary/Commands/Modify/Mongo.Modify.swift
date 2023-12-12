@@ -58,7 +58,7 @@ extension Mongo.Modify<Mongo.Collection>
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }
