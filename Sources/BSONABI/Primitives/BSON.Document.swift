@@ -58,7 +58,7 @@ extension BSON.Document
     /// prefer calling the non-generic ``init(_:)``.
     ///
     /// >   Complexity:
-    ///     O(1) if the opaque type is [`[UInt8]`](), O(*n*) otherwise,
+    ///     O(1) if the opaque type is `[UInt8]`, O(*n*) otherwise,
     ///     where *n* is the encoded size of the document.
     @inlinable public
     init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
@@ -78,10 +78,5 @@ extension BSON.Document
     func append(contentsOf other:Self)
     {
         self.output.append(other.bytes)
-    }
-    @inlinable public mutating
-    func append(_ key:String, with encode:(inout BSON.FieldEncoder) -> ())
-    {
-        encode(&self.output[with: .init(rawValue: key)])
     }
 }

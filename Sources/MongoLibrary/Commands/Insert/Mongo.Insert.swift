@@ -105,7 +105,7 @@ extension Mongo.Insert
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }

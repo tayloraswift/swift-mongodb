@@ -27,7 +27,7 @@ extension Mongo.CreateIndexStatement
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -40,7 +40,7 @@ extension Mongo.CreateIndexStatement
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -53,7 +53,7 @@ extension Mongo.CreateIndexStatement
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -73,7 +73,7 @@ extension Mongo.CreateIndexStatement
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -87,7 +87,7 @@ extension Mongo.CreateIndexStatement
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -100,7 +100,7 @@ extension Mongo.CreateIndexStatement
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

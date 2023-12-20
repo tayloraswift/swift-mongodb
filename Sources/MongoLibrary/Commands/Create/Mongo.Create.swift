@@ -55,7 +55,7 @@ extension Mongo.Create<Mongo.Timeseries>
         timeseries:Mongo.Timeseries)
     {
         self.init(writeConcern: writeConcern, fields: Self.type(collection))
-        self.fields["timeseries"] = timeseries
+        self.fields[BSON.Key.self]["timeseries"] = timeseries
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -76,8 +76,11 @@ extension Mongo.Create<Mongo.CollectionView>
     {
         self.init(writeConcern: writeConcern, fields: Self.type(collection))
             // don’t elide pipeline, it should always be there
-        self.fields["viewOn"] = view.collection
-        self.fields["pipeline"] = view.pipeline
+        ;
+        {
+            $0["viewOn"] = view.collection
+            $0["pipeline"] = view.pipeline
+        } (&self.fields[BSON.Key.self])
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -101,7 +104,7 @@ extension Mongo.Create
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -114,7 +117,7 @@ extension Mongo.Create
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }
@@ -130,11 +133,11 @@ extension Mongo.Create<Mongo.Collection>
         }
         set(value)
         {
-            if case (let size, let max)? = value
+            if  case (let size, let max)? = value
             {
-                self.fields["capped"] = true
-                self.fields["size"] = size
-                self.fields["max"] = max
+                true.encode(to: &self.fields[with: "capped" as BSON.Key])
+                size.encode(to: &self.fields[with: "size" as BSON.Key])
+                max?.encode(to: &self.fields[with: "max" as BSON.Key])
             }
         }
     }
@@ -148,7 +151,7 @@ extension Mongo.Create<Mongo.Collection>
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -161,7 +164,7 @@ extension Mongo.Create<Mongo.Collection>
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -174,7 +177,7 @@ extension Mongo.Create<Mongo.Collection>
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }

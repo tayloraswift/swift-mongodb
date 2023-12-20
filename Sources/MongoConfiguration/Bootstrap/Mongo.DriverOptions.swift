@@ -28,8 +28,6 @@ extension Mongo
         public
         var tls:TLS?
 
-        //  Note: this does not have default arguments to prevent us
-        //  from forgetting to forward properties
         @inlinable internal
         init(authentication:Authentication? = nil,
             executors:NIOEventLoopGroupProvider = .createNew,

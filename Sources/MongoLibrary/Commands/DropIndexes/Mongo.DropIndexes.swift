@@ -51,7 +51,7 @@ extension Mongo.DropIndexes
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -63,7 +63,7 @@ extension Mongo.DropIndexes
         }
         set(value)
         {
-            self.fields.append(key, value)
+            value.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -75,7 +75,7 @@ extension Mongo.DropIndexes
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }

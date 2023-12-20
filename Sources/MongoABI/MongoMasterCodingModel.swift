@@ -14,6 +14,6 @@ extension MongoMasterCodingModel
     @inlinable public static
     subscript(key:CodingKey) -> Mongo.KeyPath
     {
-        .init(key.rawValue)
+        .init(rawValue: key.rawValue)
     }
 }

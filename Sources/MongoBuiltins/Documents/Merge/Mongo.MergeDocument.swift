@@ -27,7 +27,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -39,7 +39,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value?.document)
+            value?.document.encode(to: &self.bson[with: key])
         }
     }
 
@@ -52,7 +52,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value?.stem)
+            value?.stem.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -64,7 +64,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -77,7 +77,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -90,7 +90,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -102,7 +102,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -114,7 +114,7 @@ extension Mongo.MergeDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

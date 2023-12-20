@@ -9,7 +9,7 @@ extension Mongo
     {
     }
 }
-extension Mongo.DirectSeeding:MongoDiscoveryMode
+extension Mongo.DirectSeeding:Mongo.DiscoveryMode
 {
     @inlinable public static
     subscript(seedlist:Mongo.Seedlist) -> Mongo.SeedingMethod

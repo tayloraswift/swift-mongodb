@@ -28,7 +28,7 @@ extension Mongo.LookupDocument
         set(value)
         {
             //  Value does not include leading dollar sign!
-            self.bson.push(key, value?.stem)
+            value?.stem.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -40,7 +40,7 @@ extension Mongo.LookupDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -52,7 +52,7 @@ extension Mongo.LookupDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -64,7 +64,7 @@ extension Mongo.LookupDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

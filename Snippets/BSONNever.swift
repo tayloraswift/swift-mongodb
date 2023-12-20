@@ -12,7 +12,7 @@ enum InnerCodingKeys:String
 
 let bson:BSON.Document = .init(OuterCodingKeys.self)
 {
-    $0[.metadata, using: InnerCodingKeys.self]
+    $0[.metadata, InnerCodingKeys.self]
     {
         $0[.cLanguageStandard] = 1
     }

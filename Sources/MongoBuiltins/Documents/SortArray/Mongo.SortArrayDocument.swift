@@ -27,7 +27,7 @@ extension Mongo.SortArrayDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -39,7 +39,7 @@ extension Mongo.SortArrayDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

@@ -33,13 +33,16 @@ extension Mongo
         let tls:TLS
 
         @inlinable internal
-        init<Authentication>(
-            locator:some MongoServiceLocator<some MongoLoginMode<Authentication>>,
-            options:DriverOptions<Authentication> = .init())
+        init<Login>(locator:some Mongo.ServiceLocator<Login>,
+            options:DriverOptions<Login.Authentication> = .init())
+            where Login:Mongo.LoginMode
         {
-            self.credentials = locator.userinfo.credentials(
-                authentication: options.authentication,
+            let login:Login = .init(options.authentication)
+
+            self.credentials = login.credentials(
+                userinfo: locator.userinfo,
                 database: locator.database)
+
             self.seeding = locator.domains
 
             self.executors = options.executors

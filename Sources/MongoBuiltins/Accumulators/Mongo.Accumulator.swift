@@ -26,7 +26,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -39,7 +39,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -52,7 +52,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -64,7 +64,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.bson.push(key.n, value)
+            value?.encode(to: &self.bson[with: key.n])
         }
     }
     @inlinable public
@@ -76,7 +76,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @_disfavoredOverload
@@ -89,7 +89,7 @@ extension Mongo.Accumulator
         }
         set(value)
         {
-            self.bson.push(key.n, value)
+            value?.encode(to: &self.bson[with: key.n])
         }
     }
 }

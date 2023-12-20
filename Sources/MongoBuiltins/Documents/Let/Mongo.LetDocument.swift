@@ -28,7 +28,7 @@ extension Mongo.LetDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
     @inlinable public
@@ -41,7 +41,7 @@ extension Mongo.LetDocument
         }
         set(value)
         {
-            self.bson.push(binding.name, value)
+            value?.encode(to: &self.bson[with: binding.name])
         }
     }
 }

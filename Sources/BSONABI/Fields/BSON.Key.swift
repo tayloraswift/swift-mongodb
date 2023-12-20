@@ -51,7 +51,7 @@ extension BSON.Key:CustomStringConvertible
         self.rawValue
     }
 }
-extension BSON.Key:ExpressibleByStringLiteral
+extension BSON.Key:ExpressibleByStringLiteral, ExpressibleByStringInterpolation
 {
     @inlinable public
     init(stringLiteral:String)

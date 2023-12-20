@@ -26,7 +26,7 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -38,7 +38,7 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -50,7 +50,7 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -62,7 +62,7 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -74,9 +74,21 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
+
+    @inlinable public
+    subscript<Document>(key:Reduction) -> Document?
+        where Document:BSONEncodable
+    {
+        get { nil }
+        set (value)
+        {
+            value?.encode(to: &self.bson[with: key])
+        }
+    }
+
     @inlinable public
     subscript(key:Reduction) -> Mongo.UpdateFields<Reduction>?
     {
@@ -86,7 +98,7 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -98,7 +110,7 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
     @inlinable public
@@ -110,7 +122,7 @@ extension Mongo.UpdateDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

@@ -4,65 +4,58 @@ extension Mongo.URI
     /// contains login credentials (which may be empty), and provides
     /// subscripts for building an ``Authority``.
     @frozen public
-    struct Base<LoginMode, DiscoveryMode>
-        where LoginMode:MongoLoginMode, DiscoveryMode:MongoDiscoveryMode
+    struct Base<Login, Discovery>:Sendable
+        where Login:Mongo.LoginMode, Discovery:Mongo.DiscoveryMode
     {
         public
-        let userinfo:LoginMode
+        let userinfo:Login.Userinfo
 
         @inlinable public
-        init(userinfo:LoginMode)
+        init(userinfo:Login.Userinfo)
         {
             self.userinfo = userinfo
         }
     }
-}
-extension Mongo.URI.Base:Sendable where LoginMode:Sendable
-{
 }
 extension Mongo.URI.Base<Mongo.Guest, Mongo.DirectSeeding>
 {
     @inlinable public
     var SRV:Mongo.URI.Base<Mongo.Guest, Mongo.DNS>
     {
-        .init(userinfo: .init())
+        .init(userinfo: ())
     }
 }
 
-extension Mongo.URI.Base where LoginMode.Authentication == Never
+extension Mongo.URI.Base where Login == Mongo.Guest
 {
     @inlinable public static
-    func / (base:Self, userinfo:
-        (
-            username:String,
-            password:String
-        ))  -> Mongo.URI.Base<Mongo.User, DiscoveryMode>
+    func / (base:Self, userinfo:Mongo.User.Userinfo) -> Mongo.URI.Base<Mongo.User, Discovery>
     {
-        .init(userinfo: .init(username: userinfo.username, password: userinfo.password))
+        .init(userinfo: userinfo)
     }
-    
+
     @_disfavoredOverload
     @inlinable public static
-    func / (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.URI.Authority<LoginMode>
+    func / (base:Self, domains:Discovery.Seedlist) -> Mongo.URI.Authority<Login>
     {
-        .init(userinfo: base.userinfo, domains: DiscoveryMode[domains])
+        .init(userinfo: base.userinfo, domains: Discovery[domains])
     }
     @inlinable public static
-    func / (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.DriverBootstrap
+    func / (base:Self, domains:Discovery.Seedlist) -> Mongo.DriverBootstrap
     {
         .init(locator: base / domains)
     }
 }
-extension Mongo.URI.Base where LoginMode.Authentication == Mongo.Authentication
+extension Mongo.URI.Base where Login == Mongo.User
 {
     @_disfavoredOverload
     @inlinable public static
-    func * (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.URI.Authority<LoginMode>
+    func * (base:Self, domains:Discovery.Seedlist) -> Mongo.URI.Authority<Mongo.User>
     {
-        .init(userinfo: base.userinfo, domains: DiscoveryMode[domains])
+        .init(userinfo: base.userinfo, domains: Discovery[domains])
     }
     @inlinable public static
-    func * (base:Self, domains:DiscoveryMode.Seedlist) -> Mongo.DriverBootstrap
+    func * (base:Self, domains:Discovery.Seedlist) -> Mongo.DriverBootstrap
     {
         .init(locator: base * domains)
     }

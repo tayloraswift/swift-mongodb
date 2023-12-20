@@ -1,3 +1,5 @@
+import BSON
+
 extension Mongo
 {
     public
@@ -8,12 +10,12 @@ extension Mongo
         public
         let timings:Timings
         public
-        let tags:[String: String]
+        let tags:[BSON.Key: String]
 
         public
         init(capabilities:ServerCapabilities,
             timings:Timings,
-            tags:[String: String])
+            tags:[BSON.Key: String])
         {
             self.capabilities = capabilities
             self.timings = timings

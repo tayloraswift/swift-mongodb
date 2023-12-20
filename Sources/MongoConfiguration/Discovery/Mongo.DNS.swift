@@ -48,7 +48,7 @@ extension Mongo.DNS:ExpressibleByDictionaryLiteral
         }
     }
 }
-extension Mongo.DNS:MongoDiscoveryMode
+extension Mongo.DNS:Mongo.DiscoveryMode
 {
     @inlinable public static
     subscript(seed:Self) -> Mongo.SeedingMethod

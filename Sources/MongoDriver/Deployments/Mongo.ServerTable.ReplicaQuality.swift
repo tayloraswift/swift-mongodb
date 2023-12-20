@@ -1,3 +1,4 @@
+import BSON
 import Durations
 
 extension Mongo.ServerTable
@@ -6,7 +7,7 @@ extension Mongo.ServerTable
     struct ReplicaQuality:Sendable
     {
         let staleness:Milliseconds
-        let tags:[String: String]
+        let tags:[BSON.Key: String]
     }
 }
 extension [Mongo.Server<Mongo.ServerTable.ReplicaQuality>]

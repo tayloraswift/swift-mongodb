@@ -46,7 +46,7 @@ extension Mongo.CreateIndexes
         indexes:[Mongo.CreateIndexStatement])
     {
         self.init(writeConcern: writeConcern, fields: Self.type(collection))
-        self.fields["indexes"] = indexes
+        self.fields[BSON.Key.self]["indexes"] = indexes
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -69,7 +69,7 @@ extension Mongo.CreateIndexes
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }

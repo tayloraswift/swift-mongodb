@@ -188,17 +188,23 @@ extension MongoCommand
         labels:Mongo.SessionLabels?) -> BSON.DocumentView<[UInt8]>
     {
         var bson:BSON.Document = self.fields
-
-        bson["$db"] = database.name
-        bson["maxTimeMS"] = timeout
-
-        if let labels:Mongo.SessionLabels
+        ;
         {
-            bson["$clusterTime"] = labels.clusterTime
-            bson["$readPreference"] = labels.preference
-            bson["readConcern"] = labels.readConcern
-            bson["writeConcern"] = labels.writeConcern
-            bson["lsid"] = labels.session
+            $0["$db"] = database.name
+            $0["maxTimeMS"] = timeout
+
+            guard
+            let labels:Mongo.SessionLabels
+            else
+            {
+                return
+            }
+
+            $0["$clusterTime"] = labels.clusterTime
+            $0["$readPreference"] = labels.preference
+            $0["readConcern"] = labels.readConcern
+            $0["writeConcern"] = labels.writeConcern
+            $0["lsid"] = labels.session
 
             switch labels.transaction
             {
@@ -206,17 +212,17 @@ extension MongoCommand
                 break
 
             case .autocommitting(let number)?:
-                bson["txnNumber"] = number
+                $0["txnNumber"] = number
 
             case .starting(let number)?:
-                bson["startTransaction"] = true
+                $0["startTransaction"] = true
                 fallthrough
 
             case .started(let number)?:
-                bson["autocommit"] = false
-                bson["txnNumber"] = number
+                $0["autocommit"] = false
+                $0["txnNumber"] = number
             }
-        }
+        } (&bson[BSON.Key.self])
 
         return .init(bson)
     }

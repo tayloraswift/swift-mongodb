@@ -27,7 +27,7 @@ extension Mongo.GroupDocument
         }
         set(value)
         {
-            self.bson.push(path.stem, value)
+            value?.encode(to: &self.bson[with: path.stem])
         }
     }
     @inlinable public
@@ -40,7 +40,7 @@ extension Mongo.GroupDocument
         }
         set(value)
         {
-            self.bson.push(key, value)
+            value?.encode(to: &self.bson[with: key])
         }
     }
 }

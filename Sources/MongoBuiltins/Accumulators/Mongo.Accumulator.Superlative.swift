@@ -1,3 +1,5 @@
+import BSON
+
 extension Mongo.Accumulator
 {
     @frozen public
@@ -12,7 +14,7 @@ extension Mongo.Accumulator
 extension Mongo.Accumulator.Superlative
 {
     @inlinable public
-    var n:String
+    var n:BSON.Key
     {
         switch self
         {

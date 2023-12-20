@@ -12,14 +12,16 @@ extension Mongo.URI
     struct Location:Sendable
     {
         public
-        let userinfo:Mongo.User
+        let userinfo:(username:String, password:String)
         public
         let domains:Mongo.SeedingMethod
         public
         let path:Mongo.Database
 
         @inlinable public
-        init(userinfo:Mongo.User, domains:Mongo.SeedingMethod, path:Mongo.Database)
+        init(userinfo:(username:String, password:String),
+            domains:Mongo.SeedingMethod,
+            path:Mongo.Database)
         {
             self.userinfo = userinfo
             self.domains = domains
@@ -27,11 +29,11 @@ extension Mongo.URI
         }
     }
 }
-extension Mongo.URI.Location:MongoServiceLocator
+extension Mongo.URI.Location:Mongo.ServiceLocator
 {
+    public
+    typealias Login = Mongo.User
+
     @inlinable public
-    var database:Mongo.Database?
-    {
-        self.path
-    }
+    var database:Mongo.Database? { self.path }
 }

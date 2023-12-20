@@ -1,9 +1,10 @@
 import MongoDB
 import MongoTesting
 
-struct Fsync:MongoTestBattery
+struct Fsync<Configuration>:MongoTestBattery where Configuration:MongoTestConfiguration
 {
-    func run(_ tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
+    static
+    func run(tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
     {
         //  We should ensure we are locking and unlocking the same node!
         let node:Mongo.ReadPreference = .nearest(tagSets: [["name": "A"]])

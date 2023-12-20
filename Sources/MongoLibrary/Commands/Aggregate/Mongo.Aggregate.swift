@@ -69,12 +69,14 @@ extension Mongo.Aggregate where Effect.Stride == Int
             readConcern: readConcern,
             stride: stride,
             fields: Self.type(collection))
-
-        self.fields["pipeline"] = pipeline
-        self.fields["cursor"]
+        ;
         {
-            $0["batchSize"] = stride
-        }
+            $0["pipeline"] = pipeline
+            $0["cursor"]
+            {
+                $0["batchSize"] = stride
+            }
+        } (&self.fields[BSON.Key.self])
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -105,12 +107,14 @@ extension Mongo.Aggregate where Effect.Stride == Never?
             readConcern: readConcern,
             stride: nil,
             fields: Self.type(collection))
-
-        self.fields["pipeline"] = pipeline
-        self.fields["cursor"]
+        ;
         {
-            $0["batchSize"] = Int.max
-        }
+            $0["pipeline"] = pipeline
+            $0["cursor"]
+            {
+                $0["batchSize"] = Int.max
+            }
+        } (&self.fields[BSON.Key.self])
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -136,9 +140,11 @@ extension Mongo.Aggregate<Mongo.ExplainOnly>
             readConcern: nil,
             stride: (),
             fields: Self.type(collection))
-
-        self.fields["pipeline"] = pipeline
-        self.fields["explain"] = true
+        ;
+        {
+            $0["pipeline"] = pipeline
+            $0["explain"] = true
+        } (&self.fields[BSON.Key.self])
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -161,7 +167,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -174,7 +180,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -187,7 +193,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
     @inlinable public
@@ -199,7 +205,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -212,7 +218,7 @@ extension Mongo.Aggregate
         }
         set(value)
         {
-            self.fields.push(key, value)
+            value?.encode(to: &self.fields[with: key])
         }
     }
 }
