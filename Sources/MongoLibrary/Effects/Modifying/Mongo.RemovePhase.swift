@@ -16,7 +16,7 @@ extension Mongo.RemovePhase:BSONEncodable
         (true).encode(to: &field)
     }
 }
-extension Mongo.RemovePhase:MongoModificationPhase
+extension Mongo.RemovePhase:Mongo.ModificationPhase
 {
     @inlinable public static
     var field:BSON.Key { "remove" }

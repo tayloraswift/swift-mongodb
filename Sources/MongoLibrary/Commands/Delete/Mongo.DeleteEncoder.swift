@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct DeleteEncoder<Effect> where Effect:MongoWriteEffect
+    struct DeleteEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var output:BSON.Output<[UInt8]>

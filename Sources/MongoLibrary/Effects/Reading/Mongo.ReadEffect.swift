@@ -7,7 +7,7 @@ extension Mongo
     public
     typealias ReadEffect = _MongoReadEffect
 }
-
+/// The name of this protocol is ``Mongo.ReadEffect``.
 public
 protocol _MongoReadEffect
 {

@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    enum Upserting<Value, ID>:MongoModificationEffect
+    enum Upserting<Value, ID>:Mongo.ModificationEffect
         where   Value:BSONDecodable,
                 Value:Sendable,
                 ID:BSONDecodable,

@@ -7,7 +7,7 @@ extension Mongo
 {
     public
     struct Update<Effect, ID>:Sendable
-        where   Effect:MongoWriteEffect,
+        where   Effect:Mongo.WriteEffect,
                 ID:BSONDecodable,
                 ID:Sendable
     {

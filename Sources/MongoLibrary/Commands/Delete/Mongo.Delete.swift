@@ -6,7 +6,7 @@ import NIOCore
 extension Mongo
 {
     public
-    struct Delete<Effect>:Sendable where Effect:MongoWriteEffect
+    struct Delete<Effect>:Sendable where Effect:Mongo.WriteEffect
     {
         public
         let writeConcern:WriteConcern?

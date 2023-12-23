@@ -17,7 +17,7 @@ extension Mongo.UpdatePhase:BSONEncodable
         (self == .new).encode(to: &field)
     }
 }
-extension Mongo.UpdatePhase:MongoModificationPhase
+extension Mongo.UpdatePhase:Mongo.ModificationPhase
 {
     @inlinable public static
     var field:BSON.Key { "new" }

@@ -4,7 +4,7 @@ import MongoDriver
 extension Mongo
 {
     @frozen public
-    enum One:MongoWriteEffect
+    enum One:Mongo.WriteEffect
     {
         public
         typealias ExecutionPolicy = Mongo.Retry

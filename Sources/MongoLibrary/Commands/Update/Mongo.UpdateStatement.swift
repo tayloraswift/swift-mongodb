@@ -4,7 +4,7 @@ import MongoQL
 extension Mongo
 {
     @frozen public
-    struct UpdateStatement<Effect>:Sendable where Effect:MongoWriteEffect
+    struct UpdateStatement<Effect>:Sendable where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var bson:BSON.DocumentEncoder<BSON.Key>

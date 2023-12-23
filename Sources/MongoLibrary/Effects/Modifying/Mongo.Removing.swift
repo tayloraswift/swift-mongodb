@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    enum Removing<Document>:MongoModificationEffect where Document:BSONDecodable & Sendable
+    enum Removing<Document>:Mongo.ModificationEffect where Document:BSONDecodable & Sendable
     {
         public
         typealias Phase = Mongo.RemovePhase

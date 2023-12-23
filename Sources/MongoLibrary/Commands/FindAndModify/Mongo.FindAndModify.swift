@@ -6,7 +6,7 @@ import NIOCore
 extension Mongo
 {
     public
-    struct FindAndModify<Effect>:Sendable where Effect:MongoModificationEffect
+    struct FindAndModify<Effect>:Sendable where Effect:Mongo.ModificationEffect
     {
         public
         let writeConcern:WriteConcern?

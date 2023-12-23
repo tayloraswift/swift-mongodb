@@ -4,7 +4,7 @@ import MongoQL
 extension Mongo
 {
     @frozen public
-    struct DeleteStatement<Effect> where Effect:MongoWriteEffect
+    struct DeleteStatement<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var bson:BSON.DocumentEncoder<BSON.Key>

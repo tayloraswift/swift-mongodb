@@ -4,7 +4,7 @@ import MongoDriver
 extension Mongo
 {
     @frozen public
-    enum Many:MongoWriteEffect
+    enum Many:Mongo.WriteEffect
     {
         public
         typealias ExecutionPolicy = Mongo.Once
