@@ -7,5 +7,5 @@ protocol MongoIterableCommand<Element>:MongoCommand
     associatedtype Element:BSONDecodable & Sendable
 
     var tailing:Mongo.Tailing? { get }
-    var stride:Int { get }
+    var stride:Int? { get }
 }

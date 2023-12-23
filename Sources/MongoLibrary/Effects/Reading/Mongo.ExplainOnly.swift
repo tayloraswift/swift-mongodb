@@ -9,14 +9,12 @@ extension Mongo
     {
     }
 }
-extension Mongo.ExplainOnly:MongoReadEffect
+extension Mongo.ExplainOnly:Mongo.ReadEffect
 {
     public
     typealias Tailing = Never
-    /// This is ``Void`` and not `Never?` because we reserve `Never?` for read effects
-    /// that return a single batch of results.
     public
-    typealias Stride = Void
+    typealias Stride = Never
     public
     typealias Batch = String
     public

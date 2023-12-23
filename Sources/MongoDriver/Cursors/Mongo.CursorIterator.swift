@@ -31,7 +31,7 @@ extension Mongo
         let timeout:Milliseconds
         /// The maximum size of each batch retrieved by this batch sequence.
         public
-        let stride:Int
+        let stride:Int?
         /// The session and connection used to advance the associated cursor.
         /// Cursors can only be iterated over a specific connection to a specific
         /// server.
@@ -47,7 +47,7 @@ extension Mongo
             namespace:Namespaced<Mongo.Collection>,
             lifecycle:CursorLifecycle,
             timeout:Milliseconds,
-            stride:Int,
+            stride:Int?,
             pinned:
             (
                 connection:Connection,

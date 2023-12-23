@@ -30,7 +30,7 @@ extension Mongo.Cursor
         lifecycle:Mongo.CursorLifecycle,
         timeout:Milliseconds,
         initial:Batch,
-        stride:Int,
+        stride:Int?,
         pinned:
         (
             connection:Mongo.Connection,

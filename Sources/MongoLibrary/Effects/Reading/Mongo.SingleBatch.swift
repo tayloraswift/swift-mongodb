@@ -9,12 +9,12 @@ extension Mongo
     {
     }
 }
-extension Mongo.SingleBatch:MongoReadEffect
+extension Mongo.SingleBatch:Mongo.ReadEffect
 {
     public
     typealias Tailing = Never
     public
-    typealias Stride = Never?
+    typealias Stride = Never
     public
     typealias Batch = [Element]
     public

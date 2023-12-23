@@ -5,23 +5,23 @@ import NIOCore
 
 extension Mongo
 {
-    public
-    struct Aggregate<Effect>:Sendable where Effect:MongoReadEffect
+    @frozen public
+    struct Aggregate<Effect>:Sendable where Effect:Mongo.ReadEffect
     {
         public
         let writeConcern:WriteConcern?
         public
         let readConcern:ReadConcern?
         public
-        let stride:Effect.Stride
+        let stride:Effect.Stride?
 
         public
         var fields:BSON.Document
 
-        public
+        @inlinable internal
         init(writeConcern:WriteConcern?,
             readConcern:ReadConcern?,
-            stride:Effect.Stride,
+            stride:Effect.Stride?,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
@@ -55,14 +55,14 @@ extension Mongo.Aggregate:MongoImplicitSessionCommand, MongoTransactableCommand,
         try Effect.decode(reply: reply)
     }
 }
-extension Mongo.Aggregate where Effect.Stride == Int
+extension Mongo.Aggregate
 {
-    public
+    @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
         pipeline:Mongo.Pipeline,
-        stride:Int)
+        stride:Effect.Stride?)
     {
         self.init(
             writeConcern: writeConcern,
@@ -74,7 +74,14 @@ extension Mongo.Aggregate where Effect.Stride == Int
             $0["pipeline"] = pipeline
             $0["cursor"]
             {
-                $0["batchSize"] = stride
+                if  let stride:Effect.Stride = stride
+                {
+                    $0["batchSize"] = stride
+                }
+                else
+                {
+                    $0["batchSize"] = Int.max
+                }
             }
         } (&self.fields[BSON.Key.self])
     }
@@ -83,7 +90,7 @@ extension Mongo.Aggregate where Effect.Stride == Int
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
         pipeline:Mongo.Pipeline,
-        stride:Int,
+        stride:Effect.Stride?,
         with populate:(inout Self) throws -> ()) rethrows
     {
         self.init(collection,
@@ -94,27 +101,19 @@ extension Mongo.Aggregate where Effect.Stride == Int
         try populate(&self)
     }
 }
-extension Mongo.Aggregate where Effect.Stride == Never?
+extension Mongo.Aggregate where Effect.Stride == Never
 {
-    public
+    @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
         pipeline:Mongo.Pipeline)
     {
-        self.init(
+        self.init(collection,
             writeConcern: writeConcern,
             readConcern: readConcern,
-            stride: nil,
-            fields: Self.type(collection))
-        ;
-        {
-            $0["pipeline"] = pipeline
-            $0["cursor"]
-            {
-                $0["batchSize"] = Int.max
-            }
-        } (&self.fields[BSON.Key.self])
+            pipeline: pipeline,
+            stride: nil)
     }
     @inlinable public
     init(_ collection:Mongo.Collection,
@@ -123,22 +122,23 @@ extension Mongo.Aggregate where Effect.Stride == Never?
         pipeline:Mongo.Pipeline,
         with populate:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection,
+        try self.init(collection,
             writeConcern: writeConcern,
             readConcern: readConcern,
-            pipeline: pipeline)
-        try populate(&self)
+            pipeline: pipeline,
+            stride: nil,
+            with: populate)
     }
 }
 extension Mongo.Aggregate<Mongo.ExplainOnly>
 {
-    public
+    @inlinable public
     init(_ collection:Mongo.Collection, pipeline:Mongo.Pipeline)
     {
         self.init(
             writeConcern: nil,
             readConcern: nil,
-            stride: (),
+            stride: nil,
             fields: Self.type(collection))
         ;
         {

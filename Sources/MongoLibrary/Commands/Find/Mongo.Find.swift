@@ -5,23 +5,23 @@ import NIOCore
 
 extension Mongo
 {
-    public
-    struct Find<Effect>:Sendable where Effect:MongoReadEffect
+    @frozen public
+    struct Find<Effect>:Sendable where Effect:Mongo.ReadEffect
     {
         public
         let readConcern:ReadConcern?
         public
         let tailing:Effect.Tailing?
         public
-        let stride:Effect.Stride
+        let stride:Effect.Stride?
 
         public
         var fields:BSON.Document
 
-        private
+        @inlinable internal
         init(readConcern:ReadConcern?,
             tailing:Effect.Tailing?,
-            stride:Effect.Stride,
+            stride:Effect.Stride?,
             fields:BSON.Document)
         {
             self.readConcern = readConcern
@@ -61,7 +61,7 @@ extension Mongo.Find:MongoIterableCommand
 }
 extension Mongo.Find where Effect.Tailing == Mongo.Tailing, Effect.Stride == Int
 {
-    public
+    @inlinable public
     init(_ collection:Mongo.Collection,
         readConcern:ReadConcern? = nil,
         tailing:Mongo.Tailing? = nil,
@@ -100,7 +100,7 @@ extension Mongo.Find where Effect.Tailing == Mongo.Tailing, Effect.Stride == Int
         try populate(&self)
     }
 }
-extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Never?
+extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Never
 {
     public
     init(_ collection:Mongo.Collection,

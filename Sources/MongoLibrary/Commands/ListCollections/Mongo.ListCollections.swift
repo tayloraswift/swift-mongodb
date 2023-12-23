@@ -25,7 +25,7 @@ extension Mongo
     struct ListCollections<Element>:Sendable where Element:BSONDocumentViewDecodable & Sendable
     {
         public
-        let stride:Int
+        let stride:Int?
 
         public
         var fields:BSON.Document
