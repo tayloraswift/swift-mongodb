@@ -1,3 +1,0 @@
-extension Mongo.Database:MongoCommandDatabase
-{
-}

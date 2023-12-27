@@ -9,7 +9,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.PrettyPrint:MongoLoggingTarget
+extension Mongo.PrettyPrint:Mongo.LoggingTarget
 {
     public
     func log(level:Mongo.LoggingLevel, event:Mongo.LoggingEvent)

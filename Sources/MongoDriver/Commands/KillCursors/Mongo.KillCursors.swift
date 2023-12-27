@@ -1,5 +1,6 @@
 import BSON
 import MongoABI
+import MongoCommands
 
 extension Mongo
 {
@@ -19,9 +20,9 @@ extension Mongo
         }
     }
 }
-extension Mongo.KillCursors:MongoCommand
+extension Mongo.KillCursors:Mongo.Command
 {
-    /// The string [`"killCursors"`]().
+    /// The string `"killCursors"`.
     @inlinable public static
     var type:Mongo.CommandType { .killCursors }
 
@@ -37,6 +38,6 @@ extension Mongo.KillCursors:MongoCommand
         }
     }
 }
-extension Mongo.KillCursors:MongoTransactableCommand
+extension Mongo.KillCursors:Mongo.TransactableCommand
 {
 }

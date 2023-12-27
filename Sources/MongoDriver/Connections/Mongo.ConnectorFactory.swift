@@ -53,20 +53,20 @@ extension Mongo.ConnectorFactory
         {
             (channel:any Channel) in
 
-            let decoder:ByteToMessageHandler<Mongo.WireMessageDecoder> = .init(.init())
+            let parser:Mongo.WireMessageParser = .init()
             let router:Mongo.WireMessageRouter = .init()
 
             guard case .enabled = self.tls
             else
             {
-                return channel.pipeline.addHandlers(decoder, router)
+                return channel.pipeline.addHandlers(parser, router)
             }
             do
             {
                 let tls:NIOSSLClientHandler = try .init(context: .init(
                         configuration: .clientDefault),
                     serverHostname: host.name)
-                return channel.pipeline.addHandlers(tls, decoder, router)
+                return channel.pipeline.addHandlers(tls, parser, router)
             }
             catch let error
             {

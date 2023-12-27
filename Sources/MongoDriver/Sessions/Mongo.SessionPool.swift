@@ -1,6 +1,7 @@
 import Atomics
 import DequeModule
 import Durations
+import MongoCommands
 
 extension Mongo
 {
@@ -124,7 +125,7 @@ extension Mongo.SessionPool
     func run<Command>(command:Command, against database:Command.Database,
         on preference:Mongo.ReadPreference = .primary,
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
-        where Command:MongoImplicitSessionCommand
+        where Command:Mongo.ImplicitSessionCommand
     {
         let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(clamping: deadline)
 

@@ -1,6 +1,6 @@
+import MongoCommands
 import MongoExecutor
 import MongoWire
-import NIOCore
 
 extension Mongo
 {
@@ -92,11 +92,11 @@ extension Mongo.Connection
         against database:Command.Database,
         labels:Mongo.SessionLabels,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
-        where Command:MongoCommand
+        where Command:Mongo.Command
     {
         let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
         guard
-        let command:Mongo.WireMessage<[UInt8]>.Sections = command.encode(
+        let command:Mongo.WireMessage.Sections = command.encode(
             database: database,
             labels: labels,
             by: deadline)
@@ -105,7 +105,7 @@ extension Mongo.Connection
             throw Mongo.DriverTimeoutError.init()
         }
 
-        let message:Mongo.WireMessage<ByteBufferView>
+        let message:Mongo.WireMessage
 
         do
         {

@@ -1,6 +1,7 @@
 import BSON
 import Durations
 import MongoABI
+import MongoCommands
 
 extension Mongo
 {
@@ -28,13 +29,13 @@ extension Mongo
         }
     }
 }
-extension Mongo.GetMore:MongoCommand
+extension Mongo.GetMore:Mongo.Command
 {
     @inlinable public static
     var type:Mongo.CommandType { .getMore }
 
     public
-    typealias Response = Mongo.Cursor<Element>.Batch
+    typealias Response = Mongo.CursorBatch<Element>
 
     public
     var fields:BSON.Document
@@ -46,10 +47,10 @@ extension Mongo.GetMore:MongoCommand
         }
     }
 }
-extension Mongo.GetMore:MongoTransactableCommand
+extension Mongo.GetMore:Mongo.TransactableCommand
 {
 }
 @available(*, unavailable, message: "GetMore cannot use implicit sessions.")
-extension Mongo.GetMore:MongoImplicitSessionCommand
+extension Mongo.GetMore:Mongo.ImplicitSessionCommand
 {
 }

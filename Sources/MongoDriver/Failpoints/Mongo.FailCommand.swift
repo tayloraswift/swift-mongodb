@@ -1,4 +1,5 @@
 import BSON
+import MongoCommands
 
 extension Mongo
 {
@@ -23,9 +24,9 @@ extension Mongo
     }
 }
 
-extension Mongo.FailCommand:MongoFailpoint
+extension Mongo.FailCommand:Mongo.Failpoint
 {
-    /// The string [`"failCommand"`]().
+    /// The string `"failCommand"`.
     @inlinable public static
     var name:String { "failCommand" }
 }

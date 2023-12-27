@@ -1,4 +1,5 @@
 import BSON
+import MongoCommands
 
 extension Mongo
 {

@@ -1,3 +1,5 @@
+import MongoCommands
+
 extension Mongo.FailCommand
 {
     @frozen public

@@ -26,7 +26,7 @@ extension Mongo.ServerError:NamedError
         "ServerError (\(self.code))"
     }
 }
-extension Mongo.ServerError:MongoRetryableError
+extension Mongo.ServerError:Mongo.RetryableError
 {
     public
     var isRetryable:Bool

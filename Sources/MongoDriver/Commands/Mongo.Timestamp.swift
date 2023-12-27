@@ -26,7 +26,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Timestamp:MongoInstant, Comparable
+extension Mongo.Timestamp:Mongo.Instant, Comparable
 {
     @inlinable public static
     func < (lhs:Self, rhs:Self) -> Bool

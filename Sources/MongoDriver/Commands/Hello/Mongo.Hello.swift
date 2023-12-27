@@ -20,7 +20,7 @@ extension Mongo
 }
 extension Mongo.Hello
 {
-    /// The string [`"hello"`]().
+    /// The string `"hello"`.
     @inlinable public static
     var type:Mongo.CommandType { .hello }
 }

@@ -20,7 +20,7 @@ extension Mongo
 }
 extension Mongo.AwaitableHello
 {
-    /// The string [`"hello"`]().
+    /// The string `"hello"`.
     static
     var type:Mongo.CommandType { .hello }
 }

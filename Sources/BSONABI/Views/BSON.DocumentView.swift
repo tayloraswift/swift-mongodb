@@ -75,14 +75,24 @@ extension BSON.DocumentView
 
 extension BSON.DocumentView<[UInt8]>
 {
-    /// Stores the output buffer of the given document into
-    /// an instance of this type.
+    /// Wraps the storage buffer of the given document into an instance of this type.
     ///
     /// >   Complexity: O(1).
     @inlinable public
     init(_ document:BSON.Document)
     {
         self.init(slice: document.bytes)
+    }
+}
+extension BSON.DocumentView<ArraySlice<UInt8>>
+{
+    /// Wraps the **entire** storage buffer of the given document into an instance of this type.
+    ///
+    /// >   Complexity: O(1).
+    @inlinable public
+    init(_ document:BSON.Document)
+    {
+        self.init(slice: document.bytes[...])
     }
 }
 

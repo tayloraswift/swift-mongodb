@@ -4,7 +4,7 @@ import CRC
 extension Mongo
 {
     @frozen public
-    struct WireMessage<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct WireMessage:Sendable
     {
         public
         let header:WireHeader
@@ -24,9 +24,6 @@ extension Mongo
             self.checksum = checksum
         }
     }
-}
-extension Mongo.WireMessage:Sendable where Bytes:Sendable
-{
 }
 extension Mongo.WireMessage:Identifiable
 {
@@ -65,5 +62,19 @@ extension Mongo.WireMessage
         self.init(header: .init(count: count, id: id), flags: flags,
             sections: sections,
             checksum: crc32)
+    }
+}
+extension Mongo.WireMessage
+{
+    @inlinable public static
+    func += (output:inout BSON.Output<some RangeReplaceableCollection<UInt8>>, self:Self)
+    {
+        output += self.header
+        output.serialize(integer: self.flags.rawValue as UInt32)
+        output += self.sections
+        if  let crc32:CRC32 = self.checksum
+        {
+            output.serialize(integer: crc32.checksum as UInt32)
+        }
     }
 }

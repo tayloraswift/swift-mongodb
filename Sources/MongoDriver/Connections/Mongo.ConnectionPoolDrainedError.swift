@@ -40,7 +40,7 @@ extension Mongo.ConnectionPoolDrainedError:TraceableError
         ]
     }
 }
-extension Mongo.ConnectionPoolDrainedError:MongoRetryableError
+extension Mongo.ConnectionPoolDrainedError:Mongo.RetryableError
 {
     public
     var isRetryable:Bool { true }

@@ -6,9 +6,7 @@ extension Mongo
     public
     enum WireAction
     {
-        case request(Mongo.WireMessage<[UInt8]>.Sections,
-            EventLoopPromise<Mongo.WireMessage<ByteBufferView>>)
-
+        case request(Mongo.WireMessage.Sections, EventLoopPromise<Mongo.WireMessage>)
         case cancel(throwing:any Error)
     }
 }

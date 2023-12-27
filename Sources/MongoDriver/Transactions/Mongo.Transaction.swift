@@ -1,3 +1,5 @@
+import MongoCommands
+
 extension Mongo
 {
     public
@@ -62,7 +64,7 @@ extension Mongo.Transaction
     @inlinable public
     func run<Command>(command:Command, against database:Command.Database,
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
-        where Command:MongoTransactableCommand
+        where Command:Mongo.TransactableCommand
     {
         let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(
             clamping: deadline)
@@ -81,7 +83,7 @@ extension Mongo.Transaction
         by deadline:ContinuousClock.Instant? = nil,
         with consumer:(Mongo.Cursor<Query.Element>) async throws -> Success)
         async throws -> Success
-        where Query:MongoTransactableCommand & MongoIterableCommand
+        where Query:Mongo.TransactableCommand & Mongo.IterableCommand
     {
         let deadlines:Mongo.Deadlines = self.deployment.timeout.deadlines(
             clamping: deadline)

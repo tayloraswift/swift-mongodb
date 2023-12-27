@@ -17,7 +17,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.AbortTransaction:MongoTransactableCommand, MongoCommand
+extension Mongo.AbortTransaction:Mongo.TransactableCommand, Mongo.Command
 {
     @inlinable public static
     var type:Mongo.CommandType { .abortTransaction }

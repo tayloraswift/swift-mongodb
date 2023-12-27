@@ -1,6 +1,13 @@
 import BSON
 import Durations
+import MongoCommands
 
+extension Mongo.Cursor
+{
+    @available(*, deprecated, renamed: "Mongo.CursorBatch")
+    public
+    typealias Batch = Mongo.CursorBatch<BatchElement>
+}
 extension Mongo
 {
     public
@@ -29,8 +36,8 @@ extension Mongo.Cursor
     func create(preference:Mongo.ReadPreference,
         lifecycle:Mongo.CursorLifecycle,
         timeout:Milliseconds,
-        initial:Batch,
-        stride:Int,
+        initial:Mongo.CursorBatch<BatchElement>,
+        stride:Int?,
         pinned:
         (
             connection:Mongo.Connection,

@@ -1,4 +1,5 @@
 import Durations
+import MongoCommands
 
 extension Mongo
 {
@@ -149,7 +150,7 @@ extension Mongo.Session
     func run<Command>(command:Command, against database:Command.Database,
         on preference:Mongo.ReadPreference = .primary,
         by deadline:ContinuousClock.Instant? = nil) async throws -> Command.Response
-        where Command:MongoCommand
+        where Command:Mongo.Command, Command.ExecutionPolicy:Mongo.ExecutionPolicy
     {
         switch self.transaction.phase
         {
@@ -220,7 +221,7 @@ extension Mongo.Session
         by deadline:ContinuousClock.Instant? = nil,
         with consumer:(Mongo.Cursor<Query.Element>) async throws -> Success)
         async throws -> Success
-        where Query:MongoIterableCommand
+        where Query:Mongo.IterableCommand, Query.ExecutionPolicy:Mongo.ExecutionPolicy
     {
         let batches:Mongo.Cursor<Query.Element> = try await self.begin(query: command,
             against: database,
@@ -246,7 +247,7 @@ extension Mongo.Session
         against database:Query.Database,
         on preference:Mongo.ReadPreference,
         by deadline:ContinuousClock.Instant?) async throws -> Mongo.Cursor<Query.Element>
-        where Query:MongoIterableCommand
+        where Query:Mongo.IterableCommand, Query.ExecutionPolicy:Mongo.ExecutionPolicy
     {
         switch self.transaction.phase
         {
@@ -296,7 +297,7 @@ extension Mongo.Session
         over connections:Mongo.ConnectionPool,
         on preference:Mongo.ReadPreference,
         by deadlines:Mongo.Deadlines) async throws -> Mongo.Cursor<Query.Element>
-        where Query:MongoIterableCommand
+        where Query:Mongo.IterableCommand
     {
         let connection:Mongo.Connection = try await .init(from: connections,
             by: deadlines.connection)
@@ -464,7 +465,7 @@ extension Mongo.Session
         over connection:Mongo.Connection,
         on preference:Mongo.ReadPreference,
         by deadline:ContinuousClock.Instant) async throws -> Command.Response
-        where Command:MongoCommand
+        where Command:Mongo.Command
     {
         let labels:Mongo.SessionLabels = self.labels(
             writeConcern: command.writeConcernLabel,

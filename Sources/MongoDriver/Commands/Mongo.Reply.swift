@@ -1,6 +1,5 @@
 import BSON
 import MongoWire
-import NIOCore
 
 extension Mongo
 {
@@ -8,14 +7,14 @@ extension Mongo
     struct Reply
     {
         @usableFromInline internal
-        let result:Result<BSON.DocumentDecoder<BSON.Key, ByteBufferView>, any Error>
+        let result:Result<BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>, any Error>
 
         @usableFromInline internal
         let operationTime:Timestamp?
         @usableFromInline internal
         let clusterTime:ClusterTime?
 
-        init(result:Result<BSON.DocumentDecoder<BSON.Key, ByteBufferView>, any Error>,
+        init(result:Result<BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>, any Error>,
             operationTime:Timestamp?,
             clusterTime:ClusterTime?)
         {
@@ -37,7 +36,7 @@ extension Mongo.Reply
     }
 
     @inlinable internal
-    func callAsFunction() throws -> BSON.DocumentDecoder<BSON.Key, ByteBufferView>
+    func callAsFunction() throws -> BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>
     {
         try self.result.get()
     }
@@ -45,9 +44,9 @@ extension Mongo.Reply
 extension Mongo.Reply
 {
     public
-    init(message:Mongo.WireMessage<ByteBufferView>) throws
+    init(message:Mongo.WireMessage) throws
     {
-        let bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView> = try .init(
+        let bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>> = try .init(
             parsing: message.sections.body)
         let status:Status = try bson["ok"].decode(
             to: Status.self)

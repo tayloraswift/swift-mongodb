@@ -60,7 +60,7 @@ extension Main.EnumeratedCodingKeys:TestBattery
 
         tests.do
         {
-            let original:BSON.DocumentView = .init(bson)
+            let original:BSON.DocumentView<[UInt8]> = .init(bson)
             let decoded:Codable = try .init(bson: original)
 
             tests.expect(decoded ==? expected)
@@ -69,7 +69,7 @@ extension Main.EnumeratedCodingKeys:TestBattery
 
             tests.expect(true: encoded.bytes.count < original.slice.count)
 
-            let redecoded:Codable = try .init(bson: .init(encoded))
+            let redecoded:Codable = try .init(bson: BSON.DocumentView<[UInt8]>.init(encoded))
 
             tests.expect(redecoded ==? expected)
 

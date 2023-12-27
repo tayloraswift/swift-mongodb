@@ -1,5 +1,6 @@
 import BSON
 import MongoABI
+import MongoCommands
 
 extension Mongo
 {
@@ -29,12 +30,12 @@ extension Mongo
     }
 }
 @available(*, unavailable, message: "RefreshSessions cannot be run during a transaction.")
-extension Mongo.RefreshSessions:MongoTransactableCommand
+extension Mongo.RefreshSessions:Mongo.TransactableCommand
 {
 }
-extension Mongo.RefreshSessions:MongoCommand, MongoImplicitSessionCommand
+extension Mongo.RefreshSessions:Mongo.Command, Mongo.ImplicitSessionCommand
 {
-    /// The string [`"refreshSessions"`]().
+    /// The string `"refreshSessions"`.
     @inlinable public static
     var type:Mongo.CommandType { .refreshSessions }
 
