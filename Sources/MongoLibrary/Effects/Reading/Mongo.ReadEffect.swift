@@ -1,6 +1,5 @@
 import BSON
 import MongoDriver
-import NIOCore
 
 extension Mongo
 {
@@ -17,12 +16,12 @@ protocol _MongoReadEffect
     associatedtype BatchElement:Sendable & BSONDecodable
 
     static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Batch
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Batch
 }
 extension Mongo.ReadEffect where Batch:BSONDocumentDecodable<BSON.Key>
 {
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Batch
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Batch
     {
         try .init(bson: reply)
     }

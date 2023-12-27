@@ -1,4 +1,5 @@
 import BSON
+import CRC
 
 extension Mongo
 {
@@ -54,8 +55,47 @@ extension Mongo.WireHeader
             type: type)
     }
 }
+extension Mongo.WireHeader
+{
+    @inlinable public static
+    func parse(from input:inout BSON.Input<[UInt8]>) throws -> Self
+    {
+        // total size, including this
+        let size:Int32 = try input.parse(as: Int32.self)
+        let id:Int32 = try input.parse(as: Int32.self)
+        let request:Int32 = try input.parse(as: Int32.self)
+        let type:Int32 = try input.parse(as: Int32.self)
+        return try .init(size: size, id: id, request: request, type: type)
+    }
 
+    @inlinable public
+    func parse(from input:inout BSON.Input<[UInt8]>) throws -> Mongo.WireMessage
+    {
+        let flags:Mongo.WireFlags = try .init(validating: try input.parse(as: UInt32.self))
 
+        let sections:Mongo.WireMessage.Sections = try .parse(from: &input)
+
+        let checksum:CRC32? = flags.contains(.checksumPresent)
+            ? .init(checksum: try input.parse(as: UInt32.self))
+            : nil
+
+        return .init(header: self, flags: flags, sections: sections, checksum: checksum)
+    }
+}
+extension Mongo.WireHeader
+{
+    @inlinable internal static
+    func += (output:inout BSON.Output<some RangeReplaceableCollection<UInt8>>, self:Self)
+    {
+        // the `as` coercions are here to prevent us from accidentally
+        // changing the types of the various integers, which ``serialize(integer:)``
+        // depends on.
+        output.serialize(integer: self.size as Int32)
+        output.serialize(integer: self.id.value as Int32)
+        output.serialize(integer: self.request.value as Int32)
+        output.serialize(integer: self.type.rawValue as Int32)
+    }
+}
 extension Mongo.WireHeader:CustomStringConvertible
 {
     public

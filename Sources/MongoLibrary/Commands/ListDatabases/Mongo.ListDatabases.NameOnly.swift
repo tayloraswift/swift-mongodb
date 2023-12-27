@@ -1,7 +1,6 @@
 import BSON
 import MongoDriver
 import MongoQL
-import NIOCore
 
 extension Mongo.ListDatabases
 {
@@ -55,7 +54,7 @@ extension Mongo.ListDatabases.NameOnly:MongoImplicitSessionCommand, MongoCommand
 
     @inlinable public static
     func decode(
-        reply bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> [Mongo.Database]
+        reply bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> [Mongo.Database]
     {
         try bson["databases"].decode
         {

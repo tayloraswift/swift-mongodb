@@ -1,6 +1,5 @@
 import BSON
 import MongoDriver
-import NIOCore
 
 extension Mongo
 {
@@ -36,7 +35,7 @@ extension Mongo.Explain:MongoImplicitSessionCommand, MongoCommand
     }
 
     public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) -> String
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) -> String
     {
         Mongo.ExplainOnly.decode(reply: reply)
     }

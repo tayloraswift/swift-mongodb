@@ -2,7 +2,6 @@ import BSON
 import Durations
 import MongoABI
 import MongoWire
-import NIOCore
 
 /// A type that represents a MongoDB command. All public command types
 /// (and command protocols) ultimately inherit from this protocol.
@@ -56,7 +55,7 @@ protocol MongoCommand<Response>:Sendable
     /// receive a default implementation for this requirement.
     static
     func decode(
-        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
+        reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Response
 }
 extension MongoCommand
 {
@@ -130,7 +129,7 @@ extension MongoCommand<Void>
 {
     /// Does nothing, ignoring the supplied decoding container.
     @inlinable public static
-    func decode(reply _:BSON.DocumentDecoder<BSON.Key, ByteBufferView>)
+    func decode(reply _:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>)
     {
     }
 }
@@ -139,7 +138,7 @@ extension MongoCommand where Response:BSONDocumentDecodable<BSON.Key>
     /// Delegates to the ``Response`` type’s ``BSONDocumentDecodable`` conformance.
     @inlinable public static
     func decode(
-        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Response
+        reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Response
     {
         try .init(bson: reply)
     }
@@ -150,13 +149,14 @@ extension MongoCommand
     /// Encodes this command to a BSON document, adding the given database
     /// as a field with the key [`"$db"`]().
     public __consuming
-    func encode(database:Database, labels:Mongo.SessionLabels?,
-        by deadline:ContinuousClock.Instant) -> Mongo.WireMessage<[UInt8]>.Sections?
+    func encode(database:Database,
+        labels:Mongo.SessionLabels?,
+        by deadline:ContinuousClock.Instant) -> Mongo.WireMessage.Sections?
     {
         // do this first, so we never have to access `self` after reading `self.fields`
-        let outlined:[Mongo.WireMessage<[UInt8]>.Outline]? = self.outline.map
+        let outlined:[Mongo.WireMessage.Outline]? = self.outline.map
         {
-            [.init(id: $0.type.rawValue, slice: $0.bson.destination)]
+            [.init(id: $0.type.rawValue, slice: $0.bson.destination[...])]
         }
 
         let now:ContinuousClock.Instant = .now
@@ -176,7 +176,7 @@ extension MongoCommand
             }
         }
 
-        let body:BSON.DocumentView<[UInt8]> = self.body(database: database,
+        let body:BSON.DocumentView<ArraySlice<UInt8>> = self.body(database: database,
             timeout: timeout,
             labels: labels)
 
@@ -185,7 +185,7 @@ extension MongoCommand
 
     private __consuming
     func body(database:Database, timeout:Milliseconds?,
-        labels:Mongo.SessionLabels?) -> BSON.DocumentView<[UInt8]>
+        labels:Mongo.SessionLabels?) -> BSON.DocumentView<ArraySlice<UInt8>>
     {
         var bson:BSON.Document = self.fields
         ;

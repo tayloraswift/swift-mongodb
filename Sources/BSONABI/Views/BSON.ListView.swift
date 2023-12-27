@@ -76,14 +76,24 @@ extension BSON.ListView
 
 extension BSON.ListView<[UInt8]>
 {
-    /// Stores the output buffer of the given list into
-    /// an instance of this type.
+    /// Wraps the storage buffer of the given list into an instance of this type.
     ///
     /// >   Complexity: O(1).
     @inlinable public
     init(_ list:BSON.List)
     {
         self.init(slice: list.bytes)
+    }
+}
+extension BSON.ListView<ArraySlice<UInt8>>
+{
+    /// Wraps the **entire** storage buffer of the given list in an instance of this type.
+    ///
+    /// >   Complexity: O(1).
+    @inlinable public
+    init(_ list:BSON.List)
+    {
+        self.init(slice: list.bytes[...])
     }
 }
 

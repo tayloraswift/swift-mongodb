@@ -1,7 +1,6 @@
 import BSON
 import MongoDriver
 import MongoQL
-import NIOCore
 
 extension Mongo
 {
@@ -34,7 +33,7 @@ extension Mongo.FindAndModify:MongoCommand
     typealias Response = (value:Effect.Value, upserted:Effect.ID?)
 
     @inlinable public static
-    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws ->
+    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws ->
     (
         value:Effect.Value,
         upserted:Effect.ID?

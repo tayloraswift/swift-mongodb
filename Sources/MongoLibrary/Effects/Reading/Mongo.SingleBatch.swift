@@ -1,6 +1,5 @@
 import BSON
 import MongoDriver
-import NIOCore
 
 extension Mongo
 {
@@ -21,7 +20,8 @@ extension Mongo.SingleBatch:Mongo.ReadEffect
     typealias BatchElement = Element
 
     @inlinable public static
-    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> [Element]
+    func decode(
+        reply bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> [Element]
     {
         try bson["cursor"].decode
         {

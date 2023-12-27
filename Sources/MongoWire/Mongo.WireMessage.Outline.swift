@@ -1,7 +1,7 @@
 extension Mongo.WireMessage
 {
     @frozen public
-    struct Outline:Identifiable
+    struct Outline:Identifiable, Sendable
     {
         public
         let id:String
@@ -9,10 +9,10 @@ extension Mongo.WireMessage
         /// BSON documents, packed without separators. This is a different
         /// format from a BSON tuple-document.
         public
-        let slice:Bytes
+        let slice:ArraySlice<UInt8>
 
         @inlinable public
-        init(id:String, slice:Bytes)
+        init(id:String, slice:ArraySlice<UInt8>)
         {
             self.id = id
             self.slice = slice
@@ -28,7 +28,4 @@ extension Mongo.WireMessage.Outline
     {
         5 + self.id.utf8.count + self.slice.count
     }
-}
-extension Mongo.WireMessage.Outline:Sendable where Bytes:Sendable
-{
 }

@@ -1,6 +1,5 @@
 import BSON
 import BSONReflection
-import NIOCore
 
 extension Mongo
 {
@@ -21,11 +20,11 @@ extension Mongo.ExplainOnly:Mongo.ReadEffect
     typealias BatchElement = Never
 
     public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) -> String
+    func decode(reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) -> String
     {
         var output:String = ""
         let indent:BSON.Indent = "    " + 1
-        for field:BSON.FieldDecoder<BSON.Key, ByteBufferView> in
+        for field:BSON.FieldDecoder<BSON.Key, ArraySlice<UInt8>> in
             reply.sorted(by: { $0.key < $1.key })
         {
             switch field.key

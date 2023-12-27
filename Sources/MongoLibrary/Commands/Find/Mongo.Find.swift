@@ -1,7 +1,6 @@
 import BSON
 import MongoDriver
 import MongoQL
-import NIOCore
 
 extension Mongo
 {
@@ -46,7 +45,7 @@ extension Mongo.Find:MongoImplicitSessionCommand, MongoTransactableCommand, Mong
 
     @inlinable public static
     func decode(
-        reply:BSON.DocumentDecoder<BSON.Key, ByteBufferView>) throws -> Effect.Batch
+        reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Effect.Batch
     {
         try Effect.decode(reply: reply)
     }

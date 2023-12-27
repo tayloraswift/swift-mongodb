@@ -23,8 +23,8 @@ extension MongoExecutor
     /// caller to check if the deadline is sensible.
     public
     func request(
-        sections:__owned Mongo.WireMessage<[UInt8]>.Sections,
-        deadline:ContinuousClock.Instant) async throws -> Mongo.WireMessage<ByteBufferView>
+        sections:__owned Mongo.WireMessage.Sections,
+        deadline:ContinuousClock.Instant) async throws -> Mongo.WireMessage
     {
         try await Self.request(self.channel, sections: sections, deadline: deadline)
     }
@@ -62,16 +62,15 @@ extension MongoExecutor
     /// of the calling code to check if the deadline is sensible.
     private static
     func request(_ channel:any Channel,
-        sections:__owned Mongo.WireMessage<[UInt8]>.Sections,
-        deadline:ContinuousClock.Instant) async throws -> Mongo.WireMessage<ByteBufferView>
+        sections:__owned Mongo.WireMessage.Sections,
+        deadline:ContinuousClock.Instant) async throws -> Mongo.WireMessage
     {
         async
         let _:Void = Self.timeout(channel, by: deadline)
 
         return try await withTaskCancellationHandler
         {
-            let promise:EventLoopPromise<Mongo.WireMessage<ByteBufferView>> =
-                channel.eventLoop.makePromise()
+            let promise:EventLoopPromise<Mongo.WireMessage> = channel.eventLoop.makePromise()
 
             channel.writeAndFlush(Mongo.WireAction.request(sections, promise)).whenFailure
             {

@@ -22,7 +22,7 @@ extension Mongo
 
         deinit
         {
-            if case .awaiting(_?) = self.state
+            if  case .awaiting(_?) = self.state
             {
                 fatalError("""
                     unreachable (deinitialized channel handler while a continuation is still \
@@ -53,14 +53,14 @@ extension Mongo.WireMessageRouter
 extension Mongo.WireMessageRouter:ChannelInboundHandler
 {
     public
-    typealias InboundIn = Mongo.WireMessage<ByteBufferView>
+    typealias InboundIn = Mongo.WireMessage
     public
     typealias InboundOut = Never
 
     public
     func channelRead(context:ChannelHandlerContext, data:NIOAny)
     {
-        let message:Mongo.WireMessage<ByteBufferView> = self.unwrapInboundIn(data)
+        let message:Mongo.WireMessage = self.unwrapInboundIn(data)
 
         switch self.state
         {
@@ -118,7 +118,7 @@ extension Mongo.WireMessageRouter:ChannelOutboundHandler
 
         case .request(let command, let caller):
             let request:Mongo.WireMessageIdentifier = self.request.next()
-            let message:Mongo.WireMessage<[UInt8]> = .init(
+            let message:Mongo.WireMessage = .init(
                 sections: command,
                 checksum: false,
                 id: request)
@@ -140,7 +140,8 @@ extension Mongo.WireMessageRouter:ChannelOutboundHandler
                 preallocated: .init(context.channel.allocator.buffer(
                     capacity: .init(message.header.size))))
 
-            output.serialize(message: message)
+            output += message
+
             context.writeAndFlush(self.wrapOutboundOut(ByteBuffer.init(output.destination)),
                 promise: promise)
         }
