@@ -16,7 +16,7 @@ extension Mongo.NetworkError:TraceableError
         }
     }
 }
-extension Mongo.NetworkError:MongoRetryableError
+extension Mongo.NetworkError:Mongo.RetryableError
 {
     public
     var isRetryable:Bool { true }

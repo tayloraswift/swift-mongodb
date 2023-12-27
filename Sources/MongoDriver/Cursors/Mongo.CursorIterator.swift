@@ -1,6 +1,7 @@
 import BSON
 import Durations
 import MongoABI
+import MongoCommands
 
 extension Mongo
 {
@@ -99,7 +100,7 @@ extension Mongo.CursorIterator
     /// If this method throws an error, attempting to call it again is not
     /// recommended, and the cursor should be discarded.
     @inlinable public
-    func get<Element>(more _:Element.Type) async throws -> Mongo.Cursor<Element>.Batch
+    func get<Element>(more _:Element.Type) async throws -> Mongo.CursorBatch<Element>
         where Element:BSONDecodable
     {
         try await self.pinned.session.run(

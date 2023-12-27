@@ -5,12 +5,12 @@ extension Mongo
     public final
     class Logger:Sendable
     {
-        let target:any MongoLoggingTarget
+        let target:any Mongo.LoggingTarget
         private
         let state:UnsafeAtomic<UInt8>
 
         public
-        init(target:any MongoLoggingTarget = Mongo.PrettyPrint.init(),
+        init(target:any Mongo.LoggingTarget = Mongo.PrettyPrint.init(),
             level:LoggingLevel?)
         {
             self.target = target

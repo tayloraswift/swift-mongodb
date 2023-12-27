@@ -1,12 +1,13 @@
 import BSON
-import MongoClusters
 import MongoABI
+import MongoClusters
+import MongoCommands
 
 extension Mongo
 {
     /// The MongoDB `configureFailPoint` command.
     @frozen public
-    enum ConfigureFailpoint<Options>:Sendable where Options:MongoFailpoint
+    enum ConfigureFailpoint<Options>:Sendable where Options:Mongo.Failpoint
     {
         case always(Options)
         case random(Options, probability:Double)
@@ -22,9 +23,9 @@ extension Mongo.ConfigureFailpoint
         .times(options, count: 1)
     }
 }
-extension Mongo.ConfigureFailpoint:MongoImplicitSessionCommand, MongoCommand
+extension Mongo.ConfigureFailpoint:Mongo.ImplicitSessionCommand, Mongo.Command
 {
-    /// The string [`"configureFailPoint"`](). Note that the capitalization
+    /// The string `"configureFailPoint"`. Note that the capitalization
     /// is different from that of the command type.
     @inlinable public static
     var type:Mongo.CommandType { .configureFailpoint }

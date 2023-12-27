@@ -1,3 +1,5 @@
+import MongoCommands
+
 extension Mongo.Cursor
 {
     public final
@@ -43,7 +45,7 @@ extension Mongo.Cursor.AsyncIterator:AsyncIteratorProtocol
             return nil
         }
 
-        let next:Mongo.Cursor<BatchElement>.Batch
+        let next:Mongo.CursorBatch<BatchElement>
         do
         {
             next = try await cursor.get(more: BatchElement.self)

@@ -1,4 +1,5 @@
 import Durations
+import MongoCommands
 
 extension Mongo
 {

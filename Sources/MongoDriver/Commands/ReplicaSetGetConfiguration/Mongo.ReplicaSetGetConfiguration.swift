@@ -1,6 +1,6 @@
 import BSON
 import MongoABI
-import NIOCore
+import MongoCommands
 
 extension Mongo
 {
@@ -13,7 +13,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ReplicaSetGetConfiguration:MongoCommand
+extension Mongo.ReplicaSetGetConfiguration:Mongo.Command
 {
     @inlinable public static
     var type:Mongo.CommandType { .replicaSetGetConfiguration }
@@ -39,6 +39,6 @@ extension Mongo.ReplicaSetGetConfiguration:MongoCommand
         Self.type(1 as Int32)
     }
 }
-extension Mongo.ReplicaSetGetConfiguration:MongoImplicitSessionCommand
+extension Mongo.ReplicaSetGetConfiguration:Mongo.ImplicitSessionCommand
 {
 }

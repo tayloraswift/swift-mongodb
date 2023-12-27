@@ -1,6 +1,6 @@
+import MongoCommands
 import MongoExecutor
 import MongoWire
-import NIOCore
 
 extension Mongo
 {
@@ -92,7 +92,7 @@ extension Mongo.Connection
         against database:Command.Database,
         labels:Mongo.SessionLabels,
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
-        where Command:MongoCommand
+        where Command:Mongo.Command
     {
         let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
         guard

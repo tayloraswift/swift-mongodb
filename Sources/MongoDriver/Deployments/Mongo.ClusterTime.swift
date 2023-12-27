@@ -17,7 +17,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.ClusterTime:MongoInstant
+extension Mongo.ClusterTime:Mongo.Instant
 {
     @inlinable public static
     func < (lhs:Self, rhs:Self) -> Bool

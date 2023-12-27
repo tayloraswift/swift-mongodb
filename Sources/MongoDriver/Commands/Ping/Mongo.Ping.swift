@@ -1,4 +1,5 @@
 import BSON
+import MongoCommands
 
 extension Mongo
 {
@@ -13,10 +14,10 @@ extension Mongo
     }
 }
 @available(*, unavailable, message: "Ping cannot be run during a transaction.")
-extension Mongo.Ping:MongoTransactableCommand
+extension Mongo.Ping:Mongo.TransactableCommand
 {
 }
-extension Mongo.Ping:MongoImplicitSessionCommand, MongoCommand
+extension Mongo.Ping:Mongo.ImplicitSessionCommand, Mongo.Command
 {
     @inlinable public static
     var type:Mongo.CommandType { .ping }
