@@ -677,15 +677,14 @@ extension Mongo.PipelineEncoder
             }
         }
     }
+    /// Does nothing if the assigned array is empty.
     @inlinable public
-    subscript(key:Mongo.Pipeline.Unset) -> [Mongo.KeyPath]?
+    subscript(key:Mongo.Pipeline.Unset) -> [Mongo.KeyPath]
     {
-        get { nil }
+        get { [ ] }
         set (value)
         {
-            guard
-            let value:[Mongo.KeyPath]
-            else
+            if  value.isEmpty
             {
                 return
             }
