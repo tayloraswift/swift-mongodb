@@ -25,3 +25,6 @@ extension Nanoseconds:QuantizedDuration
 extension Nanoseconds:ExpressibleByIntegerLiteral
 {
 }
+extension Nanoseconds:CustomStringConvertible
+{
+}

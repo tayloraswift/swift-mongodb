@@ -14,7 +14,7 @@ extension Microseconds:QuantizedDuration
 {
     @inlinable public static
     var unit:String { "µs" }
-    
+
     @inlinable public
     init(truncating duration:Duration)
     {
@@ -23,5 +23,8 @@ extension Microseconds:QuantizedDuration
     }
 }
 extension Microseconds:ExpressibleByIntegerLiteral
+{
+}
+extension Microseconds:CustomStringConvertible
 {
 }
