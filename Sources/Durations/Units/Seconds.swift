@@ -14,7 +14,7 @@ extension Seconds:QuantizedDuration
 {
     @inlinable public static
     var unit:String { "s" }
-    
+
     @inlinable public
     init(truncating duration:Duration)
     {
@@ -22,6 +22,9 @@ extension Seconds:QuantizedDuration
     }
 }
 extension Seconds:ExpressibleByIntegerLiteral
+{
+}
+extension Seconds:CustomStringConvertible
 {
 }
 extension Seconds

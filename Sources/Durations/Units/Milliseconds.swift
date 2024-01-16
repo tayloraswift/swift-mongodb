@@ -25,3 +25,6 @@ extension Milliseconds:QuantizedDuration
 extension Milliseconds:ExpressibleByIntegerLiteral
 {
 }
+extension Milliseconds:CustomStringConvertible
+{
+}

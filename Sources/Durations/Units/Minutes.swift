@@ -24,6 +24,9 @@ extension Minutes:QuantizedDuration
 extension Minutes:ExpressibleByIntegerLiteral
 {
 }
+extension Minutes:CustomStringConvertible
+{
+}
 extension Minutes
 {
     @inlinable public
