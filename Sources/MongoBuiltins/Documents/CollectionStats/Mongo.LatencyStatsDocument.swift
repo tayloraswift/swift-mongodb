@@ -30,3 +30,6 @@ extension Mongo.LatencyStatsDocument
         }
     }
 }
+extension Mongo.LatencyStatsDocument:ExpressibleByDictionaryLiteral
+{
+}

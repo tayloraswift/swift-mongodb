@@ -232,6 +232,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSON"),
                 .target(name: "BSONReflection"),
+                .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
                 .target(name: "MongoBuiltins"),
                 .target(name: "MongoCommands"),
