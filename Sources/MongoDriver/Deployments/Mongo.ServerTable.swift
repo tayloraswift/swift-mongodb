@@ -4,9 +4,8 @@ extension Mongo
 {
     enum ServerTable:Sendable
     {
-        /// No servers are reachable, desirable, or suitable. The
-        /// ``case Mongo/Topology/.unknown(_:)`` topology always generates
-        /// this value, but the ``case Mongo/Topology/.single(_:)`` topology
+        /// No servers are reachable, desirable, or suitable. The ``Mongo/Topology/unknown(_:)``
+        /// topology always generates this value, but the ``Mongo/Topology/single(_:)`` topology
         /// can also generate if its sole server is unreachable.
         case none([Host: Unreachable])
         case single(Single)
@@ -54,7 +53,7 @@ extension Mongo.ServerTable
         {
         case .unknown(let unknown):
             self = .none(unknown.ghosts)
-        
+
         case .single(let single):
             switch single.item
             {
@@ -64,20 +63,20 @@ extension Mongo.ServerTable
                         sessions: .init(
                             rawValue: metadata.capabilities.logicalSessionTimeoutMinutes)),
                     server: .init(metadata: metadata, pool: owner.pool)))
-            
+
             case (let host, .errored(let error))?:
                 self = .none([host: .errored(error)])
-            
+
             case (let host, .queued)?:
                 self = .none([host: .queued])
-            
+
             case nil:
                 self = .none
             }
-        
+
         case .sharded(let sharded):
             self = .sharded(.init(from: sharded))
-        
+
         case .replicated(let replicated):
             self = .replicated(.init(from: replicated, heartbeatInterval: heartbeatInterval))
         }
@@ -91,7 +90,7 @@ extension Mongo.ServerTable
         {
         case .none:
             nil
-        
+
         case .single(let standalone):
             switch preference
             {
@@ -100,25 +99,25 @@ extension Mongo.ServerTable
             case .secondary:
                 nil
             }
-        
+
         case .sharded(let routers):
             routers.candidates.first?.pool
-        
+
         case .replicated(let members):
             switch preference
             {
             case .primary:
                 members.primary
-            
+
             case .primaryPreferred      (let eligibility, hedge: _):
                 members.primary ?? members.secondary(by: eligibility)
-            
+
             case .nearest               (let eligibility, hedge: _):
                 members.nearest(by: eligibility)
-            
+
             case .secondaryPreferred    (let eligibility, hedge: _):
                 members.secondary(by: eligibility) ?? members.primary
-            
+
             case .secondary             (let eligibility, hedge: _):
                 members.secondary(by: eligibility)
             }

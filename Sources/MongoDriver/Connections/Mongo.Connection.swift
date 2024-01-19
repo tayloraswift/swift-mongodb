@@ -78,6 +78,7 @@ extension Mongo.Connection
     }
     /// Interrupts this connection’s IO channel, and marks it as
     /// non-reusable.
+    @_spi(testable)
     public
     func crosscancel(throwing error:any Error)
     {
