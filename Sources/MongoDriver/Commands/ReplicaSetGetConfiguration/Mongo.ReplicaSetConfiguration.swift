@@ -14,14 +14,14 @@ extension Mongo
         public
         let version:Int
         public
-        let term:Int
+        let term:Int?
 
         public
         init(name:String,
             writeConcernMajorityJournalDefault:Bool = true,
             members:[Member],
             version:Int,
-            term:Int)
+            term:Int?)
         {
             self.name = name
             self.writeConcernMajorityJournalDefault = writeConcernMajorityJournalDefault
@@ -48,12 +48,12 @@ extension Mongo.ReplicaSetConfiguration:BSONDocumentDecodable
     @inlinable public
     init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
     {
-        self.init(name: try bson[.id].decode(to: String.self),
+        self.init(name: try bson[.id].decode(),
             writeConcernMajorityJournalDefault:
                 try bson[.writeConcernMajorityJournalDefault]?.decode(to: Bool.self) ?? true,
-            members: try bson[.members].decode(to: [Member].self),
-            version: try bson[.version].decode(to: Int.self),
-            term: try bson[.term].decode(to: Int.self))
+            members: try bson[.members].decode(),
+            version: try bson[.version].decode(),
+            term: try bson[.term]?.decode())
     }
 }
 extension Mongo.ReplicaSetConfiguration:BSONDocumentEncodable
