@@ -1,3 +1,4 @@
+@_spi(testable)
 import MongoDriver
 import NIOPosix
 import Testing

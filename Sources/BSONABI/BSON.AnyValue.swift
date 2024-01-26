@@ -332,8 +332,9 @@ extension BSON.AnyValue
     /// Attempts to load an explicit ``null`` from this variant.
     ///
     /// -   Returns:
-    ///     nil in the inner optional this variant is ``null``,
+    ///     nil in the inner optional if this variant is ``null``,
     //      nil in the outer optional otherwise.
+    @available(*, deprecated, message: "Use the BSON.Null overload instead.")
     @inlinable public
     func `as`(_:Never?.Type) -> Never??
     {
@@ -341,6 +342,19 @@ extension BSON.AnyValue
         {
         case .null: (nil as Never?) as Never??
         default:    nil            as Never??
+        }
+    }
+    /// Attempts to load an explicit ``null`` from this variant.
+    ///
+    /// -   Returns:
+    ///     A (the) instance of ``Null`` if this variant is ``null``, nil otherwise.
+    @inlinable public
+    func `as`(_:BSON.Null.Type) -> BSON.Null?
+    {
+        switch self
+        {
+        case .null: .init()
+        default:    nil
         }
     }
     /// Attempts to load a ``max`` key from this variant.

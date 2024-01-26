@@ -4,14 +4,7 @@ extension Optional:BSONEncodable where Wrapped:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        if let self:Wrapped
-        {
-            self.encode(to: &field)
-        }
-        else
-        {
-            field.encode(null: ())
-        }
+        self?.encode(to: &field) ?? BSON.Null.init().encode(to: &field)
     }
 }
 //  These APIs must additionally be extensions on ``Optional`` and not just

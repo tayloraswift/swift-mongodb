@@ -1,22 +1,22 @@
-extension BSON 
+extension BSON
 {
-    /// A single-value decoding container, for use with compiler-generated ``Decodable`` 
+    /// A single-value decoding container, for use with compiler-generated ``Decodable``
     /// implementations.
-    public 
+    public
     struct SingleValueDecoder<Bytes> where Bytes:RandomAccessCollection<UInt8>
     {
         let value:BSON.AnyValue<Bytes>
-        public 
+        public
         let codingPath:[any CodingKey]
-        public 
+        public
         let userInfo:[CodingUserInfoKey: Any]
-        
-        public 
+
+        public
         init(_ value:BSON.AnyValue<Bytes>, path:[any CodingKey],
             userInfo:[CodingUserInfoKey: Any] = [:])
         {
-            self.value = value 
-            self.codingPath = path 
+            self.value = value
+            self.codingPath = path
             self.userInfo = userInfo
         }
     }
@@ -25,7 +25,7 @@ extension BSON.SingleValueDecoder
 {
     func diagnose<T>(_ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
     {
-        do 
+        do
         {
             if let decoded:T = try decode(value)
             {
@@ -47,22 +47,22 @@ extension BSON.SingleValueDecoder
 }
 extension BSON.SingleValueDecoder:Decoder
 {
-    public 
+    public
     func singleValueContainer() -> any SingleValueDecodingContainer
     {
         self as any SingleValueDecodingContainer
     }
-    public 
+    public
     func unkeyedContainer() throws -> any UnkeyedDecodingContainer
     {
         BSON.UnkeyedDecoder<Bytes>.init(try self.diagnose { try .init(parsing: $0) },
             path: self.codingPath) as any UnkeyedDecodingContainer
     }
-    public 
-    func container<Key>(keyedBy _:Key.Type) throws -> KeyedDecodingContainer<Key> 
+    public
+    func container<Key>(keyedBy _:Key.Type) throws -> KeyedDecodingContainer<Key>
         where Key:CodingKey
     {
-        let container:BSON.KeyedDecoder<Bytes, Key> = 
+        let container:BSON.KeyedDecoder<Bytes, Key> =
             .init(try self.diagnose { try .init(parsing: $0) }, path: self.codingPath)
         return .init(container)
     }
@@ -70,7 +70,7 @@ extension BSON.SingleValueDecoder:Decoder
 
 extension BSON.SingleValueDecoder:SingleValueDecodingContainer
 {
-    public 
+    public
     func decode<T>(_:T.Type) throws -> T where T:Decodable
     {
         try .init(from: self)
@@ -78,7 +78,7 @@ extension BSON.SingleValueDecoder:SingleValueDecodingContainer
     public
     func decodeNil() -> Bool
     {
-        self.value.as(Never?.self) != nil
+        self.value.as(BSON.Null.self) != nil
     }
     public
     func decode(_:Bool.Type) throws -> Bool

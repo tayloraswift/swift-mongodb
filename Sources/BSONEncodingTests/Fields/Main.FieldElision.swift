@@ -18,7 +18,7 @@ extension Main.FieldElision:TestBattery
             encoded: .init
             {
                 $0["elided"] = nil as Never??
-                $0["inhabited"] = (nil as Never?) as Never??
+                $0["inhabited"] = BSON.Null.init()
             },
             literal:
             [
