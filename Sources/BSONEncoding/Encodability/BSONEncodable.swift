@@ -25,6 +25,27 @@ extension BSONEncodable where Self:RawRepresentable, RawValue:BSONEncodable
     }
 }
 
+@available(*, unavailable, message: "Currently useless due to a compiler bug!")
+extension BSONEncodable where Self == BSON.Min
+{
+    /// A shorthand for encoding a ``BSON.Min`` value.
+    @inlinable public static
+    var min:Self { .init() }
+}
+@available(*, unavailable, message: "Currently useless due to a compiler bug!")
+extension BSONEncodable where Self == BSON.Max
+{
+    /// A shorthand for encoding a ``BSON.Max`` value.
+    @inlinable public static
+    var max:Self { .init() }
+}
+@available(*, unavailable, message: "Currently useless due to a compiler bug!")
+extension BSONEncodable where Self == BSON.Null
+{
+    /// A shorthand for encoding an explicit ``BSON.Null`` value.
+    @inlinable public static
+    var null:Self { .init() }
+}
 extension BSONEncodable where Self == BSON.Document
 {
     @inlinable public

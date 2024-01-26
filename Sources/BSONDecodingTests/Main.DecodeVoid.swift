@@ -23,7 +23,7 @@ extension Main.DecodeVoid:TestBattery
         {
             let bson:BSON.DocumentDecoder<BSON.Key, [UInt8]> = try .init(
                 parsing: bson)
-            let _:Never? = try bson["null"].decode(to: Never?.self)
+            let _:BSON.Null = try bson["null"].decode(to: BSON.Null.self)
         }
         Self.run(tests / "max", bson: bson, to: .init())
         {

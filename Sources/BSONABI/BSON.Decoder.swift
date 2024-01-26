@@ -10,7 +10,7 @@ protocol _BSONDecoder<Storage>
 {
     associatedtype Storage:RandomAccessCollection<UInt8>
 
-    init(parsing bson:__shared BSON.AnyValue<Storage>) throws
+    init(parsing bson:borrowing BSON.AnyValue<Storage>) throws
 }
 
 extension BSON.Decoder

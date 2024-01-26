@@ -31,11 +31,6 @@ extension BSON.FieldEncoder
         self[.double].serialize(integer: double.bitPattern)
     }
     @inlinable public mutating
-    func encode(null:Void)
-    {
-        self[.null] as Void
-    }
-    @inlinable public mutating
     func encode(id:BSON.Identifier)
     {
         self[.id].serialize(id: id)
@@ -90,6 +85,11 @@ extension BSON.FieldEncoder
     func encode(min:BSON.Min)
     {
         self[.min] as Void
+    }
+    @inlinable public mutating
+    func encode(null:BSON.Null)
+    {
+        self[.null] as Void
     }
 
     @inlinable public mutating

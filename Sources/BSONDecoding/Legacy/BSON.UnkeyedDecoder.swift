@@ -5,53 +5,53 @@ extension BSON
         public
         typealias Bytes = Storage.SubSequence
 
-        public 
+        public
         let codingPath:[any CodingKey]
-        public 
+        public
         var currentIndex:Int
         let elements:[BSON.AnyValue<Bytes>]
-        
-        public 
+
+        public
         init(_ array:BSON.ListDecoder<Storage>, path:[any CodingKey])
         {
             self.codingPath     = path
             self.elements       = array.elements
-            self.currentIndex   = self.elements.startIndex 
+            self.currentIndex   = self.elements.startIndex
         }
     }
 }
 extension BSON.UnkeyedDecoder
 {
-    public 
+    public
     var count:Int?
     {
         self.elements.count
     }
-    public 
-    var isAtEnd:Bool 
+    public
+    var isAtEnd:Bool
     {
         self.currentIndex >= self.elements.endIndex
     }
-    
-    mutating 
+
+    mutating
     func diagnose<T>(_ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
     {
-        let key:Index = .init(intValue: self.currentIndex) 
-        var path:[any CodingKey] 
-        { 
-            self.codingPath + CollectionOfOne<any CodingKey>.init(key) 
-        }
-        
-        if self.isAtEnd 
+        let key:Index = .init(intValue: self.currentIndex)
+        var path:[any CodingKey]
         {
-            let context:DecodingError.Context = .init(codingPath: path, 
+            self.codingPath + CollectionOfOne<any CodingKey>.init(key)
+        }
+
+        if self.isAtEnd
+        {
+            let context:DecodingError.Context = .init(codingPath: path,
                 debugDescription: "index (\(self.currentIndex)) out of range")
             throw DecodingError.keyNotFound(key, context)
         }
-        
+
         let value:BSON.AnyValue<Bytes> = self.elements[self.currentIndex]
         self.currentIndex += 1
-        do 
+        do
         {
             if let decoded:T = try decode(value)
             {
@@ -74,102 +74,102 @@ extension BSON.UnkeyedDecoder
 
 extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
 {
-    public mutating 
+    public mutating
     func decode<T>(_:T.Type) throws -> T where T:Decodable
     {
         try .init(from: try self.singleValueContainer())
     }
-    public mutating 
+    public mutating
     func decodeNil() throws -> Bool
     {
-        try self.diagnose { $0.as(Never?.self) != nil }
+        try self.diagnose { $0.as(BSON.Null.self) != nil }
     }
-    public mutating 
+    public mutating
     func decode(_:Bool.Type) throws -> Bool
     {
         try self.diagnose { $0.as(Bool.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:Float.Type) throws -> Float
     {
         try self.diagnose { $0.as(Float.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:Double.Type) throws -> Double
     {
         try self.diagnose { $0.as(Double.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:String.Type) throws -> String
     {
         try self.diagnose { $0.as(String.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:Int.Type) throws -> Int
     {
         try self.diagnose { try $0.as(Int.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:Int64.Type) throws -> Int64
     {
         try self.diagnose { try $0.as(Int64.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:Int32.Type) throws -> Int32
     {
         try self.diagnose { try $0.as(Int32.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:Int16.Type) throws -> Int16
     {
         try self.diagnose { try $0.as(Int16.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:Int8.Type) throws -> Int8
     {
         try self.diagnose { try $0.as(Int8.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:UInt.Type) throws -> UInt
     {
         try self.diagnose { try $0.as(UInt.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:UInt64.Type) throws -> UInt64
     {
         try self.diagnose { try $0.as(UInt64.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:UInt32.Type) throws -> UInt32
     {
         try self.diagnose { try $0.as(UInt32.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:UInt16.Type) throws -> UInt16
     {
         try self.diagnose { try $0.as(UInt16.self) }
     }
-    public mutating 
+    public mutating
     func decode(_:UInt8.Type) throws -> UInt8
     {
         try self.diagnose { try $0.as(UInt8.self) }
     }
-    
-    public mutating  
+
+    public mutating
     func superDecoder() throws -> any Decoder
     {
         try self.singleValueContainer() as any Decoder
     }
-    public mutating 
+    public mutating
     func singleValueContainer() throws -> BSON.SingleValueDecoder<Bytes>
     {
-        let key:Index = .init(intValue: self.currentIndex) 
+        let key:Index = .init(intValue: self.currentIndex)
         let value:BSON.AnyValue<Bytes> = try self.diagnose { $0 }
-        let decoder:BSON.SingleValueDecoder<Bytes> = .init(value, 
+        let decoder:BSON.SingleValueDecoder<Bytes> = .init(value,
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder
     }
-    public mutating 
+    public mutating
     func nestedUnkeyedContainer() throws -> any UnkeyedDecodingContainer
     {
         let path:[any CodingKey] = self.codingPath +
@@ -178,13 +178,13 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
             .init(try self.diagnose { try .init(parsing: $0) }, path: path)
         return container as any UnkeyedDecodingContainer
     }
-    public mutating 
-    func nestedContainer<NestedKey>(keyedBy _:NestedKey.Type) 
+    public mutating
+    func nestedContainer<NestedKey>(keyedBy _:NestedKey.Type)
         throws -> KeyedDecodingContainer<NestedKey>
     {
-        let path:[any CodingKey] = self.codingPath + 
+        let path:[any CodingKey] = self.codingPath +
             CollectionOfOne<any CodingKey>.init(Index.init(intValue: self.currentIndex))
-        let container:BSON.KeyedDecoder<Bytes, NestedKey> = 
+        let container:BSON.KeyedDecoder<Bytes, NestedKey> =
             .init(try self.diagnose { try .init(parsing: $0) }, path: path)
         return .init(container)
     }
