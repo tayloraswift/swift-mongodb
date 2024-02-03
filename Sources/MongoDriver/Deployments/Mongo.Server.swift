@@ -1,3 +1,6 @@
+import Durations
+import MongoClusters
+
 extension Mongo
 {
     struct Server<Metadata>
@@ -22,10 +25,40 @@ extension Mongo.Server
 extension Mongo.Server:Sendable where Metadata:Sendable
 {
 }
-extension Mongo.Server
+extension Mongo.Server<Mongo.ReplicaQuality>
 {
-    func map<T>(transform:(Metadata) throws -> T) rethrows -> Mongo.Server<T>
+    /// Computes the quality of a **primary** replica.
+    ///
+    /// The primary always has a staleness of zero, even though the standard formula would
+    /// suggest it have a staleness of `heartbeatFrequency`:
+    ///
+    /// ```text
+    /// Non-secondary servers (including Mongos servers) have zero
+    /// staleness.
+    /// ```
+    ///
+    /// Therefore, this constructor just reads the latency from the replica’s connection pool.
+    static
+    func primary(from self:Mongo.Server<Mongo.Replica>) -> Self
     {
-        .init(metadata: try transform(self.metadata), pool: self.pool)
+        .init(metadata: .init(staleness: .zero,
+                latency: self.pool.latency.load(ordering: .relaxed),
+                tags: self.metadata.tags),
+            pool: self.pool)
+    }
+
+    /// Computes the quality of a **secondary** replica.
+    static
+    func secondary(from self:Mongo.Server<Mongo.Replica>,
+        heartbeatInterval:Milliseconds,
+        freshest:some Mongo.ReplicaTimingBaseline) -> Self
+    {
+        let staleness:Milliseconds = freshest - self.metadata.timings + heartbeatInterval
+        let latency:Nanoseconds = self.pool.latency.load(ordering: .relaxed)
+        return .init(metadata: .init(
+                staleness: staleness,
+                latency: latency,
+                tags: self.metadata.tags),
+            pool: self.pool)
     }
 }

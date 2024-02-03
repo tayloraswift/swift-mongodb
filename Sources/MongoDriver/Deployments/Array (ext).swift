@@ -1,20 +1,11 @@
 import BSON
 import Durations
 
-extension Mongo.ServerTable
-{
-    public
-    struct ReplicaQuality:Sendable
-    {
-        let staleness:Milliseconds
-        let tags:[BSON.Key: String]
-    }
-}
-extension [Mongo.Server<Mongo.ServerTable.ReplicaQuality>]
+extension [Mongo.Server<Mongo.ReplicaQuality>]
 {
     func select(by eligibility:Mongo.ReadPreference.Eligibility) -> Mongo.ConnectionPool?
     {
-        let fresh:[Mongo.Server<Mongo.ServerTable.ReplicaQuality>]
+        let fresh:[Mongo.Server<Mongo.ReplicaQuality>]
         if let maxStaleness:Milliseconds = eligibility.maxStaleness?.milliseconds
         {
             fresh = self.filter
@@ -39,7 +30,7 @@ extension [Mongo.Server<Mongo.ServerTable.ReplicaQuality>]
 
         for tagSet:Mongo.ReadPreference.TagSet in tagSets
         {
-            for candidate:Mongo.Server<Mongo.ServerTable.ReplicaQuality> in self
+            for candidate:Mongo.Server<Mongo.ReplicaQuality> in self
                 where tagSet ~= candidate.metadata.tags
             {
                 return candidate.pool

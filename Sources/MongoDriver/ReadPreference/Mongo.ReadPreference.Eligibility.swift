@@ -28,12 +28,12 @@ extension Mongo.ReadPreference
 }
 extension Mongo.ReadPreference.Eligibility
 {
-    func diagnose(unsuitable candidates:[Mongo.Server<Mongo.ServerTable.ReplicaQuality>])
-        -> [Mongo.Host: Mongo.Unsuitable]
+    func diagnose(
+        unsuitable:[Mongo.Server<Mongo.ReplicaQuality>]) -> [Mongo.Host: Mongo.Unsuitable]
     {
         if let maxStaleness:Milliseconds = self.maxStaleness?.milliseconds
         {
-            candidates.reduce(into: [:])
+            unsuitable.reduce(into: [:])
             {
                 $0[$1.host] = $1.metadata.staleness > maxStaleness ?
                     .stale($1.metadata.staleness) :
@@ -42,7 +42,7 @@ extension Mongo.ReadPreference.Eligibility
         }
         else
         {
-            candidates.reduce(into: [:])
+            unsuitable.reduce(into: [:])
             {
                 $0[$1.host] = .tags($1.metadata.tags)
             }
