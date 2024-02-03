@@ -1,6 +1,7 @@
 import Atomics
 import DequeModule
 import Durations
+import MongoClusters
 import MongoCommands
 
 extension Mongo
@@ -78,6 +79,19 @@ extension Mongo
 }
 extension Mongo.SessionPool
 {
+    public nonisolated
+    func _servers() async -> [(host:Mongo.Host, latency:Nanoseconds)]
+    {
+        guard
+        case .replicated(let servers) = await self.deployment.servers
+        else
+        {
+            return []
+        }
+
+        return servers.candidates.replicas.map { ($0.host, $0.metadata.latency) }
+    }
+
     public nonisolated
     var logger:Mongo.Logger?
     {
@@ -258,7 +272,7 @@ extension Mongo.SessionPool
             if case nil = self.retained.update(with: id)
             {
                 return .init(
-                    transaction: .init(capabilities.transactions.map { _ in .autocommitting }),
+                    transaction: .init(capabilities.transactions ? .autocommitting : nil),
                     touched: now,
                     id: id)
             }

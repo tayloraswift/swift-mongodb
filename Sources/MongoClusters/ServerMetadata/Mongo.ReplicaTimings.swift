@@ -2,11 +2,17 @@ import BSON
 
 extension Mongo.Replica
 {
-    /// The time when metadata for a server was last updated, and
-    /// the time of the last write logged on the primary that has
-    /// replicated to that server.
+    @available(*, deprecated, renamed: "Mongo.ReplicaTimings")
+    public
+    typealias Timings = Mongo.ReplicaTimings
+}
+extension Mongo
+{
+    /// The time when metadata for a server was last updated, and the time of the last write
+    /// logged on the primary that has replicated to that server. Not to be confused with
+    /// replica latency.
     @frozen public
-    struct Timings:Sendable
+    struct ReplicaTimings:Sendable
     {
         public
         let update:ContinuousClock.Instant
@@ -21,7 +27,7 @@ extension Mongo.Replica
         }
     }
 }
-extension Mongo.Replica.Timings:BSONDocumentDecodable
+extension Mongo.ReplicaTimings:BSONDocumentDecodable
 {
     @inlinable public
     init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>)

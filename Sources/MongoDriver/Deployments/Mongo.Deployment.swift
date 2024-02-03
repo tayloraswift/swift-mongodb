@@ -26,7 +26,7 @@ extension Mongo
     actor Deployment
     {
         /// The default timeout for driver operations.
-        @usableFromInline internal nonisolated
+        @usableFromInline nonisolated
         let timeout:Timeout
         //  Right now, we don’t do anything with this from this type. But other
         //  types use it through their deployment pointers.
@@ -40,21 +40,21 @@ extension Mongo
         private
         var counter:UInt
 
-        private
+        private(set)
         var servers:ServerTable
 
         private nonisolated
-        let _capabilities:UnsafeAtomic<DeploymentCapabilities.BitPattern>
-        private nonisolated
         let _clusterTime:UnsafeAtomic<AtomicState<ClusterTime>?>
+        private nonisolated
+        let _state:UnsafeAtomic<DeploymentState>
 
         init(connectionTimeout:Milliseconds, logger:Logger?)
         {
             self.timeout = .init(default: connectionTimeout)
             self.logger = logger
 
-            self._capabilities = .create(.init(nil))
             self._clusterTime = .create(nil)
+            self._state = .create(.unknown)
 
             self.capabilityRequests = [:]
             self.selectionRequests = [:]
@@ -69,16 +69,17 @@ extension Mongo
         {
             self._clusterTime.load(ordering: .relaxed)?.value
         }
-        public nonisolated
-        var capabilities:Mongo.DeploymentCapabilities?
+
+        nonisolated
+        var state:Mongo.DeploymentState
         {
-            .init(bitPattern: self._capabilities.load(ordering: .relaxed))
+            self._state.load(ordering: .relaxed)
         }
 
         deinit
         {
-            self._capabilities.destroy()
             self._clusterTime.destroy()
+            self._state.destroy()
 
             guard self.selectionRequests.isEmpty
             else
@@ -144,7 +145,10 @@ extension Mongo.Deployment
     /// sequential consistency.
     func push(table servers:Mongo.ServerTable)
     {
-        self._capabilities.store(.init(servers.capabilities), ordering: .relaxed)
+        let state:Mongo.DeploymentState = servers.state
+
+        self._state.store(state, ordering: .relaxed)
+
         self.servers = servers
 
         for (id, request):(UInt, SelectionRequest) in self.selectionRequests
@@ -155,7 +159,7 @@ extension Mongo.Deployment
             }
         }
 
-        if let capabilities:Mongo.DeploymentCapabilities = servers.capabilities
+        if  let capabilities:Mongo.DeploymentCapabilities = state.capabilities
         {
             for id:UInt in self.capabilityRequests.keys
             {
@@ -187,7 +191,7 @@ extension Mongo.Deployment
     func capabilities(
         by deadline:ContinuousClock.Instant) async throws -> Mongo.DeploymentCapabilities
     {
-        if  let capabilities:Mongo.DeploymentCapabilities = self.capabilities
+        if  let capabilities:Mongo.DeploymentCapabilities = self.state.capabilities
         {
             capabilities
         }

@@ -3,6 +3,13 @@ import Durations
 
 extension Mongo.Replica
 {
+    @available(*, deprecated, renamed: "Mongo.PrimaryBaseline")
+    public
+    typealias PrimaryBaseline = Mongo.PrimaryBaseline
+}
+
+extension Mongo
+{
     /// The time when metadata for a primary was last updated, and
     /// the time of the last write logged on that primary.
     @frozen public
@@ -21,22 +28,22 @@ extension Mongo.Replica
         }
     }
 }
-extension Mongo.Replica.PrimaryBaseline
+extension Mongo.PrimaryBaseline
 {
     @inlinable public
-    init(_ last:Mongo.Replica.Timings)
+    init(_ last:Mongo.ReplicaTimings)
     {
         self.init(update: last.update, write: last.write)
     }
 }
-extension Mongo.Replica.PrimaryBaseline
+extension Mongo.PrimaryBaseline:Mongo.ReplicaTimingBaseline
 {
-    /// Estimates the amount by which the given `candidate` is lagging 
+    /// Estimates the amount by which the given `candidate` is lagging
     /// the primary, using the primary’s timings as a reference.
     ///
     /// https://github.com/mongodb/specifications/blob/master/source/max-staleness/max-staleness.rst#client
     @inlinable public static
-    func - (self:Self, candidate:Mongo.Replica.Timings) -> Milliseconds
+    func - (self:Self, candidate:Mongo.ReplicaTimings) -> Milliseconds
     {
         //  the formula is:
         //

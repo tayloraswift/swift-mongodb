@@ -48,7 +48,13 @@ extension Mongo
         let releasing:UnsafeAtomic<Int>
 
         private nonisolated
-        let latency:UnsafeAtomic<Nanoseconds>
+        let _latency:UnsafeAtomic<Nanoseconds>
+
+        nonisolated
+        var latency:UnsafeAtomic<Nanoseconds>
+        {
+            _read { yield self._latency }
+        }
 
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
@@ -58,6 +64,7 @@ extension Mongo
             authenticator:Authenticator,
             generation:UInt,
             settings:ConnectionPoolSettings,
+            latency:Nanoseconds,
             logger:Logger?,
             host:Host)
         {
@@ -73,7 +80,7 @@ extension Mongo
                 host: host))
 
             self.releasing = .create(0)
-            self.latency = .create(0)
+            self._latency = .create(latency)
 
         }
         deinit
@@ -81,7 +88,7 @@ extension Mongo
             self.allocations.destroy()
 
             self.releasing.destroy()
-            self.latency.destroy()
+            self._latency.destroy()
         }
     }
 }
@@ -137,18 +144,12 @@ extension Mongo.ConnectionPool
 }
 extension Mongo.ConnectionPool
 {
-    /// Sets the round-trip latency tracked by this pool.
-    nonisolated
-    func set(latency:Nanoseconds)
-    {
-        self.latency.store(latency, ordering: .relaxed)
-    }
     /// Adjusts the given deadline to account for round-trip latency, as
     /// tracked by this pool.
     public nonisolated
     func adjust(deadline:ContinuousClock.Instant) -> ContinuousClock.Instant
     {
-        deadline - .nanoseconds(self.latency.load(ordering: .relaxed))
+        deadline - .nanoseconds(self._latency.load(ordering: .relaxed))
     }
 }
 extension Mongo.ConnectionPool

@@ -8,13 +8,13 @@ extension Mongo
         public
         let capabilities:ServerCapabilities
         public
-        let timings:Timings
+        let timings:ReplicaTimings
         public
         let tags:[BSON.Key: String]
 
         public
         init(capabilities:ServerCapabilities,
-            timings:Timings,
+            timings:ReplicaTimings,
             tags:[BSON.Key: String])
         {
             self.capabilities = capabilities

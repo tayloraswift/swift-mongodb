@@ -5,33 +5,43 @@ extension Mongo.ServerTable
 {
     struct Replicated:Sendable
     {
-        let capabilities:Mongo.DeploymentCapabilities?
-
         let unreachables:[Mongo.Host: Mongo.Unreachable]
         let undesirables:[Mongo.Host: Mongo.Undesirable]
 
-        let candidates:
+        private(set)
+        var candidates:
         (
-            secondaries:[Mongo.Server<ReplicaQuality>],
-            replicas:[Mongo.Server<ReplicaQuality>],
-            primary:Mongo.Server<ReplicaQuality>?
+            secondaries:[Mongo.Server<Mongo.ReplicaQuality>],
+            replicas:[Mongo.Server<Mongo.ReplicaQuality>],
+            primary:Mongo.Server<Mongo.ReplicaQuality>?
         )
 
+        let state:Mongo.DeploymentState
+
         private
-        init(capabilities:Mongo.DeploymentCapabilities?,
+        init(
             unreachables:[Mongo.Host: Mongo.Unreachable],
             undesirables:[Mongo.Host: Mongo.Undesirable],
-            secondaries:[Mongo.Server<ReplicaQuality>] = [],
-            primary:Mongo.Server<ReplicaQuality>? = nil)
+            secondaries:[Mongo.Server<Mongo.ReplicaQuality>] = [],
+            primary:Mongo.Server<Mongo.ReplicaQuality>? = nil,
+            state:Mongo.DeploymentState)
         {
-            self.capabilities = capabilities
             self.unreachables = unreachables
             self.undesirables = undesirables
-            // TODO: sort this by latency
+
             self.candidates.secondaries = secondaries
-            // TODO: sort this by latency
+            self.candidates.secondaries.sort
+            {
+                $0.metadata.latency < $1.metadata.latency
+            }
             self.candidates.replicas = secondaries + (primary.map { [$0] } ?? [])
+            self.candidates.replicas.sort
+            {
+                $0.metadata.latency < $1.metadata.latency
+            }
+
             self.candidates.primary = primary
+            self.state = state
         }
     }
 }
@@ -39,69 +49,59 @@ extension Mongo.ServerTable.Replicated
 {
     private
     init(heartbeatInterval:Milliseconds,
-        capabilities:Mongo.DeploymentCapabilities?,
         unreachables:[Mongo.Host: Mongo.Unreachable],
         undesirables:[Mongo.Host: Mongo.Undesirable],
         secondaries:[Mongo.Server<Mongo.Replica>],
-        primary:Mongo.Server<Mongo.Replica>?)
+        primary:Mongo.Server<Mongo.Replica>?,
+        state:Mongo.DeploymentState)
     {
         if  let primary:Mongo.Server<Mongo.Replica>
         {
-            let freshest:Mongo.Replica.PrimaryBaseline = .init(primary.metadata.timings)
+            let freshest:Mongo.PrimaryBaseline = .init(primary.metadata.timings)
 
-            self.init(capabilities: capabilities,
+            self.init(
                 unreachables: unreachables,
                 undesirables: undesirables,
                 secondaries: secondaries.map
                 {
-                    $0.map
-                    {
-                        .init(staleness: freshest - $0.timings + heartbeatInterval,
-                            tags: $0.tags)
-                    }
+                    .secondary(from: $0,
+                        heartbeatInterval: heartbeatInterval,
+                        freshest: freshest)
                 },
-                primary: primary.map
-                {
-                    //  the primary always has a staleness of zero, even though the
-                    //  formula would suggest it have a staleness of `heartbeatFrequency`:
-                    //  '''
-                    //  Non-secondary servers (including Mongos servers) have zero
-                    /// staleness.
-                    //  '''
-                    .init(staleness: .zero, tags: $0.tags)
-                })
+                primary: .primary(from: primary),
+                state: state)
         }
-        else if let secondary:Mongo.Server<Mongo.Replica> =
-                    secondaries.max(by:
-                    {
-                        $0.metadata.timings.write.value <
-                        $1.metadata.timings.write.value
-                    })
+        else if
+            let secondary:Mongo.Server<Mongo.Replica> = secondaries.max(by:
+            {
+                $0.metadata.timings.write.value <
+                $1.metadata.timings.write.value
+            })
         {
-            let freshest:Mongo.Replica.SecondaryBaseline = .init(secondary.metadata.timings)
+            let freshest:Mongo.SecondaryBaseline = .init(secondary.metadata.timings)
 
-            self.init(capabilities: capabilities,
+            self.init(
                 unreachables: unreachables,
                 undesirables: undesirables,
                 secondaries: secondaries.map
                 {
-                    $0.map
-                    {
-                        .init(staleness: freshest - $0.timings + heartbeatInterval,
-                            tags: $0.tags)
-                    }
-                })
+                    .secondary(from: $0,
+                        heartbeatInterval: heartbeatInterval,
+                        freshest: freshest)
+                },
+                state: state)
         }
         else
         {
             assert(secondaries.isEmpty)
 
-            self.init(capabilities: capabilities,
+            self.init(
                 unreachables: unreachables,
-                undesirables: undesirables)
+                undesirables: undesirables,
+                state: state)
         }
     }
-    init(from topology:__shared Mongo.Topology<Mongo.TopologyModel.Canary>.Replicated,
+    init(from topology:borrowing Mongo.Topology<Mongo.TopologyModel.Canary>.Replicated,
         heartbeatInterval:Milliseconds)
     {
         var logicalSessionTimeoutMinutes:UInt32 = .max
@@ -161,13 +161,13 @@ extension Mongo.ServerTable.Replicated
         }
 
         self.init(heartbeatInterval: heartbeatInterval,
-            capabilities: logicalSessionTimeoutMinutes == .max ? nil : .init(
-                transactions: .supported,
-                sessions: .init(rawValue: logicalSessionTimeoutMinutes)),
             unreachables: unreachables,
             undesirables: undesirables,
             secondaries: secondaries,
-            primary: primary)
+            primary: primary,
+            state: logicalSessionTimeoutMinutes == .max ? .unknown : .capable(.init(
+                transactions: true,
+                sessions: .init(rawValue: logicalSessionTimeoutMinutes))))
     }
 }
 extension Mongo.ServerTable.Replicated

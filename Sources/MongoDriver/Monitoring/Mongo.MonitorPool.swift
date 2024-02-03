@@ -22,18 +22,18 @@ extension Mongo
 
         private
         var tasks:Int
-        
+
         init(connectionPoolSettings:ConnectionPoolSettings,
             connectorFactory:ConnectorFactory,
             authenticator:Authenticator,
             deployment:Deployment)
         {
             self.deployment = deployment
-            
+
             self.connectionPoolSettings = connectionPoolSettings
             self.connectorFactory = connectorFactory
             self.authenticator = authenticator
-            
+
             self.observers = .none
             self.topology = nil
             self.tasks = 0
@@ -68,7 +68,7 @@ extension Mongo.MonitorPool
                 self.topology = .init(interval: interval, topology: .init(
                     from: seedlist,
                     hint: topology))
-                
+
                 self.observers.append($0)
 
                 for host:Mongo.Host in seedlist
@@ -138,7 +138,7 @@ extension Mongo.MonitorPool
                 generation += 1
                 try? await cooldown
                 continue
-            
+
             case .none:
                 return
             }
@@ -168,7 +168,7 @@ extension Mongo.MonitorPool
                 return .none
             }
         }
-        
+
         var monitor:AsyncThrowingStream<Update, any Error>.Continuation?
         let updates:AsyncThrowingStream<Update, any Error> = .init
         {
@@ -193,12 +193,12 @@ extension Mongo.MonitorPool
                     authenticator: self.authenticator,
                     generation: generation,
                     settings: self.connectionPoolSettings,
+                    latency: services.initialLatency,
                     logger: self.deployment.logger,
                     host: host)
-                
-                pool.set(latency: services.initialLatency)
 
-                monitor.yield(.init(topology: services.initialTopologyUpdate,
+                monitor.yield(.init(
+                    topology: services.initialTopologyUpdate,
                     canary: .init(pool: pool)))
 
                 tasks.addTask
@@ -219,7 +219,7 @@ extension Mongo.MonitorPool
             let replacement:Replacement = self.subscribe(to: updates,
                 generation: generation,
                 host: host)
-            
+
             for await _:Mongo.MonitorService in services
             {
                 break
@@ -246,10 +246,10 @@ extension Mongo.MonitorPool
                 {
                 case .accepted:
                     continue
-                
+
                 case .dropped:
                     return .replace
-                
+
                 case .rejected:
                     return .none
                 }
@@ -265,7 +265,7 @@ extension Mongo.MonitorPool
         {
         case .accepted, .dropped:
             return .replace
-        
+
         case .rejected:
             return .none
         }
@@ -283,7 +283,7 @@ extension Mongo.MonitorPool
             return .rejected
 
         case (let result, let table)?:
-            
+
             await self.deployment.push(table: table)
             return result
         }
@@ -296,7 +296,7 @@ extension Mongo.MonitorPool
         {
         case nil:
             return .rejected
-        
+
         case (let result, let table)?:
             await self.deployment.push(table: table)
             return result

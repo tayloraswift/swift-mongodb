@@ -1,3 +1,4 @@
+import MongoClusters
 import Durations
 
 extension Mongo
@@ -33,14 +34,15 @@ extension Mongo.ServerTable
         case .replicated(let replicated):   replicated.unreachables
         }
     }
-    var capabilities:Mongo.DeploymentCapabilities?
+
+    var state:Mongo.DeploymentState
     {
         switch self
         {
-        case .none:                         nil
-        case .single(let single):           single.capabilities
-        case .sharded(let sharded):         sharded.capabilities
-        case .replicated(let replicated):   replicated.capabilities
+        case .none:                         .unknown
+        case .single(let single):           .capable(single.capabilities)
+        case .sharded(let sharded):         sharded.state
+        case .replicated(let replicated):   replicated.state
         }
     }
 }
@@ -59,7 +61,7 @@ extension Mongo.ServerTable
             {
             case (_, .connected(let metadata, let owner))?:
                 self = .single(.init(capabilities: .init(
-                        transactions: nil,
+                        transactions: false,
                         sessions: .init(
                             rawValue: metadata.capabilities.logicalSessionTimeoutMinutes)),
                     server: .init(metadata: metadata, pool: owner.pool)))

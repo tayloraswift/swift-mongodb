@@ -1,35 +1,32 @@
 extension Mongo
 {
-    @frozen public
     struct DeploymentCapabilities:Sendable
     {
-        public
-        let transactions:Transactions?
-        public
+        let transactions:Bool
         let sessions:Sessions
-
-        init(transactions:Transactions?, sessions:Sessions)
-        {
-            self.transactions = transactions
-            self.sessions = sessions
-        }
     }
 }
 extension Mongo.DeploymentCapabilities
 {
-    init?(bitPattern:BitPattern)
+    init?(bitPattern:UInt64)
     {
-        let transactions:Transactions?
-        switch bitPattern.rawValue & 0xffff_ffff
+        let sessions:Sessions = .init(rawValue: .init(bitPattern >> 32))
+
+        switch bitPattern & 0xffff_ffff
         {
-        case 0x0000_0002:
-            transactions = .supported
         case 0x0000_0001:
-            transactions = nil
+            self.init(transactions: false, sessions: sessions)
+
+        case 0x0000_0002:
+            self.init(transactions: true, sessions: sessions)
+
         default:
             return nil
         }
-        let sessions:Sessions = .init(rawValue: .init(bitPattern.rawValue >> 32))
-        self.init(transactions: transactions, sessions: sessions)
+    }
+
+    var bitPattern:UInt64
+    {
+        .init(self.sessions.rawValue) << 32 | (self.transactions ? 0x0000_0002 : 0x0000_0001)
     }
 }

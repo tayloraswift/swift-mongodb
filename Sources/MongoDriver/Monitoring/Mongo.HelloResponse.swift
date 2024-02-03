@@ -74,7 +74,7 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
                 to: Bool.self)
             {
                 let replica:Mongo.Replica = .init(capabilities: try capabilities(),
-                    timings: try bson["lastWrite"].decode(to: Mongo.Replica.Timings.self),
+                    timings: try bson["lastWrite"].decode(to: Mongo.ReplicaTimings.self),
                     tags: tags ?? [:])
                 topologyUpdate = .primary(.init(replica: replica, term: .init(
                         election: try bson["electionId"].decode(to: BSON.Identifier.self),
@@ -85,7 +85,7 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
                 case true? = try bson["secondary"]?.decode(to: Bool.self)
             {
                 let replica:Mongo.Replica = .init(capabilities: try capabilities(),
-                    timings: try bson["lastWrite"].decode(to: Mongo.Replica.Timings.self),
+                    timings: try bson["lastWrite"].decode(to: Mongo.ReplicaTimings.self),
                     tags: tags ?? [:])
                 topologyUpdate = .slave(.secondary(replica), peerlist)
             }
