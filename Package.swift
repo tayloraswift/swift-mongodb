@@ -301,6 +301,13 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Testing", package: "swift-grammar"),
             ]),
 
+        .executableTarget(name: "MongoClusterTests",
+            dependencies:
+            [
+                .target(name: "MongoClusters"),
+                .product(name: "Testing", package: "swift-grammar"),
+            ]),
+
         .executableTarget(name: "MongoDBTests",
             dependencies:
             [

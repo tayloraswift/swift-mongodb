@@ -38,6 +38,11 @@ extension Mongo.Host
     //     .init(name, 27017)
     // }
 }
+extension Mongo.Host:ExpressibleByStringLiteral
+{
+    @inlinable public
+    init(stringLiteral:String) { self.init(stringLiteral) }
+}
 extension Mongo.Host:LosslessStringConvertible
 {
     @inlinable public
@@ -57,6 +62,9 @@ extension Mongo.Host:LosslessStringConvertible
         }
         self.init(name: name, port: port)
     }
+}
+extension Mongo.Host:CustomStringConvertible
+{
     @inlinable public
     var description:String
     {

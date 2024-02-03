@@ -56,7 +56,7 @@ extension Mongo.ServerDescription
     mutating
     func assign(metadata:__owned Metadata, owner:__owned Owner?) -> Mongo.TopologyUpdateResult
     {
-        if let owner:Owner
+        if  let owner:Owner
         {
             self = .connected(metadata, owner)
             return .accepted

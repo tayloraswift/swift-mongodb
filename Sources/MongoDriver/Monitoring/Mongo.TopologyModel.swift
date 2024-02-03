@@ -20,8 +20,8 @@ extension Mongo
 extension Mongo.TopologyModel
 {
     mutating
-    func combine(update:__owned Mongo.TopologyUpdate,
-        owner:__owned Canary?,
+    func combine(update:consuming Mongo.TopologyUpdate,
+        owner:consuming Canary?,
         host:Mongo.Host,
         add:(Mongo.Host) -> ()) ->
     (
@@ -33,14 +33,14 @@ extension Mongo.TopologyModel
             owner: owner,
             host: host,
             add: add)
-        
+
         let table:Mongo.ServerTable = .init(from: self.topology,
             heartbeatInterval: self.interval)
-        
+
         return (result, table)
     }
     mutating
-    func combine(error:__owned (any Error)?,
+    func combine(error:consuming (any Error)?,
         host:Mongo.Host) ->
     (
         result:Mongo.TopologyUpdateResult,
@@ -51,7 +51,7 @@ extension Mongo.TopologyModel
             host: host)
         let table:Mongo.ServerTable = .init(from: self.topology,
             heartbeatInterval: self.interval)
-        
+
         return (result, table)
     }
 }
