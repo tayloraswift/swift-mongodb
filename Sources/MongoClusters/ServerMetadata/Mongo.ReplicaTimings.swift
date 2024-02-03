@@ -8,9 +8,9 @@ extension Mongo.Replica
 }
 extension Mongo
 {
-    /// The time when metadata for a server was last updated, and
-    /// the time of the last write logged on the primary that has
-    /// replicated to that server.
+    /// The time when metadata for a server was last updated, and the time of the last write
+    /// logged on the primary that has replicated to that server. Not to be confused with
+    /// replica latency.
     @frozen public
     struct ReplicaTimings:Sendable
     {

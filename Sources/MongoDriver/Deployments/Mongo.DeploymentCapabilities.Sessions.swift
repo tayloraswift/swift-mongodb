@@ -29,6 +29,6 @@ extension Mongo.DeploymentCapabilities.Sessions
     /// an expired session may be cleaned up by the server at any time.
     var ttl:Minutes
     {
-        .init(rawValue: .init(self.rawValue))
+        .init(rawValue: Int64.init(self.rawValue))
     }
 }

@@ -47,8 +47,14 @@ extension Mongo
         private nonisolated
         let releasing:UnsafeAtomic<Int>
 
+        private nonisolated
+        let _latency:UnsafeAtomic<Nanoseconds>
+
         nonisolated
-        let latency:UnsafeAtomic<Nanoseconds>
+        var latency:UnsafeAtomic<Nanoseconds>
+        {
+            _read { yield self._latency }
+        }
 
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
@@ -74,7 +80,7 @@ extension Mongo
                 host: host))
 
             self.releasing = .create(0)
-            self.latency = .create(latency)
+            self._latency = .create(latency)
 
         }
         deinit
@@ -82,7 +88,7 @@ extension Mongo
             self.allocations.destroy()
 
             self.releasing.destroy()
-            self.latency.destroy()
+            self._latency.destroy()
         }
     }
 }
@@ -143,7 +149,7 @@ extension Mongo.ConnectionPool
     public nonisolated
     func adjust(deadline:ContinuousClock.Instant) -> ContinuousClock.Instant
     {
-        deadline - .nanoseconds(self.latency.load(ordering: .relaxed))
+        deadline - .nanoseconds(self._latency.load(ordering: .relaxed))
     }
 }
 extension Mongo.ConnectionPool

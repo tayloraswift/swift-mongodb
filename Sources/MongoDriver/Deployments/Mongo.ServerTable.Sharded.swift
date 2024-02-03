@@ -2,19 +2,20 @@ extension Mongo.ServerTable
 {
     struct Sharded:Sendable
     {
-        let capabilities:Mongo.DeploymentCapabilities?
-
         let unreachables:[Mongo.Host: Mongo.Unreachable]
         let candidates:[Mongo.Server<Mongo.Router>]
 
+        let state:Mongo.DeploymentState
+
         private
-        init(capabilities:Mongo.DeploymentCapabilities?,
+        init(
             unreachables:[Mongo.Host: Mongo.Unreachable],
-            candidates:[Mongo.Server<Mongo.Router>])
+            candidates:[Mongo.Server<Mongo.Router>],
+            state:Mongo.DeploymentState)
         {
-            self.capabilities = capabilities
             self.unreachables = unreachables
             self.candidates = candidates
+            self.state = state
         }
     }
 }
@@ -26,10 +27,10 @@ extension Mongo.ServerTable.Sharded
 
         var unreachables:[Mongo.Host: Mongo.Unreachable] = [:],
             candidates:[Mongo.Server<Mongo.Router>] = []
-        
+
         for (host, state):
         (
-            Mongo.Host, 
+            Mongo.Host,
             Mongo.ServerDescription<Mongo.Router, Mongo.TopologyModel.Canary>
         )
             in topology
@@ -41,19 +42,20 @@ extension Mongo.ServerTable.Sharded
 
                 logicalSessionTimeoutMinutes = min(logicalSessionTimeoutMinutes,
                     metadata.capabilities.logicalSessionTimeoutMinutes)
-            
+
             case .errored(let error):
                 unreachables[host] = .errored(error)
-            
+
             case .queued:
                 unreachables[host] = .queued
             }
         }
 
-        self.init(capabilities: logicalSessionTimeoutMinutes == .max ? nil : .init(
-                transactions: .supported,
-                sessions: .init(rawValue: logicalSessionTimeoutMinutes)),
+        self.init(
             unreachables: unreachables,
-            candidates: candidates)
+            candidates: candidates,
+            state: logicalSessionTimeoutMinutes == .max ? .unknown : .capable(.init(
+                transactions: true,
+                sessions: .init(rawValue: logicalSessionTimeoutMinutes))))
     }
 }
