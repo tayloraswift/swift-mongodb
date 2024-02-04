@@ -567,7 +567,7 @@ extension Main.ValidBSON
     func run(_ tests:TestGroup?,
         degenerate:String? = nil,
         canonical:String,
-        expected:BSON.DocumentView<[UInt8]>)
+        expected:BSON.DocumentView)
     {
         guard let tests:TestGroup
         else
@@ -581,7 +581,7 @@ extension Main.ValidBSON
             .init(littleEndian: $0.load(as: Int32.self))
         }
 
-        let document:BSON.DocumentView<ArraySlice<UInt8>> = .init(
+        let document:BSON.DocumentView = .init(
             slicing: canonical.dropFirst(4).dropLast())
 
         tests.expect(canonical.count ==? .init(size))
@@ -593,13 +593,12 @@ extension Main.ValidBSON
         if  let degenerate:String
         {
             let degenerate:[UInt8] = Base16.decode(degenerate.utf8)
-            let document:BSON.DocumentView<ArraySlice<UInt8>> = .init(
+            let document:BSON.DocumentView = .init(
                 slicing: degenerate.dropFirst(4).dropLast())
 
             (tests / "canonicalization")?.do
             {
-                let canonicalized:BSON.DocumentView<ArraySlice<UInt8>> =
-                    try document.canonicalized()
+                let canonicalized:BSON.DocumentView = try document.canonicalized()
 
                 tests.expect(true: expected ~~ document)
                 tests.expect(true: expected == canonicalized)

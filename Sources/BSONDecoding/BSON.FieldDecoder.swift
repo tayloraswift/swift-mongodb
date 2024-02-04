@@ -7,15 +7,15 @@ extension BSON
 extension BSON
 {
     @frozen public
-    struct FieldDecoder<Key, Bytes> where Bytes:RandomAccessCollection<UInt8>, Key:Sendable
+    struct FieldDecoder<Key> where Key:Sendable
     {
         public
         let key:Key
         public
-        let value:BSON.AnyValue<Bytes>
+        let value:BSON.AnyValue
 
         @inlinable public
-        init(key:Key, value:BSON.AnyValue<Bytes>)
+        init(key:Key, value:BSON.AnyValue)
         {
             self.key = key
             self.value = value
@@ -28,7 +28,7 @@ extension BSON.FieldDecoder:BSON.TraceableDecoder
     /// Throws a ``BSON/DecodingError`` wrapping the underlying
     /// error if decoding fails.
     @inlinable public
-    func decode<T>(with decode:(BSON.AnyValue<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(BSON.AnyValue) throws -> T) throws -> T
     {
         do
         {

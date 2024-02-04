@@ -8,10 +8,10 @@ extension BSON
 public
 protocol _BSONEncoder
 {
-    init(_:consuming BSON.Output<[UInt8]>)
+    init(_:consuming BSON.Output)
 
     consuming
-    func move() -> BSON.Output<[UInt8]>
+    func move() -> BSON.Output
 
     static
     var type:BSON.AnyType { get }

@@ -3,25 +3,22 @@ extension BSON
     /// A type for managing BSON parsing state. Most users of this module
     /// should not need to interact with it directly.
     @frozen public
-    struct Input<Source> where Source:RandomAccessCollection<UInt8>
+    struct Input:Sendable
     {
         public
-        let source:Source
+        let source:ArraySlice<UInt8>
         public
-        var index:Source.Index
+        var index:Int
 
         /// Creates a parsing input view over the given `source` data,
         /// and initializes its ``index`` to the start index of the `source`.
         @inlinable public
-        init(_ source:Source)
+        init(_ source:ArraySlice<UInt8>)
         {
             self.source = source
             self.index = self.source.startIndex
         }
     }
-}
-extension BSON.Input:Sendable where Source:Sendable, Source.Index:Sendable
-{
 }
 extension BSON.Input
 {
@@ -50,9 +47,9 @@ extension BSON.Input
     ///         the range points to the matched byte.
     @discardableResult
     @inlinable public mutating
-    func parse(through byte:UInt8) throws -> Range<Source.Index>
+    func parse(through byte:UInt8) throws -> Range<Int>
     {
-        let start:Source.Index = self.index
+        let start:Int = self.index
         while self.index < self.source.endIndex
         {
             defer
@@ -76,8 +73,8 @@ extension BSON.Input
     @inlinable public mutating
     func parse(as _:BSON.Identifier.Type = BSON.Identifier.self) throws -> BSON.Identifier
     {
-        let start:Source.Index = self.index
-        if  let end:Source.Index = self.source.index(self.index, offsetBy: 12,
+        let start:Int = self.index
+        if  let end:Int = self.source.index(self.index, offsetBy: 12,
                 limitedBy: self.source.endIndex)
         {
             self.index = end
@@ -128,8 +125,8 @@ extension BSON.Input
     func parse<LittleEndian>(as _:LittleEndian.Type = LittleEndian.self) throws -> LittleEndian
         where LittleEndian:FixedWidthInteger
     {
-        let start:Source.Index = self.index
-        if  let end:Source.Index = self.source.index(self.index,
+        let start:Int = self.index
+        if  let end:Int = self.source.index(self.index,
                 offsetBy: MemoryLayout<LittleEndian>.size,
                 limitedBy: self.source.endIndex)
         {
@@ -149,7 +146,7 @@ extension BSON.Input
     }
 
     @inlinable public mutating
-    func parse<Frame>(_:Frame.Type) throws -> Source.SubSequence
+    func parse<Frame>(_:Frame.Type) throws -> ArraySlice<UInt8>
         where Frame:BSON.FrameType
     {
         let header:Int = .init(try self.parse(as: Int32.self))
@@ -159,8 +156,8 @@ extension BSON.Input
         {
             throw BSON.HeaderError<Frame>.init(length: header)
         }
-        let start:Source.Index = self.index
-        if  let end:Source.Index = self.source.index(start, offsetBy: stride,
+        let start:Int = self.index
+        if  let end:Int = self.source.index(start, offsetBy: stride,
                 limitedBy: self.source.endIndex)
         {
             self.index = end
@@ -176,7 +173,7 @@ extension BSON.Input
     /// which allows decoders to skip over regions of a BSON document.
     @inlinable public mutating
     func parse<View>(as _:View.Type = View.self) throws -> View
-        where View:BSON.FrameTraversable<Source.SubSequence>
+        where View:BSON.FrameTraversable
     {
         try .init(slicing: try self.parse(View.Frame.self))
     }
@@ -185,7 +182,7 @@ extension BSON.Input
     /// of the input. Accessing this property does not affect the current
     /// ``index``.
     @inlinable public
-    var remaining:Source.SubSequence
+    var remaining:ArraySlice<UInt8>
     {
         self.source.suffix(from: self.index)
     }
@@ -213,7 +210,7 @@ extension BSON.Input
 {
     /// Parses a variant BSON value, assuming it is of the specified `variant` type.
     @inlinable public mutating
-    func parse(variant:BSON.AnyType) throws -> BSON.AnyValue<Source.SubSequence>
+    func parse(variant:BSON.AnyType) throws -> BSON.AnyValue
     {
         switch variant
         {
@@ -221,16 +218,16 @@ extension BSON.Input
             return .double(.init(bitPattern: try self.parse(as: UInt64.self)))
 
         case .string:
-            return .string(try self.parse(as: BSON.UTF8View<Source.SubSequence>.self))
+            return .string(try self.parse(as: BSON.UTF8View<ArraySlice<UInt8>>.self))
 
         case .document:
-            return .document(try self.parse(as: BSON.DocumentView<Source.SubSequence>.self))
+            return .document(try self.parse(as: BSON.DocumentView.self))
 
         case .list:
-            return .list(try self.parse(as: BSON.ListView<Source.SubSequence>.self))
+            return .list(try self.parse(as: BSON.ListView.self))
 
         case .binary:
-            return .binary(try self.parse(as: BSON.BinaryView<Source.SubSequence>.self))
+            return .binary(try self.parse(as: BSON.BinaryView<ArraySlice<UInt8>>.self))
 
         case .null:
             return .null
@@ -248,22 +245,22 @@ extension BSON.Input
             return .regex(try self.parse(as: BSON.Regex.self))
 
         case .pointer:
-            let database:BSON.UTF8View<Source.SubSequence> = try self.parse(
-                as: BSON.UTF8View<Source.SubSequence>.self)
+            let database:BSON.UTF8View<ArraySlice<UInt8>> = try self.parse(
+                as: BSON.UTF8View<ArraySlice<UInt8>>.self)
             let object:BSON.Identifier = try self.parse(
                 as: BSON.Identifier.self)
             return .pointer(database, object)
 
         case .javascript:
-            return .javascript(try self.parse(as: BSON.UTF8View<Source.SubSequence>.self))
+            return .javascript(try self.parse(as: BSON.UTF8View<ArraySlice<UInt8>>.self))
 
         case .javascriptScope:
             // possible micro-optimization here
             let _:Int32 = try self.parse(as: Int32.self)
-            let code:BSON.UTF8View<Source.SubSequence> =
-                try self.parse(as: BSON.UTF8View<Source.SubSequence>.self)
-            let scope:BSON.DocumentView<Source.SubSequence> =
-                try self.parse(as: BSON.DocumentView<Source.SubSequence>.self)
+            let code:BSON.UTF8View<ArraySlice<UInt8>> = try self.parse(
+                as: BSON.UTF8View<ArraySlice<UInt8>>.self)
+            let scope:BSON.DocumentView = try self.parse(
+                as: BSON.DocumentView.self)
             return .javascriptScope(scope, code)
 
         case .int32:

@@ -39,18 +39,18 @@ extension BSON.DocumentView
     /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
     /// will compare equal to a ``BSON.AnyValue/string(_:)`` value with the same contents.
     @inlinable public static
-    func ~~ <Other>(lhs:Self, rhs:BSON.DocumentView<Other>) -> Bool
+    func ~~ (lhs:Self, rhs:Self) -> Bool
     {
-        if  let lhs:[(key:BSON.Key, value:BSON.AnyValue<Bytes.SubSequence>)] =
+        if  let lhs:[(key:BSON.Key, value:BSON.AnyValue)] =
                 try? lhs.parse({ ($0, $1) }),
-            let rhs:[(key:BSON.Key, value:BSON.AnyValue<Other.SubSequence>)] =
+            let rhs:[(key:BSON.Key, value:BSON.AnyValue)] =
                 try? rhs.parse({ ($0, $1) }),
                 rhs.count == lhs.count
         {
             for (lhs, rhs):
             (
-                (key:BSON.Key, value:BSON.AnyValue<Bytes.SubSequence>),
-                (key:BSON.Key, value:BSON.AnyValue<Other.SubSequence>)
+                (key:BSON.Key, value:BSON.AnyValue),
+                (key:BSON.Key, value:BSON.AnyValue)
             )
             in zip(lhs, rhs)
             {
@@ -70,9 +70,6 @@ extension BSON.DocumentView
     }
 }
 extension BSON.DocumentView
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
 {
     /// Recursively parses and re-encodes this document, and any embedded documents
     /// (and list-documents) in its elements. The keys will not be changed or re-ordered.

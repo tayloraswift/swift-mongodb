@@ -82,9 +82,9 @@ extension BSON.UTF8View<Substring.UTF8View>
         self.init(slice: string.utf8)
     }
 }
-extension BSON.UTF8View<[UInt8]>
+extension BSON.UTF8View<ArraySlice<UInt8>>
 {
-    /// Creates a BSON UTF-8 string backed by a `[UInt8]` array, by copying
+    /// Creates a BSON UTF-8 string backed by a `[UInt8]` array slice, by copying
     /// the UTF-8 code units stored in the given static string.
     ///
     /// >   Complexity:
@@ -92,7 +92,7 @@ extension BSON.UTF8View<[UInt8]>
     @inlinable public
     init(_ string:StaticString)
     {
-        self.init(slice: string.withUTF8Buffer([UInt8].init(_:)))
+        self.init(slice: string.withUTF8Buffer(ArraySlice<UInt8>.init(_:)))
     }
 }
 extension BSON.UTF8View:Equatable
@@ -110,14 +110,17 @@ extension BSON.UTF8View:Sendable where Bytes:Sendable
 
 extension BSON.UTF8View:CustomStringConvertible
 {
-    /// Equivalent to calling ``String.init(bson:)`` on this instance.
+    /// Copies and validates the backing storage of the given UTF-8 string to a
+    /// native Swift string, repairing invalid code units if needed.
+    ///
+    /// >   Complexity: O(*n*), where *n* is the length of the string.
     @inlinable public
     var description:String
     {
-        .init(bson: self)
+        .init(decoding: self.slice, as: Unicode.UTF8.self)
     }
 }
-extension BSON.UTF8View:BSON.FrameTraversable where Bytes:RandomAccessCollection<UInt8>
+extension BSON.UTF8View<ArraySlice<UInt8>>:BSON.FrameTraversable
 {
     public
     typealias Frame = BSON.UTF8Frame
@@ -131,10 +134,10 @@ extension BSON.UTF8View:BSON.FrameTraversable where Bytes:RandomAccessCollection
         self.init(slice: bytes)
     }
 }
-extension BSON.UTF8View:BSON.FrameView where Bytes:RandomAccessCollection<UInt8>
+extension BSON.UTF8View<ArraySlice<UInt8>>:BSON.FrameView
 {
     @inlinable public
-    init(_ value:BSON.AnyValue<Bytes>) throws
+    init(_ value:BSON.AnyValue) throws
     {
         self = try value.cast(with: \.utf8)
     }
@@ -154,20 +157,5 @@ extension BSON.UTF8View
     var size:Int
     {
         5 + self.slice.count
-    }
-}
-
-extension String
-{
-    /// Copies and validates the backing storage of the given UTF-8 string to a
-    /// native Swift string, repairing invalid code units if needed.
-    ///
-    /// This is the preferred way to get the string value of a UTF-8 string.
-    ///
-    /// >   Complexity: O(*n*), where *n* is the length of the string.
-    @inlinable public
-    init(bson:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
-    {
-        self.init(decoding: bson.slice, as: Unicode.UTF8.self)
     }
 }

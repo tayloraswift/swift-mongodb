@@ -3,13 +3,13 @@ extension BSON
     /// A thin wrapper around a native Swift array providing an efficient decoding
     /// interface for a ``BSON/ListView``.
     @frozen public
-    struct ListDecoder<Storage> where Storage:RandomAccessCollection<UInt8>
+    struct ListDecoder
     {
         public
-        var elements:[BSON.AnyValue<Bytes>]
+        var elements:[BSON.AnyValue]
 
         @inlinable public
-        init(_ elements:[BSON.AnyValue<Bytes>])
+        init(_ elements:[BSON.AnyValue])
         {
             self.elements = elements
         }
@@ -29,9 +29,9 @@ extension BSON.ListDecoder:BSON.Decoder
     /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public
-    init(parsing bson:__shared BSON.AnyValue<Storage>) throws
+    init(parsing bson:borrowing BSON.AnyValue) throws
     {
-        try self.init(parsing: try .init(bson))
+        try self.init(parsing: try .init(copy bson))
     }
 }
 extension BSON.ListDecoder
@@ -45,7 +45,7 @@ extension BSON.ListDecoder
     /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public
-    init(parsing bson:__shared BSON.ListView<Storage>) throws
+    init(parsing bson:borrowing BSON.ListView) throws
     {
         self.init(try bson.parse())
     }
@@ -70,7 +70,7 @@ extension BSON.ListDecoder:RandomAccessCollection
         self.elements.endIndex
     }
     @inlinable public
-    subscript(index:Int) -> BSON.FieldDecoder<Int, Bytes>
+    subscript(index:Int) -> BSON.FieldDecoder<Int>
     {
         .init(key: index, value: self.elements[index])
     }

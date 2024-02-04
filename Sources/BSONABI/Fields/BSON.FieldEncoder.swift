@@ -13,10 +13,10 @@ extension BSON
         public
         let key:Key
         public
-        var output:BSON.Output<[UInt8]>
+        var output:BSON.Output
 
         @inlinable public
-        init(key:Key, output:BSON.Output<[UInt8]>)
+        init(key:Key, output:BSON.Output)
         {
             self.key = key
             self.output = output
@@ -99,12 +99,12 @@ extension BSON.FieldEncoder
     }
 
     @inlinable public mutating
-    func encode(document:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
+    func encode(document:BSON.DocumentView)
     {
         self[.document].serialize(document: document)
     }
     @inlinable public mutating
-    func encode(list:BSON.ListView<some RandomAccessCollection<UInt8>>)
+    func encode(list:BSON.ListView)
     {
         self[.list].serialize(list: list)
     }
@@ -132,7 +132,7 @@ extension BSON.FieldEncoder
         }
     }
     @inlinable internal
-    subscript(type:BSON.AnyType) -> BSON.Output<[UInt8]>
+    subscript(type:BSON.AnyType) -> BSON.Output
     {
         mutating get
         {

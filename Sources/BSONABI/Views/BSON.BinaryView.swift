@@ -34,7 +34,7 @@ extension BSON.BinaryView:Equatable
 extension BSON.BinaryView:Sendable where Bytes:Sendable
 {
 }
-extension BSON.BinaryView:BSON.FrameTraversable where Bytes.SubSequence == Bytes
+extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.FrameTraversable
 {
     public
     typealias Frame = BSON.BinaryFrame
@@ -77,13 +77,10 @@ extension BSON.BinaryView:BSON.FrameTraversable where Bytes.SubSequence == Bytes
         }
     }
 }
-extension BSON.BinaryView:BSON.FrameView where Bytes.SubSequence == Bytes
-{
-}
-extension BSON.BinaryView
+extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.FrameView
 {
     @inlinable public
-    init(_ value:BSON.AnyValue<Bytes>) throws
+    init(_ value:BSON.AnyValue) throws
     {
         self = try value.cast(with: \.binary)
     }

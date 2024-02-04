@@ -6,7 +6,7 @@ extension TestBattery
     static
     func run(_ tests:TestGroup?,
         encoded:BSON.Document,
-        literal:BSON.DocumentView<[UInt8]>)
+        literal:BSON.DocumentView)
     {
         guard
         let tests:TestGroup
@@ -15,13 +15,13 @@ extension TestBattery
             return
         }
 
-        let encoded:BSON.DocumentView<[UInt8]> = .init(encoded)
+        let encoded:BSON.DocumentView = .init(encoded)
 
         tests.expect(encoded ==? literal)
 
-        guard   let encoded:[(key:BSON.Key, value:BSON.AnyValue<ArraySlice<UInt8>>)] =
+        guard   let encoded:[(key:BSON.Key, value:BSON.AnyValue)] =
                     tests.do({ try encoded.parse { ($0, $1) } }),
-                let literal:[(key:BSON.Key, value:BSON.AnyValue<ArraySlice<UInt8>>)] =
+                let literal:[(key:BSON.Key, value:BSON.AnyValue)] =
                     tests.do({ try literal.parse { ($0, $1) } })
         else
         {

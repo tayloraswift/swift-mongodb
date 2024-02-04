@@ -42,9 +42,7 @@ extension BSON.Indent:CustomStringConvertible
 extension BSON.Indent
 {
     public
-    func print(key:BSON.Key,
-        value:BSON.AnyValue<some RandomAccessCollection<UInt8>>,
-        to output:inout some TextOutputStream)
+    func print(key:BSON.Key, value:BSON.AnyValue, to output:inout some TextOutputStream)
     {
         output.write("\(self)$0[\(key)] =")
 

@@ -3,19 +3,19 @@ extension BSON
     /// A BSON document. The backing storage of this type is opaque,
     /// permitting lazy parsing of its inline content.
     @frozen public
-    struct DocumentView<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct DocumentView:Sendable
     {
         /// The raw data backing this document. This collection *does not*
         /// include the trailing null byte that typically appears after its
         /// inline field list.
         public
-        let slice:Bytes
+        let slice:ArraySlice<UInt8>
 
         /// Stores the argument in ``slice`` unchanged.
         ///
         /// >   Complexity: O(1)
         @inlinable public
-        init(slice:Bytes)
+        init(slice:ArraySlice<UInt8>)
         {
             self.slice = slice
         }
@@ -26,13 +26,10 @@ extension BSON.DocumentView:Equatable
     /// Performs an exact byte-wise comparison on two lists.
     /// Does not parse or validate the operands.
     @inlinable public static
-    func == (lhs:Self, rhs:BSON.DocumentView<some RandomAccessCollection<UInt8>>) -> Bool
+    func == (lhs:Self, rhs:BSON.DocumentView) -> Bool
     {
         lhs.slice.elementsEqual(rhs.slice)
     }
-}
-extension BSON.DocumentView:Sendable where Bytes:Sendable
-{
 }
 extension BSON.DocumentView:BSON.FrameTraversable
 {
@@ -43,7 +40,7 @@ extension BSON.DocumentView:BSON.FrameTraversable
     ///
     /// >   Complexity: O(1)
     @inlinable public
-    init(slicing bytes:Bytes)
+    init(slicing bytes:ArraySlice<UInt8>)
     {
         self.init(slice: bytes)
     }
@@ -51,7 +48,7 @@ extension BSON.DocumentView:BSON.FrameTraversable
 extension BSON.DocumentView:BSON.FrameView
 {
     @inlinable public
-    init(_ value:BSON.AnyValue<Bytes>) throws
+    init(_ value:BSON.AnyValue) throws
     {
         self = try value.cast(with: \.document)
     }
@@ -73,18 +70,7 @@ extension BSON.DocumentView
     var size:Int { 5 + self.slice.count }
 }
 
-extension BSON.DocumentView<[UInt8]>
-{
-    /// Wraps the storage buffer of the given document into an instance of this type.
-    ///
-    /// >   Complexity: O(1).
-    @inlinable public
-    init(_ document:BSON.Document)
-    {
-        self.init(slice: document.bytes)
-    }
-}
-extension BSON.DocumentView<ArraySlice<UInt8>>
+extension BSON.DocumentView
 {
     /// Wraps the **entire** storage buffer of the given document into an instance of this type.
     ///
@@ -109,16 +95,16 @@ extension BSON.DocumentView
     ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
     func parse<CodingKey>(
-        to decode:(CodingKey, BSON.AnyValue<Bytes.SubSequence>) throws -> ()) throws
+        to decode:(CodingKey, BSON.AnyValue) throws -> ()) throws
         where CodingKey:RawRepresentable<String>
     {
-        var input:BSON.Input<Bytes> = .init(self.slice)
+        var input:BSON.Input = .init(self.slice)
         while let code:UInt8 = input.next()
         {
             let type:BSON.AnyType = try .init(code: code)
             let key:String = try input.parse(as: String.self)
             //  We must parse the value always, even if we are ignoring the key
-            let value:BSON.AnyValue<Bytes.SubSequence> = try input.parse(variant: type)
+            let value:BSON.AnyValue = try input.parse(variant: type)
 
             if let key:CodingKey = .init(rawValue: key)
             {
@@ -135,8 +121,7 @@ extension BSON.DocumentView
     ///     O(*n*), where *n* is the size of this document’s backing storage.
     @inlinable public
     func parse<CodingKey, T>(
-        _ transform:(_ key:CodingKey, _ value:BSON.AnyValue<Bytes.SubSequence>) throws -> T)
-        throws -> [T]
+        _ transform:(_ key:CodingKey, _ value:BSON.AnyValue) throws -> T) throws -> [T]
         where CodingKey:RawRepresentable<String>
     {
         var elements:[T] = []
@@ -148,22 +133,15 @@ extension BSON.DocumentView
     }
 }
 extension BSON.DocumentView:ExpressibleByDictionaryLiteral
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
 {
     /// Creates a document containing the given fields, making two passes over
     /// the list of fields in order to encode the output without reallocations.
     /// The order of the fields will be preserved.
     @inlinable public
-    init(fields:some Collection<
-        (
-            key:BSON.Key,
-            value:BSON.AnyValue<some RandomAccessCollection<UInt8>>
-        )>)
+    init(fields:some Collection<(key:BSON.Key, value:BSON.AnyValue)>)
     {
         let size:Int = fields.reduce(0) { $0 + 2 + $1.key.rawValue.utf8.count + $1.value.size }
-        var output:BSON.Output<Bytes> = .init(capacity: size)
+        var output:BSON.Output = .init(capacity: size)
             output.serialize(fields: fields)
 
         assert(output.destination.count == size, """
@@ -175,15 +153,14 @@ extension BSON.DocumentView:ExpressibleByDictionaryLiteral
 
     /// Creates a document containing a single key-value pair.
     @inlinable public
-    init<Other>(key:BSON.Key, value:BSON.AnyValue<Other>)
-        where Other:RandomAccessCollection<UInt8>
+    init(key:BSON.Key, value:BSON.AnyValue)
     {
         self.init(fields:
-            CollectionOfOne<(key:BSON.Key, value:BSON.AnyValue<Other>)>.init((key, value)))
+            CollectionOfOne<(key:BSON.Key, value:BSON.AnyValue)>.init((key, value)))
     }
 
     @inlinable public
-    init(dictionaryLiteral:(BSON.Key, BSON.AnyValue<Bytes>)...)
+    init(dictionaryLiteral:(BSON.Key, BSON.AnyValue)...)
     {
         self.init(fields: dictionaryLiteral)
     }

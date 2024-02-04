@@ -8,7 +8,7 @@ extension Character:BSONStringDecodable
     /// its default implementation (where `Self` is ``LosslessStringConvertible``)
     /// to do the same.
     @inlinable public
-    init(bson:BSON.UTF8View<some BidirectionalCollection<UInt8>>) throws
+    init(bson:BSON.UTF8View<ArraySlice<UInt8>>) throws
     {
         let string:String = .init(bson: bson)
         if  string.startIndex < string.endIndex,

@@ -3,8 +3,7 @@ extension BSON.DocumentView
     /// Decorates the ``BSON.AnyValue``-yielding overload of this method with one that
     /// yields the key-value pairs as fields.
     @inlinable public
-    func parse(
-        to decode:(_ field:BSON.FieldDecoder<BSON.Key, Bytes.SubSequence>) throws -> ()) throws
+    func parse(to decode:(_ field:BSON.FieldDecoder<BSON.Key>) throws -> ()) throws
     {
         try self.parse
         {

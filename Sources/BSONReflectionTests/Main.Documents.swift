@@ -126,7 +126,7 @@ extension Main.Documents:TestBattery
                 }
             }
         }
-        let value:BSON.AnyValue<[UInt8]> = .document(.init(document))
+        let value:BSON.AnyValue = .document(.init(document))
         let expected:String =
         """
         {

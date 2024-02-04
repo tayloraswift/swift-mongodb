@@ -77,7 +77,7 @@ extension BSON.AnyValue
     ///     The embedded UTF-8 string in the deprecated `pointer(_:_:)` variant
     ///     also receives type-aware treatment.
     @inlinable public static
-    func ~~ (lhs:Self, rhs:BSON.AnyValue<some RandomAccessCollection<UInt8>>) -> Bool
+    func ~~ (lhs:Self, rhs:BSON.AnyValue) -> Bool
     {
         switch (lhs, rhs)
         {
@@ -126,9 +126,6 @@ extension BSON.AnyValue
     }
 }
 extension BSON.AnyValue
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
 {
     /// Recursively parses and re-encodes any embedded documents (and list-documents)
     /// in this variant value.

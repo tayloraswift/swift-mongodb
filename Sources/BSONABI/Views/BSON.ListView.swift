@@ -3,13 +3,13 @@ extension BSON
     /// A BSON list. The backing storage of this type is opaque,
     /// permitting lazy parsing of its inline content.
     @frozen public
-    struct ListView<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    struct ListView:Sendable
     {
         public
-        let document:BSON.DocumentView<Bytes>
+        let document:BSON.DocumentView
 
         @inlinable public
-        init(slice:Bytes)
+        init(slice:ArraySlice<UInt8>)
         {
             self.document = .init(slice: slice)
         }
@@ -20,13 +20,10 @@ extension BSON.ListView:Equatable
     /// Performs an exact byte-wise comparison on two lists.
     /// Does not parse or validate the operands.
     @inlinable public static
-    func == (lhs:Self, rhs:BSON.ListView<some RandomAccessCollection<UInt8>>) -> Bool
+    func == (lhs:Self, rhs:BSON.ListView) -> Bool
     {
         lhs.document == rhs.document
     }
-}
-extension BSON.ListView:Sendable where Bytes:Sendable
-{
 }
 extension BSON.ListView:BSON.FrameTraversable
 {
@@ -37,7 +34,7 @@ extension BSON.ListView:BSON.FrameTraversable
     ///
     /// >   Complexity: O(1)
     @inlinable public
-    init(slicing bytes:Bytes)
+    init(slicing bytes:ArraySlice<UInt8>)
     {
         self.init(slice: bytes)
     }
@@ -45,7 +42,7 @@ extension BSON.ListView:BSON.FrameTraversable
 extension BSON.ListView:BSON.FrameView
 {
     @inlinable public
-    init(_ value:BSON.AnyValue<Bytes>) throws
+    init(_ value:BSON.AnyValue) throws
     {
         self = try value.cast(with: \.list)
     }
@@ -56,7 +53,7 @@ extension BSON.ListView
     /// include the trailing null byte that appears after its inline
     /// elements list.
     @inlinable public
-    var slice:Bytes { self.document.slice }
+    var slice:ArraySlice<UInt8> { self.document.slice }
 
     /// Indicates if this list contains no elements.
     @inlinable public
@@ -74,18 +71,7 @@ extension BSON.ListView
     var size:Int { 5 + self.slice.count }
 }
 
-extension BSON.ListView<[UInt8]>
-{
-    /// Wraps the storage buffer of the given list into an instance of this type.
-    ///
-    /// >   Complexity: O(1).
-    @inlinable public
-    init(_ list:BSON.List)
-    {
-        self.init(slice: list.bytes)
-    }
-}
-extension BSON.ListView<ArraySlice<UInt8>>
+extension BSON.ListView
 {
     /// Wraps the **entire** storage buffer of the given list in an instance of this type.
     ///
@@ -111,9 +97,9 @@ extension BSON.ListView
     /// >   Complexity:
     ///     O(*n*), where *n* is the size of this list’s backing storage.
     @inlinable public
-    func parse(to decode:(_ element:BSON.AnyValue<Bytes.SubSequence>) throws -> ()) throws
+    func parse(to decode:(_ element:BSON.AnyValue) throws -> ()) throws
     {
-        var input:BSON.Input<Bytes> = .init(self.slice)
+        var input:BSON.Input = .init(self.slice)
         while let code:UInt8 = input.next()
         {
             let type:BSON.AnyType = try .init(code: code)
@@ -123,7 +109,7 @@ extension BSON.ListView
     }
     @inlinable public
     func parse<T>(
-        _ transform:(_ element:BSON.AnyValue<Bytes.SubSequence>) throws -> T) throws -> [T]
+        _ transform:(_ element:BSON.AnyValue) throws -> T) throws -> [T]
     {
         var elements:[T] = []
         try self.parse
@@ -144,23 +130,20 @@ extension BSON.ListView
     /// >   Complexity:
     ///     O(*n*), where *n* is the size of this list’s backing storage.
     @inlinable public
-    func parse() throws -> [BSON.AnyValue<Bytes.SubSequence>]
+    func parse() throws -> [BSON.AnyValue]
     {
         try self.parse { $0 }
     }
 }
 extension BSON.ListView:ExpressibleByArrayLiteral
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
 {
     /// Creates a list-document containing the given elements.
     @inlinable public
-    init(elements:some Sequence<BSON.AnyValue<some RandomAccessCollection<UInt8>>>)
+    init(elements:some Sequence<BSON.AnyValue>)
     {
         // we do need to precompute the ordinal keys, so we know the total length
         // of the document.
-        let document:BSON.DocumentView<Bytes> = .init(fields: elements.enumerated().map
+        let document:BSON.DocumentView = .init(fields: elements.enumerated().map
         {
             (.init(index: $0.0), $0.1)
         })
@@ -168,7 +151,7 @@ extension BSON.ListView:ExpressibleByArrayLiteral
     }
 
     @inlinable public
-    init(arrayLiteral:BSON.AnyValue<Bytes>...)
+    init(arrayLiteral:BSON.AnyValue...)
     {
         self.init(elements: arrayLiteral)
     }

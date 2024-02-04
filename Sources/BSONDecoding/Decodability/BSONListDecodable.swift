@@ -5,12 +5,12 @@
 public
 protocol BSONListDecodable:BSONListViewDecodable
 {
-    init(bson:BSON.ListDecoder<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.ListDecoder) throws
 }
 extension BSONListDecodable
 {
     @inlinable public
-    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.ListView) throws
     {
         try self.init(bson: try .init(parsing: bson))
     }

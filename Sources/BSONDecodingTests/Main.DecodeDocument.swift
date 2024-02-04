@@ -13,12 +13,12 @@ extension Main.DecodeDocument:TestBattery
     func run(tests:TestGroup)
     {
 
-        let degenerate:BSON.DocumentView<[UInt8]> =
+        let degenerate:BSON.DocumentView =
         [
             "present": .null,
             "present": true,
         ]
-        let bson:BSON.DocumentView<[UInt8]> =
+        let bson:BSON.DocumentView =
         [
             "present": .null,
             "inhabited": true,

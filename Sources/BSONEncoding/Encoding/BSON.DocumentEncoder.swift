@@ -4,10 +4,10 @@ extension BSON
     struct DocumentEncoder<CodingKey> where CodingKey:RawRepresentable<String>
     {
         @usableFromInline internal
-        var output:BSON.Output<[UInt8]>
+        var output:BSON.Output
 
         @inlinable public
-        init(_ output:BSON.Output<[UInt8]>)
+        init(_ output:BSON.Output)
         {
             self.output = output
         }
@@ -16,7 +16,7 @@ extension BSON
 extension BSON.DocumentEncoder:BSON.Encoder
 {
     @inlinable public consuming
-    func move() -> BSON.Output<[UInt8]> { self.output }
+    func move() -> BSON.Output { self.output }
 
     @inlinable public static
     var type:BSON.AnyType { .document }

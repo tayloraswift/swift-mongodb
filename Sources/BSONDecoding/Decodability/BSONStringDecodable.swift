@@ -5,18 +5,15 @@
 public
 protocol BSONStringDecodable:BSONDecodable
 {
-    /// Initializes an instance of this type from the given UTF8-8 string.
-    /// The conformer can assume the string’s backing storage is a
-    /// ``RandomAccessCollection``, even though ``BSON/UTF8View`` only
-    /// requires ``BidirectionalCollection``.
-    init(bson:BSON.UTF8View<some RandomAccessCollection<UInt8>>) throws
+    /// Initializes an instance of this type from the given UTF-8 string.
+    init(bson:BSON.UTF8View<ArraySlice<UInt8>>) throws
 }
 extension BSONStringDecodable
 {
     /// Attempts to cast the given variant value to a string, and then
     /// delegates to this type’s ``init(bson:) [6DO67]`` witness.
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         try self.init(bson: try .init(bson))
     }
@@ -32,7 +29,7 @@ extension BSONStringDecodable where Self:LosslessStringConvertible
     /// who implement ``LosslessStringConvertible``, but expect to be
     /// decoded from a variant value that is not a string.
     @inlinable public
-    init(bson:BSON.UTF8View<some BidirectionalCollection<UInt8>>) throws
+    init(bson:BSON.UTF8View<ArraySlice<UInt8>>) throws
     {
         let string:String = .init(bson: bson)
         if  let value:Self = .init(string)

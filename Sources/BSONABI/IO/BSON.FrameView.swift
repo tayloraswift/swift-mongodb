@@ -12,9 +12,9 @@ extension BSON
 
 /// The name of this protocol is ``BSON.FrameView``.
 public
-protocol _BSONFrameView<Bytes>:BSON.FrameTraversable, Equatable
+protocol _BSONFrameView:BSON.FrameTraversable, Equatable
 {
-    /// Attempts to cast a BSON variant backed by ``Bytes`` to an instance
+    /// Attempts to cast a BSON variant backed by an ``ArraySlice`` to an instance
     /// of this view type without copying the contents of the backing storage.
-    init(_:BSON.AnyValue<Bytes>) throws
+    init(_:BSON.AnyValue) throws
 }

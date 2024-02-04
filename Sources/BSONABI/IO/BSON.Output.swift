@@ -1,18 +1,15 @@
 extension BSON
 {
     @frozen public
-    struct Output<Destination>
-        where   Destination.Index == Int,
-                Destination:RangeReplaceableCollection<UInt8>,
-                Destination:RandomAccessCollection<UInt8>
+    struct Output:Sendable
     {
         public
-        var destination:Destination
+        var destination:ArraySlice<UInt8>
 
         /// Create an output with a pre-allocated destination buffer. The buffer
         /// does *not* need to be empty, and existing data will not be cleared.
         @inlinable public
-        init(preallocated destination:Destination)
+        init(preallocated destination:ArraySlice<UInt8>)
         {
             self.destination = destination
         }
@@ -30,9 +27,6 @@ extension BSON
             self.destination.reserveCapacity(capacity)
         }
     }
-}
-extension BSON.Output:Sendable where Destination:Sendable
-{
 }
 extension BSON.Output
 {
@@ -97,14 +91,14 @@ extension BSON.Output
         self.append(binary.slice)
     }
     @inlinable public mutating
-    func serialize(document:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
+    func serialize(document:BSON.DocumentView)
     {
         self.serialize(integer: document.header)
         self.append(document.slice)
         self.append(0x00)
     }
     @inlinable public mutating
-    func serialize(list:BSON.ListView<some RandomAccessCollection<UInt8>>)
+    func serialize(list:BSON.ListView)
     {
         self.serialize(integer: list.header)
         self.append(list.slice)
@@ -115,7 +109,7 @@ extension BSON.Output
 {
     /// Serializes the given variant value, without encoding its type.
     @inlinable public mutating
-    func serialize(variant:BSON.AnyValue<some RandomAccessCollection<UInt8>>)
+    func serialize(variant:BSON.AnyValue)
     {
         switch variant
         {
@@ -186,23 +180,22 @@ extension BSON.Output
     /// the field key (with a trailing null byte), followed by the variant value
     /// itself.
     @inlinable public mutating
-    func serialize(key:BSON.Key, value:BSON.AnyValue<some RandomAccessCollection<UInt8>>)
+    func serialize(key:BSON.Key, value:BSON.AnyValue)
     {
         self.serialize(type: value.type)
         self.serialize(cString: key.rawValue)
         self.serialize(variant: value)
     }
     @inlinable public mutating
-    func serialize<Bytes>(fields:some Sequence<(key:BSON.Key, value:BSON.AnyValue<Bytes>)>)
-        where Bytes:RandomAccessCollection<UInt8>
+    func serialize(fields:some Sequence<(key:BSON.Key, value:BSON.AnyValue)>)
     {
-        for (key, value):(BSON.Key, BSON.AnyValue<Bytes>) in fields
+        for (key, value):(BSON.Key, BSON.AnyValue) in fields
         {
             self.serialize(key: key, value: value)
         }
     }
 }
-extension BSON.Output<[UInt8]>
+extension BSON.Output
 {
     /// Temporarily rebinds this output’s storage buffer to an encoder of
     /// the specified type, bracketing it with the appropriate headers or

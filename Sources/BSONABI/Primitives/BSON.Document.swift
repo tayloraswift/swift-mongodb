@@ -8,7 +8,7 @@ extension BSON
     struct Document:Sendable
     {
         public
-        var output:BSON.Output<[UInt8]>
+        var output:BSON.Output
 
         /// Creates an empty document.
         @inlinable public
@@ -17,7 +17,7 @@ extension BSON
             self.output = .init(preallocated: [])
         }
         @inlinable public
-        init(bytes:[UInt8])
+        init(bytes:ArraySlice<UInt8>)
         {
             self.output = .init(preallocated: bytes)
         }
@@ -26,7 +26,7 @@ extension BSON
 extension BSON.Document
 {
     @inlinable public
-    var bytes:[UInt8]
+    var bytes:ArraySlice<UInt8>
     {
         self.output.destination
     }
@@ -42,34 +42,19 @@ extension BSON.Document:ExpressibleByDictionaryLiteral
 
 extension BSON.Document
 {
+    @available(*, deprecated, renamed: "init(bson:)")
+    @inlinable public
+    init(_ bson:BSON.DocumentView)
+    {
+        self.init(bson: bson)
+    }
     /// Convert a native array-backed document view to a document.
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    init(_ bson:BSON.DocumentView<[UInt8]>)
+    init(bson:BSON.DocumentView)
     {
         self.init(bytes: bson.slice)
-    }
-    /// Convert a generically-backed document view to a document,
-    /// copying its backing storage if it is not already backed by
-    /// a native Swift array.
-    ///
-    /// If the document is statically known to be backed by a Swift array,
-    /// prefer calling the non-generic ``init(_:)``.
-    ///
-    /// >   Complexity:
-    ///     O(1) if the opaque type is `[UInt8]`, O(*n*) otherwise,
-    ///     where *n* is the encoded size of the document.
-    @inlinable public
-    init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>)
-    {
-        switch bson
-        {
-        case let bson as BSON.DocumentView<[UInt8]>:
-            self.init(bson)
-        case let bson:
-            self.init(bytes: .init(bson.slice))
-        }
     }
 }
 extension BSON.Document

@@ -4,6 +4,6 @@ extension String:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(string: .init(self))
+        field.encode(string: BSON.UTF8View<Self.UTF8View>.init(self))
     }
 }

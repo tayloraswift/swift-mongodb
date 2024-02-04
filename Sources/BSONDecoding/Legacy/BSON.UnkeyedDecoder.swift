@@ -1,18 +1,15 @@
 extension BSON
 {
-    struct UnkeyedDecoder<Storage> where Storage:RandomAccessCollection<UInt8>
+    struct UnkeyedDecoder
     {
-        public
-        typealias Bytes = Storage.SubSequence
-
         public
         let codingPath:[any CodingKey]
         public
         var currentIndex:Int
-        let elements:[BSON.AnyValue<Bytes>]
+        let elements:[BSON.AnyValue]
 
         public
-        init(_ array:BSON.ListDecoder<Storage>, path:[any CodingKey])
+        init(_ array:BSON.ListDecoder, path:[any CodingKey])
         {
             self.codingPath     = path
             self.elements       = array.elements
@@ -34,7 +31,7 @@ extension BSON.UnkeyedDecoder
     }
 
     mutating
-    func diagnose<T>(_ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
+    func diagnose<T>(_ decode:(BSON.AnyValue) throws -> T?) throws -> T
     {
         let key:Index = .init(intValue: self.currentIndex)
         var path:[any CodingKey]
@@ -49,7 +46,7 @@ extension BSON.UnkeyedDecoder
             throw DecodingError.keyNotFound(key, context)
         }
 
-        let value:BSON.AnyValue<Bytes> = self.elements[self.currentIndex]
+        let value:BSON.AnyValue = self.elements[self.currentIndex]
         self.currentIndex += 1
         do
         {
@@ -161,11 +158,11 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
         try self.singleValueContainer() as any Decoder
     }
     public mutating
-    func singleValueContainer() throws -> BSON.SingleValueDecoder<Bytes>
+    func singleValueContainer() throws -> BSON.SingleValueDecoder
     {
         let key:Index = .init(intValue: self.currentIndex)
-        let value:BSON.AnyValue<Bytes> = try self.diagnose { $0 }
-        let decoder:BSON.SingleValueDecoder<Bytes> = .init(value,
+        let value:BSON.AnyValue = try self.diagnose { $0 }
+        let decoder:BSON.SingleValueDecoder = .init(value,
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder
     }
@@ -174,7 +171,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     {
         let path:[any CodingKey] = self.codingPath +
             CollectionOfOne<any CodingKey>.init(Index.init(intValue: self.currentIndex))
-        let container:BSON.UnkeyedDecoder<Bytes> =
+        let container:BSON.UnkeyedDecoder =
             .init(try self.diagnose { try .init(parsing: $0) }, path: path)
         return container as any UnkeyedDecodingContainer
     }
@@ -184,7 +181,7 @@ extension BSON.UnkeyedDecoder:UnkeyedDecodingContainer
     {
         let path:[any CodingKey] = self.codingPath +
             CollectionOfOne<any CodingKey>.init(Index.init(intValue: self.currentIndex))
-        let container:BSON.KeyedDecoder<Bytes, NestedKey> =
+        let container:BSON.KeyedDecoder<NestedKey> =
             .init(try self.diagnose { try .init(parsing: $0) }, path: path)
         return .init(container)
     }

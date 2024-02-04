@@ -5,14 +5,14 @@ extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
     where Key == BSON.Key, Value:BSONDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.DocumentView<Bytes>) throws
+    init(bson:BSON.DocumentView) throws
     {
         self.init()
         try bson.parse
         {
-            (field:BSON.FieldDecoder<BSON.Key, Bytes.SubSequence>) in
+            (field:BSON.FieldDecoder<BSON.Key>) in
 
-            if case _? = self.updateValue(try field.decode(to: Value.self),
+            if  case _? = self.updateValue(try field.decode(to: Value.self),
                 forKey: field.key)
             {
                 throw BSON.DocumentKeyError<BSON.Key>.duplicate(field.key)
