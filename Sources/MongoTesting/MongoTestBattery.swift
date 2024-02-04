@@ -7,7 +7,7 @@ protocol MongoTestBattery<Configuration>:TestBattery
     associatedtype Configuration:MongoTestConfiguration
 
     static
-    var logging:Mongo.LoggingLevel? { get }
+    var logging:Mongo.LogSeverity { get }
 
     static
     func run(tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
@@ -15,7 +15,7 @@ protocol MongoTestBattery<Configuration>:TestBattery
 extension MongoTestBattery
 {
     public static
-    var logging:Mongo.LoggingLevel? { nil }
+    var logging:Mongo.LogSeverity { .error }
 
     public static
     func run(tests:TestGroup) async throws
@@ -29,7 +29,7 @@ extension MongoTestBattery
             }
 
             let bootstrap:Mongo.DriverBootstrap = Configuration.bootstrap(on: executors)
-            let logger:Mongo.Logger? = Self.logging.map { .init(level: $0) }
+            let logger:Mongo.Logger = .init(level: Self.logging)
 
             try await bootstrap.withSessionPool(logger: logger)
             {

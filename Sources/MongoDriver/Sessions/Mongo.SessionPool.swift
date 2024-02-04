@@ -3,6 +3,7 @@ import DequeModule
 import Durations
 import MongoClusters
 import MongoCommands
+import MongoLogging
 
 extension Mongo
 {

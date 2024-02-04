@@ -107,7 +107,7 @@ extension Mongo.ConnectionPool
                     await self.fill()
                 }
 
-                self.log(.creating(self.settings))
+                self.log(event: Event.creating(self.settings))
             }
         }
         onCancel:
@@ -120,7 +120,7 @@ extension Mongo.ConnectionPool
                 await self.drain(throwing: .init(because: error, host: self.host))
             }
 
-            self.log(.draining(because: error))
+            self.log(event: Event.draining(because: error))
         }
     }
     private
@@ -155,33 +155,11 @@ extension Mongo.ConnectionPool
 extension Mongo.ConnectionPool
 {
     nonisolated
-    func log(samplerEvent:Mongo.SamplerEvent)
+    func log<Type>(event:Type) where Type:Mongo.MonitorEventType
     {
-        self.logger?.yield(level: .full, event: .sampler(host: self.host,
-            generation: self.generation,
-            event: samplerEvent))
-    }
-    nonisolated
-    func log(listenerEvent:Mongo.ListenerEvent)
-    {
-        self.logger?.yield(level: .full, event: .listener(host: self.host,
-            generation: self.generation,
-            event: listenerEvent))
-    }
-    nonisolated
-    func log(topologyEvent:Mongo.TopologyModelEvent)
-    {
-        self.logger?.yield(level: .full, event: .topology(host: self.host,
-            generation: self.generation,
-            event: topologyEvent))
-    }
-
-    private nonisolated
-    func log(_ event:Mongo.ConnectionPoolEvent)
-    {
-        self.logger?.yield(level: .full, event: .pool(host: self.host,
-            generation: self.generation,
-            event: event))
+        self.logger?.yield(event: Mongo.MonitorEvent<Type>.init(generation: self.generation,
+            host: self.host,
+            type: event))
     }
 }
 
@@ -339,7 +317,7 @@ extension Mongo.ConnectionPool
     private
     func fill(reservation:Reservation) async
     {
-        self.log(.expanding(id: reservation.id))
+        self.log(event: Event.expanding(id: reservation.id))
 
         let allocation:Allocation
 
@@ -354,7 +332,7 @@ extension Mongo.ConnectionPool
             self.allocations.drain(throwing: .init(because: error, host: self.host),
                 erase: true)
 
-            self.log(.draining(because: error))
+            self.log(event: Event.draining(because: error))
             return
         }
 
@@ -367,7 +345,7 @@ extension Mongo.ConnectionPool
         case .connecting:
             allocation.channel.closeFuture.whenComplete
             {
-                self.log(.perished(id: allocation.id, because: $0))
+                self.log(event: Event.perished(id: allocation.id, because: $0))
 
                 let _:Task<Void, Never> = .init
                 {
@@ -375,7 +353,7 @@ extension Mongo.ConnectionPool
                 }
             }
 
-            self.log(.expanded(id: allocation.id))
+            self.log(event: Event.expanded(id: allocation.id))
 
             self.allocations.fill(with: allocation)
 

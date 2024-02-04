@@ -48,7 +48,7 @@ extension Mongo.Sampler
                 let metric:Nanoseconds = .nanoseconds(.init(cdf.estimate(quantile: 0.9)))
 
                 pool.latency.store(metric, ordering: .relaxed)
-                pool.log(samplerEvent: .sampled(sample, metric: metric))
+                pool.log(event: Event.sampled(sample, metric: metric))
 
                 try await cooldown
             }
@@ -56,7 +56,7 @@ extension Mongo.Sampler
         catch let error
         {
             pool.monitor.resume(from: .sampler)
-            pool.log(samplerEvent: .errored(error))
+            pool.log(event: Event.errored(error))
             await self.connection.close()
         }
     }

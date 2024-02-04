@@ -1,5 +1,6 @@
 import Durations
 import MongoConfiguration
+import MongoLogging
 import NIOCore
 import NIOPosix
 

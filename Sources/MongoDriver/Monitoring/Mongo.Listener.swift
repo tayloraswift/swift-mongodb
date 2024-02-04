@@ -37,7 +37,7 @@ extension Mongo.Listener
 
                 version = response.topologyVersion
 
-                pool.log(listenerEvent: .updated(version))
+                pool.log(event: Event.updated(version))
 
                 stream.yield(.init(topology: response.topologyUpdate))
             }
@@ -45,7 +45,7 @@ extension Mongo.Listener
         catch let error
         {
             pool.monitor.resume(from: .listener)
-            pool.log(listenerEvent: .errored(error))
+            pool.log(event: Event.errored(error))
 
             stream.finish(throwing: error)
             await self.connection.close()

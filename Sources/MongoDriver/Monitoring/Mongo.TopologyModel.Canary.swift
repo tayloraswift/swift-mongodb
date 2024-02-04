@@ -15,7 +15,7 @@ extension Mongo.TopologyModel
         deinit
         {
             self.pool.monitor.resume(from: .topology)
-            self.pool.log(topologyEvent: .removed)
+            self.pool.log(event: Event.removed)
         }
     }
 }

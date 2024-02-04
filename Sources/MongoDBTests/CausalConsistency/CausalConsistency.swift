@@ -5,7 +5,7 @@ struct CausalConsistency<Configuration>:MongoTestBattery
     where Configuration:MongoTestConfiguration
 {
     static
-    var logging:Mongo.LoggingLevel? { .full }
+    var logging:Mongo.LogSeverity { .debug }
 
     static
     func run(tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
