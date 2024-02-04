@@ -3,11 +3,13 @@ extension Mongo.Topology
     public
     struct Replicated
     {
-        //public private(set)
+        /// The members of the replica set.
         private
         var members:[Mongo.Host: Mongo.ServerDescription<Mongo.ReplicaSetMember, Owner>]
+        /// The current term of the replica set.
         private
         var term:Mongo.ReplicaSetTerm?
+        /// The name of the replica set.
         private
         var name:String
 
@@ -54,7 +56,7 @@ extension Mongo.Topology.Replicated
             {
                 self.members[host] = value
             }
-            if case .primary? = value?.metadata
+            if  case .primary? = value?.metadata
             {
                 switch self.primary
                 {
@@ -70,10 +72,10 @@ extension Mongo.Topology.Replicated
                         {
                             $0 = .connected(.ghost, owner)
                         }
-                    }   (&self.members[old])
+                    } (&self.members[old])
 
                     self.primary = host
-                
+
                 case nil:
                     //  Adding a primary to a replica set that didn’t have
                     //  one already.
@@ -122,7 +124,7 @@ extension Mongo.Topology.Replicated
             return nil
         }
 
-        if update.newer(than: &self.term)
+        if  update.newer(than: &self.term)
         {
             //  Always use the peerlist, even if we end up rejecting the update.
             var discovered:Set<Mongo.Host> = peerlist.peers()
@@ -163,8 +165,8 @@ extension Mongo.Topology.Replicated
             return nil
         }
 
-        if case nil = self.primary
-        {            
+        if  case nil = self.primary
+        {
             //  Always use the peerlist, even if we end up rejecting the update.
             for host:Mongo.Host in peerlist.peers(besides: self.members.keys)
             {
@@ -173,6 +175,7 @@ extension Mongo.Topology.Replicated
             }
         }
 
+        //  We have called this slave by the wrong name, which is bad apparently.
         guard host == peerlist.me
         else
         {

@@ -60,9 +60,9 @@ extension Mongo.Seedlist
 extension Mongo.Seedlist:ExpressibleByArrayLiteral
 {
     @inlinable public
-    init(arrayLiteral:String...)
+    init(arrayLiteral:Mongo.Host...)
     {
-        self.init(hostnames: arrayLiteral)
+        self.init(hosts: arrayLiteral)
     }
 }
 extension Mongo.Seedlist:ExpressibleByDictionaryLiteral

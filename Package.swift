@@ -205,6 +205,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoCommands"),
                 .target(name: "MongoConfiguration"),
                 .target(name: "MongoExecutor"),
+                .target(name: "MongoLogging"),
                 .target(name: "OnlineCDF"),
                 .target(name: "SCRAM"),
                 .product(name: "Atomics", package: "swift-atomics"),
@@ -225,6 +226,13 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "Mongo"),
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore", package: "swift-nio"),
+            ]),
+
+        .target(name: "MongoLogging",
+            dependencies:
+            [
+                .target(name: "MongoClusters"),
+                .product(name: "Atomics", package: "swift-atomics"),
             ]),
 
         .target(name: "MongoQL",
@@ -298,6 +306,13 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "OnlineCDF"),
+                .product(name: "Testing", package: "swift-grammar"),
+            ]),
+
+        .executableTarget(name: "MongoClusterTests",
+            dependencies:
+            [
+                .target(name: "MongoClusters"),
                 .product(name: "Testing", package: "swift-grammar"),
             ]),
 

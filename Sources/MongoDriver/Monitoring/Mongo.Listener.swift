@@ -33,20 +33,19 @@ extension Mongo.Listener
             while true
             {
                 let response:Mongo.HelloResponse = try await self.connection.run(
-                    hello: .init(topologyVersion: version,
-                        milliseconds: self.interval))
-                
+                    hello: .init(topologyVersion: version, milliseconds: self.interval))
+
                 version = response.topologyVersion
 
-                pool.log(listenerEvent: .updated(version))
-                
+                pool.log(event: Event.updated(version))
+
                 stream.yield(.init(topology: response.topologyUpdate))
             }
         }
         catch let error
         {
             pool.monitor.resume(from: .listener)
-            pool.log(listenerEvent: .errored(error))
+            pool.log(event: Event.errored(error))
 
             stream.finish(throwing: error)
             await self.connection.close()

@@ -21,7 +21,7 @@ extension Mongo.Topology
         {
         case .replicated(set: let name)?:
             self = .replicated(.init(from: seedlist, name: name))
-        
+
         case nil:
             self = .unknown(.init(from: seedlist))
         }
@@ -29,96 +29,91 @@ extension Mongo.Topology
 }
 extension Mongo.Topology
 {
-    private
-    init?(host:Mongo.Host, with update:Mongo.TopologyUpdate, owner:Owner,
-        from unknown:inout Unknown,
-        add:(Mongo.Host) -> ())
-    {
-        switch update
-        {
-        case .standalone(let metadata):
-            //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#updateunknownwithstandalone
-            if  unknown.pick(host: host)
-            {
-                self = .single(.init(host: host, metadata: metadata, owner: owner))
-                return
-            }
-            else
-            {
-                return nil
-            }
-        
-        case .router(let metadata):
-            var sharded:Sharded = .init(from: unknown)
-            if case .accepted? = sharded[host]?.assign(metadata: metadata, owner: owner)
-            {
-                self = .sharded(sharded)
-                return
-            }
-        
-        case .primary(let primary, let peerlist):
-            var replicated:Replicated = .init(from: unknown, name: peerlist.set)
-            if  let metadata:Mongo.ReplicaSetMember = replicated.combine(update: primary,
-                        peerlist: peerlist,
-                        host: host,
-                        add: add),
-                case .accepted? = replicated[host]?.assign(metadata: metadata, owner: owner)
-            {
-                self = .replicated(replicated)
-                return
-            }
-        
-        case .slave(let slave, let peerlist):
-            var replicated:Replicated = .init(from: unknown, name: peerlist.set)
-            if  let metadata:Mongo.ReplicaSetMember = replicated.combine(update: slave, 
-                    peerlist: peerlist,
-                    host: host,
-                    add: add),
-                case .accepted? = replicated[host]?.assign(metadata: metadata, owner: owner)
-            {
-                self = .replicated(replicated)
-                return
-            }
-        
-        case .ghost:
-            //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#topologytype-remains-unknown-when-an-rsghost-is-discovered
-            self = .unknown(unknown)
-            return
-        }
-
-        unknown.pick(host: host)
-        return nil
-    }
-
     public mutating
     func combine(update:Mongo.TopologyUpdate,
-        owner:__owned Owner?,
+        owner:consuming Owner?,
         host:Mongo.Host,
         add:(Mongo.Host) -> ()) -> Mongo.TopologyUpdateResult
     {
-        switch self
+        switch consume self
         {
         case .unknown(var unknown):
-            guard let owner:Owner
-            else
-            {
-                return .dropped
-            }
-            if  let topology:Self = .init(host: host, with: update, owner: owner,
-                    from: &unknown,
-                    add: add)
-            {
-                self = topology
-                return .accepted
-            }
+            guard
+            let owner:Owner
             else
             {
                 self = .unknown(unknown)
-                return .rejected
+                return .dropped
             }
-        
+
+            switch update
+            {
+            //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#updateunknownwithstandalone
+            case .standalone(let metadata):
+                if  unknown.pick(host: host)
+                {
+                    self = .single(.init(host: host, metadata: metadata, owner: owner))
+                    return .accepted
+                }
+                else
+                {
+                    self = .unknown(unknown)
+                    return .rejected
+                }
+
+            case .router(let metadata):
+                var sharded:Sharded = .init(from: unknown)
+                defer
+                {
+                    self = .sharded(sharded)
+                }
+                return sharded[host]?.assign(metadata: metadata, owner: owner) ?? .rejected
+
+            case .primary(let primary, let peerlist):
+                var replicated:Replicated = .init(from: unknown, name: peerlist.set)
+                defer
+                {
+                    self = .replicated(replicated)
+                }
+                if  let metadata:Mongo.ReplicaSetMember = replicated.combine(update: primary,
+                        peerlist: peerlist,
+                        host: host,
+                        add: add)
+                {
+                    return replicated[host]?.assign(metadata: metadata, owner: owner)
+                        ?? .rejected
+                }
+                else
+                {
+                    return .rejected
+                }
+
+            case .slave(let slave, let peerlist):
+                var replicated:Replicated = .init(from: unknown, name: peerlist.set)
+                defer
+                {
+                    self = .replicated(replicated)
+                }
+                if  let metadata:Mongo.ReplicaSetMember = replicated.combine(update: slave,
+                        peerlist: peerlist,
+                        host: host,
+                        add: add)
+                {
+                    return replicated[host]?.assign(metadata: metadata, owner: owner)
+                        ?? .rejected
+                }
+                else
+                {
+                    return .rejected
+                }
+
+            //  https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#topologytype-remains-unknown-when-an-rsghost-is-discovered
+            case .ghost:
+                self = .unknown(unknown)
+                return .accepted
+            }
+
         case .single(var topology):
-            self = .unknown(.init())
             defer
             {
                 self = .single(topology)
@@ -127,14 +122,13 @@ extension Mongo.Topology
             {
             case .standalone(let metadata):
                 return topology[host]?.assign(metadata: metadata, owner: owner) ?? .rejected
-            
+
             case .primary, .slave, .ghost, .router:
                 // we cannot remove and stop monitoring the only host we know about
                 return topology[host]?.assign(error: nil) ?? .rejected
             }
-        
+
         case .sharded(var topology):
-            self = .unknown(.init())
             defer
             {
                 self = .sharded(topology)
@@ -143,14 +137,13 @@ extension Mongo.Topology
             {
             case .router(let metadata):
                 return topology[host]?.assign(metadata: metadata, owner: owner) ?? .rejected
-            
+
             case .primary, .slave, .ghost, .standalone:
                 topology[host] = nil
                 return .rejected
             }
-        
+
         case .replicated(var topology):
-            self = .unknown(.init())
             defer
             {
                 self = .replicated(topology)
@@ -164,21 +157,22 @@ extension Mongo.Topology
                 metadata = topology.combine(update: primary, peerlist: peerlist,
                     host: host,
                     add: add)
-            
+
             case .slave(let slave, let peerlist):
                 metadata = topology.combine(update: slave, peerlist: peerlist,
                     host: host,
                     add: add)
-            
+
             case .ghost:
                 metadata = .ghost
-            
+
             case .router, .standalone:
                 topology[host] = nil
                 return .rejected
             }
 
-            guard let metadata:Mongo.ReplicaSetMember
+            guard
+            let metadata:Mongo.ReplicaSetMember
             else
             {
                 return .rejected
@@ -190,34 +184,30 @@ extension Mongo.Topology
     public mutating
     func combine(error status:(any Error)?, host:Mongo.Host) -> Mongo.TopologyUpdateResult
     {
-        switch self
+        switch consume self
         {
         case .unknown(var seedlist):
-            self = .unknown(.init())
             defer
             {
                 self = .unknown(seedlist)
             }
             return seedlist.combine(error: status, host: host)
-        
+
         case .single(var topology):
-            self = .unknown(.init())
             defer
             {
                 self = .single(topology)
             }
             return topology[host]?.assign(error: status) ?? .rejected
-        
+
         case .sharded(var topology):
-            self = .unknown(.init())
             defer
             {
                 self = .sharded(topology)
             }
             return topology[host]?.assign(error: status) ?? .rejected
-        
+
         case .replicated(var topology):
-            self = .unknown(.init())
             defer
             {
                 self = .replicated(topology)
