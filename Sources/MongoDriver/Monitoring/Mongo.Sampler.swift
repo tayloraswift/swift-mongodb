@@ -1,5 +1,4 @@
 import Durations
-import OnlineCDF
 
 extension Mongo
 {
@@ -29,7 +28,9 @@ extension Mongo.Sampler
         do
         {
             let interval:Duration = .milliseconds(self.interval)
-            var cdf:OnlineCDF = .init(resolution: 16, seed: .init(self.seed.rawValue))
+
+            var metric:Double = .init(seed.rawValue)
+            let alpha:Double = 0.2
 
             while true
             {
@@ -37,18 +38,17 @@ extension Mongo.Sampler
                 let cooldown:Void = Task.sleep(for: interval)
                 let deadline:ContinuousClock.Instant = .now.advanced(by: interval)
 
-                let sample:Duration = try await self.connection.sample(by: deadline)
+                let latency:Duration = try await self.connection.sample(by: deadline)
+                let sample:Double =
+                    1e-9 * Double.init(latency.components.attoseconds) +
+                    1e+9 * Double.init(latency.components.seconds)
 
-                let nanoseconds:Double =
-                    1e-9 * Double.init(sample.components.attoseconds) +
-                    1e+9 * Double.init(sample.components.seconds)
+                metric = alpha * sample + (1 - alpha) * metric
 
-                cdf.insert(nanoseconds)
+                let rounded:Nanoseconds = .nanoseconds(Int64.init(metric))
 
-                let metric:Nanoseconds = .nanoseconds(.init(cdf.estimate(quantile: 0.9)))
-
-                pool.latency.store(metric, ordering: .relaxed)
-                pool.log(event: Event.sampled(sample, metric: metric))
+                pool.latency.store(rounded, ordering: .relaxed)
+                pool.log(event: Event.sampled(latency, metric: rounded))
 
                 try await cooldown
             }
