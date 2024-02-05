@@ -31,7 +31,7 @@ extension Mongo
 }
 extension Mongo.HelloResponse:BSONDocumentDecodable
 {
-    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key>) throws
     {
         let minWireVersion:Mongo.WireVersion = try bson["minWireVersion"].decode()
         let maxWireVersion:Mongo.WireVersion = try bson["maxWireVersion"].decode()

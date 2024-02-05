@@ -6,12 +6,12 @@ extension Mongo.WireMessage
     struct Sections:Sendable
     {
         public
-        let body:BSON.DocumentView<ArraySlice<UInt8>>
+        let body:BSON.DocumentView
         public
         let outlined:[Outline]
 
         @inlinable public
-        init(body:BSON.DocumentView<ArraySlice<UInt8>>, outlined:[Outline] = [])
+        init(body:BSON.DocumentView, outlined:[Outline] = [])
         {
             self.body = body
             self.outlined = outlined
@@ -21,9 +21,9 @@ extension Mongo.WireMessage
 extension Mongo.WireMessage.Sections
 {
     @inlinable internal static
-    func parse(from input:inout BSON.Input<[UInt8]>) throws -> Self
+    func parse(from input:inout BSON.Input) throws -> Self
     {
-        var body:BSON.DocumentView<ArraySlice<UInt8>>? = nil
+        var body:BSON.DocumentView? = nil
         var outlined:[Mongo.WireMessage.Outline] = []
 
         while let section:UInt8 = input.next()
@@ -43,10 +43,10 @@ extension Mongo.WireMessage.Sections
                     throw Mongo.WireBodyCountError.multiple
                 }
 
-                body = try input.parse(as: BSON.DocumentView<ArraySlice<UInt8>>.self)
+                body = try input.parse(as: BSON.DocumentView.self)
 
             case .sequence:
-                var sequence:BSON.Input<ArraySlice<UInt8>> = .init(try input.parse(
+                var sequence:BSON.Input = .init(try input.parse(
                     Mongo.WireSequenceFrame.self))
 
                 let id:String = try sequence.parse(as: String.self)
@@ -60,7 +60,7 @@ extension Mongo.WireMessage.Sections
         //  any number of Payload Type 1 where each identifier MUST be unique per message.
         //  '''
         guard
-        let body:BSON.DocumentView<ArraySlice<UInt8>>
+        let body:BSON.DocumentView
         else
         {
             throw Mongo.WireBodyCountError.none
@@ -72,7 +72,7 @@ extension Mongo.WireMessage.Sections
 extension Mongo.WireMessage.Sections
 {
     @inlinable internal static
-    func += (output:inout BSON.Output<some RangeReplaceableCollection<UInt8>>, self:Self)
+    func += (output:inout some BSON.OutputStream, self:Self)
     {
         output.append(Mongo.WireSection.body.rawValue)
         output.serialize(document: self.body)

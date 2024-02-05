@@ -19,13 +19,13 @@ extension Mongo
 extension Mongo.PipelineEncoder:BSON.Encoder
 {
     @inlinable public
-    init(_ output:consuming BSON.Output<[UInt8]>)
+    init(_ output:consuming BSON.Output)
     {
         self.init(list: .init(output))
     }
 
     @inlinable public consuming
-    func move() -> BSON.Output<[UInt8]> { self.list.move() }
+    func move() -> BSON.Output { self.list.move() }
 
     @inlinable public static
     var type:BSON.AnyType { .list }

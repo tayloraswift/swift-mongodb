@@ -34,7 +34,7 @@ extension Mongo.Explain:Mongo.Command
     }
 
     public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) -> String
+    func decode(reply:BSON.DocumentDecoder<BSON.Key>) -> String
     {
         Mongo.ExplainOnly.decode(reply: reply)
     }

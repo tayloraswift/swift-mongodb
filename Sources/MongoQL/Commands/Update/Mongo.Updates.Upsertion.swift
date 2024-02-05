@@ -36,7 +36,7 @@ extension Mongo.Updates.Upsertion:
         case id = "_id"
     }
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(index: try bson[.index].decode(), id: try bson[.id].decode())
     }

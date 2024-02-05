@@ -37,7 +37,7 @@ extension Mongo.SessionIdentifier
 extension Mongo.SessionIdentifier:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(try bson[.id].decode(to: UUID.self))
     }

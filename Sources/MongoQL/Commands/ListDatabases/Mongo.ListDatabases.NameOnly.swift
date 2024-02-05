@@ -52,7 +52,7 @@ extension Mongo.ListDatabases.NameOnly:Mongo.Command
 
     @inlinable public static
     func decode(
-        reply bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> [Mongo.Database]
+        reply bson:BSON.DocumentDecoder<BSON.Key>) throws -> [Mongo.Database]
     {
         try bson["databases"].decode
         {

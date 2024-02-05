@@ -9,7 +9,7 @@ extension Mongo
         var bson:BSON.DocumentEncoder<BSON.Key>
 
         @inlinable public
-        init(_ output:consuming BSON.Output<[UInt8]>)
+        init(_ output:consuming BSON.Output)
         {
             self.bson = .init(output)
         }
@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.UpdateStatement:BSON.Encoder
 {
     @inlinable public consuming
-    func move() -> BSON.Output<[UInt8]> { self.bson.move() }
+    func move() -> BSON.Output { self.bson.move() }
 
     @inlinable public static
     var type:BSON.AnyType { .document }

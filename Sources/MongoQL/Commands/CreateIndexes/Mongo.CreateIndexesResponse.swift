@@ -30,7 +30,7 @@ extension Mongo
 extension Mongo.CreateIndexesResponse:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key>) throws
     {
         self.init(
             createdCollectionAutomatically:

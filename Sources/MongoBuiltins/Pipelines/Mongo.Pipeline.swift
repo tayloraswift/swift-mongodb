@@ -28,7 +28,7 @@ extension Mongo.Pipeline
 extension Mongo.Pipeline:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         self.init(stages: try .init(bson: bson))
     }

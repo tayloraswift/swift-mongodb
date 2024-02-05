@@ -51,7 +51,7 @@ extension Mongo.ReplicaSetConfiguration.Member
 extension Mongo.ReplicaSetConfiguration.Member:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         let id:Int64 = try bson[.id].decode(to: Int64.self)
         let host:Mongo.Host = try bson[.host].decode(to: Mongo.Host.self)

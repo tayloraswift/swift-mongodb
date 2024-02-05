@@ -67,7 +67,7 @@ extension Mongo.WireMessage
 extension Mongo.WireMessage
 {
     @inlinable public static
-    func += (output:inout BSON.Output<some RangeReplaceableCollection<UInt8>>, self:Self)
+    func += (output:inout some BSON.OutputStream, self:Self)
     {
         output += self.header
         output.serialize(integer: self.flags.rawValue as UInt32)

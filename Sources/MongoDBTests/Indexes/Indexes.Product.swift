@@ -28,7 +28,7 @@ extension Indexes
             case model
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+        init(bson:BSON.DocumentDecoder<CodingKey>) throws
         {
             self.init(item: try bson[.item].decode(),
                 manufacturer: try bson[.manufacturer].decode(),

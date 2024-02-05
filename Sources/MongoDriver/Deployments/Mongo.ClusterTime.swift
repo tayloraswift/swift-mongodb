@@ -46,7 +46,7 @@ extension Mongo.ClusterTime:BSONEncodable, BSONDocumentEncodable
 extension Mongo.ClusterTime:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(timestamp: try bson[.clusterTime].decode(to: Mongo.Timestamp.self),
             signature: try bson[.signature].decode(to: BSON.Document.self))

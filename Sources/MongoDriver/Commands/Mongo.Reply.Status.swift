@@ -31,7 +31,7 @@ extension Mongo.Reply
 }
 extension Mongo.Reply.Status:BSONDecodable
 {
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         self.init(ok: try bson.cast
         {

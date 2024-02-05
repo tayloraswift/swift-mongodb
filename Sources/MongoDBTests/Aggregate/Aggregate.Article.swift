@@ -36,8 +36,7 @@ extension Aggregate
             case tags
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
-            throws
+        init(bson:BSON.DocumentDecoder<CodingKey>) throws
         {
             self.init(id: try bson[.id].decode(),
                 author: try bson[.author].decode(),

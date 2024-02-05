@@ -18,13 +18,13 @@ extension Mongo.ZipDocument
 extension Mongo.ZipDocument.Encoder:BSON.Encoder
 {
     @inlinable public
-    init(_ output:consuming BSON.Output<[UInt8]>)
+    init(_ output:consuming BSON.Output)
     {
         self.init(bson: .init(output))
     }
 
     @inlinable public
-    func move() -> BSON.Output<[UInt8]> { self.bson.move() }
+    func move() -> BSON.Output { self.bson.move() }
 
     @inlinable public static
     var type:BSON.AnyType { .document }
