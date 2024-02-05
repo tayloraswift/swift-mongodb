@@ -46,16 +46,17 @@ extension Mongo.Command
             }
         }
 
-        let body:BSON.DocumentView<ArraySlice<UInt8>> = self.body(database: database,
+        let body:BSON.DocumentView = self.body(database: database,
             timeout: timeout,
             labels: labels)
 
         return .init(body: body, outlined: outlined ?? [])
     }
 
-    private __consuming
-    func body(database:Database, timeout:Milliseconds?,
-        labels:Mongo.SessionLabels?) -> BSON.DocumentView<ArraySlice<UInt8>>
+    private consuming
+    func body(database:Database,
+        timeout:Milliseconds?,
+        labels:Mongo.SessionLabels?) -> BSON.DocumentView
     {
         var bson:BSON.Document = self.fields
         ;
