@@ -20,7 +20,7 @@ extension Main.Documents:TestBattery
 
             $0["logo"] = BSON.BinaryView<[UInt8]>.init(
                 subtype: .generic,
-                slice: [1, 2, 3, 4, 5])
+                bytes: [1, 2, 3, 4, 5])
 
             $0["incidents"] = 145
             $0["averageRating"] = 2.76
@@ -126,7 +126,7 @@ extension Main.Documents:TestBattery
                 }
             }
         }
-        let value:BSON.AnyValue = .document(.init(document))
+        let value:BSON.AnyValue = .document(document)
         let expected:String =
         """
         {

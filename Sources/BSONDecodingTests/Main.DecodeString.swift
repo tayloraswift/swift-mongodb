@@ -12,7 +12,7 @@ extension Main.DecodeString:TestBattery
     static
     func run(tests:TestGroup)
     {
-        let bson:BSON.DocumentView =
+        let bson:BSON.Document =
         [
             "string": "e\u{0301}e\u{0301}",
             "character": "e\u{0301}",

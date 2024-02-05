@@ -1,14 +1,15 @@
 import BSON
 import OrderedCollections
 
-extension OrderedDictionary:BSONDocumentViewDecodable, BSONDecodable
-    where Key == BSON.Key, Value:BSONDecodable
+extension OrderedDictionary:BSONDecodable where Key == BSON.Key, Value:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentView) throws
+    init(bson:BSON.AnyValue) throws
     {
+        let document:BSON.Document = try .init(bson: consume bson)
+
         self.init()
-        try bson.parse
+        try document.parse
         {
             (field:BSON.FieldDecoder<BSON.Key>) in
 

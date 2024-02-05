@@ -6,12 +6,12 @@ extension Mongo.WireMessage
     struct Sections:Sendable
     {
         public
-        let body:BSON.DocumentView
+        let body:BSON.Document
         public
         let outlined:[Outline]
 
         @inlinable public
-        init(body:BSON.DocumentView, outlined:[Outline] = [])
+        init(body:BSON.Document, outlined:[Outline] = [])
         {
             self.body = body
             self.outlined = outlined
@@ -23,7 +23,7 @@ extension Mongo.WireMessage.Sections
     @inlinable internal static
     func parse(from input:inout BSON.Input) throws -> Self
     {
-        var body:BSON.DocumentView? = nil
+        var body:BSON.Document? = nil
         var outlined:[Mongo.WireMessage.Outline] = []
 
         while let section:UInt8 = input.next()
@@ -43,7 +43,7 @@ extension Mongo.WireMessage.Sections
                     throw Mongo.WireBodyCountError.multiple
                 }
 
-                body = try input.parse(as: BSON.DocumentView.self)
+                body = try input.parse(as: BSON.Document.self)
 
             case .sequence:
                 var sequence:BSON.Input = .init(try input.parse(
@@ -60,7 +60,7 @@ extension Mongo.WireMessage.Sections
         //  any number of Payload Type 1 where each identifier MUST be unique per message.
         //  '''
         guard
-        let body:BSON.DocumentView
+        let body:BSON.Document
         else
         {
             throw Mongo.WireBodyCountError.none

@@ -26,7 +26,6 @@ extension Mongo.Updates.Upsertion:Equatable where ID:Equatable
 }
 extension Mongo.Updates.Upsertion:
     BSONDocumentDecodable,
-    BSONDocumentViewDecodable,
     BSONDecodable where ID:BSONDecodable
 {
     public

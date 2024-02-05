@@ -28,9 +28,14 @@ protocol _BSONFrameTraversable
     /// O(1) time.
     init(slicing:ArraySlice<UInt8>) throws
 
-    /// The slice of bytes constituting the opaque content of this view.
-    /// The conforming type defines what portion of the original buffer
-    /// this slice includes, and it may not cover the entirety of the
-    /// argument originally passed to ``init(slicing:)``.
-    var slice:ArraySlice<UInt8> { get }
+    /// The slice of bytes constituting the opaque content of this view. The conforming type
+    /// defines what portion of the original buffer this slice includes, and it may not cover
+    /// the entirety of the argument originally passed to ``init(slicing:)``.
+    var bytes:ArraySlice<UInt8> { get }
+}
+extension BSON.FrameTraversable
+{
+    @available(*, deprecated, renamed: "bytes")
+    @inlinable public
+    var slice:ArraySlice<UInt8> { self.bytes }
 }

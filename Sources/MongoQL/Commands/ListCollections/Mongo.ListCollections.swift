@@ -20,7 +20,7 @@ extension Mongo
     /// >   See:
     /// https://github.com/mongodb/specifications/blob/master/source/enumerate-collections.rst
     public
-    struct ListCollections<Element>:Sendable where Element:BSONDocumentViewDecodable & Sendable
+    struct ListCollections<Element>:Sendable where Element:BSONDecodable & Sendable
     {
         public
         let stride:Int?

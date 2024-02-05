@@ -28,9 +28,9 @@ extension Mongo.SASLResponse:BSONDocumentDecodable
             switch $0
             {
             case .string(let utf8):
-                return .init(base64: utf8.slice)
+                return .init(base64: utf8.bytes)
             case .binary(let binary):
-                return .init(base64: binary.slice)
+                return .init(base64: binary.bytes)
             default:
                 throw BSON.TypecastError<String>.init(invalid: $0.type)
             }

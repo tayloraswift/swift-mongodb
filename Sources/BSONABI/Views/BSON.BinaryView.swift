@@ -7,18 +7,21 @@ extension BSON
         /// The contents of this binary array. This collection does *not*
         /// include the leading subtype byte.
         public
-        let slice:Bytes
+        let bytes:Bytes
         /// The subtype of this binary array.
         public
         let subtype:BinarySubtype
 
         @inlinable public
-        init(subtype:BinarySubtype, slice:Bytes)
+        init(subtype:BinarySubtype, bytes:Bytes)
         {
             self.subtype = subtype
-            self.slice = slice
+            self.bytes = bytes
         }
     }
+}
+extension BSON.BinaryView:Sendable where Bytes:Sendable
+{
 }
 extension BSON.BinaryView:Equatable
 {
@@ -28,11 +31,8 @@ extension BSON.BinaryView:Equatable
     func == (lhs:Self, rhs:BSON.BinaryView<some RandomAccessCollection<UInt8>>) -> Bool
     {
         lhs.subtype == rhs.subtype &&
-        lhs.slice.elementsEqual(rhs.slice)
+        lhs.bytes.elementsEqual(rhs.bytes)
     }
-}
-extension BSON.BinaryView:Sendable where Bytes:Sendable
-{
 }
 extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.FrameTraversable
 {
@@ -47,7 +47,7 @@ extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.FrameTraversable
     ///
     /// >   Complexity: O(1)
     @inlinable public
-    init(slicing bytes:Bytes) throws
+    init(slicing bytes:ArraySlice<UInt8>) throws
     {
         guard let code:UInt8 = bytes.first
         else
@@ -60,29 +60,21 @@ extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.FrameTraversable
             throw BSON.BinarySubtypeError.init(invalid: code)
         }
 
-        let start:Bytes.Index = bytes.index(after: bytes.startIndex)
+        let start:Int = bytes.index(after: bytes.startIndex)
         if code != 0x02
         {
-            self.init(subtype: subtype, slice: bytes[start...])
+            self.init(subtype: subtype, bytes: bytes[start...])
         }
         // special handling for legacy binary format 0x02
-        else if let start:Bytes.Index = bytes.index(start, offsetBy: 4,
+        else if let start:Int = bytes.index(start, offsetBy: 4,
                     limitedBy: bytes.endIndex)
         {
-            self.init(subtype: subtype, slice: bytes.suffix(from: start))
+            self.init(subtype: subtype, bytes: bytes.suffix(from: start))
         }
         else
         {
             throw BSON.BinaryViewError.init(expected: .subheader)
         }
-    }
-}
-extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.FrameView
-{
-    @inlinable public
-    init(_ value:BSON.AnyValue) throws
-    {
-        self = try value.cast(with: \.binary)
     }
 }
 extension BSON.BinaryView
@@ -92,13 +84,23 @@ extension BSON.BinaryView
     @inlinable public
     var header:Int32
     {
-        .init(self.slice.count)
+        .init(self.bytes.count)
     }
     /// The size of this binary array when encoded with its header.
     /// This is *not* the length encoded in the header itself.
     @inlinable public
     var size:Int
     {
-        5 + self.slice.count
+        5 + self.bytes.count
+    }
+}
+
+extension BSON.BinaryView
+{
+    @available(*, deprecated, renamed: "init(subtype:bytes:)")
+    @inlinable public
+    init(subtype:BSON.BinarySubtype, slice:Bytes)
+    {
+        self.init(subtype: subtype, bytes: slice)
     }
 }

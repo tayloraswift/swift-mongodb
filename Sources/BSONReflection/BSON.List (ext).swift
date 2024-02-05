@@ -1,18 +1,18 @@
 import BSON
 
-extension BSON.ListView
+extension BSON.List
 {
     func description(indent:BSON.Indent) -> String
     {
-        self.isEmpty ? "[]" : self.document.description(indent: indent)
+        self.isEmpty ? "[]" : BSON.Document.init(list: self).description(indent: indent)
     }
 }
-extension BSON.ListView:CustomStringConvertible
+extension BSON.List:CustomStringConvertible
 {
     public
     var description:String { self.description(indent: "    ") }
 }
-extension BSON.ListView
+extension BSON.List
 {
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
     /// comparing the elements, ignoring list key names. Returns `false` if either
@@ -45,7 +45,7 @@ extension BSON.ListView
         }
     }
 }
-extension BSON.ListView
+extension BSON.List
 {
     /// Recursively parses and re-encodes this list-document, and any embedded documents
     /// (and list-documents) in its elements. The ordinal keys will be regenerated.

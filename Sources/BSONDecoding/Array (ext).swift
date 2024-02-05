@@ -1,10 +1,12 @@
-extension Array:BSONListViewDecodable, BSONDecodable where Element:BSONDecodable
+extension Array:BSONDecodable where Element:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.ListView) throws
+    init(bson:BSON.AnyValue) throws
     {
+        let list:BSON.List = try .init(bson: consume bson)
+
         self.init()
-        try bson.parse
+        try list.parse
         {
             self.append(try $0.decode(to: Element.self))
         }

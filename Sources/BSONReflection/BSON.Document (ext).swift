@@ -1,6 +1,6 @@
 import BSON
 
-extension BSON.DocumentView
+extension BSON.Document
 {
     func description(indent:BSON.Indent) -> String
     {
@@ -24,12 +24,12 @@ extension BSON.DocumentView
         }
     }
 }
-extension BSON.DocumentView:CustomStringConvertible
+extension BSON.Document:CustomStringConvertible
 {
     public
     var description:String { self.description(indent: "    ") }
 }
-extension BSON.DocumentView
+extension BSON.Document
 {
     /// Performs a type-aware equivalence comparison by parsing each operand and recursively
     /// comparing the elements. Returns false if either operand fails to parse.
@@ -69,7 +69,7 @@ extension BSON.DocumentView
         }
     }
 }
-extension BSON.DocumentView
+extension BSON.Document
 {
     /// Recursively parses and re-encodes this document, and any embedded documents
     /// (and list-documents) in its elements. The keys will not be changed or re-ordered.

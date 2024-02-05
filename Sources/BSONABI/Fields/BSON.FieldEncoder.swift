@@ -99,12 +99,12 @@ extension BSON.FieldEncoder
     }
 
     @inlinable public mutating
-    func encode(document:BSON.DocumentView)
+    func encode(document:BSON.Document)
     {
         self[.document].serialize(document: document)
     }
     @inlinable public mutating
-    func encode(list:BSON.ListView)
+    func encode(list:BSON.List)
     {
         self[.list].serialize(list: list)
     }

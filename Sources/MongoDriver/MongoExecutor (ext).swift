@@ -36,7 +36,7 @@ extension MongoExecutor
         var document:BSON.Document = .init(encoding: command)
             document[BSON.Key.self]["$db"] = database.name
 
-        sections = .init(body: .init(document))
+        sections = .init(body: document)
 
         return try .init(message: try await self.request(
             sections: sections,

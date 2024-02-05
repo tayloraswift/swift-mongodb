@@ -30,7 +30,6 @@ External users should avoid importing this module directly. Instead, import ``/B
 -   ``BSON.List``
 -   ``BSON.ListView``
 -   ``BSON.Document``
--   ``BSON.DocumentView``
 
 ### Container fields
 
@@ -41,7 +40,6 @@ External users should avoid importing this module directly. Instead, import ``/B
 
 -   ``BSON.FrameTraversable``
 -   ``BSON.FrameType``
--   ``BSON.FrameView``
 
 ### Binary frame types
 

@@ -221,10 +221,10 @@ extension BSON.Input
             return .string(try self.parse(as: BSON.UTF8View<ArraySlice<UInt8>>.self))
 
         case .document:
-            return .document(try self.parse(as: BSON.DocumentView.self))
+            return .document(try self.parse(as: BSON.Document.self))
 
         case .list:
-            return .list(try self.parse(as: BSON.ListView.self))
+            return .list(try self.parse(as: BSON.List.self))
 
         case .binary:
             return .binary(try self.parse(as: BSON.BinaryView<ArraySlice<UInt8>>.self))
@@ -259,8 +259,8 @@ extension BSON.Input
             let _:Int32 = try self.parse(as: Int32.self)
             let code:BSON.UTF8View<ArraySlice<UInt8>> = try self.parse(
                 as: BSON.UTF8View<ArraySlice<UInt8>>.self)
-            let scope:BSON.DocumentView = try self.parse(
-                as: BSON.DocumentView.self)
+            let scope:BSON.Document = try self.parse(
+                as: BSON.Document.self)
             return .javascriptScope(scope, code)
 
         case .int32:

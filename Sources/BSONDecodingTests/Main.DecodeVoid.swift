@@ -12,7 +12,7 @@ extension Main.DecodeVoid:TestBattery
     static
     func run(tests:TestGroup)
     {
-        let bson:BSON.DocumentView =
+        let bson:BSON.Document =
         [
             "null": .null,
             "max": .max,

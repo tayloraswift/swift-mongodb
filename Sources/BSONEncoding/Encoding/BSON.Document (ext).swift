@@ -3,7 +3,7 @@ extension BSON.Document:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(document: BSON.DocumentView.init(self))
+        field.encode(document: self)
     }
 }
 extension BSON.Document

@@ -60,16 +60,15 @@ extension Main.EnumeratedCodingKeys:TestBattery
 
         tests.do
         {
-            let original:BSON.DocumentView = .init(bson)
-            let decoded:Codable = try .init(bson: original)
+            let decoded:Codable = try .init(bson: bson)
 
             tests.expect(decoded ==? expected)
 
             let encoded:BSON.Document = .init(with: decoded.encode(to:))
 
-            tests.expect(true: encoded.bytes.count < original.slice.count)
+            tests.expect(true: encoded.bytes.count < bson.bytes.count)
 
-            let redecoded:Codable = try .init(bson: BSON.DocumentView.init(encoded))
+            let redecoded:Codable = try .init(bson: encoded)
 
             tests.expect(redecoded ==? expected)
 
