@@ -13,11 +13,8 @@ extension BSON
 }
 
 public
-protocol _BSONFrameTraversable<Bytes>
+protocol _BSONFrameTraversable
 {
-    /// The backing storage used by this type. I recommend satisfying
-    /// this with generics, to avoid copying input data.
-    associatedtype Bytes:RandomAccessCollection<UInt8>
     /// The type specifying how parsers should interpret the conforming
     /// type’s inline frame header when it appears in raw input data.
     associatedtype Frame:BSON.FrameType
@@ -29,11 +26,11 @@ protocol _BSONFrameTraversable<Bytes>
     ///
     /// The implementation may slice the argument, but should do so in
     /// O(1) time.
-    init(slicing:Bytes) throws
+    init(slicing:ArraySlice<UInt8>) throws
 
     /// The slice of bytes constituting the opaque content of this view.
     /// The conforming type defines what portion of the original buffer
     /// this slice includes, and it may not cover the entirety of the
     /// argument originally passed to ``init(slicing:)``.
-    var slice:Bytes { get }
+    var slice:ArraySlice<UInt8> { get }
 }

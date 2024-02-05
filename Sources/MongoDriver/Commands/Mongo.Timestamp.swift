@@ -40,7 +40,7 @@ extension Mongo.Timestamp:BSONDecodable
     /// MongoDB timestamp. The conversion is not a integer case, and will
     /// succeed if and only if the variant has type ``BSON.AnyType/uint64``.
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         self.init(try bson.cast
         {

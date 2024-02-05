@@ -41,7 +41,7 @@ extension Mongo.ConnectionPool.Allocation
     func run(hello command:__owned Mongo.Hello,
         by deadline:ContinuousClock.Instant) async throws -> Set<Mongo.Authentication.SASL>?
     {
-        let bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>> = try await self.run(
+        let bson:BSON.DocumentDecoder<BSON.Key> = try await self.run(
             command: command,
             against: .admin,
             by: deadline)()

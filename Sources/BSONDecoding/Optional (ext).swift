@@ -1,7 +1,7 @@
 extension Optional:BSONDecodable where Wrapped:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         if case .null = bson
         {

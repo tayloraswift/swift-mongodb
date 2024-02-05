@@ -12,7 +12,7 @@ extension Main.DecodeVoid:TestBattery
     static
     func run(tests:TestGroup)
     {
-        let bson:BSON.DocumentView<[UInt8]> =
+        let bson:BSON.DocumentView =
         [
             "null": .null,
             "max": .max,
@@ -21,7 +21,7 @@ extension Main.DecodeVoid:TestBattery
 
         (tests / "null")?.do
         {
-            let bson:BSON.DocumentDecoder<BSON.Key, [UInt8]> = try .init(
+            let bson:BSON.DocumentDecoder<BSON.Key> = try .init(
                 parsing: bson)
             let _:BSON.Null = try bson["null"].decode(to: BSON.Null.self)
         }

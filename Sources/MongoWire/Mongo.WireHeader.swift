@@ -58,7 +58,7 @@ extension Mongo.WireHeader
 extension Mongo.WireHeader
 {
     @inlinable public static
-    func parse(from input:inout BSON.Input<[UInt8]>) throws -> Self
+    func parse(from input:inout BSON.Input) throws -> Self
     {
         // total size, including this
         let size:Int32 = try input.parse(as: Int32.self)
@@ -69,7 +69,7 @@ extension Mongo.WireHeader
     }
 
     @inlinable public
-    func parse(from input:inout BSON.Input<[UInt8]>) throws -> Mongo.WireMessage
+    func parse(from input:inout BSON.Input) throws -> Mongo.WireMessage
     {
         let flags:Mongo.WireFlags = try .init(validating: try input.parse(as: UInt32.self))
 
@@ -85,7 +85,7 @@ extension Mongo.WireHeader
 extension Mongo.WireHeader
 {
     @inlinable internal static
-    func += (output:inout BSON.Output<some RangeReplaceableCollection<UInt8>>, self:Self)
+    func += (output:inout some BSON.OutputStream, self:Self)
     {
         // the `as` coercions are here to prevent us from accidentally
         // changing the types of the various integers, which ``serialize(integer:)``

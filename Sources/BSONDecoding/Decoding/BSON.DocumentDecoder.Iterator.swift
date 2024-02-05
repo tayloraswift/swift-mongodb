@@ -4,10 +4,10 @@ extension BSON.DocumentDecoder
     struct Iterator
     {
         @usableFromInline internal
-        var base:Dictionary<CodingKey, BSON.AnyValue<Bytes>>.Iterator
+        var base:Dictionary<CodingKey, BSON.AnyValue>.Iterator
 
         @inlinable internal
-        init(base:Dictionary<CodingKey, BSON.AnyValue<Bytes>>.Iterator)
+        init(base:Dictionary<CodingKey, BSON.AnyValue>.Iterator)
         {
             self.base = base
         }
@@ -16,7 +16,7 @@ extension BSON.DocumentDecoder
 extension BSON.DocumentDecoder.Iterator:IteratorProtocol
 {
     @inlinable public mutating
-    func next() -> BSON.FieldDecoder<CodingKey, Storage.SubSequence>?
+    func next() -> BSON.FieldDecoder<CodingKey>?
     {
         self.base.next().map { .init(key: $0.key, value: $0.value) }
     }

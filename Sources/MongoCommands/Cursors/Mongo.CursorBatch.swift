@@ -38,7 +38,7 @@ extension Mongo.CursorBatch
 extension Mongo.CursorBatch:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init<Bytes>(bson:BSON.DocumentDecoder<BSON.Key, Bytes>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key>) throws
     {
         self = try bson["cursor"].decode()
         {

@@ -63,8 +63,7 @@ protocol _MongoCommand<Response>:Sendable
     /// Commands with responses conforming to ``BSONDocumentDecodable`` will
     /// receive a default implementation for this requirement.
     static
-    func decode(
-        reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
 }
 extension Mongo.Command
 {
@@ -127,7 +126,7 @@ extension Mongo.Command<Void>
 {
     /// Does nothing, ignoring the supplied decoding container.
     @inlinable public static
-    func decode(reply _:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>)
+    func decode(reply _:BSON.DocumentDecoder<BSON.Key>)
     {
     }
 }
@@ -135,8 +134,7 @@ extension Mongo.Command where Response:BSONDocumentDecodable<BSON.Key>
 {
     /// Delegates to the ``Response`` type’s ``BSONDocumentDecodable`` conformance.
     @inlinable public static
-    func decode(
-        reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Response
+    func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
     {
         try .init(bson: reply)
     }

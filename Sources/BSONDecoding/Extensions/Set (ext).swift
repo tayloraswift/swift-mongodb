@@ -1,7 +1,7 @@
 extension Set:BSONListViewDecodable, BSONDecodable where Element:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.ListView) throws
     {
         self.init()
         try bson.parse

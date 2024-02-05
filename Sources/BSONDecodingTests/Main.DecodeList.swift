@@ -12,7 +12,7 @@ extension Main.DecodeList:TestBattery
     static
     func run(tests:TestGroup)
     {
-        let bson:BSON.DocumentView<[UInt8]> =
+        let bson:BSON.DocumentView =
         [
             "none":     [],
             "two":      ["a", "b"],

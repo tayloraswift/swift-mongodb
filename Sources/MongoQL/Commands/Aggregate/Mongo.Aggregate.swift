@@ -37,7 +37,7 @@ extension Mongo.Aggregate:Mongo.Command
     typealias Response = Effect.Batch
 
     @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> Effect.Batch
+    func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Effect.Batch
     {
         try Effect.decode(reply: reply)
     }

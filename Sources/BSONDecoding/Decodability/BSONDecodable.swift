@@ -11,13 +11,13 @@ protocol BSONDecodable
     /// Attempts to cast a BSON variant backed by some storage type to an
     /// instance of this type. The implementation can copy the contents
     /// of the backing storage if needed.
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
 }
 
 extension BSONDecodable where Self:BSONRepresentable, BSONRepresentation:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         self.init(try .init(bson: bson))
     }
@@ -25,7 +25,7 @@ extension BSONDecodable where Self:BSONRepresentable, BSONRepresentation:BSONDec
 extension BSONDecodable where Self:RawRepresentable, RawValue:BSONDecodable & Sendable
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         let rawValue:RawValue = try .init(bson: bson)
         if  let value:Self = .init(rawValue: rawValue)
@@ -41,7 +41,7 @@ extension BSONDecodable where Self:RawRepresentable, RawValue:BSONDecodable & Se
 extension BSONDecodable where Self:FixedWidthInteger
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         self = try bson.cast { try $0.as(Self.self) }
     }
@@ -49,7 +49,7 @@ extension BSONDecodable where Self:FixedWidthInteger
 extension BSONDecodable where Self:BinaryFloatingPoint
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         self = try bson.cast { $0.as(Self.self) }
     }

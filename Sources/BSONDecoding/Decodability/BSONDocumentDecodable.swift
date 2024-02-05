@@ -4,12 +4,12 @@ protocol BSONDocumentDecodable<CodingKey>:BSONDocumentViewDecodable
 {
     associatedtype CodingKey:RawRepresentable<String> & Hashable & Sendable = BSON.Key
 
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
 }
 extension BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentView<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentView) throws
     {
         try self.init(bson: try .init(parsing: bson))
     }

@@ -2,12 +2,12 @@
 public
 protocol BSONListViewDecodable:BSONDecodable
 {
-    init(bson:BSON.ListView<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.ListView) throws
 }
 extension BSONListViewDecodable
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
         try self.init(bson: try .init(bson))
     }

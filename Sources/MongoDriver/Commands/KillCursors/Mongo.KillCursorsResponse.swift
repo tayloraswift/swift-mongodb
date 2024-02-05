@@ -31,7 +31,7 @@ extension Mongo
 extension Mongo.KillCursorsResponse:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key>) throws
     {
         self.init(
             alive: try bson["cursorsAlive"].decode(to: [Mongo.CursorIdentifier].self),

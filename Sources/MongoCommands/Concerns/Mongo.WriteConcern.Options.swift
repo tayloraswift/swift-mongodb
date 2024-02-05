@@ -57,7 +57,7 @@ extension Mongo.WriteConcern.Options
 extension Mongo.WriteConcern.Options:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(
             acknowledgement: try bson[.w].decode(to: Mongo.WriteConcern.Acknowledgement.self),

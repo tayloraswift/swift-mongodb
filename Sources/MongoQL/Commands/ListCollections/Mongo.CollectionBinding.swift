@@ -21,7 +21,7 @@ extension Mongo
 extension Mongo.CollectionBinding:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<BSON.Key, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<BSON.Key>) throws
     {
         self.init(collection: try bson["name"].decode(to: Mongo.Collection.self),
             type: try bson["type"].decode(to: Mongo.CollectionType.self))

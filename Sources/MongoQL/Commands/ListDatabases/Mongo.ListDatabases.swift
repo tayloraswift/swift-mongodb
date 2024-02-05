@@ -51,7 +51,7 @@ extension Mongo.ListDatabases:Mongo.Command
     )
 
     @inlinable public static
-    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws ->
+    func decode(reply bson:BSON.DocumentDecoder<BSON.Key>) throws ->
     (
         totalSize:Int,
         databases:[Mongo.DatabaseMetadata]

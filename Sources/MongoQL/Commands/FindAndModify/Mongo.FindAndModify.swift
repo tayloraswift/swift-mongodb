@@ -31,7 +31,7 @@ extension Mongo.FindAndModify:Mongo.Command
     typealias Response = (value:Effect.Value, upserted:Effect.ID?)
 
     @inlinable public static
-    func decode(reply bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws ->
+    func decode(reply bson:BSON.DocumentDecoder<BSON.Key>) throws ->
     (
         value:Effect.Value,
         upserted:Effect.ID?

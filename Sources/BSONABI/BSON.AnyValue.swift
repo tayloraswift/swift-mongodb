@@ -2,14 +2,14 @@ extension BSON
 {
     /// Any BSON value.
     @frozen public
-    enum AnyValue<Bytes> where Bytes:RandomAccessCollection<UInt8>
+    enum AnyValue:Sendable
     {
         /// A general embedded document.
-        case document(BSON.DocumentView<Bytes>)
+        case document(BSON.DocumentView)
         /// An embedded list-document.
-        case list(BSON.ListView<Bytes>)
+        case list(BSON.ListView)
         /// A binary array.
-        case binary(BSON.BinaryView<Bytes>)
+        case binary(BSON.BinaryView<ArraySlice<UInt8>>)
         /// A boolean.
         case bool(Bool)
         /// An [IEEE 754-2008 128-bit
@@ -25,11 +25,11 @@ extension BSON
         case int64(Int64)
         /// Javascript code.
         /// The payload is a library type to permit efficient document traversal.
-        case javascript(BSON.UTF8View<Bytes>)
+        case javascript(BSON.UTF8View<ArraySlice<UInt8>>)
         /// A javascript scope containing code. This variant is maintained for
         /// backward-compatibility with older versions of BSON and
         /// should not be generated. (Prefer ``javascript(_:)``.)
-        case javascriptScope(BSON.DocumentView<Bytes>, BSON.UTF8View<Bytes>)
+        case javascriptScope(BSON.DocumentView, BSON.UTF8View<ArraySlice<UInt8>>)
         /// The MongoDB max-key.
         case max
         /// UTC milliseconds since the Unix epoch.
@@ -41,12 +41,12 @@ extension BSON
         /// A MongoDB database pointer. This variant is maintained for
         /// backward-compatibility with older versions of BSON and
         /// should not be generated. (Prefer ``id(_:)``.)
-        case pointer(BSON.UTF8View<Bytes>, BSON.Identifier)
+        case pointer(BSON.UTF8View<ArraySlice<UInt8>>, BSON.Identifier)
         /// A regex.
         case regex(BSON.Regex)
         /// A UTF-8 string, possibly containing invalid code units.
         /// The payload is a library type to permit efficient document traversal.
-        case string(BSON.UTF8View<Bytes>)
+        case string(BSON.UTF8View<ArraySlice<UInt8>>)
         /// A 64-bit unsigned integer.
         ///
         /// MongoDB also uses this type internally to represent timestamps.
@@ -61,9 +61,6 @@ extension BSON
     }
 }
 extension BSON.AnyValue:Equatable
-{
-}
-extension BSON.AnyValue:Sendable where Bytes:Sendable
 {
 }
 extension BSON.AnyValue
@@ -324,7 +321,7 @@ extension BSON.AnyValue
     @inlinable public
     func `as`(_:String.Type) -> String?
     {
-        self.utf8.map(String.init(bson:))
+        self.utf8?.description
     }
 }
 extension BSON.AnyValue
@@ -393,7 +390,7 @@ extension BSON.AnyValue
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    var binary:BSON.BinaryView<Bytes>?
+    var binary:BSON.BinaryView<ArraySlice<UInt8>>?
     {
         switch self
         {
@@ -414,7 +411,7 @@ extension BSON.AnyValue
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    var document:BSON.DocumentView<Bytes>?
+    var document:BSON.DocumentView?
     {
         switch self
         {
@@ -434,7 +431,7 @@ extension BSON.AnyValue
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    var list:BSON.ListView<Bytes>?
+    var list:BSON.ListView?
     {
         switch self
         {
@@ -452,7 +449,7 @@ extension BSON.AnyValue
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    var utf8:BSON.UTF8View<Bytes>?
+    var utf8:BSON.UTF8View<ArraySlice<UInt8>>?
     {
         switch self
         {
@@ -468,9 +465,6 @@ extension BSON.AnyValue:ExpressibleByStringLiteral,
     ExpressibleByExtendedGraphemeClusterLiteral,
     ExpressibleByUnicodeScalarLiteral,
     ExpressibleByDictionaryLiteral
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
 {
     @inlinable public
     init(stringLiteral:String)

@@ -27,7 +27,7 @@ extension Letter:BSONEncodable, BSONDocumentEncodable
 }
 extension Letter:BSONDecodable, BSONDocumentDecodable
 {
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(id: try bson[.id].decode(to: Unicode.Scalar.self))
     }

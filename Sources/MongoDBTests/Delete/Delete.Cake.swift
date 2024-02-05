@@ -28,8 +28,7 @@ extension Delete
             case points
         }
 
-        init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>)
-            throws
+        init(bson:BSON.DocumentDecoder<CodingKey>) throws
         {
             self.init(location: try bson[.location].decode(),
                 flavor: try bson[.flavor].decode(),

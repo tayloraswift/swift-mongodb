@@ -65,7 +65,7 @@ extension Mongo.WireMessageParser:ChannelInboundHandler
                         return
                     }
 
-                    var input:BSON.Input<[UInt8]> = .init(self.buffer)
+                    var input:BSON.Input = .init(self.buffer[...])
                     let header:Mongo.WireHeader = try .parse(from: &input)
 
                     self.buffer = []
@@ -79,7 +79,7 @@ extension Mongo.WireMessageParser:ChannelInboundHandler
                         return
                     }
 
-                    var input:BSON.Input<[UInt8]> = .init(self.buffer)
+                    var input:BSON.Input = .init(self.buffer[...])
                     let message:Mongo.WireMessage = try header.parse(from: &input)
 
                     context.fireChannelRead(self.wrapInboundOut(message))

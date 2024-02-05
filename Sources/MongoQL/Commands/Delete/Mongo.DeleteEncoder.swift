@@ -6,7 +6,7 @@ extension Mongo
     struct DeleteEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
-        var output:BSON.Output<[UInt8]>
+        var output:BSON.Output
 
         @inlinable internal
         init()
@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.DeleteEncoder
 {
     @inlinable internal consuming
-    func move() -> BSON.Output<[UInt8]> { self.output }
+    func move() -> BSON.Output { self.output }
 }
 extension Mongo.DeleteEncoder
 {

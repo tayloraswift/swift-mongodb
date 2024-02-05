@@ -59,7 +59,7 @@ extension Mongo.CollectionStats.Storage:MongoMasterCodingModel
 extension Mongo.CollectionStats.Storage:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(
             storageFree: try bson[.storageFree]?.decode() ?? 0,

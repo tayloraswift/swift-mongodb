@@ -1,15 +1,12 @@
 extension BSON
 {
-    struct KeyedDecoder<Storage, Key> where Storage:RandomAccessCollection<UInt8>, Key:CodingKey
+    struct KeyedDecoder<Key> where Key:CodingKey
     {
-        public
-        typealias Bytes = Storage.SubSequence
-
         let codingPath:[any CodingKey]
         let allKeys:[Key]
-        let items:[BSON.Key: BSON.AnyValue<Bytes>]
+        let items:[BSON.Key: BSON.AnyValue]
 
-        init(_ dictionary:BSON.DocumentDecoder<BSON.Key, Storage>,
+        init(_ dictionary:BSON.DocumentDecoder<BSON.Key>,
             path:[any CodingKey])
         {
             self.codingPath = path
@@ -27,13 +24,13 @@ extension BSON.KeyedDecoder
     }
     // local `Key` type may be different from the dictionary’s `Key` type
     func diagnose<T>(_ key:some CodingKey,
-        _ decode:(BSON.AnyValue<Bytes>) throws -> T?) throws -> T
+        _ decode:(BSON.AnyValue) throws -> T?) throws -> T
     {
         var path:[any CodingKey]
         {
             self.codingPath + CollectionOfOne<any CodingKey>.init(key)
         }
-        guard let value:BSON.AnyValue<Bytes> = self.items[.init(key)]
+        guard let value:BSON.AnyValue = self.items[.init(key)]
         else
         {
             let context:DecodingError.Context = .init(codingPath: path,
@@ -155,11 +152,11 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
 
     public
     func singleValueContainer<T>(forKey key:T,
-        typed _:T.Type = T.self) throws -> BSON.SingleValueDecoder<Bytes>
+        typed _:T.Type = T.self) throws -> BSON.SingleValueDecoder
         where T:CodingKey
     {
-        let value:BSON.AnyValue<Bytes> = try self.diagnose(key){ $0 }
-        let decoder:BSON.SingleValueDecoder<Bytes> = .init(value,
+        let value:BSON.AnyValue = try self.diagnose(key){ $0 }
+        let decoder:BSON.SingleValueDecoder = .init(value,
             path: self.codingPath + CollectionOfOne<any CodingKey>.init(key))
         return decoder
     }
@@ -167,7 +164,7 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
     func nestedUnkeyedContainer(forKey key:Key) throws -> any UnkeyedDecodingContainer
     {
         let path:[any CodingKey] = self.codingPath + CollectionOfOne<any CodingKey>.init(key)
-        let container:BSON.UnkeyedDecoder<Bytes> =
+        let container:BSON.UnkeyedDecoder =
             .init(try self.diagnose(key) { try .init(parsing: $0) }, path: path)
         return container as any UnkeyedDecodingContainer
     }
@@ -176,7 +173,7 @@ extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
         forKey key:Key) throws -> KeyedDecodingContainer<NestedKey>
     {
         let path:[any CodingKey] = self.codingPath + CollectionOfOne<any CodingKey>.init(key)
-        let container:BSON.KeyedDecoder<Bytes, NestedKey> =
+        let container:BSON.KeyedDecoder<NestedKey> =
             .init(try self.diagnose(key) { try .init(parsing: $0) }, path: path)
         return .init(container)
     }

@@ -23,14 +23,13 @@ extension BSON.ListView
     /// of deprecated BSON variants. For example, a value of the deprecated `symbol` type
     /// will compare equal to a `BSON//Value.string(_:)` value with the same contents.
     @inlinable public static
-    func ~~ <Other>(lhs:Self, rhs:BSON.ListView<Other>) -> Bool
+    func ~~ (lhs:Self, rhs:Self) -> Bool
     {
-        if  let lhs:[BSON.AnyValue<Bytes.SubSequence>] = try? lhs.parse(),
-            let rhs:[BSON.AnyValue<Other.SubSequence>] = try? rhs.parse(),
+        if  let lhs:[BSON.AnyValue] = try? lhs.parse(),
+            let rhs:[BSON.AnyValue] = try? rhs.parse(),
                 rhs.count == lhs.count
         {
-            for (lhs, rhs):(BSON.AnyValue<Bytes.SubSequence>, BSON.AnyValue<Other.SubSequence>) in
-                zip(lhs, rhs)
+            for (lhs, rhs):(BSON.AnyValue, BSON.AnyValue) in zip(lhs, rhs)
             {
                 guard lhs ~~ rhs
                 else
@@ -47,9 +46,6 @@ extension BSON.ListView
     }
 }
 extension BSON.ListView
-    where   Bytes:RangeReplaceableCollection<UInt8>,
-            Bytes:RandomAccessCollection<UInt8>,
-            Bytes.Index == Int
 {
     /// Recursively parses and re-encodes this list-document, and any embedded documents
     /// (and list-documents) in its elements. The ordinal keys will be regenerated.

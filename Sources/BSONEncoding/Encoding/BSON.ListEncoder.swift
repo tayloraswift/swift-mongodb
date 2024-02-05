@@ -8,13 +8,13 @@ extension BSON
     @frozen public
     struct ListEncoder
     {
-        @usableFromInline internal
-        var output:BSON.Output<[UInt8]>
-        @usableFromInline internal
+        @usableFromInline
+        var output:BSON.Output
+        @usableFromInline
         var count:Int
 
         @inlinable public
-        init(_ output:BSON.Output<[UInt8]>)
+        init(_ output:BSON.Output)
         {
             self.output = output
             self.count = 0
@@ -24,7 +24,7 @@ extension BSON
 extension BSON.ListEncoder:BSON.Encoder
 {
     @inlinable public consuming
-    func move() -> BSON.Output<[UInt8]> { self.output }
+    func move() -> BSON.Output { self.output }
 
     @inlinable public static
     var type:BSON.AnyType { .list }

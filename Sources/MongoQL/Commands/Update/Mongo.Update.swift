@@ -10,14 +10,14 @@ extension Mongo
         let writeConcern:WriteConcern?
 
         @usableFromInline internal
-        var updates:BSON.Output<[UInt8]>
+        var updates:BSON.Output
 
         public
         var fields:BSON.Document
 
         @usableFromInline internal
         init(writeConcern:WriteConcern?,
-            updates:BSON.Output<[UInt8]>,
+            updates:BSON.Output,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern

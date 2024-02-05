@@ -18,7 +18,7 @@ let bson:BSON.Document = .init(OuterCodingKeys.self)
     }
 }
 
-let decoder:BSON.DocumentDecoder<OuterCodingKeys, [UInt8]> = try .init(parsing: bson)
+let decoder:BSON.DocumentDecoder<OuterCodingKeys> = try .init(parsing: bson)
 
 try decoder[.metadata].decode(using: InnerCodingKeys.self)
 {

@@ -73,7 +73,7 @@ extension Mongo.Collation
 extension Mongo.Collation:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(locale: try bson[.locale].decode(to: String.self),
             alternate: try bson[.alternate]?.decode(to: Alternate.self),

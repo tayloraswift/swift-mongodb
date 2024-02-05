@@ -5,12 +5,12 @@ extension Dictionary:BSONDocumentViewDecodable, BSONDecodable
     /// are not ``BSONEncodable``, because round-tripping them loses the field
     /// ordering information.
     @inlinable public
-    init<Bytes>(bson:BSON.DocumentView<Bytes>) throws
+    init(bson:BSON.DocumentView) throws
     {
         self.init()
         try bson.parse
         {
-            (field:BSON.FieldDecoder<BSON.Key, Bytes.SubSequence>) in
+            (field:BSON.FieldDecoder<BSON.Key>) in
 
             if  case _? = self.updateValue(try field.decode(to: Value.self), forKey: field.key)
             {

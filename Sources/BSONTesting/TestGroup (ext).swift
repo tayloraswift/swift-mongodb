@@ -14,7 +14,7 @@ extension TestGroup
         let encoded:BSON.Document = .init(encoding: codable)
         let decoded:Codable? = self.do(function: function, file: file, line: line)
         {
-            try .init(bson: BSON.DocumentView<[UInt8]>.init(encoded))
+            try .init(bson: BSON.DocumentView.init(encoded))
         }
         if  let decoded,
             let self:TestGroup = self / "Comparison"

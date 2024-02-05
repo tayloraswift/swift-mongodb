@@ -65,8 +65,8 @@ extension Main.LiteralInference:TestBattery
             {
                 $0["a"] = [1, nil, 3]
                 $0["b"] = [1, nil, 3]
-                $0["c"] = [1, .null, 3] as BSON.ListView<[UInt8]>
-                $0["d"] = [1, .null, 3] as BSON.ListView<[UInt8]>
+                $0["c"] = [1, .null, 3] as BSON.ListView
+                $0["d"] = [1, .null, 3] as BSON.ListView
             },
             literal:
             [
@@ -81,8 +81,8 @@ extension Main.LiteralInference:TestBattery
             {
                 $0["a"] = [1, 2, 3]
                 $0["b"] = [1, 2, 3]
-                $0["c"] = [1, 2, 3] as BSON.ListView<[UInt8]>
-                $0["d"] = [1, 2, 3] as BSON.ListView<[UInt8]>
+                $0["c"] = [1, 2, 3] as BSON.ListView
+                $0["d"] = [1, 2, 3] as BSON.ListView
             },
             literal:
             [
@@ -107,8 +107,8 @@ extension Main.LiteralInference:TestBattery
                     $0["b"] = 2
                     $0["c"] = 3
                 }
-                $0["c"] = ["a": 1, "b": 2, "c": 3] as BSON.DocumentView<[UInt8]>
-                $0["d"] = ["a": 1, "b": 2, "c": 3] as BSON.DocumentView<[UInt8]>
+                $0["c"] = ["a": 1, "b": 2, "c": 3] as BSON.DocumentView
+                $0["d"] = ["a": 1, "b": 2, "c": 3] as BSON.DocumentView
             },
             literal:
             [

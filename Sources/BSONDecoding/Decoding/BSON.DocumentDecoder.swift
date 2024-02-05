@@ -3,17 +3,16 @@ extension BSON
     /// A thin wrapper around a native Swift dictionary providing an efficient decoding
     /// interface for a ``BSON/DocumentView``.
     @frozen public
-    struct DocumentDecoder<CodingKey, Storage>
+    struct DocumentDecoder<CodingKey>
         where   CodingKey:RawRepresentable<String>,
                 CodingKey:Hashable,
-                CodingKey:Sendable,
-                Storage:RandomAccessCollection<UInt8>
+                CodingKey:Sendable
     {
         @usableFromInline internal
-        var index:[CodingKey: BSON.AnyValue<Bytes>]
+        var index:[CodingKey: BSON.AnyValue]
 
         @inlinable public
-        init(_ index:[CodingKey: BSON.AnyValue<Bytes>] = [:])
+        init(_ index:[CodingKey: BSON.AnyValue] = [:])
         {
             self.index = index
         }
@@ -27,9 +26,9 @@ extension BSON.DocumentDecoder:BSON.Decoder
     ///     A document decoder derived from the payload of this variant if it matches
     ///     ``document(_:)`` **or** ``list(_:)``, nil otherwise.
     @inlinable public
-    init(parsing bson:__shared BSON.AnyValue<Storage>) throws
+    init(parsing bson:borrowing BSON.AnyValue) throws
     {
-        try self.init(parsing: try .init(bson))
+        try self.init(parsing: try .init(copy bson))
     }
 }
 extension BSON.DocumentDecoder
@@ -63,7 +62,7 @@ extension BSON.DocumentDecoder
     ///     information for the object items. Re-encoding it may produce a BSON
     ///     document that contains the same data, but does not compare equal.
     @inlinable public
-    init(parsing bson:__shared BSON.DocumentView<Storage>) throws
+    init(parsing bson:borrowing BSON.DocumentView) throws
     {
         self.init()
         try bson.parse
@@ -75,12 +74,12 @@ extension BSON.DocumentDecoder
         }
     }
 }
-extension BSON.DocumentDecoder where Storage == [UInt8]
+extension BSON.DocumentDecoder
 {
     @inlinable public
-    init(parsing bson:__shared BSON.Document) throws
+    init(parsing bson:borrowing BSON.Document) throws
     {
-        try self.init(parsing: .init(bson))
+        try self.init(parsing: .init(copy bson))
     }
 }
 extension BSON.DocumentDecoder:Sequence
@@ -93,11 +92,11 @@ extension BSON.DocumentDecoder:Sequence
 }
 extension BSON.DocumentDecoder
 {
-    @inlinable public __consuming
-    func single() throws -> BSON.FieldDecoder<CodingKey, Bytes>
+    @inlinable public consuming
+    func single() throws -> BSON.FieldDecoder<CodingKey>
     {
-        var single:BSON.FieldDecoder<CodingKey, Bytes>? = nil
-        for field:BSON.FieldDecoder<CodingKey, Bytes> in self
+        var single:BSON.FieldDecoder<CodingKey>? = nil
+        for field:BSON.FieldDecoder<CodingKey> in self
         {
             if case nil = single
             {
@@ -117,12 +116,12 @@ extension BSON.DocumentDecoder
     }
 
     @inlinable public
-    subscript(key:CodingKey) -> BSON.OptionalDecoder<CodingKey, Bytes>
+    subscript(key:CodingKey) -> BSON.OptionalDecoder<CodingKey>
     {
         .init(key: key, value: self.index[key])
     }
     @inlinable public
-    subscript(key:CodingKey) -> BSON.FieldDecoder<CodingKey, Bytes>?
+    subscript(key:CodingKey) -> BSON.FieldDecoder<CodingKey>?
     {
         self.index[key].map { .init(key: key, value: $0) }
     }

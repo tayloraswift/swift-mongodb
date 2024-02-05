@@ -19,8 +19,7 @@ extension Mongo.SingleBatch:Mongo.ReadEffect
     typealias BatchElement = Element
 
     @inlinable public static
-    func decode(
-        reply bson:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) throws -> [Element]
+    func decode(reply bson:BSON.DocumentDecoder<BSON.Key>) throws -> [Element]
     {
         try bson["cursor"].decode
         {

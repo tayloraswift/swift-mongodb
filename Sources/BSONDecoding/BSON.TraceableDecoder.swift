@@ -7,31 +7,29 @@ extension BSON
 
 /// The name of this protocol is ``BSON.TraceableDecoder``.
 public
-protocol _BSONTraceableDecoder<Bytes>
+protocol _BSONTraceableDecoder
 {
-    associatedtype Bytes:RandomAccessCollection<UInt8>
-
     /// Attempts to load a BSON variant value and passes it to the given
     /// closure, returns its result. If decoding fails, the implementation
     /// should annotate the error with appropriate context and re-throw it.
-    func decode<T>(with decode:(BSON.AnyValue<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(BSON.AnyValue) throws -> T) throws -> T
 }
 
 extension BSON.TraceableDecoder
 {
     @inlinable public
     func decode<CodingKey, T>(using _:CodingKey.Type = CodingKey.self,
-        with decode:(BSON.DocumentDecoder<CodingKey, Bytes>) throws -> T) throws -> T
+        with decode:(BSON.DocumentDecoder<CodingKey>) throws -> T) throws -> T
     {
         try self.decode { try decode(try .init(parsing: $0)) }
     }
     @inlinable public
-    func decode<T>(with decode:(BSON.DocumentDecoder<BSON.Key, Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(BSON.DocumentDecoder<BSON.Key>) throws -> T) throws -> T
     {
         try self.decode { try decode(try .init(parsing: $0)) }
     }
     @inlinable public
-    func decode<T>(with decode:(BSON.ListDecoder<Bytes>) throws -> T) throws -> T
+    func decode<T>(with decode:(BSON.ListDecoder) throws -> T) throws -> T
     {
         try self.decode { try decode(try .init(parsing: $0)) }
     }
@@ -39,7 +37,7 @@ extension BSON.TraceableDecoder
     //  We should probably replace this with a dedicated API for binary subschema.
     @inlinable public
     func decode<View, T>(as _:View.Type,
-        with decode:(View) throws -> T) throws -> T where View:BSON.FrameView<Bytes>
+        with decode:(View) throws -> T) throws -> T where View:BSON.FrameView
     {
         try self.decode { try decode(try .init($0)) }
     }

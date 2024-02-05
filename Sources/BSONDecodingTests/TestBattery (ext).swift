@@ -4,9 +4,10 @@ import Testing
 extension TestBattery
 {
     static
-    func run<Failure, Unexpected>(_ tests:TestGroup?, bson:BSON.DocumentView<[UInt8]>,
+    func run<Failure, Unexpected>(_ tests:TestGroup?,
+        bson:BSON.DocumentView,
         catching error:Failure,
-        with decode:(BSON.DocumentDecoder<BSON.Key, [UInt8]>) throws -> Unexpected)
+        with decode:(BSON.DocumentDecoder<BSON.Key>) throws -> Unexpected)
         where Failure:Equatable & Error
     {
         tests?.do(catching: error)
@@ -15,9 +16,10 @@ extension TestBattery
         }
     }
     static
-    func run<Decoded>(_ tests:TestGroup?, bson:BSON.DocumentView<[UInt8]>,
+    func run<Decoded>(_ tests:TestGroup?,
+        bson:BSON.DocumentView,
         to expected:Decoded,
-        with decode:(BSON.DocumentDecoder<BSON.Key, [UInt8]>) throws -> Decoded)
+        with decode:(BSON.DocumentDecoder<BSON.Key>) throws -> Decoded)
         where Decoded:Equatable
     {
         if  let tests:TestGroup

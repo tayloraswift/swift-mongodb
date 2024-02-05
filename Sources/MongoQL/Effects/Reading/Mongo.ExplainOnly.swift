@@ -20,11 +20,11 @@ extension Mongo.ExplainOnly:Mongo.ReadEffect
     typealias BatchElement = Never
 
     public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key, ArraySlice<UInt8>>) -> String
+    func decode(reply:BSON.DocumentDecoder<BSON.Key>) -> String
     {
         var output:String = ""
         let indent:BSON.Indent = "    " + 1
-        for field:BSON.FieldDecoder<BSON.Key, ArraySlice<UInt8>> in
+        for field:BSON.FieldDecoder<BSON.Key> in
             reply.sorted(by: { $0.key < $1.key })
         {
             switch field.key

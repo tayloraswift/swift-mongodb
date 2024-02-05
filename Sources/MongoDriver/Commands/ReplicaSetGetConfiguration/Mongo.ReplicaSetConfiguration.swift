@@ -46,7 +46,7 @@ extension Mongo.ReplicaSetConfiguration
 extension Mongo.ReplicaSetConfiguration:BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(name: try bson[.id].decode(),
             writeConcernMajorityJournalDefault:

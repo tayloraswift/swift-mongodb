@@ -136,13 +136,12 @@ extension Mongo.WireMessageRouter:ChannelOutboundHandler
                 self.state = .awaiting(caller)
             }
 
-            var output:BSON.Output<ByteBufferView> = .init(
-                preallocated: .init(context.channel.allocator.buffer(
-                    capacity: .init(message.header.size))))
+            var output:Mongo.WireMessageEncoder = .init(
+                buffer: context.channel.allocator.buffer(capacity: .init(message.header.size)))
 
             output += message
 
-            context.writeAndFlush(self.wrapOutboundOut(ByteBuffer.init(output.destination)),
+            context.writeAndFlush(self.wrapOutboundOut(output.buffer),
                 promise: promise)
         }
     }

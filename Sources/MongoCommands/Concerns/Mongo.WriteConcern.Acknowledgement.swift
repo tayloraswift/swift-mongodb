@@ -43,13 +43,14 @@ extension Mongo.WriteConcern.Acknowledgement:BSONEncodable
 extension Mongo.WriteConcern.Acknowledgement:BSONDecodable
 {
     @inlinable public
-    init(bson:BSON.AnyValue<some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.AnyValue) throws
     {
-        if case .string(let string) = bson
+        if  case .string(let string) = bson
         {
             self = .mode(string.description)
         }
-        else if let votes:Int = try bson.as(Int.self)
+        else if
+            let votes:Int = try bson.as(Int.self)
         {
             self = .votes(votes)
         }

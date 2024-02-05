@@ -316,12 +316,11 @@ extension Main.InvalidBSON
 
         let invalid:[UInt8] = Base16.decode(invalid.utf8)
 
-        var input:BSON.Input<[UInt8]> = .init(invalid)
+        var input:BSON.Input = .init(invalid[...])
 
         tests.do(catching: error)
         {
-            let document:BSON.DocumentView<ArraySlice<UInt8>> = try input.parse(
-                as: BSON.DocumentView<ArraySlice<UInt8>>.self)
+            let document:BSON.DocumentView = try input.parse(as: BSON.DocumentView.self)
             try input.finish()
             _ = try document.canonicalized()
         }

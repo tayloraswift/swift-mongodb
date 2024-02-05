@@ -34,7 +34,7 @@ extension Mongo.Timeseries
 extension Mongo.Timeseries:BSONDecodable, BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<CodingKey, some RandomAccessCollection<UInt8>>) throws
+    init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         self.init(
             timeField: try bson[.timeField].decode(to: String.self),
