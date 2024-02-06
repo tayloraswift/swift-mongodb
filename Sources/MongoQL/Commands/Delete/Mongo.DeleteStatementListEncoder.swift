@@ -2,8 +2,12 @@ import BSON
 
 extension Mongo
 {
+    @available(*, deprecated, renamed: "DeleteStatementListEncoder")
+    public
+    typealias DeleteEncoder = DeleteStatementListEncoder
+
     @frozen public
-    struct DeleteEncoder<Effect> where Effect:Mongo.WriteEffect
+    struct DeleteStatementListEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var output:BSON.Output
@@ -15,19 +19,19 @@ extension Mongo
         }
     }
 }
-extension Mongo.DeleteEncoder
+extension Mongo.DeleteStatementListEncoder
 {
     @inlinable internal consuming
     func move() -> BSON.Output { self.output }
 }
-extension Mongo.DeleteEncoder
+extension Mongo.DeleteStatementListEncoder
 {
     @inlinable public mutating
     func callAsFunction<T>(
-        with yield:(inout Mongo.DeleteStatement<Effect>) throws -> T) rethrows -> T
+        with yield:(inout Mongo.DeleteStatementEncoder<Effect>) throws -> T) rethrows -> T
     {
         try yield(&self.output[
-            as: Mongo.DeleteStatement<Effect>.self,
+            as: Mongo.DeleteStatementEncoder<Effect>.self,
             in: BSON.DocumentFrame.self])
     }
 }

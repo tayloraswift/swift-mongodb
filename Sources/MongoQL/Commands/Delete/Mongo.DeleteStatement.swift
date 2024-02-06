@@ -2,8 +2,12 @@ import BSON
 
 extension Mongo
 {
+    @available(*, deprecated, renamed: "DeleteStatementEncoder")
+    public
+    typealias DeleteStatement = DeleteStatementEncoder
+
     @frozen public
-    struct DeleteStatement<Effect> where Effect:Mongo.WriteEffect
+    struct DeleteStatementEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var bson:BSON.DocumentEncoder<BSON.Key>
@@ -15,7 +19,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.DeleteStatement:BSON.Encoder
+extension Mongo.DeleteStatementEncoder:BSON.Encoder
 {
     @inlinable public consuming
     func move() -> BSON.Output { self.bson.move() }
@@ -23,8 +27,14 @@ extension Mongo.DeleteStatement:BSON.Encoder
     @inlinable public static
     var type:BSON.AnyType { .document }
 }
-extension Mongo.DeleteStatement
+extension Mongo.DeleteStatementEncoder
 {
+    @frozen public
+    enum Limit:String, Hashable, Sendable
+    {
+        case limit
+    }
+
     @inlinable public
     subscript(key:Limit) -> Effect.DeletePlurality?
     {
@@ -32,13 +42,27 @@ extension Mongo.DeleteStatement
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.DeleteStatement
+extension Mongo.DeleteStatementEncoder
 {
+    @frozen public
+    enum Q:String, Hashable, Sendable
+    {
+        case q
+    }
+
     @inlinable public
     subscript(key:Q) -> Mongo.PredicateDocument?
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
+    }
+}
+extension Mongo.DeleteStatementEncoder
+{
+    @frozen public
+    enum Collation:String, Hashable, Sendable
+    {
+        case collation
     }
 
     @inlinable public
@@ -46,6 +70,14 @@ extension Mongo.DeleteStatement
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
+    }
+}
+extension Mongo.DeleteStatementEncoder
+{
+    @frozen public
+    enum Hint:String, Hashable, Sendable
+    {
+        case hint
     }
 
     @inlinable public

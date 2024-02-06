@@ -2,8 +2,12 @@ import BSON
 
 extension Mongo
 {
+    @available(*, deprecated, renamed: "UpdateStatementListEncoder")
+    public
+    typealias UpdateEncoder = UpdateStatementListEncoder
+
     @frozen public
-    struct UpdateEncoder<Effect> where Effect:Mongo.WriteEffect
+    struct UpdateStatementListEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var output:BSON.Output
@@ -15,23 +19,23 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateEncoder
+extension Mongo.UpdateStatementListEncoder
 {
     @inlinable internal consuming
     func move() -> BSON.Output { self.output }
 }
-extension Mongo.UpdateEncoder
+extension Mongo.UpdateStatementListEncoder
 {
     @inlinable public mutating
     func callAsFunction<T>(
-        with yield:(inout Mongo.UpdateStatement<Effect>) throws -> T) rethrows -> T
+        with yield:(inout Mongo.UpdateStatementEncoder<Effect>) throws -> T) rethrows -> T
     {
         try yield(&self.output[
-            as: Mongo.UpdateStatement<Effect>.self,
+            as: Mongo.UpdateStatementEncoder<Effect>.self,
             in: BSON.DocumentFrame.self])
     }
 }
-extension Mongo.UpdateEncoder
+extension Mongo.UpdateStatementListEncoder
 {
     /// A shorthand for ``update(_:upsert:)`` with `upsert` set to false.
     @inlinable public mutating

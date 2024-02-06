@@ -2,8 +2,12 @@ import BSON
 
 extension Mongo
 {
+    @available(*, deprecated, renamed: "UpdateStatementEncoder")
+    public
+    typealias UpdateStatement = UpdateStatementEncoder
+
     @frozen public
-    struct UpdateStatement<Effect>:Sendable where Effect:Mongo.WriteEffect
+    struct UpdateStatementEncoder<Effect>:Sendable where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var bson:BSON.DocumentEncoder<BSON.Key>
@@ -15,7 +19,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateStatement:BSON.Encoder
+extension Mongo.UpdateStatementEncoder:BSON.Encoder
 {
     @inlinable public consuming
     func move() -> BSON.Output { self.bson.move() }
@@ -23,8 +27,14 @@ extension Mongo.UpdateStatement:BSON.Encoder
     @inlinable public static
     var type:BSON.AnyType { .document }
 }
-extension Mongo.UpdateStatement
+extension Mongo.UpdateStatementEncoder
 {
+    @frozen public
+    enum Multi:String, Hashable, Sendable
+    {
+        case multi
+    }
+
     @inlinable public
     subscript(key:Multi) -> Effect.UpdatePlurality?
     {
@@ -32,8 +42,14 @@ extension Mongo.UpdateStatement
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.UpdateStatement
+extension Mongo.UpdateStatementEncoder
 {
+    @frozen public
+    enum C:String, Hashable, Sendable
+    {
+        case c
+    }
+
     @inlinable public
     subscript(key:C) -> Mongo.LetDocument?
     {
@@ -41,8 +57,14 @@ extension Mongo.UpdateStatement
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.UpdateStatement
+extension Mongo.UpdateStatementEncoder
 {
+    @frozen public
+    enum Q:String, Hashable, Sendable
+    {
+        case q
+    }
+
     @inlinable public
     subscript(key:Q) -> Mongo.PredicateDocument?
     {
@@ -50,8 +72,14 @@ extension Mongo.UpdateStatement
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.UpdateStatement
+extension Mongo.UpdateStatementEncoder
 {
+    @frozen public
+    enum U:String, Hashable, Sendable
+    {
+        case u
+    }
+
     @available(*, deprecated, message: "Use the functional subscript instead.")
     @inlinable public
     subscript(key:U) -> Mongo.UpdateDocument?
@@ -89,8 +117,14 @@ extension Mongo.UpdateStatement
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.UpdateStatement
+extension Mongo.UpdateStatementEncoder
 {
+    @frozen public
+    enum ArrayFilters:String, Hashable, Sendable
+    {
+        case arrayFilters
+    }
+
     @inlinable public
     subscript(key:ArrayFilters, yield:(inout Mongo.PredicateListEncoder) -> ()) -> Void
     {
@@ -110,12 +144,28 @@ extension Mongo.UpdateStatement
         get { [] }
         set (value) { value.encode(to: &self.bson[with: key]) }
     }
+}
+extension Mongo.UpdateStatementEncoder
+{
+    @frozen public
+    enum Collation:String, Hashable, Sendable
+    {
+        case collation
+    }
 
     @inlinable public
     subscript(key:Collation) -> Mongo.Collation?
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
+    }
+}
+extension Mongo.UpdateStatementEncoder
+{
+    @frozen public
+    enum Hint:String, Hashable, Sendable
+    {
+        case hint
     }
 
     @inlinable public
@@ -130,6 +180,14 @@ extension Mongo.UpdateStatement
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
+    }
+}
+extension Mongo.UpdateStatementEncoder
+{
+    @frozen public
+    enum Upsert:String, Hashable, Sendable
+    {
+        case upsert
     }
 
     @inlinable public

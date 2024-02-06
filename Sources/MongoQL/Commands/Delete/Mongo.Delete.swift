@@ -48,9 +48,9 @@ extension Mongo.Delete
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        deletes encode:(inout Mongo.DeleteEncoder<Effect>) throws -> ()) rethrows
+        deletes encode:(inout Mongo.DeleteStatementListEncoder<Effect>) throws -> ()) rethrows
     {
-        var deletes:Mongo.DeleteEncoder<Effect> = .init()
+        var deletes:Mongo.DeleteStatementListEncoder<Effect> = .init()
         try encode(&deletes)
 
         self.init(writeConcern: writeConcern,
@@ -62,7 +62,7 @@ extension Mongo.Delete
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         with configure:(inout Self) throws -> (),
-        deletes encode:(inout Mongo.DeleteEncoder<Effect>) throws -> ()) rethrows
+        deletes encode:(inout Mongo.DeleteStatementListEncoder<Effect>) throws -> ()) rethrows
     {
         try self.init(collection, writeConcern: writeConcern, deletes: encode)
         try configure(&self)
@@ -70,6 +70,12 @@ extension Mongo.Delete
 }
 extension Mongo.Delete
 {
+    @frozen public
+    enum Ordered:String, Equatable, Hashable, Sendable
+    {
+        case ordered
+    }
+
     @inlinable public
     subscript(key:Ordered) -> Bool?
     {
@@ -81,6 +87,14 @@ extension Mongo.Delete
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.Delete
+{
+    @frozen public
+    enum Let:String, Equatable, Hashable, Sendable
+    {
+        case `let`
     }
 
     @inlinable public
