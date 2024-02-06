@@ -1,15 +1,18 @@
 extension Dictionary:BSONDecodable where Key == BSON.Key, Value:BSONDecodable
 {
+    @inlinable public
+    init(bson:BSON.AnyValue) throws
+    {
+        try self.init(bson: try .init(bson: consume bson))
+    }
     /// Decodes an unordered dictionary from the given document. Dictionaries
     /// are not ``BSONEncodable``, because round-tripping them loses the field
     /// ordering information.
     @inlinable public
-    init(bson:BSON.AnyValue) throws
+    init(bson:BSON.Document) throws
     {
-        let document:BSON.Document = try .init(bson: consume bson)
-
         self.init()
-        try document.parse
+        try bson.parse
         {
             (field:BSON.FieldDecoder<BSON.Key>) in
 

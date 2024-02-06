@@ -6,10 +6,13 @@ extension OrderedDictionary:BSONDecodable where Key == BSON.Key, Value:BSONDecod
     @inlinable public
     init(bson:BSON.AnyValue) throws
     {
-        let document:BSON.Document = try .init(bson: consume bson)
-
+        try self.init(bson: try .init(bson: consume bson))
+    }
+    @inlinable public
+    init(bson:BSON.Document) throws
+    {
         self.init()
-        try document.parse
+        try bson.parse
         {
             (field:BSON.FieldDecoder<BSON.Key>) in
 
