@@ -50,11 +50,19 @@ extension Mongo.DeleteStatementEncoder
         case q
     }
 
+    @available(*, deprecated, message: "Use functional subscript instead.")
     @inlinable public
     subscript(key:Q) -> Mongo.PredicateDocument?
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
+    }
+
+    @inlinable public
+    subscript(key:Q, yield:(inout Mongo.PredicateEncoder) -> () = { _ in }) -> Void
+    {
+        mutating
+        get { yield(&self.bson[with: key][as: Mongo.PredicateEncoder.self]) }
     }
 }
 extension Mongo.DeleteStatementEncoder
