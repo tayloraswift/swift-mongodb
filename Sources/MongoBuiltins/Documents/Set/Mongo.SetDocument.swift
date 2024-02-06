@@ -19,7 +19,7 @@ extension Mongo
 extension Mongo.SetDocument
 {
     @inlinable public
-    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -27,7 +27,7 @@ extension Mongo.SetDocument
         }
         set(value)
         {
-            value?.encode(to: &self.bson[with: path.stem])
+            value?.encode(to: &self.bson[with: path])
         }
     }
 }

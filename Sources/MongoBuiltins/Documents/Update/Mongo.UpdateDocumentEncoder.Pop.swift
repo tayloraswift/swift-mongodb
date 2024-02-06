@@ -1,4 +1,4 @@
-extension Mongo.UpdateDocument
+extension Mongo.UpdateDocumentEncoder
 {
     @frozen public
     enum Pop:String, Hashable, Sendable

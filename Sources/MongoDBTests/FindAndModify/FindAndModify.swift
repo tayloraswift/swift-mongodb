@@ -117,7 +117,7 @@ struct FindAndModify<Configuration>:MongoTestBattery where Configuration:MongoTe
                             }
                             $0[.update] = .init
                             {
-                                $0[.set] = .init
+                                $0[.set]
                                 {
                                     $0["party"] = "Independent"
                                 }

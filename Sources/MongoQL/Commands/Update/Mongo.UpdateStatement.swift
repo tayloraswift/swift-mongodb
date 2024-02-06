@@ -40,14 +40,19 @@ extension Mongo.UpdateStatement
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
-
+}
+extension Mongo.UpdateStatement
+{
     @inlinable public
     subscript(key:Q) -> Mongo.PredicateDocument?
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
-
+}
+extension Mongo.UpdateStatement
+{
+    @available(*, deprecated, message: "Use the functional subscript instead.")
     @inlinable public
     subscript(key:U) -> Mongo.UpdateDocument?
     {
@@ -55,12 +60,7 @@ extension Mongo.UpdateStatement
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 
-    @inlinable public
-    subscript(key:U, yield:(inout Mongo.PipelineEncoder) -> ()) -> Void
-    {
-        mutating
-        get { yield(&self.bson[with: key][as: Mongo.PipelineEncoder.self]) }
-    }
+    @available(*, deprecated, message: "Use the functional subscript instead.")
     @inlinable public
     subscript(key:U) -> Mongo.Pipeline?
     {
@@ -69,13 +69,28 @@ extension Mongo.UpdateStatement
     }
 
     @inlinable public
-    subscript<Replacement>(key:U) -> Replacement?
-        where Replacement:BSONEncodable
+    subscript(key:U, yield:(inout Mongo.UpdateDocumentEncoder) -> ()) -> Void
+    {
+        mutating
+        get { yield(&self.bson[with: key][as: Mongo.UpdateDocumentEncoder.self]) }
+    }
+
+    @inlinable public
+    subscript(key:U, yield:(inout Mongo.PipelineEncoder) -> ()) -> Void
+    {
+        mutating
+        get { yield(&self.bson[with: key][as: Mongo.PipelineEncoder.self]) }
+    }
+
+    @inlinable public
+    subscript<Replacement>(key:U) -> Replacement? where Replacement:BSONEncodable
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
-
+}
+extension Mongo.UpdateStatement
+{
     @inlinable public
     subscript(key:ArrayFilters, yield:(inout Mongo.PredicateListEncoder) -> ()) -> Void
     {

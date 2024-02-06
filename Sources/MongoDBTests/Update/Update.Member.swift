@@ -8,7 +8,7 @@ extension Update
         let member:String
         let status:String
         let points:Int
-        let comments:[String]
+        let comments:[String?]
         let misc1:String?
         let misc2:String?
 
@@ -16,7 +16,7 @@ extension Update
             member:String,
             status:String,
             points:Int,
-            comments:[String] = [],
+            comments:[String?] = [],
             misc1:String? = nil,
             misc2:String? = nil)
         {

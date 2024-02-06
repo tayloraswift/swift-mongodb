@@ -3,7 +3,7 @@
 extension Mongo.Expression?
 {
     @inlinable public static
-    func expr(with populate:(inout Mongo.Expression) throws -> ()) rethrows -> Self
+    func expr(with populate:(inout Mongo.ExpressionEncoder) throws -> ()) rethrows -> Self
     {
         .some(try .expr(with: populate))
     }

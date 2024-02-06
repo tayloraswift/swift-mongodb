@@ -12,7 +12,7 @@ protocol MongoMasterCodingModel<CodingKey>
 extension MongoMasterCodingModel
 {
     @inlinable public static
-    subscript(key:CodingKey) -> Mongo.KeyPath
+    subscript(key:CodingKey) -> Mongo.AnyKeyPath
     {
         .init(rawValue: key.rawValue)
     }

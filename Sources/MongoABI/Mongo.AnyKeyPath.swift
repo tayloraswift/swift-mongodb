@@ -2,8 +2,12 @@ import BSON
 
 extension Mongo
 {
+    @available(*, deprecated, renamed: "AnyKeyPath")
+    public
+    typealias KeyPath = AnyKeyPath
+
     @frozen public
-    struct KeyPath:Equatable, Hashable, Sendable
+    struct AnyKeyPath:Equatable, Hashable, Sendable
     {
         public
         var stem:BSON.Key
@@ -15,18 +19,21 @@ extension Mongo
         }
     }
 }
-extension Mongo.KeyPath
+extension Mongo.AnyKeyPath:RawRepresentable
 {
+    /// See ``rawValue``.
     @inlinable public
     init(rawValue:String)
     {
         self.init(stem: .init(rawValue: rawValue))
     }
 
+    /// The key path stem, which is the entire key path minus the leading `$` character that
+    /// would normally appear when encoding the key path in an expression.
     @inlinable public
     var rawValue:String { self.stem.rawValue }
 }
-extension Mongo.KeyPath:ExpressibleByStringLiteral
+extension Mongo.AnyKeyPath:ExpressibleByStringLiteral
 {
     @inlinable public
     init(stringLiteral:String)
@@ -34,15 +41,15 @@ extension Mongo.KeyPath:ExpressibleByStringLiteral
         self.init(rawValue: stringLiteral)
     }
 }
-extension Mongo.KeyPath:CustomStringConvertible
+extension Mongo.AnyKeyPath:CustomStringConvertible
 {
     @inlinable public
     var description:String { "$\(self.stem)" }
 }
-extension Mongo.KeyPath:BSONStringEncodable
+extension Mongo.AnyKeyPath:BSONStringEncodable
 {
 }
-extension Mongo.KeyPath
+extension Mongo.AnyKeyPath
 {
     /// Creates a key path by joining two key paths with a `.` character.
     @inlinable public static

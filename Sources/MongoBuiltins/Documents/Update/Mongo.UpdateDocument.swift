@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct UpdateDocument:MongoDocumentDSL, Sendable
+    struct UpdateDocument:Sendable
     {
         public
         var bson:BSON.Document
@@ -15,114 +15,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateDocument
+extension Mongo.UpdateDocument:MongoDocumentDSL
 {
-    @inlinable public
-    subscript(key:Arithmetic) -> Mongo.UpdateFields<Arithmetic>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Bit) -> Mongo.UpdateFields<Bit>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:CurrentDate) -> Mongo.UpdateFields<CurrentDate>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Pop) -> Mongo.UpdateFields<Pop>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Pull) -> Mongo.UpdateFields<Pull>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-
-    @inlinable public
-    subscript<Document>(key:Reduction) -> Document?
-        where Document:BSONEncodable
-    {
-        get { nil }
-        set (value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-
-    @inlinable public
-    subscript(key:Reduction) -> Mongo.UpdateFields<Reduction>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Rename) -> Mongo.UpdateFields<Rename>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Unset) -> Mongo.UpdateFields<Unset>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
+    public
+    typealias Encoder = Mongo.UpdateDocumentEncoder
 }

@@ -12,7 +12,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
         //  https://www.mongodb.com/docs/manual/reference/command/update/#examples
 
         let collection:Mongo.Collection = "members"
-        let states:([Member], [Member], [Member], [Member], [Member])
+        let states:([Member], [Member], [Member], [Member], [Member], [Member])
 
         states.0 =
         [
@@ -51,6 +51,22 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
             .init(id: 1,
                 member: "abc123",
                 status: "A",
+                points: 1,
+                misc1: "note to self: confirm status",
+                misc2: "Need to activate"),
+
+            .init(id: 2,
+                member: "xyz123",
+                status: "A",
+                points: 59,
+                misc1: "reminder: ping me at 100pts",
+                misc2: nil),
+        ]
+        states.3 =
+        [
+            .init(id: 1,
+                member: "abc123",
+                status: "A",
                 points: 2,
                 misc1: "note to self: confirm status",
                 misc2: "Need to activate"),
@@ -60,21 +76,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                 status: "A",
                 points: 60,
                 misc1: "reminder: ping me at 100pts",
-                misc2: "Some random comment"),
-        ]
-        states.3 =
-        [
-            .init(id: 1,
-                member: "abc123",
-                status: "Modified",
-                points: 2,
-                comments: ["note to self: confirm status", "Need to activate"]),
-
-            .init(id: 2,
-                member: "xyz123",
-                status: "Modified",
-                points: 60,
-                comments: ["reminder: ping me at 100pts", "Some random comment"]),
+                misc2: nil),
         ]
         states.4 =
         [
@@ -88,7 +90,21 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                 member: "xyz123",
                 status: "Modified",
                 points: 60,
-                comments: ["reminder: ping me at 100pts", "Some random comment"]),
+                comments: ["reminder: ping me at 100pts", nil]),
+        ]
+        states.5 =
+        [
+            .init(id: 1,
+                member: "abc123",
+                status: "Modified",
+                points: 2,
+                comments: ["note to self: confirm status", "Need to activate"]),
+
+            .init(id: 2,
+                member: "xyz123",
+                status: "Modified",
+                points: 60,
+                comments: ["reminder: ping me at 100pts", nil]),
 
             .init(id: 3,
                 member: "upserted",
@@ -107,7 +123,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
         }
         do
         {
-            let tests:TestGroup = tests ! "one"
+            let tests:TestGroup = tests ! "One"
 
             await tests.do
             {
@@ -126,13 +142,13 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                             {
                                 $0["member"] = "abc123"
                             }
-                            $0[.u] = .init
+                            $0[.u]
                             {
-                                $0[.set] = .init
+                                $0[.set]
                                 {
                                     $0["status"] = "A"
                                 }
-                                $0[.inc] = .init
+                                $0[.inc]
                                 {
                                     $0["points"] = 1
                                 }
@@ -155,13 +171,13 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
         }
         do
         {
-            let tests:TestGroup = tests ! "many"
+            let tests:TestGroup = tests ! "Replace"
 
             await tests.do
             {
-                let expected:Mongo.UpdateResponse<Int> = .init(selected: 2, modified: 2)
+                let expected:Mongo.UpdateResponse<Int> = .init(selected: 1, modified: 1)
                 let response:Mongo.UpdateResponse<Int> = try await session.run(
-                    command: Mongo.Update<Mongo.Many, Int>.init(collection,
+                    command: Mongo.Update<Mongo.One, Int>.init(collection,
                         writeConcern: .majority)
                     {
                         $0[.ordered] = false
@@ -170,19 +186,11 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                     {
                         $0
                         {
-                            $0[.q] = .init()
-                            $0[.u] = .init
+                            $0[.q] = .init
                             {
-                                $0[.set] = .init
-                                {
-                                    $0["status"] = "A"
-                                }
-                                $0[.inc] = .init
-                                {
-                                    $0["points"] = 1
-                                }
+                                $0["_id"] = states.2.last?.id
                             }
-                            $0[.multi] = true
+                            $0[.u] = states.2.last
                         }
                     },
                     against: database)
@@ -201,7 +209,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
         }
         do
         {
-            let tests:TestGroup = tests ! "pipeline"
+            let tests:TestGroup = tests ! "Many"
 
             await tests.do
             {
@@ -217,19 +225,15 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                         $0
                         {
                             $0[.q] = .init()
-                            $0[.u] = .init
+                            $0[.u]
                             {
-                                $0.stage
+                                $0[.set]
                                 {
-                                    $0[.set] = .init
-                                    {
-                                        $0["status"] = "Modified"
-                                        $0["comments"] = ["$misc1", "$misc2"]
-                                    }
+                                    $0["status"] = "A"
                                 }
-                                $0.stage
+                                $0[.inc]
                                 {
-                                    $0[.unset] = ["misc1", "misc2"]
+                                    $0["points"] = 1
                                 }
                             }
                             $0[.multi] = true
@@ -251,7 +255,51 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
         }
         do
         {
-            let tests:TestGroup = tests ! "upsert"
+            let tests:TestGroup = tests ! "Pipeline"
+
+            await tests.do
+            {
+                let expected:Mongo.UpdateResponse<Int> = .init(selected: 2, modified: 2)
+                let response:Mongo.UpdateResponse<Int> = try await session.run(
+                    command: Mongo.Update<Mongo.Many, Int>.init(collection,
+                        writeConcern: .majority)
+                    {
+                        $0[.ordered] = false
+                    }
+                        updates:
+                    {
+                        $0
+                        {
+                            $0[.q] = .init()
+                            $0[.u]
+                            {
+                                $0[stage: .set] = .init
+                                {
+                                    $0["status"] = "Modified"
+                                    $0["comments"] = ["$misc1", "$misc2"]
+                                }
+                                $0[stage: .unset] = ["misc1", "misc2"]
+                            }
+                            $0[.multi] = true
+                        }
+                    },
+                    against: database)
+
+                tests.expect(response ==? expected)
+            }
+            await tests.do
+            {
+                let members:[Member] = try await session.run(
+                    command: Mongo.Find<Mongo.SingleBatch<Member>>.init(collection,
+                        limit: 10),
+                    against: database)
+
+                tests.expect(members **? states.4)
+            }
+        }
+        do
+        {
+            let tests:TestGroup = tests ! "Upsert"
 
             await tests.do
             {
@@ -272,7 +320,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                             {
                                 $0["_id"] = 3
                             }
-                            $0[.u] = states.4.last
+                            $0[.u] = states.5.last
                             $0[.upsert] = true
                         }
                     },
@@ -287,7 +335,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                         limit: 10),
                     against: database)
 
-                tests.expect(members **? states.4)
+                tests.expect(members **? states.5)
             }
         }
     }

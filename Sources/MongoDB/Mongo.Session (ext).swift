@@ -8,14 +8,14 @@ extension Mongo.Session
             collection.name,
             pipeline: .init
             {
-                $0[.collectionStats] = .init
+                $0[stage: .collectionStats] = .init
                 {
                     $0[.storageStats] = [:]
                 }
 
                 //  A typical collection stats output document contains a huge amount of
                 //  data, most of which is redundant.
-                $0[.project] = .init
+                $0[stage: .project] = .init
                 {
                     for key:Mongo.CollectionStats.Storage.CodingKey
                         in Mongo.CollectionStats.Storage.CodingKey.allCases

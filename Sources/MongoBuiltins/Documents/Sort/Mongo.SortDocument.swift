@@ -21,7 +21,7 @@ extension Mongo.SortDocument
     @available(*, unavailable,
         message: "pass the `(+)` or `(-)` operator functions to specify sort direction.")
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> Int?
+    subscript(path:Mongo.AnyKeyPath) -> Int?
     {
         get
         {
@@ -50,7 +50,7 @@ extension Mongo.SortDocument
         }
     }
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> ((Mongo.SortAscending) -> Never)?
+    subscript(path:Mongo.AnyKeyPath) -> ((Mongo.SortAscending) -> Never)?
     {
         get
         {
@@ -81,7 +81,7 @@ extension Mongo.SortDocument
         }
     }
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> ((Mongo.SortDescending) -> Never)?
+    subscript(path:Mongo.AnyKeyPath) -> ((Mongo.SortDescending) -> Never)?
     {
         get
         {
@@ -96,7 +96,7 @@ extension Mongo.SortDocument
         }
     }
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> Mongo.SortOperator?
+    subscript(path:Mongo.AnyKeyPath) -> Mongo.SortOperator?
     {
         get
         {

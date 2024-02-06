@@ -30,7 +30,7 @@ extension Mongo.PredicateDocument
     /// ``PredicateOperator`` has no subscripts that accept string
     /// literals, so it will never conflict with ``BSON.Document``.
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> Mongo.PredicateOperator?
+    subscript(path:Mongo.AnyKeyPath) -> Mongo.PredicateOperator?
     {
         get
         {
@@ -42,7 +42,7 @@ extension Mongo.PredicateDocument
         }
     }
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> Self?
+    subscript(path:Mongo.AnyKeyPath) -> Self?
     {
         get
         {
@@ -57,7 +57,7 @@ extension Mongo.PredicateDocument
     //  ``_MongoExpressionRestrictedEncodable``-gated diagnostic subscript.
     @_disfavoredOverload
     @inlinable public
-    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
@@ -76,7 +76,7 @@ extension Mongo.PredicateDocument
         even in a '$match' stage of an aggregation pipeline.
         """)
     public
-    subscript<Expression>(path:Mongo.KeyPath) -> Expression?
+    subscript<Expression>(path:Mongo.AnyKeyPath) -> Expression?
         where Expression:_MongoExpressionRestrictedEncodable
     {
         get
