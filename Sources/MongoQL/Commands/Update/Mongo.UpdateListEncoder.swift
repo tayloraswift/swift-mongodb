@@ -2,12 +2,12 @@ import BSON
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "UpdateStatementListEncoder")
+    @available(*, deprecated, renamed: "UpdateListEncoder")
     public
-    typealias UpdateEncoder = UpdateStatementListEncoder
+    typealias UpdateEncoder = UpdateListEncoder
 
     @frozen public
-    struct UpdateStatementListEncoder<Effect> where Effect:Mongo.WriteEffect
+    struct UpdateListEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var output:BSON.Output
@@ -19,12 +19,12 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateStatementListEncoder
+extension Mongo.UpdateListEncoder
 {
     @inlinable internal consuming
     func move() -> BSON.Output { self.output }
 }
-extension Mongo.UpdateStatementListEncoder
+extension Mongo.UpdateListEncoder
 {
     @inlinable public mutating
     func callAsFunction<T>(
@@ -35,7 +35,7 @@ extension Mongo.UpdateStatementListEncoder
             in: BSON.DocumentFrame.self])
     }
 }
-extension Mongo.UpdateStatementListEncoder
+extension Mongo.UpdateListEncoder
 {
     /// A shorthand for ``update(_:upsert:)`` with `upsert` set to false.
     @inlinable public mutating

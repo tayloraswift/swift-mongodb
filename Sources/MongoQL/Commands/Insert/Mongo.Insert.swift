@@ -52,9 +52,9 @@ extension Mongo.Insert
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        documents encode:(inout Mongo.InsertStatementListEncoder) throws -> ()) rethrows
+        documents encode:(inout Mongo.InsertListEncoder) throws -> ()) rethrows
     {
-        var documents:Mongo.InsertStatementListEncoder = .init()
+        var documents:Mongo.InsertListEncoder = .init()
         try encode(&documents)
 
         self.init(writeConcern: writeConcern,
@@ -66,7 +66,7 @@ extension Mongo.Insert
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         with configure:(inout Self) throws -> (),
-        documents encode:(inout Mongo.InsertStatementListEncoder) throws -> ()) rethrows
+        documents encode:(inout Mongo.InsertListEncoder) throws -> ()) rethrows
     {
         try self.init(collection, writeConcern: writeConcern, documents: encode)
         try configure(&self)

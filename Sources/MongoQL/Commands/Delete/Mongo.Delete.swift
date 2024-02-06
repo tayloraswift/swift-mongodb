@@ -48,9 +48,9 @@ extension Mongo.Delete
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        deletes encode:(inout Mongo.DeleteStatementListEncoder<Effect>) throws -> ()) rethrows
+        deletes encode:(inout Mongo.DeleteListEncoder<Effect>) throws -> ()) rethrows
     {
-        var deletes:Mongo.DeleteStatementListEncoder<Effect> = .init()
+        var deletes:Mongo.DeleteListEncoder<Effect> = .init()
         try encode(&deletes)
 
         self.init(writeConcern: writeConcern,
@@ -62,7 +62,7 @@ extension Mongo.Delete
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         with configure:(inout Self) throws -> (),
-        deletes encode:(inout Mongo.DeleteStatementListEncoder<Effect>) throws -> ()) rethrows
+        deletes encode:(inout Mongo.DeleteListEncoder<Effect>) throws -> ()) rethrows
     {
         try self.init(collection, writeConcern: writeConcern, deletes: encode)
         try configure(&self)

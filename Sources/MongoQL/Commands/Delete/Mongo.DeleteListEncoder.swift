@@ -2,12 +2,12 @@ import BSON
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "DeleteStatementListEncoder")
+    @available(*, deprecated, renamed: "DeleteListEncoder")
     public
-    typealias DeleteEncoder = DeleteStatementListEncoder
+    typealias DeleteEncoder = DeleteListEncoder
 
     @frozen public
-    struct DeleteStatementListEncoder<Effect> where Effect:Mongo.WriteEffect
+    struct DeleteListEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var output:BSON.Output
@@ -19,12 +19,12 @@ extension Mongo
         }
     }
 }
-extension Mongo.DeleteStatementListEncoder
+extension Mongo.DeleteListEncoder
 {
     @inlinable internal consuming
     func move() -> BSON.Output { self.output }
 }
-extension Mongo.DeleteStatementListEncoder
+extension Mongo.DeleteListEncoder
 {
     @inlinable public mutating
     func callAsFunction<T>(

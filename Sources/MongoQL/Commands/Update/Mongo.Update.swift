@@ -49,9 +49,9 @@ extension Mongo.Update
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates encode:(inout Mongo.UpdateStatementListEncoder<Effect>) throws -> ()) rethrows
+        updates encode:(inout Mongo.UpdateListEncoder<Effect>) throws -> ()) rethrows
     {
-        var updates:Mongo.UpdateStatementListEncoder<Effect> = .init()
+        var updates:Mongo.UpdateListEncoder<Effect> = .init()
         try encode(&updates)
 
         self.init(writeConcern: writeConcern,
@@ -63,7 +63,7 @@ extension Mongo.Update
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         with configure:(inout Self) throws -> (),
-        updates encode:(inout Mongo.UpdateStatementListEncoder<Effect>) throws -> ()) rethrows
+        updates encode:(inout Mongo.UpdateListEncoder<Effect>) throws -> ()) rethrows
     {
         try self.init(collection, writeConcern: writeConcern, updates: encode)
         try configure(&self)
