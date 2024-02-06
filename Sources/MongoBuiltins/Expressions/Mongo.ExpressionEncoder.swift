@@ -31,8 +31,29 @@ extension Mongo.ExpressionEncoder:BSON.Encoder
 }
 extension Mongo.ExpressionEncoder
 {
+    @frozen public
+    enum Unary:String, Hashable, Sendable
+    {
+        case abs            = "$abs"
+        case arrayToObject  = "$arrayToObject"
+        case binarySize     = "$binarySize"
+        case objectSize     = "$bsonSize"
+        case objectToArray  = "$objectToArray"
+        case ceil           = "$ceil"
+        case exp            = "$exp"
+        case first          = "$first"
+        case floor          = "$floor"
+        case last           = "$last"
+        case literal        = "$literal"
+        case ln             = "$ln"
+        case log10          = "$log10"
+        case reverseArray   = "$reverseArray"
+        case size           = "$size"
+        case sqrt           = "$sqrt"
+    }
+
     @inlinable public
-    subscript<Encodable>(key:Mongo.Expression.Unary) -> Encodable?
+    subscript<Encodable>(key:Unary) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
@@ -44,6 +65,19 @@ extension Mongo.ExpressionEncoder
             value?.encode(to: &self.bson[with: key])
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum UnaryParenthesized:String, Hashable, Sendable
+    {
+        case isArray            = "$isArray"
+        case not                = "$not"
+        case type               = "$type"
+
+        case allElementsTrue    = "$allElementsTrue"
+        case anyElementTrue     = "$anyElementTrue"
+    }
 
     /// Creates a `$not` or `$isArray` expression. This subscript already
     /// brackets the expression when passing it in an argument tuple;
@@ -51,7 +85,7 @@ extension Mongo.ExpressionEncoder
     /// to false for `$not` (because an array evaluates to true),
     /// or true for `$isArray` (because an array is an array).
     @inlinable public
-    subscript<Encodable>(key:Mongo.Expression.UnaryParenthesized) -> Encodable?
+    subscript<Encodable>(key:UnaryParenthesized) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
@@ -68,9 +102,26 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Binary:String, Hashable, Sendable
+    {
+        case cmp    = "$cmp"
+        case eq     = "$eq"
+        case gt     = "$gt"
+        case gte    = "$gte"
+        case lt     = "$lt"
+        case lte    = "$lte"
+        case ne     = "$ne"
+
+        case setDifference = "$setDifference"
+        case setIsSubset = "$setIsSubset"
+    }
 
     @inlinable public
-    subscript<First, Second>(key:Mongo.Expression.Binary) -> (_:First?, _:Second?)
+    subscript<First, Second>(key:Binary) -> (_:First?, _:Second?)
         where   First:BSONEncodable,
                 Second:BSONEncodable
     {
@@ -89,10 +140,17 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Cond:String, Hashable, Sendable
+    {
+        case cond = "$cond"
+    }
 
     @inlinable public
-    subscript<Predicate, Then, Else>(
-        key:Mongo.Expression.Cond) -> (if:Predicate?, then:Then?, else:Else?)
+    subscript<Predicate, Then, Else>(key:Cond) -> (if:Predicate?, then:Then?, else:Else?)
         where   Predicate:BSONEncodable,
                 Then:BSONEncodable,
                 Else:BSONEncodable
@@ -113,9 +171,18 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Division:String, Hashable, Sendable
+    {
+        case divide = "$divide"
+        case mod    = "$mod"
+    }
 
     @inlinable public
-    subscript<Dividend, Divisor>(key:Mongo.Expression.Division) -> (_:Dividend?, by:Divisor?)
+    subscript<Dividend, Divisor>(key:Division) -> (_:Dividend?, by:Divisor?)
         where   Dividend:BSONEncodable,
                 Divisor:BSONEncodable
     {
@@ -134,9 +201,22 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Element:String, Hashable, Sendable
+    {
+        case element = "$arrayElemAt"
+
+        @available(*, unavailable, renamed: "element")
+        public static
+        var arrayElemAt:Self { .element }
+    }
+
 
     @inlinable public
-    subscript<Array, Index>(key:Mongo.Expression.Element) -> (of:Array?, at:Index?)
+    subscript<Array, Index>(key:Element) -> (of:Array?, at:Index?)
         where   Array:BSONEncodable,
                 Index:BSONEncodable
     {
@@ -155,9 +235,17 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum In:String, Hashable, Sendable
+    {
+        case `in` = "$in"
+    }
 
     @inlinable public
-    subscript<Encodable, Array>(key:Mongo.Expression.In) -> (_:Encodable?, in:Array?)
+    subscript<Encodable, Array>(key:In) -> (_:Encodable?, in:Array?)
         where   Encodable:BSONEncodable,
                 Array:BSONEncodable
     {
@@ -176,9 +264,17 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Log:String, Hashable, Sendable
+    {
+        case log = "$log"
+    }
 
     @inlinable public
-    subscript<Base, Exponential>(key:Mongo.Expression.Log) -> (base:Base?, of:Exponential?)
+    subscript<Base, Exponential>(key:Log) -> (base:Base?, of:Exponential?)
         where   Base:BSONEncodable,
                 Exponential:BSONEncodable
     {
@@ -197,9 +293,17 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Pow:String, Hashable, Sendable
+    {
+        case pow = "$pow"
+    }
 
     @inlinable public
-    subscript<Base, Exponent>(key:Mongo.Expression.Pow) -> (base:Base?, to:Exponent?)
+    subscript<Base, Exponent>(key:Pow) -> (base:Base?, to:Exponent?)
         where   Base:BSONEncodable,
                 Exponent:BSONEncodable
     {
@@ -218,9 +322,18 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Quantization:String, Hashable, Sendable
+    {
+        case round = "$round"
+        case trunc = "$trunc"
+    }
 
     @inlinable public
-    subscript<Fraction>(key:Mongo.Expression.Quantization) -> Fraction?
+    subscript<Fraction>(key:Quantization) -> Fraction?
         where Fraction:BSONEncodable
     {
         get
@@ -233,10 +346,8 @@ extension Mongo.ExpressionEncoder
         }
     }
     @inlinable public
-    subscript<Fraction, Places>(
-        key:Mongo.Expression.Quantization) -> (_:Fraction?, places:Places?)
-        where   Fraction:BSONEncodable,
-                Places:BSONEncodable
+    subscript<Fraction, Places>(key:Quantization) -> (_:Fraction?, places:Places?)
+        where Fraction:BSONEncodable, Places:BSONEncodable
     {
         get
         {
@@ -253,12 +364,18 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Range:String, Hashable, Sendable
+    {
+        case range = "$range"
+    }
 
     @inlinable public
-    subscript<Start, End, Step>(key:Mongo.Expression.Range) -> (from:Start?, to:End?, by:Step?)
-        where   Start:BSONEncodable,
-                End:BSONEncodable,
-                Step:BSONEncodable
+    subscript<Start, End, Step>(key:Range) -> (from:Start?, to:End?, by:Step?)
+        where Start:BSONEncodable, End:BSONEncodable, Step:BSONEncodable
     {
         get
         {
@@ -277,9 +394,8 @@ extension Mongo.ExpressionEncoder
         }
     }
     @inlinable public
-    subscript<Start, End>(key:Mongo.Expression.Range) -> (from:Start?, to:End?)
-        where   Start:BSONEncodable,
-                End:BSONEncodable
+    subscript<Start, End>(key:Range) -> (from:Start?, to:End?)
+        where Start:BSONEncodable, End:BSONEncodable
     {
         get
         {
@@ -290,13 +406,18 @@ extension Mongo.ExpressionEncoder
             self[key] = (from: value.from, to: value.to, by: nil as Never?)
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Slice:String, Hashable, Sendable
+    {
+        case slice = "$slice"
+    }
 
     @inlinable public
-    subscript<Array, Index, Distance>(
-        key:Mongo.Expression.Slice) -> (_:Array?, at:Index?, distance:Distance?)
-        where   Array:BSONEncodable,
-                Index:BSONEncodable,
-                Distance:BSONEncodable
+    subscript<Array, Index, Distance>(key:Slice) -> (_:Array?, at:Index?, distance:Distance?)
+        where Array:BSONEncodable, Index:BSONEncodable, Distance:BSONEncodable
     {
         get
         {
@@ -315,9 +436,8 @@ extension Mongo.ExpressionEncoder
         }
     }
     @inlinable public
-    subscript<Array, Distance>(key:Mongo.Expression.Slice) -> (_:Array?, distance:Distance?)
-        where   Array:BSONEncodable,
-                Distance:BSONEncodable
+    subscript<Array, Distance>(key:Slice) -> (_:Array?, distance:Distance?)
+        where Array:BSONEncodable, Distance:BSONEncodable
     {
         get
         {
@@ -328,12 +448,18 @@ extension Mongo.ExpressionEncoder
             self[key] = (value.0, at: nil as Never?, distance: value.distance)
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Subtract:String, Hashable, Sendable
+    {
+        case subtract = "$subtract"
+    }
 
     @inlinable public
-    subscript<Minuend, Difference>(
-        key:Mongo.Expression.Subtract) -> (_:Minuend?, minus:Difference?)
-        where   Minuend:BSONEncodable,
-                Difference:BSONEncodable
+    subscript<Minuend, Difference>(key:Subtract) -> (_:Minuend?, minus:Difference?)
+        where Minuend:BSONEncodable, Difference:BSONEncodable
     {
         get
         {
@@ -350,11 +476,34 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Superlative:String, Hashable, Sendable
+    {
+        case first  = "$firstN"
+        case last   = "$lastN"
+        case max    = "$maxN"
+        case min    = "$minN"
+
+        @available(*, unavailable, renamed: "first")
+        public static
+        var firstN:Self { .first }
+        @available(*, unavailable, renamed: "last")
+        public static
+        var lastN:Self { .last }
+        @available(*, unavailable, renamed: "max")
+        public static
+        var maxN:Self { .max }
+        @available(*, unavailable, renamed: "min")
+        public static
+        var minN:Self { .min }
+    }
 
     @inlinable public
-    subscript<Count, Array>(key:Mongo.Expression.Superlative) -> (_:Count?, of:Array?)
-        where   Count:BSONEncodable,
-                Array:BSONEncodable
+    subscript<Count, Array>(key:Superlative) -> (_:Count?, of:Array?)
+        where Count:BSONEncodable, Array:BSONEncodable
     {
         get
         {
@@ -371,9 +520,40 @@ extension Mongo.ExpressionEncoder
             }
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Variadic:String, Hashable, Sendable
+    {
+        case add                = "$add"
+        case and                = "$and"
+        case coalesce           = "$ifNull"
+        case concatArrays       = "$concatArrays"
+        case multiply           = "$multiply"
+        case or                 = "$or"
+        case zip                = "$zip"
+
+        case setEquals          = "$setEquals"
+        case setIntersection    = "$setIntersection"
+        case setUnion           = "$setUnion"
+
+        @available(*, unavailable, renamed: "coalesce")
+        public static
+        var ifNull:Self { .coalesce }
+    }
 
     @inlinable public
-    subscript<Encodable>(key:Mongo.Expression.Variadic) -> Encodable?
+    subscript(key:Variadic, yield:(inout BSON.ListEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: key][as: BSON.ListEncoder.self])
+        }
+    }
+
+    @inlinable public
+    subscript<Encodable>(key:Variadic) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
@@ -386,7 +566,7 @@ extension Mongo.ExpressionEncoder
         }
     }
     @inlinable public
-    subscript<T0, T1>(key:Mongo.Expression.Variadic) -> (T0?, T1?)
+    subscript<T0, T1>(key:Variadic) -> (T0?, T1?)
         where   T0:BSONEncodable,
                 T1:BSONEncodable
     {
@@ -403,7 +583,7 @@ extension Mongo.ExpressionEncoder
         }
     }
     @inlinable public
-    subscript<T0, T1, T2>(key:Mongo.Expression.Variadic) -> (T0?, T1?, T2?)
+    subscript<T0, T1, T2>(key:Variadic) -> (T0?, T1?, T2?)
         where   T0:BSONEncodable,
                 T1:BSONEncodable,
                 T2:BSONEncodable
@@ -422,7 +602,7 @@ extension Mongo.ExpressionEncoder
         }
     }
     @inlinable public
-    subscript<T0, T1, T2, T3>(key:Mongo.Expression.Variadic) -> (T0?, T1?, T2?, T3?)
+    subscript<T0, T1, T2, T3>(key:Variadic) -> (T0?, T1?, T2?, T3?)
         where   T0:BSONEncodable,
                 T1:BSONEncodable,
                 T2:BSONEncodable,
@@ -446,8 +626,14 @@ extension Mongo.ExpressionEncoder
 
 extension Mongo.ExpressionEncoder
 {
+    @frozen public
+    enum Filter:String, Hashable, Sendable
+    {
+        case filter = "$filter"
+    }
+
     @inlinable public
-    subscript(key:Mongo.Expression.Filter) -> Mongo.FilterDocument?
+    subscript(key:Filter) -> Mongo.FilterDocument?
     {
         get
         {
@@ -458,8 +644,17 @@ extension Mongo.ExpressionEncoder
             value?.encode(to: &self.bson[with: key])
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Map:String, Hashable, Sendable
+    {
+        case map = "$map"
+    }
+
     @inlinable public
-    subscript(key:Mongo.Expression.Map) -> Mongo.MapDocument?
+    subscript(key:Map) -> Mongo.MapDocument?
     {
         get
         {
@@ -470,8 +665,17 @@ extension Mongo.ExpressionEncoder
             value?.encode(to: &self.bson[with: key])
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Reduce:String, Hashable, Sendable
+    {
+        case reduce = "$reduce"
+    }
+
     @inlinable public
-    subscript(key:Mongo.Expression.Reduce) -> Mongo.ReduceDocument?
+    subscript(key:Reduce) -> Mongo.ReduceDocument?
     {
         get
         {
@@ -482,8 +686,17 @@ extension Mongo.ExpressionEncoder
             value?.encode(to: &self.bson[with: key])
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum SortArray:String, Hashable, Sendable
+    {
+        case sortArray = "$sortArray"
+    }
+
     @inlinable public
-    subscript(key:Mongo.Expression.SortArray) -> Mongo.SortArrayDocument?
+    subscript(key:SortArray) -> Mongo.SortArrayDocument?
     {
         get
         {
@@ -494,8 +707,17 @@ extension Mongo.ExpressionEncoder
             value?.encode(to: &self.bson[with: key])
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Switch:String, Hashable, Sendable
+    {
+        case `switch` = "$switch"
+    }
+
     @inlinable public
-    subscript(key:Mongo.Expression.Switch) -> Mongo.SwitchDocument?
+    subscript(key:Switch) -> Mongo.SwitchDocument?
     {
         get
         {
@@ -506,8 +728,17 @@ extension Mongo.ExpressionEncoder
             value?.encode(to: &self.bson[with: key])
         }
     }
+}
+extension Mongo.ExpressionEncoder
+{
+    @frozen public
+    enum Zip:String, Hashable, Sendable
+    {
+        case zip = "$zip"
+    }
+
     @inlinable public
-    subscript(key:Mongo.Expression.Zip) -> Mongo.ZipDocument?
+    subscript(key:Zip) -> Mongo.ZipDocument?
     {
         get
         {
@@ -522,9 +753,28 @@ extension Mongo.ExpressionEncoder
 
 extension Mongo.ExpressionEncoder
 {
+    @frozen public
+    enum Index:String, Hashable, Sendable
+    {
+        case elementIndex       = "indexOfArray"
+        case unicodeScalarIndex = "indexOfCP"
+        case utf8Index          = "indexOfBytes"
+
+        @available(*, unavailable, renamed: "elementIndex")
+        public static
+        var indexOfArray:Self { .elementIndex }
+        @available(*, unavailable, renamed: "unicodeScalarIndex")
+        public static
+        var indexOfCP:Self { .unicodeScalarIndex }
+        @available(*, unavailable, renamed: "utf8Index")
+        public static
+        var indexOfBytes:Self { .utf8Index }
+    }
+
+
     @inlinable public
     subscript<Sequence, Element, Start, End>(
-        key:Mongo.Expression.Index) -> (in:Sequence?, of:Element?, from:Start?, to:End?)
+        key:Index) -> (in:Sequence?, of:Element?, from:Start?, to:End?)
         where   Sequence:BSONEncodable,
                 Element:BSONEncodable,
                 Start:BSONEncodable,
@@ -552,9 +802,8 @@ extension Mongo.ExpressionEncoder
         }
     }
     @inlinable public
-    subscript<Sequence, Element>(key:Mongo.Expression.Index) -> (in:Sequence?, of:Element?)
-        where   Sequence:BSONEncodable,
-                Element:BSONEncodable
+    subscript<Sequence, Element>(key:Index) -> (in:Sequence?, of:Element?)
+        where Sequence:BSONEncodable, Element:BSONEncodable
     {
         get
         {

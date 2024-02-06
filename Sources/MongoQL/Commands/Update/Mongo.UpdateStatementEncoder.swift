@@ -65,7 +65,6 @@ extension Mongo.UpdateStatementEncoder
         case q
     }
 
-    @available(*, deprecated, message: "Use the functional subscript instead.")
     @inlinable public
     subscript(key:Q) -> Mongo.PredicateDocument?
     {
