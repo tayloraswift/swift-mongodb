@@ -31,7 +31,7 @@ extension Mongo.UpdateFieldsEncoder:BSON.Encoder
     var type:BSON.AnyType { .document }
 }
 
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Arithmetic>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Arithmetic>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> Int?
@@ -58,7 +58,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Arithmetic>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Assignment>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Assignment>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
@@ -80,7 +80,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Assignment>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Bit>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Bit>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> (operator:Mongo.UpdateBitwiseOperator, int32:Int32)?
@@ -119,7 +119,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Bit>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.CurrentDate>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.CurrentDate>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> BSON.Millisecond.Type?
@@ -136,7 +136,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.CurrentDate>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Pop>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Pop>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> Mongo.UpdatePosition?
@@ -151,7 +151,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Pop>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Pull>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Pull>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> Mongo.PredicateOperator?
@@ -178,7 +178,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Pull>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Reduction>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Reduction>
 {
     @inlinable public
     subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
@@ -193,7 +193,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Reduction>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Rename>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Rename>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> Mongo.AnyKeyPath?
@@ -208,7 +208,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Rename>
         }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateDocumentEncoder.Unset>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Unset>
 {
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> Void?

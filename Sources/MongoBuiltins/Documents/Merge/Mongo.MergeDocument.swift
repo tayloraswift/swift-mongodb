@@ -4,7 +4,7 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct MergeDocument:MongoDocumentDSL, Sendable
+    struct MergeDocument:Mongo.EncodableDocument, Sendable
     {
         public
         var bson:BSON.Document

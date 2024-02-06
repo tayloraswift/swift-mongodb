@@ -1,16 +1,23 @@
 import BSON
 
-/// A `MongoDocumentDSL` is nothing more than a type that supports an
-/// ``init(with:)`` builder API.
-///
-/// The specific encoding API vended and encodability protocol used is up to
-/// the conforming type.
+extension Mongo
+{
+    /// An `EncodableDocument` is nothing more than a type that supports an ``init(with:)``
+    /// builder API.
+    ///
+    /// The specific encoding API vended and encodability protocol used is up to the conforming
+    /// type.
+    public
+    typealias EncodableDocument = _MongoEncodableDocument
+}
+
+/// The name of this protocol is ``Mongo.EncodableDocument``.
 public
-protocol MongoDocumentDSL:BSONRepresentable<BSON.Document>, BSONDecodable, BSONEncodable
+protocol _MongoEncodableDocument:BSONRepresentable<BSON.Document>, BSONDecodable, BSONEncodable
 {
     associatedtype Encoder = Self
 }
-extension MongoDocumentDSL
+extension Mongo.EncodableDocument
 {
     @inlinable public
     init()
@@ -19,7 +26,7 @@ extension MongoDocumentDSL
     }
 }
 //  Legacy API
-extension MongoDocumentDSL where Encoder == Self
+extension Mongo.EncodableDocument where Encoder == Self
 {
     @inlinable public
     init(with populate:(inout Self) throws -> ()) rethrows
@@ -28,7 +35,7 @@ extension MongoDocumentDSL where Encoder == Self
         try populate(&self)
     }
 }
-extension MongoDocumentDSL where Encoder:BSON.Encoder
+extension Mongo.EncodableDocument where Encoder:BSON.Encoder
 {
     /// Creates an empty instance of this type, and initializes it with the
     /// given closure.
@@ -40,7 +47,7 @@ extension MongoDocumentDSL where Encoder:BSON.Encoder
         self.init(bson)
     }
 }
-extension MongoDocumentDSL
+extension Mongo.EncodableDocument
     where Self:ExpressibleByDictionaryLiteral, Key == Never, Value == Never
 {
     @inlinable public

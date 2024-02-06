@@ -65,11 +65,19 @@ extension Mongo.UpdateStatementEncoder
         case q
     }
 
+    @available(*, deprecated, message: "Use the functional subscript instead.")
     @inlinable public
     subscript(key:Q) -> Mongo.PredicateDocument?
     {
         get { nil }
         set (value) { value?.encode(to: &self.bson[with: key]) }
+    }
+
+    @inlinable public
+    subscript(key:Q, yield:(inout Mongo.PredicateEncoder) -> () = { _ in }) -> Void
+    {
+        mutating
+        get { yield(&self.bson[with: key][as: Mongo.PredicateEncoder.self]) }
     }
 }
 extension Mongo.UpdateStatementEncoder
@@ -97,10 +105,10 @@ extension Mongo.UpdateStatementEncoder
     }
 
     @inlinable public
-    subscript(key:U, yield:(inout Mongo.UpdateDocumentEncoder) -> ()) -> Void
+    subscript(key:U, yield:(inout Mongo.UpdateEncoder) -> ()) -> Void
     {
         mutating
-        get { yield(&self.bson[with: key][as: Mongo.UpdateDocumentEncoder.self]) }
+        get { yield(&self.bson[with: key][as: Mongo.UpdateEncoder.self]) }
     }
 
     @inlinable public

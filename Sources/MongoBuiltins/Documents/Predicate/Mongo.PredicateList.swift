@@ -15,12 +15,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.PredicateList
+extension Mongo.PredicateList:Mongo.EncodableList
 {
-    @inlinable public
-    init(with populate:(inout Mongo.PredicateListEncoder) throws -> ()) rethrows
-    {
-        self.init(.init())
-        try populate(&self.bson.output[as: Mongo.PredicateListEncoder.self])
-    }
+    public
+    typealias Encoder = Mongo.PredicateListEncoder
 }

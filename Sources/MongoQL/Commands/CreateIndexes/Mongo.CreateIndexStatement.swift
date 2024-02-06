@@ -15,7 +15,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.CreateIndexStatement:MongoDocumentDSL
+extension Mongo.CreateIndexStatement:Mongo.EncodableDocument
 {
     public
     typealias Encoder = Mongo.CreateIndexStatementEncoder

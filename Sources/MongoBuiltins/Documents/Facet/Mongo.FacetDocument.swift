@@ -4,7 +4,7 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct FacetDocument:MongoDocumentDSL, Sendable
+    struct FacetDocument:Mongo.EncodableDocument, Sendable
     {
         public
         var bson:BSON.Document

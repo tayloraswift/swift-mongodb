@@ -2,10 +2,6 @@ import BSON
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "UpdateListEncoder")
-    public
-    typealias UpdateEncoder = UpdateListEncoder
-
     @frozen public
     struct UpdateListEncoder<Effect> where Effect:Mongo.WriteEffect
     {
@@ -60,7 +56,7 @@ extension Mongo.UpdateListEncoder
         self
         {
             $0[.upsert] = upsert
-            $0[.q] = .init { $0["_id"] = element.id }
+            $0[.q] { $0["_id"] = element.id }
             $0[.u] = element
         }
     }

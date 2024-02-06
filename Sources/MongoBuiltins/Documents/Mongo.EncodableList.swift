@@ -1,16 +1,22 @@
 import BSON
 
-/// A `MongoListDSL` is nothing more than a type that supports an
-/// ``init(with:)`` builder API.
-///
-/// The specific encoding API vended and encodability protocol used is up to
-/// the conforming type.
+extension Mongo
+{
+    /// An `EncodableList` is nothing more than a type that supports an ``init(with:)`` builder
+    /// API.
+    ///
+    /// The specific encoding API vended and encodability protocol used is up to the conforming
+    /// type.
+    public
+    typealias EncodableList = _MongoEncodableList
+}
+
 public
-protocol MongoListDSL:BSONRepresentable<BSON.List>, BSONDecodable, BSONEncodable
+protocol _MongoEncodableList:BSONRepresentable<BSON.List>, BSONDecodable, BSONEncodable
 {
     associatedtype Encoder:BSON.Encoder
 }
-extension MongoListDSL
+extension Mongo.EncodableList
 {
     @inlinable public
     init()
@@ -27,7 +33,7 @@ extension MongoListDSL
         self.init(list)
     }
 }
-extension MongoListDSL
+extension Mongo.EncodableList
     where Self:ExpressibleByArrayLiteral, ArrayLiteralElement == Never
 {
     @inlinable public

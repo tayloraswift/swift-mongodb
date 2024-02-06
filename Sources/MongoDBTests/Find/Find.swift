@@ -122,10 +122,7 @@ struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfigu
                     {
                         $0[.filter] = .init
                         {
-                            $0["value"] = .init
-                            {
-                                $0[.mod] = (by: 3, is: 0)
-                            }
+                            $0["value"] { $0[.mod] = (by: 3, is: 0) }
                         }
                     },
                     against: database)

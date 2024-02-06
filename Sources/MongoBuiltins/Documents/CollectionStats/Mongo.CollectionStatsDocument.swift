@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct CollectionStatsDocument:MongoDocumentDSL, Sendable
+    struct CollectionStatsDocument:Mongo.EncodableDocument, Sendable
     {
         public
         var bson:BSON.Document
