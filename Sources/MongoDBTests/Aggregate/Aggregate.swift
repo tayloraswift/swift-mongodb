@@ -61,9 +61,9 @@ struct Aggregate<Configuration>:MongoTestBattery where Configuration:MongoTestCo
                     readConcern: .majority,
                     pipeline: .init
                     {
-                        $0[.project] = .init { $0[Article[.tags]] = 1 }
-                        $0[.unwind] = Article[.tags]
-                        $0[.group] = .init
+                        $0[stage: .project] = .init { $0[Article[.tags]] = 1 }
+                        $0[stage: .unwind] = Article[.tags]
+                        $0[stage: .group] = .init
                         {
                             $0[.id] = Article[.tags]
 
@@ -92,22 +92,16 @@ struct Aggregate<Configuration>:MongoTestBattery where Configuration:MongoTestCo
                     readConcern: .majority,
                     pipeline: .init
                     {
-                        $0.stage
+                        $0[stage: .project] = .init
                         {
-                            $0[.project] = .init
-                            {
-                                $0[Article[.author]] = 1
-                                $0[Article[.views]] = 1
-                            }
+                            $0[Article[.author]] = 1
+                            $0[Article[.views]] = 1
                         }
-                        $0.stage
+                        $0[stage: .group] = .init
                         {
-                            $0[.group] = .init
-                            {
-                                $0[.id] = Article[.author]
+                            $0[.id] = Article[.author]
 
-                                $0[Article[.views]] = .init { $0[.sum] = Article[.views] }
-                            }
+                            $0[Article[.views]] = .init { $0[.sum] = Article[.views] }
                         }
                     },
                     stride: 10),

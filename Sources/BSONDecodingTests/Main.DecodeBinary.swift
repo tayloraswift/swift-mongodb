@@ -15,11 +15,8 @@ extension Main.DecodeBinary:TestBattery
         if  let tests:TestGroup = tests / "md5"
         {
             let md5:BSON.BinaryView<ArraySlice<UInt8>> = .init(subtype: .md5,
-                slice: [0xff, 0xfe, 0xfd])
-            let bson:BSON.DocumentView =
-            [
-                "md5": .binary(md5),
-            ]
+                bytes: [0xff, 0xfe, 0xfd])
+            let bson:BSON.Document = ["md5": .binary(md5)]
 
             tests.do
             {

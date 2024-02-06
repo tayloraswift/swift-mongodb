@@ -1,6 +1,6 @@
 /// A type that can be decoded from a BSON dictionary-decoder.
 public
-protocol BSONDocumentDecodable<CodingKey>:BSONDocumentViewDecodable
+protocol BSONDocumentDecodable<CodingKey>:BSONDecodable
 {
     associatedtype CodingKey:RawRepresentable<String> & Hashable & Sendable = BSON.Key
 
@@ -9,7 +9,13 @@ protocol BSONDocumentDecodable<CodingKey>:BSONDocumentViewDecodable
 extension BSONDocumentDecodable
 {
     @inlinable public
-    init(bson:BSON.DocumentView) throws
+    init(bson:BSON.AnyValue) throws
+    {
+        try self.init(bson: try .init(parsing: bson))
+    }
+
+    @inlinable public
+    init(bson:BSON.Document) throws
     {
         try self.init(bson: try .init(parsing: bson))
     }

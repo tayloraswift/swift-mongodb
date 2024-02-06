@@ -36,7 +36,7 @@ extension BSON.OutputStream
     func serialize(utf8:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
         self.serialize(integer: utf8.header)
-        self.append(utf8.slice)
+        self.append(utf8.bytes)
         self.append(0x00)
     }
     @inlinable public mutating
@@ -44,20 +44,20 @@ extension BSON.OutputStream
     {
         self.serialize(integer: binary.header)
         self.append(binary.subtype.rawValue)
-        self.append(binary.slice)
+        self.append(binary.bytes)
     }
     @inlinable public mutating
-    func serialize(document:BSON.DocumentView)
+    func serialize(document:BSON.Document)
     {
         self.serialize(integer: document.header)
-        self.append(document.slice)
+        self.append(document.bytes)
         self.append(0x00)
     }
     @inlinable public mutating
-    func serialize(list:BSON.ListView)
+    func serialize(list:BSON.List)
     {
         self.serialize(integer: list.header)
-        self.append(list.slice)
+        self.append(list.bytes)
         self.append(0x00)
     }
 }

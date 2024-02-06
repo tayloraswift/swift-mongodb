@@ -12,7 +12,7 @@ extension Main.DecodeNumeric:TestBattery
     static
     func run(tests:TestGroup)
     {
-        let bson:BSON.DocumentView =
+        let bson:BSON.Document =
         [
             "int32": .int32(0x7fff_ffff),
             "int64": .int64(0x7fff_ffff_ffff_ffff),

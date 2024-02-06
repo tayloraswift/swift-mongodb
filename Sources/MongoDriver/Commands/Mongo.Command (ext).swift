@@ -46,7 +46,7 @@ extension Mongo.Command
             }
         }
 
-        let body:BSON.DocumentView = self.body(database: database,
+        let body:BSON.Document = self.body(database: database,
             timeout: timeout,
             labels: labels)
 
@@ -56,7 +56,7 @@ extension Mongo.Command
     private consuming
     func body(database:Database,
         timeout:Milliseconds?,
-        labels:Mongo.SessionLabels?) -> BSON.DocumentView
+        labels:Mongo.SessionLabels?) -> BSON.Document
     {
         var bson:BSON.Document = self.fields
         ;
@@ -95,6 +95,6 @@ extension Mongo.Command
             }
         } (&bson[BSON.Key.self])
 
-        return .init(bson)
+        return bson
     }
 }

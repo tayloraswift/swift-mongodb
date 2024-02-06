@@ -6,7 +6,7 @@ extension TestBattery
     static
     func run(_ tests:TestGroup?,
         encoded:BSON.Document,
-        literal:BSON.DocumentView)
+        literal:BSON.Document)
     {
         guard
         let tests:TestGroup
@@ -14,8 +14,6 @@ extension TestBattery
         {
             return
         }
-
-        let encoded:BSON.DocumentView = .init(encoded)
 
         tests.expect(encoded ==? literal)
 

@@ -19,7 +19,7 @@ extension Mongo
 extension Mongo.GroupDocument
 {
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> Mongo.Accumulator?
+    subscript(path:Mongo.AnyKeyPath) -> Mongo.Accumulator?
     {
         get
         {

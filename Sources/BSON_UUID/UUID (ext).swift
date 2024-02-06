@@ -9,7 +9,7 @@ extension UUID:BSONDecodable, BSONBinaryViewDecodable
         try bson.subtype.expect(.uuid)
         try bson.shape.expect(length: 16)
 
-        self.init(bson.slice)
+        self.init(bson.bytes)
     }
 }
 extension UUID:BSONEncodable
@@ -17,6 +17,6 @@ extension UUID:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(binary: BSON.BinaryView<Self>.init(subtype: .uuid, slice: self))
+        field.encode(binary: BSON.BinaryView<Self>.init(subtype: .uuid, bytes: self))
     }
 }

@@ -6,6 +6,6 @@ extension [String: Never]:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(document: .init(slice: []))
+        field.encode(document: [:])
     }
 }

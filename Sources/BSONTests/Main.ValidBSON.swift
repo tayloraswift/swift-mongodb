@@ -303,37 +303,37 @@ extension Main.ValidBSON:TestBattery
         {
             Self.run(tests / "generic-empty",
                 canonical: "0D000000057800000000000000",
-                expected: ["x": .binary(.init(subtype: .generic, slice: []))])
+                expected: ["x": .binary(.init(subtype: .generic, bytes: []))])
 
             Self.run(tests / "generic",
                 canonical: "0F0000000578000200000000FFFF00",
                 expected: ["x": .binary(.init(subtype: .generic,
-                    slice: Base16.decode("ffff")))])
+                    bytes: Base16.decode("ffff")))])
 
             Self.run(tests / "function",
                 canonical: "0F0000000578000200000001FFFF00",
                 expected: ["x": .binary(.init(subtype: .function,
-                    slice: Base16.decode("ffff")))])
+                    bytes: Base16.decode("ffff")))])
 
             Self.run(tests / "uuid",
                 canonical: "1D000000057800100000000473FFD26444B34C6990E8E7D1DFC035D400",
                 expected: ["x": .binary(.init(subtype: .uuid,
-                    slice: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
+                    bytes: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
 
             Self.run(tests / "md5",
                 canonical: "1D000000057800100000000573FFD26444B34C6990E8E7D1DFC035D400",
                 expected: ["x": .binary(.init(subtype: .md5,
-                    slice: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
+                    bytes: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
 
             Self.run(tests / "compressed",
                 canonical: "1D000000057800100000000773FFD26444B34C6990E8E7D1DFC035D400",
                 expected: ["x": .binary(.init(subtype: .compressed,
-                    slice: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
+                    bytes: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
 
             Self.run(tests / "custom",
                 canonical: "0F0000000578000200000080FFFF00",
                 expected: ["x": .binary(.init(subtype: .custom(code: 0x80),
-                    slice: Base16.decode("ffff")))])
+                    bytes: Base16.decode("ffff")))])
             // TODO: tests for legacy binary subtype 0x02
         }
 
@@ -471,7 +471,7 @@ extension Main.ValidBSON:TestBattery
 
             Self.run(tests / "invalid-utf-8",
                 canonical: "0E00000002610002000000E90000",
-                expected: ["a": .string(.init(slice: [0xe9]))])
+                expected: ["a": .string(.init(bytes: [0xe9]))])
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/symbol.json
@@ -567,7 +567,7 @@ extension Main.ValidBSON
     func run(_ tests:TestGroup?,
         degenerate:String? = nil,
         canonical:String,
-        expected:BSON.DocumentView)
+        expected:BSON.Document)
     {
         guard let tests:TestGroup
         else
@@ -581,7 +581,7 @@ extension Main.ValidBSON
             .init(littleEndian: $0.load(as: Int32.self))
         }
 
-        let document:BSON.DocumentView = .init(
+        let document:BSON.Document = .init(
             slicing: canonical.dropFirst(4).dropLast())
 
         tests.expect(canonical.count ==? .init(size))
@@ -593,12 +593,12 @@ extension Main.ValidBSON
         if  let degenerate:String
         {
             let degenerate:[UInt8] = Base16.decode(degenerate.utf8)
-            let document:BSON.DocumentView = .init(
+            let document:BSON.Document = .init(
                 slicing: degenerate.dropFirst(4).dropLast())
 
             (tests / "canonicalization")?.do
             {
-                let canonicalized:BSON.DocumentView = try document.canonicalized()
+                let canonicalized:BSON.Document = try document.canonicalized()
 
                 tests.expect(true: expected ~~ document)
                 tests.expect(true: expected == canonicalized)

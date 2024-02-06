@@ -19,7 +19,7 @@ extension Mongo
 extension Mongo.LetDocument
 {
     @inlinable public
-    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable?
+    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable?
         where Encodable:BSONEncodable
     {
         get

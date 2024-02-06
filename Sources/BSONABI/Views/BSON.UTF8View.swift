@@ -16,13 +16,39 @@ extension BSON
         /// include the trailing null byte that typically appears when this value
         /// occurs inline in a document.
         public
-        let slice:Bytes
+        let bytes:Bytes
 
         @inlinable public
-        init(slice:Bytes)
+        init(bytes:Bytes)
         {
-            self.slice = slice
+            self.bytes = bytes
         }
+    }
+}
+extension BSON.UTF8View:Sendable where Bytes:Sendable
+{
+}
+extension BSON.UTF8View<ArraySlice<UInt8>>:BSON.FrameTraversable
+{
+    public
+    typealias Frame = BSON.UTF8Frame
+
+    /// Stores the argument in ``bytes`` unchanged. Equivalent to ``init(bytes:)``.
+    ///
+    /// >   Complexity: O(1)
+    @inlinable public
+    init(slicing bytes:Bytes) throws
+    {
+        self.init(bytes: bytes)
+    }
+}
+extension BSON.UTF8View:Equatable
+{
+    /// Performs a unicode-aware string comparison on two UTF-8 strings.
+    @inlinable public static
+    func == (lhs:Self, rhs:BSON.UTF8View<some BidirectionalCollection<UInt8>>) -> Bool
+    {
+        lhs.description == rhs.description
     }
 }
 extension BSON.UTF8View where Bytes:RangeReplaceableCollection
@@ -39,7 +65,7 @@ extension BSON.UTF8View where Bytes:RangeReplaceableCollection
     @inlinable public
     init(from string:some StringProtocol)
     {
-        self.init(slice: .init(string.utf8))
+        self.init(bytes: .init(string.utf8))
     }
 }
 extension BSON.UTF8View<String.UTF8View>:ExpressibleByStringLiteral,
@@ -63,7 +89,7 @@ extension BSON.UTF8View<String.UTF8View>:ExpressibleByStringLiteral,
     {
         var string:String = string
             string.makeContiguousUTF8()
-        self.init(slice: string.utf8)
+        self.init(bytes: string.utf8)
     }
 }
 extension BSON.UTF8View<Substring.UTF8View>
@@ -79,7 +105,7 @@ extension BSON.UTF8View<Substring.UTF8View>
     {
         var string:Substring = string
             string.makeContiguousUTF8()
-        self.init(slice: string.utf8)
+        self.init(bytes: string.utf8)
     }
 }
 extension BSON.UTF8View<ArraySlice<UInt8>>
@@ -92,20 +118,8 @@ extension BSON.UTF8View<ArraySlice<UInt8>>
     @inlinable public
     init(_ string:StaticString)
     {
-        self.init(slice: string.withUTF8Buffer(ArraySlice<UInt8>.init(_:)))
+        self.init(bytes: string.withUTF8Buffer(ArraySlice<UInt8>.init(_:)))
     }
-}
-extension BSON.UTF8View:Equatable
-{
-    /// Performs a unicode-aware string comparison on two UTF-8 strings.
-    @inlinable public static
-    func == (lhs:Self, rhs:BSON.UTF8View<some BidirectionalCollection<UInt8>>) -> Bool
-    {
-        lhs.description == rhs.description
-    }
-}
-extension BSON.UTF8View:Sendable where Bytes:Sendable
-{
 }
 
 extension BSON.UTF8View:CustomStringConvertible
@@ -117,29 +131,7 @@ extension BSON.UTF8View:CustomStringConvertible
     @inlinable public
     var description:String
     {
-        .init(decoding: self.slice, as: Unicode.UTF8.self)
-    }
-}
-extension BSON.UTF8View<ArraySlice<UInt8>>:BSON.FrameTraversable
-{
-    public
-    typealias Frame = BSON.UTF8Frame
-
-    /// Stores the argument in ``slice`` unchanged. Equivalent to ``init(slice:)``.
-    ///
-    /// >   Complexity: O(1)
-    @inlinable public
-    init(slicing bytes:Bytes) throws
-    {
-        self.init(slice: bytes)
-    }
-}
-extension BSON.UTF8View<ArraySlice<UInt8>>:BSON.FrameView
-{
-    @inlinable public
-    init(_ value:BSON.AnyValue) throws
-    {
-        self = try value.cast(with: \.utf8)
+        .init(decoding: self.bytes, as: Unicode.UTF8.self)
     }
 }
 extension BSON.UTF8View
@@ -149,13 +141,23 @@ extension BSON.UTF8View
     @inlinable public
     var header:Int32
     {
-        Int32.init(self.slice.count) + 1
+        Int32.init(self.bytes.count) + 1
     }
     /// The size of this string when encoded with its header and trailing null byte.
     /// This is *not* the length encoded in the header itself.
     @inlinable public
     var size:Int
     {
-        5 + self.slice.count
+        5 + self.bytes.count
+    }
+}
+
+extension BSON.UTF8View
+{
+    @available(*, deprecated, renamed: "init(bytes:)")
+    @inlinable public
+    init(slice:Bytes)
+    {
+        self.init(bytes: slice)
     }
 }

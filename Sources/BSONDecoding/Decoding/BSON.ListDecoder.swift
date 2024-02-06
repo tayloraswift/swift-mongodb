@@ -31,7 +31,7 @@ extension BSON.ListDecoder:BSON.Decoder
     @inlinable public
     init(parsing bson:borrowing BSON.AnyValue) throws
     {
-        try self.init(parsing: try .init(copy bson))
+        try self.init(parsing: try .init(bson: copy bson))
     }
 }
 extension BSON.ListDecoder
@@ -45,7 +45,7 @@ extension BSON.ListDecoder
     /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.
     @inlinable public
-    init(parsing bson:borrowing BSON.ListView) throws
+    init(parsing bson:borrowing BSON.List) throws
     {
         self.init(try bson.parse())
     }

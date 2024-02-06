@@ -5,9 +5,9 @@ extension BSON
     enum AnyValue:Sendable
     {
         /// A general embedded document.
-        case document(BSON.DocumentView)
+        case document(BSON.Document)
         /// An embedded list-document.
-        case list(BSON.ListView)
+        case list(BSON.List)
         /// A binary array.
         case binary(BSON.BinaryView<ArraySlice<UInt8>>)
         /// A boolean.
@@ -29,7 +29,7 @@ extension BSON
         /// A javascript scope containing code. This variant is maintained for
         /// backward-compatibility with older versions of BSON and
         /// should not be generated. (Prefer ``javascript(_:)``.)
-        case javascriptScope(BSON.DocumentView, BSON.UTF8View<ArraySlice<UInt8>>)
+        case javascriptScope(BSON.Document, BSON.UTF8View<ArraySlice<UInt8>>)
         /// The MongoDB max-key.
         case max
         /// UTC milliseconds since the Unix epoch.
@@ -411,16 +411,13 @@ extension BSON.AnyValue
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    var document:BSON.DocumentView?
+    var document:BSON.Document?
     {
         switch self
         {
-        case .document(let document):
-            document
-        case .list(let list):
-            list.document
-        default:
-            nil
+        case .document(let document):   document
+        case .list(let list):           .init(list: list)
+        default:                        nil
         }
     }
     /// Attempts to unwrap a list from this variant.
@@ -431,7 +428,7 @@ extension BSON.AnyValue
     ///
     /// >   Complexity: O(1).
     @inlinable public
-    var list:BSON.ListView?
+    var list:BSON.List?
     {
         switch self
         {

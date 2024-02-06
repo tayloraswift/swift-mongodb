@@ -18,9 +18,9 @@ extension Mongo
 extension Mongo.Variable where T:MongoMasterCodingModel
 {
     @inlinable public
-    subscript(key:T.CodingKey) -> Mongo.KeyPath
+    subscript(key:T.CodingKey) -> Mongo.AnyKeyPath
     {
-        //  When the key path is encoded, ``Mongo.KeyPath``
+        //  When the key path is encoded, ``Mongo.AnyKeyPath``
         //  will add an additional prefixed dollar sign.
         .init(rawValue: "$\(self.name).\(key.rawValue)")
     }

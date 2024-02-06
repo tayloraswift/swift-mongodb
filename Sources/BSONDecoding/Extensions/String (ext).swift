@@ -10,6 +10,6 @@ extension String:BSONStringDecodable
     @inlinable public
     init(bson:BSON.UTF8View<ArraySlice<UInt8>>)
     {
-        self.init(decoding: bson.slice, as: Unicode.UTF8.self)
+        self.init(decoding: bson.bytes, as: Unicode.UTF8.self)
     }
 }

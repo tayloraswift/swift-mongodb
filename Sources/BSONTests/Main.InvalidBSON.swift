@@ -320,7 +320,7 @@ extension Main.InvalidBSON
 
         tests.do(catching: error)
         {
-            let document:BSON.DocumentView = try input.parse(as: BSON.DocumentView.self)
+            let document:BSON.Document = try input.parse(as: BSON.Document.self)
             try input.finish()
             _ = try document.canonicalized()
         }

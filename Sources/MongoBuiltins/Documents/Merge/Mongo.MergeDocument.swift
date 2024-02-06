@@ -44,7 +44,7 @@ extension Mongo.MergeDocument
     }
 
     @inlinable public
-    subscript(key:On) -> Mongo.KeyPath?
+    subscript(key:On) -> Mongo.AnyKeyPath?
     {
         get
         {

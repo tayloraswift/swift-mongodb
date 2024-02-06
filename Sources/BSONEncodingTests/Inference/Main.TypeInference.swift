@@ -16,12 +16,12 @@ extension Main.TypeInference:TestBattery
             encoded: .init
             {
                 $0["a"] = BSON.BinaryView<[UInt8]>.init(subtype: .generic,
-                    slice: [0xff, 0xff, 0xff])
+                    bytes: [0xff, 0xff, 0xff])
             },
             literal:
             [
                 "a": .binary(.init(subtype: .generic,
-                    slice: [0xff, 0xff, 0xff])),
+                    bytes: [0xff, 0xff, 0xff])),
             ])
 
         Self.run(tests / "max",

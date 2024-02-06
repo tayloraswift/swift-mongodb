@@ -1,4 +1,4 @@
-extension Mongo.UpdateDocument
+extension Mongo.UpdateDocumentEncoder
 {
     /// Takes a document and removes the specified fields.
     /// Not to be confused with the ``Mongo.PipelineState.Unset/unset``

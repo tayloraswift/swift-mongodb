@@ -3,10 +3,10 @@ import BSON
 extension BSONEncodable where Self == Mongo.Expression
 {
     @inlinable public static
-    func expr(with populate:(inout Self) throws -> ()) rethrows -> Self
+    func expr(with populate:(inout Mongo.ExpressionEncoder) throws -> ()) rethrows -> Self
     {
-        var expr:Self = .init(.init())
-        try populate(&expr)
-        return expr
+        var document:BSON.Document = .init()
+        try populate(&document.output[as: Mongo.ExpressionEncoder.self])
+        return .init(document)
     }
 }

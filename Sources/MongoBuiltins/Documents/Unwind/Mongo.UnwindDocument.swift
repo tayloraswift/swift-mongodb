@@ -19,7 +19,7 @@ extension Mongo
 extension Mongo.UnwindDocument
 {
     @inlinable public
-    subscript(key:Field) -> Mongo.KeyPath?
+    subscript(key:Field) -> Mongo.AnyKeyPath?
     {
         get
         {

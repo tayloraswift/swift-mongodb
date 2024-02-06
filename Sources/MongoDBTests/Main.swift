@@ -19,6 +19,7 @@ enum Main:TestMain
         Indexes             <ReplicatedConfiguration>.self,
         Insert              <ReplicatedConfiguration>.self,
         Update              <ReplicatedConfiguration>.self,
+        UpdateNested        <ReplicatedConfiguration>.self,
 
         Transactions        <ReplicatedConfiguration>.self,
         CausalConsistency   <ReplicatedConfigurationWithLongerTimeout>.self,
@@ -37,5 +38,6 @@ enum Main:TestMain
         Indexes             <SingleConfiguration>.self,
         Insert              <SingleConfiguration>.self,
         Update              <SingleConfiguration>.self,
+        UpdateNested        <SingleConfiguration>.self,
     ]
 }

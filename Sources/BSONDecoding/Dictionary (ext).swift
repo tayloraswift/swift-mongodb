@@ -1,11 +1,15 @@
-extension Dictionary:BSONDocumentViewDecodable, BSONDecodable
-    where Key == BSON.Key, Value:BSONDecodable
+extension Dictionary:BSONDecodable where Key == BSON.Key, Value:BSONDecodable
 {
+    @inlinable public
+    init(bson:BSON.AnyValue) throws
+    {
+        try self.init(bson: try .init(bson: consume bson))
+    }
     /// Decodes an unordered dictionary from the given document. Dictionaries
     /// are not ``BSONEncodable``, because round-tripping them loses the field
     /// ordering information.
     @inlinable public
-    init(bson:BSON.DocumentView) throws
+    init(bson:BSON.Document) throws
     {
         self.init()
         try bson.parse

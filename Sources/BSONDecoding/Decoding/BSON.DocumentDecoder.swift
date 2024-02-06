@@ -8,7 +8,7 @@ extension BSON
                 CodingKey:Hashable,
                 CodingKey:Sendable
     {
-        @usableFromInline internal
+        @usableFromInline
         var index:[CodingKey: BSON.AnyValue]
 
         @inlinable public
@@ -28,7 +28,7 @@ extension BSON.DocumentDecoder:BSON.Decoder
     @inlinable public
     init(parsing bson:borrowing BSON.AnyValue) throws
     {
-        try self.init(parsing: try .init(copy bson))
+        try self.init(parsing: try .init(bson: copy bson))
     }
 }
 extension BSON.DocumentDecoder
@@ -52,7 +52,7 @@ extension BSON.DocumentDecoder
     /// comparison would drop one of the values.
     ///
     /// To get a plain array of key-value pairs with no decoding interface, call the
-    /// document view’s ``BSON.DocumentView/parse()`` method instead.
+    /// document view’s ``BSON.Document/parse()`` method instead.
     ///
     /// >   Complexity:
     ///     O(*n*), where *n* is the number of fields in the source document.
@@ -62,7 +62,7 @@ extension BSON.DocumentDecoder
     ///     information for the object items. Re-encoding it may produce a BSON
     ///     document that contains the same data, but does not compare equal.
     @inlinable public
-    init(parsing bson:borrowing BSON.DocumentView) throws
+    init(parsing bson:borrowing BSON.Document) throws
     {
         self.init()
         try bson.parse
@@ -72,14 +72,6 @@ extension BSON.DocumentDecoder
                 throw BSON.DocumentKeyError<CodingKey>.duplicate($0)
             }
         }
-    }
-}
-extension BSON.DocumentDecoder
-{
-    @inlinable public
-    init(parsing bson:borrowing BSON.Document) throws
-    {
-        try self.init(parsing: .init(copy bson))
     }
 }
 extension BSON.DocumentDecoder:Sequence

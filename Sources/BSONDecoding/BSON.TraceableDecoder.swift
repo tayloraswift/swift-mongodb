@@ -33,14 +33,7 @@ extension BSON.TraceableDecoder
     {
         try self.decode { try decode(try .init(parsing: $0)) }
     }
-    //  Right now, this is mainly useful for decoding custom ``BSON.BinaryView`` buffers.
-    //  We should probably replace this with a dedicated API for binary subschema.
-    @inlinable public
-    func decode<View, T>(as _:View.Type,
-        with decode:(View) throws -> T) throws -> T where View:BSON.FrameView
-    {
-        try self.decode { try decode(try .init($0)) }
-    }
+
     @inlinable public
     func decode<Decodable, T>(as _:Decodable.Type,
         with decode:(Decodable) throws -> T) throws -> T where Decodable:BSONDecodable

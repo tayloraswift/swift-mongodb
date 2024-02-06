@@ -24,7 +24,7 @@ extension Mongo.ProjectionDocument
     /// ``ProjectionOperator`` has no subscripts that accept string
     /// literals, so it will never conflict with ``BSON.Document``.
     @inlinable public
-    subscript(path:Mongo.KeyPath) -> Mongo.ProjectionOperator?
+    subscript(path:Mongo.AnyKeyPath) -> Mongo.ProjectionOperator?
     {
         get
         {
@@ -36,7 +36,7 @@ extension Mongo.ProjectionDocument
         }
     }
     @inlinable public
-    subscript<Encodable>(path:Mongo.KeyPath) -> Encodable? where Encodable:BSONEncodable
+    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
     {
         get
         {
