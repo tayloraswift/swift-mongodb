@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct UpdateEncoder<Effect> where Effect:Mongo.WriteEffect
+    struct UpdateListEncoder<Effect> where Effect:Mongo.WriteEffect
     {
         @usableFromInline internal
         var output:BSON.Output
@@ -15,23 +15,23 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateEncoder
+extension Mongo.UpdateListEncoder
 {
     @inlinable internal consuming
     func move() -> BSON.Output { self.output }
 }
-extension Mongo.UpdateEncoder
+extension Mongo.UpdateListEncoder
 {
     @inlinable public mutating
     func callAsFunction<T>(
-        with yield:(inout Mongo.UpdateStatement<Effect>) throws -> T) rethrows -> T
+        with yield:(inout Mongo.UpdateStatementEncoder<Effect>) throws -> T) rethrows -> T
     {
         try yield(&self.output[
-            as: Mongo.UpdateStatement<Effect>.self,
+            as: Mongo.UpdateStatementEncoder<Effect>.self,
             in: BSON.DocumentFrame.self])
     }
 }
-extension Mongo.UpdateEncoder
+extension Mongo.UpdateListEncoder
 {
     /// A shorthand for ``update(_:upsert:)`` with `upsert` set to false.
     @inlinable public mutating
@@ -56,7 +56,7 @@ extension Mongo.UpdateEncoder
         self
         {
             $0[.upsert] = upsert
-            $0[.q] = .init { $0["_id"] = element.id }
+            $0[.q] { $0["_id"] = element.id }
             $0[.u] = element
         }
     }

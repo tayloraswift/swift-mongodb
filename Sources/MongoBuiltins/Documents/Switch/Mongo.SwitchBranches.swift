@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct SwitchBranches:MongoListDSL, Sendable
+    struct SwitchBranches:Mongo.EncodableList, Sendable
     {
         public
         var bson:BSON.List

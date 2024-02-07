@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateFields:MongoDocumentDSL
+extension Mongo.UpdateFields:Mongo.EncodableDocument
 {
     public
     typealias Encoder = Mongo.UpdateFieldsEncoder<Operator>

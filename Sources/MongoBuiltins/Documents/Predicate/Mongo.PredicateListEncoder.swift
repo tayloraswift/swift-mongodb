@@ -36,9 +36,17 @@ extension Mongo.PredicateListEncoder
     {
         self.list.append(predicate)
     }
+
     @inlinable public mutating
-    func append(with encode:(inout Mongo.PredicateDocument) -> ())
+    func callAsFunction(with encode:(inout Mongo.PredicateEncoder) -> ())
     {
-        self.append(.init(with: encode))
+        self.list.append { encode(&$0[as: Mongo.PredicateEncoder.self]) }
+    }
+
+    @available(*, deprecated, renamed: "callAsFunction(with:)")
+    @inlinable public mutating
+    func append(with encode:(inout Mongo.PredicateEncoder) -> ())
+    {
+        self.list.append { encode(&$0[as: Mongo.PredicateEncoder.self]) }
     }
 }

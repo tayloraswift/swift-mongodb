@@ -30,20 +30,11 @@ func ExampleProjectionDocuments()
         {
             $0[.first] = .init
             {
-                $0[.or] =
-                [
-                    .init
-                    {
-                        $0["x"] = 5
-                    },
-                    .init
-                    {
-                        $0["x"] = .init
-                        {
-                            $0[.gt] = 5
-                        }
-                    },
-                ]
+                $0[.or]
+                {
+                    $0 { $0["x"] = 5 }
+                    $0 { $0["x"] { $0[.gt] = 5 } }
+                }
             }
         }
     }

@@ -2,8 +2,12 @@ import BSON
 
 extension Mongo
 {
+    @available(*, deprecated, renamed: "InsertListEncoder")
+    public
+    typealias InsertEncoder = InsertListEncoder
+
     @frozen public
-    struct InsertEncoder
+    struct InsertListEncoder
     {
         @usableFromInline internal
         var output:BSON.Output
@@ -15,12 +19,12 @@ extension Mongo
         }
     }
 }
-extension Mongo.InsertEncoder
+extension Mongo.InsertListEncoder
 {
     @inlinable internal consuming
     func move() -> BSON.Output { self.output }
 }
-extension Mongo.InsertEncoder
+extension Mongo.InsertListEncoder
 {
     @inlinable public static
     func += (self:inout Self, elements:some Sequence<some BSONDocumentEncodable>)

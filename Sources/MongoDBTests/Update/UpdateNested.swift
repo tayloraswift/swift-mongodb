@@ -74,7 +74,7 @@ struct UpdateNested<Configuration>:MongoTestBattery where Configuration:MongoTes
                     {
                         $0
                         {
-                            $0[.q] = .init
+                            $0[.q]
                             {
                                 $0["name"] = "George"
                             }
@@ -121,7 +121,7 @@ struct UpdateNested<Configuration>:MongoTestBattery where Configuration:MongoTes
                     {
                         $0
                         {
-                            $0[.q] = .init
+                            $0[.q]
                             {
                                 $0["name"] = "Harambe"
                             }
@@ -165,7 +165,7 @@ struct UpdateNested<Configuration>:MongoTestBattery where Configuration:MongoTes
                     {
                         $0
                         {
-                            $0[.q] = .init
+                            $0[.q]
                             {
                                 $0["name"] = "Harambe"
                             }

@@ -5,7 +5,7 @@ extension Mongo
 {
     /// Not to be confused with ``PredicateDocument``.
     @frozen public
-    struct FilterDocument:MongoDocumentDSL, Sendable
+    struct FilterDocument:Mongo.EncodableDocument, Sendable
     {
         public
         var bson:BSON.Document

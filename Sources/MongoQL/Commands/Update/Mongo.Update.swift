@@ -49,9 +49,9 @@ extension Mongo.Update
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        updates encode:(inout Mongo.UpdateEncoder<Effect>) throws -> ()) rethrows
+        updates encode:(inout Mongo.UpdateListEncoder<Effect>) throws -> ()) rethrows
     {
-        var updates:Mongo.UpdateEncoder<Effect> = .init()
+        var updates:Mongo.UpdateListEncoder<Effect> = .init()
         try encode(&updates)
 
         self.init(writeConcern: writeConcern,
@@ -63,7 +63,7 @@ extension Mongo.Update
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         with configure:(inout Self) throws -> (),
-        updates encode:(inout Mongo.UpdateEncoder<Effect>) throws -> ()) rethrows
+        updates encode:(inout Mongo.UpdateListEncoder<Effect>) throws -> ()) rethrows
     {
         try self.init(collection, writeConcern: writeConcern, updates: encode)
         try configure(&self)
@@ -71,6 +71,15 @@ extension Mongo.Update
 }
 extension Mongo.Update
 {
+    //  Note: this has the exact same cases as ``Mongo.Insert.Flag``,
+    //  but it’s a distinct type because it’s for a different API.
+    @frozen public
+    enum Flag:String, Equatable, Hashable, Sendable
+    {
+        case bypassDocumentValidation
+        case ordered
+    }
+
     @inlinable public
     subscript(key:Flag) -> Bool?
     {
@@ -82,6 +91,14 @@ extension Mongo.Update
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.Update
+{
+    @frozen public
+    enum Let:String, Hashable, Sendable
+    {
+        case `let`
     }
 
     @inlinable public

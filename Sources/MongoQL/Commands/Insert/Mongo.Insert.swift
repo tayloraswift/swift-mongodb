@@ -52,9 +52,9 @@ extension Mongo.Insert
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
-        documents encode:(inout Mongo.InsertEncoder) throws -> ()) rethrows
+        documents encode:(inout Mongo.InsertListEncoder) throws -> ()) rethrows
     {
-        var documents:Mongo.InsertEncoder = .init()
+        var documents:Mongo.InsertListEncoder = .init()
         try encode(&documents)
 
         self.init(writeConcern: writeConcern,
@@ -66,7 +66,7 @@ extension Mongo.Insert
     init(_ collection:Mongo.Collection,
         writeConcern:Mongo.WriteConcern? = nil,
         with configure:(inout Self) throws -> (),
-        documents encode:(inout Mongo.InsertEncoder) throws -> ()) rethrows
+        documents encode:(inout Mongo.InsertListEncoder) throws -> ()) rethrows
     {
         try self.init(collection, writeConcern: writeConcern, documents: encode)
         try configure(&self)
@@ -94,6 +94,15 @@ extension Mongo.Insert
 }
 extension Mongo.Insert
 {
+    //  Note: this has the exact same cases as ``Mongo.Update.Flag``,
+    //  but it’s a distinct type because it’s for a different API.
+    @frozen public
+    enum Flag:String, Equatable, Hashable, Sendable
+    {
+        case bypassDocumentValidation
+        case ordered
+    }
+
     @inlinable public
     subscript(key:Flag) -> Bool?
     {

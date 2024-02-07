@@ -138,7 +138,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                     {
                         $0
                         {
-                            $0[.q] = .init
+                            $0[.q]
                             {
                                 $0["member"] = "abc123"
                             }
@@ -186,7 +186,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                     {
                         $0
                         {
-                            $0[.q] = .init
+                            $0[.q]
                             {
                                 $0["_id"] = states.2.last?.id
                             }
@@ -224,7 +224,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                     {
                         $0
                         {
-                            $0[.q] = .init()
+                            $0[.q] = [:]
                             $0[.u]
                             {
                                 $0[.set]
@@ -270,7 +270,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                     {
                         $0
                         {
-                            $0[.q] = .init()
+                            $0[.q] = [:]
                             $0[.u]
                             {
                                 $0[stage: .set] = .init
@@ -316,7 +316,7 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                     {
                         $0
                         {
-                            $0[.q] = .init
+                            $0[.q]
                             {
                                 $0["_id"] = 3
                             }

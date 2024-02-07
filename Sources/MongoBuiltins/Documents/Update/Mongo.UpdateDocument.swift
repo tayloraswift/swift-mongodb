@@ -15,8 +15,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateDocument:MongoDocumentDSL
+extension Mongo.UpdateDocument:Mongo.EncodableDocument
 {
     public
-    typealias Encoder = Mongo.UpdateDocumentEncoder
+    typealias Encoder = Mongo.UpdateEncoder
 }

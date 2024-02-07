@@ -28,7 +28,7 @@ func ExampleBucketDocuments()
         $0[.boundaries] = .init
         {
             $0.append("$field")
-            $0.append
+            $0
             {
                 $0["x"] = "y"
             }

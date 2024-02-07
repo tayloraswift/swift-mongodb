@@ -3,7 +3,7 @@ import BSON
 extension Mongo.Accumulator
 {
     @frozen public
-    struct SuperlativeDocument:MongoDocumentDSL, Sendable
+    struct SuperlativeDocument:Mongo.EncodableDocument, Sendable
     {
         public
         var bson:BSON.Document

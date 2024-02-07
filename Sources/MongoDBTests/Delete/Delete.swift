@@ -241,10 +241,7 @@ struct Delete<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                             $0[.hint] = "points_index"
                             $0[.q] = .init
                             {
-                                $0["points"] = .init
-                                {
-                                    $0[.lt] = 70
-                                }
+                                $0["points"] { $0[.lt] = 70 }
                             }
                         }
                     },

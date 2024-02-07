@@ -65,19 +65,39 @@ extension BSON.ListEncoder
 extension BSON.ListEncoder
 {
     @inlinable public mutating
-    func append(with encode:(inout BSON.ListEncoder) -> ())
+    func callAsFunction(with encode:(inout BSON.ListEncoder) -> ())
     {
         self.append { encode(&$0[as: BSON.ListEncoder.self]) }
     }
     @inlinable public mutating
-    func append(with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
+    func callAsFunction(with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
     {
         self.append { encode(&$0[as: BSON.DocumentEncoder<BSON.Key>.self]) }
     }
     @inlinable public mutating
-    func append<CodingKey>(using _:CodingKey.Type = CodingKey.self,
+    func callAsFunction<CodingKey>(using _:CodingKey.Type = CodingKey.self,
         with encode:(inout BSON.DocumentEncoder<CodingKey>) -> ())
     {
         self.append { encode(&$0[as: BSON.DocumentEncoder<CodingKey>.self]) }
+    }
+
+    @available(*, deprecated, renamed: "callAsFunction(with:)")
+    @inlinable public mutating
+    func append(with encode:(inout BSON.ListEncoder) -> ())
+    {
+        self(with: encode)
+    }
+    @available(*, deprecated, renamed: "callAsFunction(with:)")
+    @inlinable public mutating
+    func append(with encode:(inout BSON.DocumentEncoder<BSON.Key>) -> ())
+    {
+        self(with: encode)
+    }
+    @available(*, deprecated, renamed: "callAsFunction(with:)")
+    @inlinable public mutating
+    func append<CodingKey>(using _:CodingKey.Type = CodingKey.self,
+        with encode:(inout BSON.DocumentEncoder<CodingKey>) -> ())
+    {
+        self(with: encode)
     }
 }

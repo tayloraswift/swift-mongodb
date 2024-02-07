@@ -4,7 +4,7 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct UpdateDocumentEncoder:Sendable
+    struct UpdateEncoder:Sendable
     {
         @usableFromInline
         var bson:BSON.DocumentEncoder<BSON.Key>
@@ -16,7 +16,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.UpdateDocumentEncoder:BSON.Encoder
+extension Mongo.UpdateEncoder:BSON.Encoder
 {
     @inlinable public
     init(_ output:consuming BSON.Output)
@@ -30,8 +30,15 @@ extension Mongo.UpdateDocumentEncoder:BSON.Encoder
     @inlinable public static
     var type:BSON.AnyType { .document }
 }
-extension Mongo.UpdateDocumentEncoder
+extension Mongo.UpdateEncoder
 {
+    @frozen public
+    enum Arithmetic:String, Hashable, Sendable
+    {
+        case inc = "$inc"
+        case mul = "$mul"
+    }
+
     @inlinable public
     subscript(key:Arithmetic,
         yield:(inout Mongo.UpdateFieldsEncoder<Arithmetic>) -> ()) -> Void
@@ -39,6 +46,30 @@ extension Mongo.UpdateDocumentEncoder
         mutating get
         {
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Arithmetic>.self])
+        }
+    }
+}
+extension Mongo.UpdateEncoder
+{
+    @frozen public
+    enum Assignment:String, Hashable, Sendable
+    {
+        case set = "$set"
+        case setOnInsert = "$setOnInsert"
+    }
+
+    /// We generally do not use ``BSONDocumentEncodable`` to type documents, because there are
+    /// many document-typed things that do not declare a coding key type. However, in this case,
+    /// we use ``BSONDocumentEncodable`` and not just ``BSONEncodable`` because you should only
+    /// ever be using this with something that has a ``BSONDocumentEncodable/CodingKey``.
+    @inlinable public
+    subscript<Replacement>(key:Assignment) -> Replacement?
+        where Replacement:BSONDocumentEncodable
+    {
+        get { nil }
+        set (value)
+        {
+            value?.encode(to: &self.bson[with: key])
         }
     }
 
@@ -51,6 +82,14 @@ extension Mongo.UpdateDocumentEncoder
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Assignment>.self])
         }
     }
+}
+extension Mongo.UpdateEncoder
+{
+    @frozen public
+    enum Bit:String, Hashable, Sendable
+    {
+        case bit = "$bit"
+    }
 
     @inlinable public
     subscript(key:Bit,
@@ -60,6 +99,14 @@ extension Mongo.UpdateDocumentEncoder
         {
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Bit>.self])
         }
+    }
+}
+extension Mongo.UpdateEncoder
+{
+    @frozen public
+    enum CurrentDate:String, Hashable, Sendable
+    {
+        case currentDate = "$currentDate"
     }
 
     @inlinable public
@@ -71,6 +118,14 @@ extension Mongo.UpdateDocumentEncoder
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<CurrentDate>.self])
         }
     }
+}
+extension Mongo.UpdateEncoder
+{
+    @frozen public
+    enum Pop:String, Hashable, Sendable
+    {
+        case pop = "$pop"
+    }
 
     @inlinable public
     subscript(key:Pop,
@@ -80,6 +135,14 @@ extension Mongo.UpdateDocumentEncoder
         {
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Pop>.self])
         }
+    }
+}
+extension Mongo.UpdateEncoder
+{
+    @frozen public
+    enum Pull:String, Hashable, Sendable
+    {
+        case pull = "$pull"
     }
 
     @inlinable public
@@ -91,6 +154,19 @@ extension Mongo.UpdateDocumentEncoder
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Pull>.self])
         }
     }
+}
+extension Mongo.UpdateEncoder
+{
+    @frozen public
+    enum Reduction:String, Hashable, Sendable
+    {
+        case addToSet = "$addToSet"
+        case max = "$max"
+        case min = "$min"
+        //  $pullAll is a reduction, it only accepts field values that form
+        //  BSON lists, but we can’t represent that in our type system.
+        case pullAll = "$pullAll"
+    }
 
     @inlinable public
     subscript(key:Reduction,
@@ -100,6 +176,14 @@ extension Mongo.UpdateDocumentEncoder
         {
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Reduction>.self])
         }
+    }
+}
+extension Mongo.UpdateEncoder
+{
+    @frozen public
+    enum Rename:String, Hashable, Sendable
+    {
+        case rename = "$rename"
     }
 
     @inlinable public
@@ -111,6 +195,17 @@ extension Mongo.UpdateDocumentEncoder
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Rename>.self])
         }
     }
+}
+extension Mongo.UpdateEncoder
+{
+    /// Takes a document and removes the specified fields.
+    /// Not to be confused with the ``Mongo.Pipeline.Unset/unset``
+    /// aggregation pipeline stage, which can take a field path directly.
+    @frozen public
+    enum Unset:String, Hashable, Sendable
+    {
+        case unset = "$unset"
+    }
 
     @inlinable public
     subscript(key:Unset,
@@ -119,110 +214,6 @@ extension Mongo.UpdateDocumentEncoder
         mutating get
         {
             yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<Unset>.self])
-        }
-    }
-}
-
-@available(*, deprecated, message: "Use the functional subscripts instead.")
-extension Mongo.UpdateDocumentEncoder
-{
-    @inlinable public
-    subscript(key:Arithmetic) -> Mongo.UpdateFields<Arithmetic>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-
-    @inlinable public
-    subscript(key:Bit) -> Mongo.UpdateFields<Bit>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:CurrentDate) -> Mongo.UpdateFields<CurrentDate>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Pop) -> Mongo.UpdateFields<Pop>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Pull) -> Mongo.UpdateFields<Pull>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-
-    @inlinable public
-    subscript(key:Reduction) -> Mongo.UpdateFields<Reduction>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-
-    @inlinable public
-    subscript(key:Rename) -> Mongo.UpdateFields<Rename>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Unset) -> Mongo.UpdateFields<Unset>?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
         }
     }
 }
