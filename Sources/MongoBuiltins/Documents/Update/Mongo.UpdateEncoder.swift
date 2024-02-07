@@ -58,6 +58,21 @@ extension Mongo.UpdateEncoder
         case setOnInsert = "$setOnInsert"
     }
 
+    /// We generally do not use ``BSONDocumentEncodable`` to type documents, because there are
+    /// many document-typed things that do not declare a coding key type. However, in this case,
+    /// we use ``BSONDocumentEncodable`` and not just ``BSONEncodable`` because you should only
+    /// ever be using this with something that has a ``BSONDocumentEncodable/CodingKey``.
+    @inlinable public
+    subscript<Replacement>(key:Assignment) -> Replacement?
+        where Replacement:BSONDocumentEncodable
+    {
+        get { nil }
+        set (value)
+        {
+            value?.encode(to: &self.bson[with: key])
+        }
+    }
+
     @inlinable public
     subscript(key:Assignment,
         yield:(inout Mongo.UpdateFieldsEncoder<Assignment>) -> ()) -> Void
