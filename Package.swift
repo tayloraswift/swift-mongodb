@@ -1,4 +1,4 @@
-// swift-tools-version:5.8
+// swift-tools-version:5.9
 import PackageDescription
 
 let package:Package = .init(name: "swift-mongodb",
@@ -40,7 +40,7 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(
             from: "1.2.0")),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
-            from: "1.0.5")),
+            from: "1.1.0")),
 
         /// swift-nio has a low rate of breakage, and can be trusted with a major-only
         /// version requirement.
