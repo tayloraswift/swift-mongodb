@@ -56,8 +56,7 @@ struct Indexes<Configuration>:MongoTestBattery where Configuration:MongoTestConf
                 let response:Mongo.CreateIndexesResponse = try await session.run(
                     command: Mongo.CreateIndexes.init(collection,
                         writeConcern: .majority,
-                        indexes:
-                        [
+                        indexes: [
                             .init
                             {
                                 $0[.unique] = true
@@ -98,8 +97,7 @@ struct Indexes<Configuration>:MongoTestBattery where Configuration:MongoTestConf
                 let response:Mongo.CreateIndexesResponse = try await session.run(
                     command: Mongo.CreateIndexes.init(collection,
                         writeConcern: .majority,
-                        indexes:
-                        [
+                        indexes: [
                             .init
                             {
                                 $0[.unique] = true
@@ -115,6 +113,25 @@ struct Indexes<Configuration>:MongoTestBattery where Configuration:MongoTestConf
                     against: database)
 
                 tests.expect(response ==? expected)
+            }
+        }
+        if  let tests:TestGroup = tests / "List"
+        {
+            await tests.do
+            {
+                let expected:[Mongo.IndexBinding] = [
+                    .init(version: 2, name: "_id_"),
+                    .init(version: 2, name: "item_manufacturer_model"),
+                    .init(version: 2, name: "item_supplier_model"),
+                ]
+                let returned:[Mongo.IndexBinding] = try await session.run(
+                    command: Mongo.ListIndexes.init(collection),
+                    against: database)
+                {
+                    try await $0.reduce(into: [], +=)
+                }
+
+                tests.expect(returned **? expected)
             }
         }
         if  let tests:TestGroup = tests / "Drop"
