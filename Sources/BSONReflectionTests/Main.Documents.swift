@@ -29,7 +29,7 @@ extension Main.Documents:TestBattery
             $0["campaigns"] = [:]
             $0["complaints"]
             {
-                $0.append
+                $0
                 {
                     $0["_id"] = 0x4455_6677_8899_AABB
                     $0["type"] = "property damage"
@@ -42,7 +42,7 @@ extension Main.Documents:TestBattery
                         $0["D"] = 31
                     }
                 }
-                $0.append
+                $0
                 {
                     $0["_id"] = 0x4455_6677_8899_AABC
                     $0["type"] = "sexual assault"
@@ -56,7 +56,7 @@ extension Main.Documents:TestBattery
                         $0["D"] = 1
                     }
                 }
-                $0.append
+                $0
                 {
                     $0["_id"] = 0x4455_6677_8899_AABD
                     $0["type"] = "property theft"
@@ -69,7 +69,7 @@ extension Main.Documents:TestBattery
                         $0["D"] = 4
                     }
                 }
-                $0.append
+                $0
                 {
                     $0["_id"] = 0x4455_6677_8899_AABE
                     $0["type"] = "property damage"
@@ -82,7 +82,7 @@ extension Main.Documents:TestBattery
                         $0["D"] = 16
                     }
                 }
-                $0.append
+                $0
                 {
                     $0["_id"] = 0x4455_6677_8899_AABF
                     $0["type"] = "assault"
@@ -96,7 +96,7 @@ extension Main.Documents:TestBattery
                         $0["D"] = 22
                     }
                 }
-                $0.append
+                $0
                 {
                     $0["_id"] = 0x4455_6677_8899_AAC0
                     $0["type"] = "guest expulsion"
@@ -110,7 +110,7 @@ extension Main.Documents:TestBattery
                         $0["D"] = 14
                     }
                 }
-                $0.append
+                $0
                 {
                     $0["_id"] = 0x4455_6677_8899_AAC1
                     $0["type"] = "sexual assault"
