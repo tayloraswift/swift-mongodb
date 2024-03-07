@@ -125,6 +125,12 @@ extension Mongo.Find where Effect.Tailing == Never, Effect.Stride == Never
 
 extension Mongo.Find
 {
+    @frozen public
+    enum Collation:String, Hashable, Sendable
+    {
+        case collation
+    }
+
     @inlinable public
     subscript(key:Collation) -> Mongo.Collation?
     {
@@ -137,7 +143,25 @@ extension Mongo.Find
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.Find
+{
+    @frozen public
+    enum Filter:String, Hashable, Sendable
+    {
+        case filter
+    }
 
+    @inlinable public
+    subscript(key:Filter, yield:(inout Mongo.PredicateEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.PredicateEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, renamed: "subscript(key:yield:)")
     @inlinable public
     subscript(key:Filter) -> Mongo.PredicateDocument?
     {
@@ -148,6 +172,25 @@ extension Mongo.Find
         set(value)
         {
             value?.encode(to: &self.fields[with: key])
+        }
+    }
+}
+extension Mongo.Find
+{
+    @frozen public
+    enum Flag:String, Hashable, Sendable
+    {
+        case allowDiskUse
+        case allowPartialResults
+        case noCursorTimeout
+        case returnKey
+        case showRecordIdentifier = "showRecordId"
+
+        @available(*, unavailable, renamed: "showRecordIdentifier")
+        public static
+        var showRecordId:Self
+        {
+            .showRecordIdentifier
         }
     }
 
@@ -163,6 +206,14 @@ extension Mongo.Find
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.Find
+{
+    @frozen public
+    enum Hint:String, Hashable, Sendable
+    {
+        case hint
+    }
 
     @inlinable public
     subscript(key:Hint) -> String?
@@ -176,6 +227,17 @@ extension Mongo.Find
             value?.encode(to: &self.fields[with: key])
         }
     }
+
+    @inlinable public
+    subscript(key:Hint, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, renamed: "subscript(key:yield:)")
     @inlinable public
     subscript(key:Hint) -> Mongo.SortDocument?
     {
@@ -187,6 +249,14 @@ extension Mongo.Find
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.Find
+{
+    @frozen public
+    enum Let:String, Hashable, Sendable
+    {
+        case `let`
     }
 
     @inlinable public
@@ -201,6 +271,14 @@ extension Mongo.Find
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.Find
+{
+    @frozen public
+    enum Projection:String, Hashable, Sendable
+    {
+        case projection
+    }
 
     @inlinable public
     subscript(key:Projection) -> Mongo.ProjectionDocument?
@@ -213,6 +291,15 @@ extension Mongo.Find
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.Find
+{
+    @frozen public
+    enum Range:String, Hashable, Sendable
+    {
+        case max
+        case min
     }
 
     @inlinable public
@@ -227,7 +314,25 @@ extension Mongo.Find
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.Find
+{
+    @frozen public
+    enum Sort:String, Hashable, Sendable
+    {
+        case sort
+    }
 
+    @inlinable public
+    subscript(key:Sort, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, renamed: "subscript(key:yield:)")
     @inlinable public
     subscript(key:Sort) -> Mongo.SortDocument?
     {

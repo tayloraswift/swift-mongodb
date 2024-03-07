@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct SortOperator:Mongo.EncodableDocument, Sendable
+    struct SortOperator:Sendable
     {
         public
         var bson:BSON.Document
@@ -15,18 +15,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.SortOperator
+extension Mongo.SortOperator:Mongo.EncodableDocument
 {
-    @inlinable public
-    subscript(key:Meta) -> Metadata?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
+    public
+    typealias Encoder = Mongo.SortOperatorEncoder
 }

@@ -4,7 +4,7 @@ import NIOPosix
 
 extension Mongo
 {
-    struct Connector<Authenticator>
+    struct Connector<Authenticator>:@unchecked Sendable
     {
         private
         let authenticator:Authenticator
@@ -17,7 +17,7 @@ extension Mongo
 
         private
         let host:Host
-        
+
         init(authenticator:Authenticator,
             bootstrap:ClientBootstrap,
             timeout:Milliseconds,
@@ -103,14 +103,14 @@ extension Mongo.Connector<Mongo.Authenticator>
         let connection:Mongo.ConnectionPool.Allocation = .init(
             channel: try await self.channel(),
             id: id)
-        
+
         switch await self.authenticator.establish(connection,
             client: self.client,
             by: deadline)
         {
         case .success(_):
             return connection
-        
+
         case .failure(let error):
             await connection.close()
             throw error

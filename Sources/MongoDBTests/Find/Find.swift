@@ -56,7 +56,7 @@ struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfigu
                         limit: 5,
                         skip: 10)
                     {
-                        $0[.hint] = .init
+                        $0[.hint]
                         {
                             $0["_id"] = (+)
                         }
@@ -75,7 +75,7 @@ struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfigu
                         limit: 5,
                         skip: 10)
                     {
-                        $0[.sort] = .init
+                        $0[.sort]
                         {
                             $0["value"] = (-)
                         }
@@ -120,7 +120,7 @@ struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfigu
                     command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10)
                     {
-                        $0[.filter] = .init
+                        $0[.filter]
                         {
                             $0["value"] { $0[.mod] = (by: 3, is: 0) }
                         }

@@ -1,13 +1,18 @@
 extension Mongo
 {
-    public
+    @frozen public
     enum SortDescending
     {
     }
 }
+extension Mongo.SortDescending:Mongo.SortDirection
+{
+    @inlinable public static
+    var code:Int32 { -1 }
+}
 extension Mongo.SortDescending
 {
-    public static prefix
+    @inlinable public static prefix
     func - (lhs:Self) -> Never
     {
     }

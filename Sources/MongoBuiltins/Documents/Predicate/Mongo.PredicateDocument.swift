@@ -3,6 +3,9 @@ import BSON
 extension Mongo
 {
     /// Not to be confused with ``FilterDocument``.
+    ///
+    /// You can use an empty dictionary literal (`[:]`) to express an
+    /// unconditional predicate.
     @frozen public
     struct PredicateDocument:Sendable
     {
@@ -21,8 +24,6 @@ extension Mongo.PredicateDocument:Mongo.EncodableDocument
     public
     typealias Encoder = Mongo.PredicateEncoder
 }
-/// You can use an empty dictionary literal (`[:]`) to express an
-/// unconditional predicate.
 extension Mongo.PredicateDocument:ExpressibleByDictionaryLiteral
 {
 }
