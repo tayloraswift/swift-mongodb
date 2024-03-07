@@ -145,6 +145,12 @@ extension Mongo.Aggregate<Mongo.ExplainOnly>
 
 extension Mongo.Aggregate
 {
+    @frozen public
+    enum Collation:String, Hashable, Sendable
+    {
+        case collation
+    }
+
     @inlinable public
     subscript(key:Collation) -> Mongo.Collation?
     {
@@ -156,6 +162,15 @@ extension Mongo.Aggregate
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.Aggregate
+{
+    @frozen public
+    enum Flag:String, Hashable, Sendable
+    {
+        case allowDiskUse
+        case bypassDocumentValidation
     }
 
     @inlinable public
@@ -170,6 +185,14 @@ extension Mongo.Aggregate
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.Aggregate
+{
+    @frozen public
+    enum Hint:String, Hashable, Sendable
+    {
+        case hint
+    }
 
     @inlinable public
     subscript(key:Hint) -> String?
@@ -183,6 +206,17 @@ extension Mongo.Aggregate
             value?.encode(to: &self.fields[with: key])
         }
     }
+
+    @inlinable public
+    subscript(key:Hint, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Hint) -> Mongo.SortDocument?
     {
@@ -194,6 +228,14 @@ extension Mongo.Aggregate
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.Aggregate
+{
+    @frozen public
+    enum Let:String, Hashable, Sendable
+    {
+        case `let`
     }
 
     @inlinable public
