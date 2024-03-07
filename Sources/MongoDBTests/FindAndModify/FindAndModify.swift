@@ -111,11 +111,11 @@ struct FindAndModify<Configuration>:MongoTestBattery where Configuration:MongoTe
                         writeConcern: .majority,
                         returning: .new)
                         {
-                            $0[.query] = .init
+                            $0[.query]
                             {
                                 $0["_id"] = "Dina Ercilia Boluarte Zegarra"
                             }
-                            $0[.update] = .init
+                            $0[.update]
                             {
                                 $0[.set]
                                 {
@@ -151,7 +151,7 @@ struct FindAndModify<Configuration>:MongoTestBattery where Configuration:MongoTe
                         writeConcern: .majority,
                         returning: .new)
                         {
-                            $0[.query] = .init
+                            $0[.query]
                             {
                                 $0["_id"] = expected.id
                             }
@@ -186,7 +186,7 @@ struct FindAndModify<Configuration>:MongoTestBattery where Configuration:MongoTe
                         writeConcern: .majority,
                         returning: .deleted)
                         {
-                            $0[.sort] = .init
+                            $0[.sort]
                             {
                                 $0["since"] = (+)
                             }

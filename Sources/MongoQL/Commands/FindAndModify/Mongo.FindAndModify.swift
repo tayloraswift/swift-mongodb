@@ -71,6 +71,12 @@ extension Mongo.FindAndModify
 }
 extension Mongo.FindAndModify
 {
+    @frozen public
+    enum Flag:String, Hashable, Sendable
+    {
+        case bypassDocumentValidation
+    }
+
     @inlinable public
     subscript(key:Flag) -> Bool?
     {
@@ -82,6 +88,14 @@ extension Mongo.FindAndModify
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.FindAndModify
+{
+    @frozen public
+    enum Collation:String, Hashable, Sendable
+    {
+        case collation
     }
 
     @inlinable public
@@ -96,6 +110,14 @@ extension Mongo.FindAndModify
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.FindAndModify
+{
+    @frozen public
+    enum Fields:String, Hashable, Sendable
+    {
+        case fields
+    }
 
     @inlinable public
     subscript(key:Fields) -> Mongo.ProjectionDocument?
@@ -108,6 +130,14 @@ extension Mongo.FindAndModify
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.FindAndModify
+{
+    @frozen public
+    enum Hint:String, Hashable, Sendable
+    {
+        case hint
     }
 
     @inlinable public
@@ -122,6 +152,17 @@ extension Mongo.FindAndModify
             value?.encode(to: &self.fields[with: key])
         }
     }
+
+    @inlinable public
+    subscript(key:Hint, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Hint) -> Mongo.SortDocument?
     {
@@ -133,6 +174,14 @@ extension Mongo.FindAndModify
         {
             value?.encode(to: &self.fields[with: key])
         }
+    }
+}
+extension Mongo.FindAndModify
+{
+    @frozen public
+    enum Let:String, Hashable, Sendable
+    {
+        case `let`
     }
 
     @inlinable public
@@ -147,7 +196,25 @@ extension Mongo.FindAndModify
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.FindAndModify
+{
+    @frozen public
+    enum Query:String, Hashable, Sendable
+    {
+        case query
+    }
 
+    @inlinable public
+    subscript(key:Query, yield:(inout Mongo.PredicateEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.PredicateEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Query) -> Mongo.PredicateDocument?
     {
@@ -160,7 +227,25 @@ extension Mongo.FindAndModify
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.FindAndModify
+{
+    @frozen public
+    enum Sort:String, Hashable, Sendable
+    {
+        case sort
+    }
 
+    @inlinable public
+    subscript(key:Sort, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Sort) -> Mongo.SortDocument?
     {
@@ -176,6 +261,22 @@ extension Mongo.FindAndModify
 }
 extension Mongo.FindAndModify where Effect.Upsert == Bool
 {
+    @frozen public
+    enum Update:String, Hashable, Sendable
+    {
+        case update
+    }
+
+    @inlinable public
+    subscript(key:Update, yield:(inout Mongo.UpdateEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.UpdateEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Update) -> Mongo.UpdateDocument?
     {
@@ -188,6 +289,17 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
             value?.encode(to: &self.fields[with: key])
         }
     }
+
+    @inlinable public
+    subscript(key:Update, yield:(inout Mongo.PipelineEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.PipelineEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Update) -> Mongo.Pipeline?
     {
@@ -200,6 +312,7 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
             value?.encode(to: &self.fields[with: key])
         }
     }
+
     @inlinable public
     subscript<Replacement>(key:Update) -> Replacement?
         where Replacement:BSONEncodable
@@ -213,7 +326,25 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
             value?.encode(to: &self.fields[with: key])
         }
     }
+}
+extension Mongo.FindAndModify where Effect.Upsert == Bool
+{
+    @frozen public
+    enum ArrayFilters:String, Hashable, Sendable
+    {
+        case arrayFilters
+    }
 
+    @inlinable public
+    subscript(key:ArrayFilters, yield:(inout Mongo.PredicateListEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.PredicateListEncoder.self])
+        }
+    }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:ArrayFilters) -> Mongo.PredicateList?
     {
@@ -226,6 +357,8 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
             value?.encode(to: &self.fields[with: key])
         }
     }
+
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:ArrayFilters) -> [Mongo.PredicateDocument]
     {

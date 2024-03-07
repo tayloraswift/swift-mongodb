@@ -161,7 +161,7 @@ extension Mongo.Find
         }
     }
 
-    @available(*, deprecated, renamed: "subscript(key:yield:)")
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Filter) -> Mongo.PredicateDocument?
     {
@@ -237,7 +237,7 @@ extension Mongo.Find
         }
     }
 
-    @available(*, deprecated, renamed: "subscript(key:yield:)")
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Hint) -> Mongo.SortDocument?
     {
@@ -332,7 +332,7 @@ extension Mongo.Find
         }
     }
 
-    @available(*, deprecated, renamed: "subscript(key:yield:)")
+    @available(*, deprecated, message: "use the functional subscript instead")
     @inlinable public
     subscript(key:Sort) -> Mongo.SortDocument?
     {
