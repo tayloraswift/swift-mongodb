@@ -14,8 +14,7 @@ jobs:
         strategy:
             matrix:
                 image:
-                -   swift:5.9.2-amazonlinux2
-                -   swift:5.9.2-jammy
+                -   tayloraswift/5.10.0-amazonlinux2023:latest
 
         steps:
             -   name: checkout repository
@@ -34,6 +33,7 @@ jobs:
                 run: |
                     docker run -t --rm --network=mongonet \
                         --name mongonet-environment \
+                        --user root \
                         -v $PWD:/swift-mongodb \
                         -w /swift-mongodb \
                         ${{ matrix.image }} \
