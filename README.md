@@ -76,7 +76,7 @@ Other packages:
 
 ## toolchain requirement
 
-This package requires swift 5.9 or greater.
+This package requires swift 5.10 or greater.
 
 ## acknowledgements
 
