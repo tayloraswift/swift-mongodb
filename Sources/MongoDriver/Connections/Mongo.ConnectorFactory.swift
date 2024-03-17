@@ -46,7 +46,8 @@ extension Mongo.ConnectorFactory
             .channelOption(ChannelOptions.Types.ConnectTimeoutOption.init(),
                 value: .milliseconds(timeout.rawValue))
             .channelOption(ChannelOptions.Types.SocketOption.init(
-                    level: Int.init(SOL_SOCKET),
+                    //  Do not remove the integer conversion, it is needed on Linux.
+                    level: .init(SOL_SOCKET),
                     name: SO_REUSEADDR),
                 value: 1)
             .channelInitializer
