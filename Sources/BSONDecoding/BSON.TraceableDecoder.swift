@@ -2,19 +2,14 @@ extension BSON
 {
     /// A type that represents a scope for decoding operations.
     public
-    typealias TraceableDecoder = _BSONTraceableDecoder
+    protocol TraceableDecoder
+    {
+        /// Attempts to load a BSON variant value and passes it to the given
+        /// closure, returns its result. If decoding fails, the implementation
+        /// should annotate the error with appropriate context and re-throw it.
+        func decode<T>(with decode:(AnyValue) throws -> T) throws -> T
+    }
 }
-
-/// The name of this protocol is ``BSON.TraceableDecoder``.
-public
-protocol _BSONTraceableDecoder
-{
-    /// Attempts to load a BSON variant value and passes it to the given
-    /// closure, returns its result. If decoding fails, the implementation
-    /// should annotate the error with appropriate context and re-throw it.
-    func decode<T>(with decode:(BSON.AnyValue) throws -> T) throws -> T
-}
-
 extension BSON.TraceableDecoder
 {
     @inlinable public

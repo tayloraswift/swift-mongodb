@@ -1,12 +1,10 @@
 extension Mongo
 {
-    typealias Instant = _MongoInstant
-}
-
-protocol _MongoInstant:Sendable
-{
-    static
-    func < (lhs:Self, rhs:Self) -> Bool
+    protocol Instant:Sendable
+    {
+        static
+        func < (lhs:Self, rhs:Self) -> Bool
+    }
 }
 extension Mongo.Instant
 {

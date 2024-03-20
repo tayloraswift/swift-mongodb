@@ -3,22 +3,15 @@ infix operator /? : MultiplicationPrecedence
 extension Mongo
 {
     public
-    typealias ServiceLocator = _MongoServiceLocator
-}
+    protocol ServiceLocator<Login>
+    {
+        associatedtype Login:LoginMode
 
-@available(*, deprecated, renamed: "Mongo.ServiceLocator")
-public
-typealias MongoServiceLocator = Mongo.ServiceLocator
+        var userinfo:Login.Userinfo { get }
+        var database:Login.Database? { get }
 
-public
-protocol _MongoServiceLocator<Login>
-{
-    associatedtype Login:Mongo.LoginMode
-
-    var userinfo:Login.Userinfo { get }
-    var database:Login.Database? { get }
-
-    var domains:Mongo.SeedingMethod { get }
+        var domains:SeedingMethod { get }
+    }
 }
 extension Mongo.ServiceLocator
 {

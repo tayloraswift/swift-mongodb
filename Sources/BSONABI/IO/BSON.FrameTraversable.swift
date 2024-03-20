@@ -9,29 +9,26 @@ extension BSON
     /// the exact slicing behavior is determined by the implementation’s
     /// ``init(slicing:)`` witness.
     public
-    typealias FrameTraversable = _BSONFrameTraversable
-}
+    protocol FrameTraversable
+    {
+        /// The type specifying how parsers should interpret the conforming
+        /// type’s inline frame header when it appears in raw input data.
+        associatedtype Frame:FrameType
 
-public
-protocol _BSONFrameTraversable
-{
-    /// The type specifying how parsers should interpret the conforming
-    /// type’s inline frame header when it appears in raw input data.
-    associatedtype Frame:BSON.FrameType
+        /// Receives a collection of bytes encompassing the bytes backing
+        /// this value, after stripping the length header and frame suffix,
+        /// but keeping any portions of the frame prefix that are not part
+        /// of the length header.
+        ///
+        /// The implementation may slice the argument, but should do so in
+        /// O(1) time.
+        init(slicing:ArraySlice<UInt8>) throws
 
-    /// Receives a collection of bytes encompassing the bytes backing
-    /// this value, after stripping the length header and frame suffix,
-    /// but keeping any portions of the frame prefix that are not part
-    /// of the length header.
-    ///
-    /// The implementation may slice the argument, but should do so in
-    /// O(1) time.
-    init(slicing:ArraySlice<UInt8>) throws
-
-    /// The slice of bytes constituting the opaque content of this view. The conforming type
-    /// defines what portion of the original buffer this slice includes, and it may not cover
-    /// the entirety of the argument originally passed to ``init(slicing:)``.
-    var bytes:ArraySlice<UInt8> { get }
+        /// The slice of bytes constituting the opaque content of this view. The conforming type
+        /// defines what portion of the original buffer this slice includes, and it may not
+        /// cover the entirety of the argument originally passed to ``init(slicing:)``.
+        var bytes:ArraySlice<UInt8> { get }
+    }
 }
 extension BSON.FrameTraversable
 {

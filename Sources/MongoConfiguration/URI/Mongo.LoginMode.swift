@@ -1,17 +1,14 @@
 extension Mongo
 {
     public
-    typealias LoginMode = _MongoLoginMode
-}
+    protocol LoginMode<Authentication>
+    {
+        associatedtype Authentication
+        associatedtype Userinfo:Sendable
+        associatedtype Database
 
-public
-protocol _MongoLoginMode<Authentication>
-{
-    associatedtype Authentication
-    associatedtype Userinfo:Sendable
-    associatedtype Database
+        init(_ authentication:Authentication?)
 
-    init(_ authentication:Authentication?)
-
-    func credentials(userinfo:Userinfo, database:Database?) -> Mongo.Credentials?
+        func credentials(userinfo:Userinfo, database:Database?) -> Credentials?
+    }
 }

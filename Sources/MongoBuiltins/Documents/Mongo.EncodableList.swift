@@ -8,13 +8,10 @@ extension Mongo
     /// The specific encoding API vended and encodability protocol used is up to the conforming
     /// type.
     public
-    typealias EncodableList = _MongoEncodableList
-}
-
-public
-protocol _MongoEncodableList:BSONRepresentable<BSON.List>, BSONDecodable, BSONEncodable
-{
-    associatedtype Encoder:BSON.Encoder
+    protocol EncodableList:BSONRepresentable<BSON.List>, BSONDecodable, BSONEncodable
+    {
+        associatedtype Encoder:BSON.Encoder
+    }
 }
 extension Mongo.EncodableList
 {

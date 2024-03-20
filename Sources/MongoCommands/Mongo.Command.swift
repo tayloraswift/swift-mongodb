@@ -6,64 +6,56 @@ extension Mongo
     /// A type that represents a MongoDB command. All public command types
     /// (and command protocols) ultimately inherit from this protocol.
     public
-    typealias Command = _MongoCommand
-}
+    protocol Command<Response>:Sendable
+    {
+        associatedtype ExecutionPolicy = Once
 
-@available(*, deprecated, renamed: "Mongo.Command")
-public
-typealias MongoCommand = Mongo.Command
+        associatedtype WriteConcern = Never
+        associatedtype ReadConcern = Never
 
-/// The name of this protocol is ``Mongo.Command``.
-public
-protocol _MongoCommand<Response>:Sendable
-{
-    associatedtype ExecutionPolicy = Mongo.Once
+        /// The type of database this command can be run against.
+        associatedtype Database:DatabaseType = Mongo.Database
 
-    associatedtype WriteConcern = Never
-    associatedtype ReadConcern = Never
+        /// The server response this command expects to receive.
+        ///
+        /// >   Note:
+        ///     By convention, the library refers to a decoded message as a *response*,
+        ///     and an undecoded message as a *reply*.
+        associatedtype Response:Sendable
 
-    /// The type of database this command can be run against.
-    associatedtype Database:Mongo.DatabaseType = Mongo.Database
+        var writeConcernLabel:Mongo.WriteConcern? { get }
+        var writeConcern:Self.WriteConcern? { get }
 
-    /// The server response this command expects to receive.
-    ///
-    /// >   Note:
-    ///     By convention, the library refers to a decoded message as a *response*,
-    ///     and an undecoded message as a *reply*.
-    associatedtype Response:Sendable
+        var readConcernLabel:Mongo.ReadConcern?? { get }
+        var readConcern:Self.ReadConcern? { get }
 
-    var writeConcernLabel:Mongo.WriteConcern? { get }
-    var writeConcern:WriteConcern? { get }
+        /// The payload of this command.
+        var outline:OutlineVector? { get }
 
-    var readConcernLabel:Mongo.ReadConcern?? { get }
-    var readConcern:ReadConcern? { get }
+        var timeout:MaxTime? { get }
 
-    /// The payload of this command.
-    var outline:Mongo.OutlineVector? { get }
+        /// The opaque fields of this command. Not all conforming types will encode
+        /// all of their fields to this property; some may have fields (such as
+        /// `readConcern` or `maxTimeMS`) that are recognized by the driver and added
+        /// later during the command execution process.
+        var fields:BSON.Document { get }
 
-    var timeout:Mongo.MaxTime? { get }
+        /// The official name of this command, in the MongoDB specification. It
+        /// always begins with a lowercase letter, and usually resembles the name
+        /// of the command type.
+        static
+        var type:CommandType { get }
 
-    /// The opaque fields of this command. Not all conforming types will encode
-    /// all of their fields to this property; some may have fields (such as
-    /// `readConcern` or `maxTimeMS`) that are recognized by the driver and added
-    /// later during the command execution process.
-    var fields:BSON.Document { get }
-
-    /// The official name of this command, in the MongoDB specification. It
-    /// always begins with a lowercase letter, and usually resembles the name
-    /// of the command type.
-    static
-    var type:Mongo.CommandType { get }
-
-    /// @import(BSONDecoding)
-    /// A hook to decode an untyped server reply to a typed ``Response``.
-    /// This is a static function instead of a requirement on ``Response`` to
-    /// permit ``Void`` responses.
-    ///
-    /// Commands with responses conforming to ``BSONDocumentDecodable`` will
-    /// receive a default implementation for this requirement.
-    static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
+        /// @import(BSONDecoding)
+        /// A hook to decode an untyped server reply to a typed ``Response``.
+        /// This is a static function instead of a requirement on ``Response`` to
+        /// permit ``Void`` responses.
+        ///
+        /// Commands with responses conforming to ``BSONDocumentDecodable`` will
+        /// receive a default implementation for this requirement.
+        static
+        func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
+    }
 }
 extension Mongo.Command
 {

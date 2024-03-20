@@ -1,18 +1,14 @@
 extension BSON
 {
     public
-    typealias Encoder = _BSONEncoder
-}
+    protocol Encoder
+    {
+        init(_:consuming Output)
 
-/// The name of this protocol is ``BSON.Encoder``.
-public
-protocol _BSONEncoder
-{
-    init(_:consuming BSON.Output)
+        consuming
+        func move() -> Output
 
-    consuming
-    func move() -> BSON.Output
-
-    static
-    var type:BSON.AnyType { get }
+        static
+        var type:AnyType { get }
+    }
 }

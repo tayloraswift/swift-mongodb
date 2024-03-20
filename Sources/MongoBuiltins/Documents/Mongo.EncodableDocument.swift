@@ -8,14 +8,10 @@ extension Mongo
     /// The specific encoding API vended and encodability protocol used is up to the conforming
     /// type.
     public
-    typealias EncodableDocument = _MongoEncodableDocument
-}
-
-/// The name of this protocol is ``Mongo.EncodableDocument``.
-public
-protocol _MongoEncodableDocument:BSONRepresentable<BSON.Document>, BSONDecodable, BSONEncodable
-{
-    associatedtype Encoder = Self
+    protocol EncodableDocument:BSONRepresentable<BSON.Document>, BSONDecodable, BSONEncodable
+    {
+        associatedtype Encoder = Self
+    }
 }
 extension Mongo.EncodableDocument
 {

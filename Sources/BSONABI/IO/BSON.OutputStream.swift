@@ -1,15 +1,13 @@
-public
-protocol _BSONOutputStream
-{
-    mutating
-    func append(_ byte:UInt8)
-    mutating
-    func append(_ bytes:some Sequence<UInt8>)
-}
 extension BSON
 {
     public
-    typealias OutputStream = _BSONOutputStream
+    protocol OutputStream
+    {
+        mutating
+        func append(_ byte:UInt8)
+        mutating
+        func append(_ bytes:some Sequence<UInt8>)
+    }
 }
 extension BSON.OutputStream
 {

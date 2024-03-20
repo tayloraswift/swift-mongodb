@@ -4,19 +4,11 @@ extension Mongo
 {
     /// A way to discover members of a MongoDB deployment.
     public
-    typealias DiscoveryMode = _MongoDiscoveryMode
-}
+    protocol DiscoveryMode
+    {
+        associatedtype Seedlist = Mongo.Seedlist
 
-@available(*, deprecated, renamed: "Mongo.DiscoveryMode")
-public
-typealias MongoDiscoveryMode = Mongo.DiscoveryMode
-
-/// The name of this protocol is ``Mongo.DiscoveryMode``.
-public
-protocol _MongoDiscoveryMode
-{
-    associatedtype Seedlist = Mongo.Seedlist
-
-    static
-    subscript(seedlist:Seedlist) -> Mongo.SeedingMethod { get }
+        static
+        subscript(seedlist:Self.Seedlist) -> SeedingMethod { get }
+    }
 }
