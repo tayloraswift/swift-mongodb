@@ -215,15 +215,32 @@ extension Mongo.PipelineEncoder
             }
         }
     }
+}
 
-    @available(*, unavailable, message: "unimplemented")
-    @inlinable public
-    subscript(stage key:Mongo.Pipeline.ChangeStream) -> Never?
+extension Mongo.PipelineEncoder
+{
+    @frozen public
+    enum ChangeStream:String, Sendable
     {
-        nil
+        case changeStream = "$changeStream"
     }
 
+    @inlinable public
+    subscript(stage key:ChangeStream,
+        yield:(inout Mongo.ChangeStreamEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.list(using: ChangeStream.self)
+            {
+                yield(&$0[with: key][as: Mongo.ChangeStreamEncoder.self])
+            }
+        }
+    }
+}
 
+extension Mongo.PipelineEncoder
+{
     @available(*, deprecated, renamed: "subscript(stage:)")
     @inlinable public
     subscript(key:Mongo.Pipeline.CollectionStats) -> Mongo.CollectionStatsDocument?

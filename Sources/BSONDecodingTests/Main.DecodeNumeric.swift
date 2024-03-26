@@ -16,7 +16,7 @@ extension Main.DecodeNumeric:TestBattery
         [
             "int32": .int32(0x7fff_ffff),
             "int64": .int64(0x7fff_ffff_ffff_ffff),
-            "uint64": .uint64(0x7fff_ffff_ffff_ffff),
+            "uint64": .timestamp(0x7fff_ffff_ffff_ffff),
         ]
 
         Self.run(tests / "int32-to-uint8", bson: bson,

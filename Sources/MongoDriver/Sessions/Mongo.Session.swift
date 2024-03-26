@@ -1,3 +1,4 @@
+import BSON
 import Durations
 import MongoCommands
 
@@ -38,7 +39,7 @@ extension Mongo
         /// This is simply a long-winded way of saying that time never moves
         /// backward when running commands on a session.
         public private(set)
-        var preconditionTime:Timestamp?
+        var preconditionTime:BSON.Timestamp?
 
         var notarizedTime:ClusterTime?
         /// The current transaction state of this session.
@@ -587,7 +588,7 @@ extension Mongo.Session
     ///         of this session, and is used by the driver to estimate its
     ///         freshness.
     @usableFromInline internal
-    func combine(operationTime:Mongo.Timestamp?,
+    func combine(operationTime:BSON.Timestamp?,
         clusterTime:Mongo.ClusterTime?,
         reuse:Bool,
         sent:ContinuousClock.Instant)

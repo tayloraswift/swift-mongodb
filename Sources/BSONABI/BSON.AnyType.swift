@@ -21,13 +21,19 @@ extension BSON
 
         case javascriptScope    = 0x0F
         case int32              = 0x10
-        case uint64             = 0x11
+        case timestamp          = 0x11
         case int64              = 0x12
         case decimal128         = 0x13
 
         case min                = 0xFF
         case max                = 0x7F
     }
+}
+extension BSON.AnyType
+{
+    @available(*, deprecated, renamed: "timestamp")
+    @inlinable public static
+    var uint64:BSON.AnyType { .timestamp }
 }
 extension BSON.AnyType
 {
@@ -70,7 +76,7 @@ extension BSON.AnyType
         case 0x0E:  self = .string
         case 0x0F:  self = .javascriptScope
         case 0x10:  self = .int32
-        case 0x11:  self = .uint64
+        case 0x11:  self = .timestamp
         case 0x12:  self = .int64
         case 0x13:  self = .decimal128
         case 0xFF:  self = .min

@@ -1,3 +1,4 @@
+import BSON
 import MongoCommands
 
 extension Mongo
@@ -35,7 +36,7 @@ extension Mongo.Transaction
 extension Mongo.Transaction
 {
     @inlinable public
-    var preconditionTime:Mongo.Timestamp?
+    var preconditionTime:BSON.Timestamp?
     {
         self.session.preconditionTime
     }

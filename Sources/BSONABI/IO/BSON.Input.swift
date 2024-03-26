@@ -266,8 +266,8 @@ extension BSON.Input
         case .int32:
             return .int32(try self.parse(as: Int32.self))
 
-        case .uint64:
-            return .uint64(try self.parse(as: UInt64.self))
+        case .timestamp:
+            return .timestamp(.init(try self.parse(as: UInt64.self)))
 
         case .int64:
             return .int64(try self.parse(as: Int64.self))

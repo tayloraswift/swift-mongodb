@@ -113,15 +113,15 @@ extension Main.ValidBSON:TestBattery
         {
             Self.run(tests / "(123456789, 42)",
                 canonical: "100000001161002A00000015CD5B0700",
-                expected: ["a": .uint64(123456789 << 32 | 42)])
+                expected: ["a": .timestamp(.init(123456789 << 32 | 42))])
 
             Self.run(tests / "ones",
                 canonical: "10000000116100FFFFFFFFFFFFFFFF00",
-                expected: ["a": .uint64(.max)])
+                expected: ["a": .timestamp(.max)])
 
             Self.run(tests / "(4000000000, 4000000000)",
                 canonical: "1000000011610000286BEE00286BEE00",
-                expected: ["a": .uint64(4000000000 << 32 | 4000000000)])
+                expected: ["a": .timestamp(.init(4000000000 << 32 | 4000000000))])
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/top.json

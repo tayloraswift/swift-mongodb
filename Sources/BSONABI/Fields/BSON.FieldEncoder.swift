@@ -59,9 +59,9 @@ extension BSON.FieldEncoder
         self[.int32].serialize(integer: int32)
     }
     @inlinable public mutating
-    func encode(uint64:UInt64)
+    func encode(timestamp:BSON.Timestamp)
     {
-        self[.uint64].serialize(integer: uint64)
+        self[.timestamp].serialize(integer: timestamp.value)
     }
     @inlinable public mutating
     func encode(int64:Int64)

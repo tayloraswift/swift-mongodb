@@ -111,7 +111,7 @@ extension UInt64:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(uint64: self)
+        field.encode(timestamp: .init(self))
     }
 }
 @available(*, deprecated,
@@ -122,6 +122,6 @@ extension UInt:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(uint64: .init(self))
+        field.encode(timestamp: .init(UInt64.init(self)))
     }
 }
