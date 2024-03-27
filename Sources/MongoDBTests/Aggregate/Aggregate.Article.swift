@@ -6,7 +6,7 @@ extension Aggregate
     struct Article:Equatable, Hashable,
         BSONDocumentDecodable,
         BSONDocumentEncodable,
-        MongoMasterCodingModel
+        Mongo.MasterCodingModel
     {
         let id:BSON.Identifier
         let author:String

@@ -3,7 +3,7 @@ import MongoQL
 
 extension Aggregate
 {
-    struct TagStats:Equatable, Hashable, BSONDocumentDecodable, MongoMasterCodingModel
+    struct TagStats:Equatable, Hashable, BSONDocumentDecodable, Mongo.MasterCodingModel
     {
         let id:String
         let count:Int

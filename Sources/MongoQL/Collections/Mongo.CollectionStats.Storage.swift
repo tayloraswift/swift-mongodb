@@ -43,7 +43,7 @@ extension Mongo.CollectionStats
         }
     }
 }
-extension Mongo.CollectionStats.Storage:MongoMasterCodingModel
+extension Mongo.CollectionStats.Storage:Mongo.MasterCodingModel
 {
     @frozen public
     enum CodingKey:String, Sendable, CaseIterable

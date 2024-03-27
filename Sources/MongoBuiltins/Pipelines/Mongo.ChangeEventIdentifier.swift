@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct ChangeEventIdentifier:RawRepresentable, BSONDecodable, BSONEncodable, Sendable
+    struct ChangeEventIdentifier:RawRepresentable, Equatable, Sendable
     {
         public
         var rawValue:BSON.Document
@@ -14,4 +14,7 @@ extension Mongo
             self.rawValue = rawValue
         }
     }
+}
+extension Mongo.ChangeEventIdentifier:BSONDecodable, BSONEncodable
+{
 }
