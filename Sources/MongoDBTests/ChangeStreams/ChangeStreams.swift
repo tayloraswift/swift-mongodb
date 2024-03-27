@@ -109,30 +109,32 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
                                 against: database)
                         }
                     }
-                    else if
-                        let document:ChangeEvent = batch.first
-                    {
-                        guard
-                        let expected:Change = changes.popLast()
-                        else
-                        {
-                            tests.expect(nil: document)
-                            return
-                        }
-
-                        tests.expect(document.operation ==? expected)
-
-                        if  changes.isEmpty
-                        {
-                            return
-                        }
-                    }
                     else if poll > 5
                     {
                         //  If more than 5 polling intervals have passed and we still haven't
                         //  received the expected changes, then the test has failed.
                         tests.expect(changes ..? [])
                         return
+                    }
+
+                    //  It is rare, but MongoDB does occasionally coalesce multiple changes into
+                    //  one cursor batch.
+                    for event:ChangeEvent in batch
+                    {
+                        guard
+                        let expected:Change = changes.popLast()
+                        else
+                        {
+                            tests.expect(nil: event)
+                            return
+                        }
+
+                        tests.expect(event.operation ==? expected)
+
+                        if  changes.isEmpty
+                        {
+                            return
+                        }
                     }
                 }
             }
