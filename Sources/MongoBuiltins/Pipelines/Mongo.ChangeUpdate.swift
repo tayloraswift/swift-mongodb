@@ -18,9 +18,9 @@ extension Mongo
 
         @inlinable public
         init(
-            updatedFields:DocumentDelta?,
-            removedFields:[DocumentDelta.CodingKey],
-            truncatedArrays:[ChangeTruncatedArray<DocumentDelta.CodingKey>],
+            updatedFields:DocumentDelta? = nil,
+            removedFields:[DocumentDelta.CodingKey] = [],
+            truncatedArrays:[ChangeTruncatedArray<DocumentDelta.CodingKey>] = [],
             id:ID)
         {
             self.updatedFields = updatedFields
@@ -42,6 +42,10 @@ extension Mongo.ChangeUpdate:Mongo.ChangeUpdateRepresentation where ID:BSONDecod
             truncatedArrays: updateDescription.truncatedArrays,
             id: key.id)
     }
+}
+extension Mongo.ChangeUpdate:Equatable
+    where DocumentDelta:Equatable, DocumentDelta.CodingKey:Equatable, ID:Equatable
+{
 }
 extension Mongo.ChangeUpdate:Sendable
     where DocumentDelta:Sendable, DocumentDelta.CodingKey:Sendable, ID:Sendable

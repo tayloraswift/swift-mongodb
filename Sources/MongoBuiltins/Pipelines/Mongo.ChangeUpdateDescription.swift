@@ -15,9 +15,9 @@ extension Mongo
         var truncatedArrays:[ChangeTruncatedArray<DocumentDelta.CodingKey>]
 
         @inlinable public
-        init(updatedFields:DocumentDelta?,
-            removedFields:[DocumentDelta.CodingKey],
-            truncatedArrays:[ChangeTruncatedArray<DocumentDelta.CodingKey>])
+        init(updatedFields:DocumentDelta? = nil,
+            removedFields:[DocumentDelta.CodingKey] = [],
+            truncatedArrays:[ChangeTruncatedArray<DocumentDelta.CodingKey>] = [])
         {
             self.updatedFields = updatedFields
             self.removedFields = removedFields

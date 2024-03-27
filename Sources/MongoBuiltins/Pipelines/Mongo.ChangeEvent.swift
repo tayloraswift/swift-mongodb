@@ -53,11 +53,20 @@ extension Mongo.ChangeEvent:BSONDocumentDecodable, BSONDecodable where
         case .insert:
             operation = .insert(try bson[.fullDocument].decode())
 
+        case .delete:
+            operation = .delete(.init(.init(), in: try bson[.documentKey].decode()))
+
         case .update:
             operation = .update(.init(try bson[.updateDescription].decode(),
                     in: try bson[.documentKey].decode()),
                 before: try bson[.fullDocumentBeforeChange]?.decode(),
                 after: try bson[.fullDocument]?.decode())
+
+        case .replace:
+            operation = .replace(.init(.init(),
+                    in: try bson[.documentKey].decode()),
+                before: try bson[.fullDocumentBeforeChange]?.decode(),
+                after: try bson[.fullDocument].decode())
 
         default:
             operation = ._unimplemented

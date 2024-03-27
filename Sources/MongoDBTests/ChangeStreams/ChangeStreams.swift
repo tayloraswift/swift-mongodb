@@ -12,14 +12,31 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
         await tests.do
         {
             typealias ChangeEvent = Mongo.ChangeEvent<Plan, Mongo.ChangeUpdate<PlanDelta, Int>>
+            typealias Change = Mongo.ChangeOperation<Plan, Mongo.ChangeUpdate<PlanDelta, Int>>
 
             let session:Mongo.Session = try await .init(from: pool)
 
-            let state:(Plan, PlanDelta) =
+            let state:(Plan, Plan, Plan) =
             (
                 .init(id: 1, owner: "a", level: "x"),
-                .init(owner: nil, level: "y")
+                .init(id: 1, owner: "a", level: "y"),
+                .init(id: 1, owner: "b", level: "y")
             )
+            var changes:[Change] = [
+                .insert(state.0),
+                .update(.init(updatedFields: .init(owner: nil, level: "y"),
+                        id: state.0.id),
+                    before: nil,
+                    after: nil),
+                .replace(.init(updatedFields: nil,
+                        id: state.0.id),
+                    before: nil,
+                    after: state.2),
+                .delete(.init(id: state.0.id))
+            ]
+
+            changes.reverse()
+
             try await session.run(
                 command: Mongo.Aggregate<Mongo.Cursor<ChangeEvent>>.init(collection,
                     writeConcern: .majority,
@@ -37,7 +54,6 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
                 by: .now.advanced(by: .seconds(2)))
             {
                 var poll:Int = 0
-                var insertSeen:Bool = false
                 for try await batch:[ChangeEvent] in $0
                 {
                     defer
@@ -60,54 +76,63 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
                             let _:Mongo.UpdateResponse = try await session.run(
                                 command: Mongo.Update<Mongo.One, Int>.init(collection)
                                 {
+                                    $0[.ordered] = true
+                                }
+                                    updates:
+                                {
                                     $0
                                     {
-                                        $0[.q] { $0[Plan[.id]] = 1 }
+                                        $0[.q] { $0[Plan[.id]] = state.0.id }
                                         $0[.u]
                                         {
                                             $0[.set] { $0[Plan[.level]] = state.1.level }
                                         }
                                     }
+
+                                    $0
+                                    {
+                                        $0[.q] { $0[Plan[.id]] = state.0.id }
+                                        $0[.u] = state.2
+                                    }
+                                },
+                                against: database)
+
+                            let _:Mongo.DeleteResponse = try await session.run(
+                                command: Mongo.Delete<Mongo.One>.init(collection)
+                                {
+                                    $0
+                                    {
+                                        $0[.q] { $0[Plan[.id]] = state.0.id }
+                                        $0[.limit] = .one
+                                    }
                                 },
                                 against: database)
                         }
                     }
-                    else if insertSeen,
+                    else if
                         let document:ChangeEvent = batch.first
                     {
                         guard
-                        case .update(let update, before: _, after: _) = document.operation
+                        let expected:Change = changes.popLast()
                         else
                         {
-                            tests.expect(value: nil as Mongo.ChangeUpdate<PlanDelta, Int>?)
+                            tests.expect(nil: document)
                             return
                         }
 
-                        tests.expect(update.id ==? state.0.id)
-                        tests.expect(update.updatedFields ==? state.1)
-                        tests.expect(update.removedFields ==? [])
-                        tests.expect(update.truncatedArrays ==? [])
-                        return
-                    }
-                    else if
-                        let event:ChangeEvent = batch.first
-                    {
-                        guard
-                        case .insert(let document) = event.operation
-                        else
+                        tests.expect(document.operation ==? expected)
+
+                        if  changes.isEmpty
                         {
-                            tests.expect(value: nil as Plan?)
                             return
                         }
-
-                        tests.expect(document ==? state.0)
-                        insertSeen = true
                     }
                     else if poll > 5
                     {
                         //  If more than 5 polling intervals have passed and we still haven't
-                        //  received any documents, then the test has failed.
-                        tests.expect(true: false)
+                        //  received the expected changes, then the test has failed.
+                        tests.expect(changes ..? [])
+                        return
                     }
                 }
             }
