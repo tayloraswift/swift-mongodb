@@ -20,16 +20,16 @@ extension Mongo
         /// The database and collection this cursor iterates over.
         public
         let namespace:Namespaced<Collection>
-        /// The lifecycle mode of this cursor. This is
-        /// ``case CursorLifecycle.iterable(_:)`` for tailable cursors, and
-        /// ``case CursorLifecycle.expires(_:)`` for non-tailable cursors.
+        /// The lifecycle mode of this cursor. This is ``CursorLifecycle.iterable(_:) [case]``
+        /// for tailable cursors, and ``CursorLifecycle.expires(_:) [case]`` for non-tailable
+        /// cursors.
         @usableFromInline
         let lifecycle:CursorLifecycle
         /// The operation timeout used for ``KillCursors``, and the default
         /// operation timeout used for ``GetMore`` for tailable cursors without
         /// an explicit timeout set.
         @usableFromInline
-        let timeout:Milliseconds
+        let timeout:NetworkTimeout
         /// The maximum size of each batch retrieved by this batch sequence.
         public
         let stride:Int?
@@ -47,7 +47,7 @@ extension Mongo
             preference:ReadPreference,
             namespace:Namespaced<Mongo.Collection>,
             lifecycle:CursorLifecycle,
-            timeout:Milliseconds,
+            timeout:NetworkTimeout,
             stride:Int?,
             pinned:
             (
@@ -73,10 +73,10 @@ extension Mongo.CursorIterator
         switch self.lifecycle
         {
         case .iterable(let timeout):
-            .now.advanced(by: .milliseconds(timeout ?? self.timeout))
+            return .now.advanced(by: .milliseconds(timeout ?? self.timeout.milliseconds))
 
         case .expires(let deadline):
-            deadline
+            return deadline
         }
     }
 }
@@ -125,6 +125,6 @@ extension Mongo.CursorIterator
             over: self.pinned.connection,
             on: self.preference,
             //  ``KillCursors`` always refreshes the timeout
-            by: .now.advanced(by: .milliseconds(self.timeout)))
+            by: .now.advanced(by: .milliseconds(self.timeout.milliseconds)))
     }
 }

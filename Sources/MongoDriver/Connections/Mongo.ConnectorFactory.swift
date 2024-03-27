@@ -27,11 +27,11 @@ extension Mongo
 extension Mongo.ConnectorFactory
 {
     func callAsFunction<Authenticator>(authenticator:Authenticator,
-        timeout:Milliseconds,
+        timeout:Mongo.NetworkTimeout,
         host:Mongo.Host) -> Mongo.Connector<Authenticator>
     {
         .init(authenticator: authenticator,
-            bootstrap: self.bootstrap(timeout: timeout, host: host),
+            bootstrap: self.bootstrap(timeout: timeout.milliseconds, host: host),
             timeout: timeout,
             appname: self.appname,
             host: host)

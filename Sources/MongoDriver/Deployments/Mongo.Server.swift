@@ -42,7 +42,7 @@ extension Mongo.Server<Mongo.ReplicaQuality>
     func primary(from self:Mongo.Server<Mongo.Replica>) -> Self
     {
         .init(metadata: .init(staleness: .zero,
-                latency: self.pool.latency.load(ordering: .relaxed),
+                latency: self.pool.recentLatency(),
                 tags: self.metadata.tags),
             pool: self.pool)
     }
@@ -54,10 +54,9 @@ extension Mongo.Server<Mongo.ReplicaQuality>
         freshest:some Mongo.ReplicaTimingBaseline) -> Self
     {
         let staleness:Milliseconds = freshest - self.metadata.timings + heartbeatInterval
-        let latency:Nanoseconds = self.pool.latency.load(ordering: .relaxed)
         return .init(metadata: .init(
                 staleness: staleness,
-                latency: latency,
+                latency: self.pool.recentLatency(),
                 tags: self.metadata.tags),
             pool: self.pool)
     }

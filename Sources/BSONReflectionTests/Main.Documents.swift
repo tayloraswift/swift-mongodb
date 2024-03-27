@@ -13,7 +13,7 @@ extension Main.Documents:TestBattery
     static
     func run(tests:TestGroup)
     {
-        let document:BSON.Document = .init
+        let document:BSON.Document = .init(BSON.Key.self)
         {
             $0["_id"] = 0x1111_2222_3333_4444_5555_6666 as BSON.Identifier
             $0["facility"] = "Recreation and Activities Center"
@@ -29,95 +29,95 @@ extension Main.Documents:TestBattery
             $0["campaigns"] = [:]
             $0["complaints"]
             {
-                $0
+                $0(BSON.Key.self)
                 {
                     $0["_id"] = 0x4455_6677_8899_AABB
                     $0["type"] = "property damage"
                     $0["supervisor"] = "Raquelle"
                     $0["status"] = "open"
-                    $0["date"]
+                    $0["date"](BSON.Key.self)
                     {
                         $0["Y"] = 2022
                         $0["M"] = 12
                         $0["D"] = 31
                     }
                 }
-                $0
+                $0(BSON.Key.self)
                 {
                     $0["_id"] = 0x4455_6677_8899_AABC
                     $0["type"] = "sexual assault"
                     $0["supervisor"] = "Midge"
                     $0["status"] = "open"
                     $0["rpi"] = true
-                    $0["date"]
+                    $0["date"](BSON.Key.self)
                     {
                         $0["Y"] = 2023
                         $0["M"] = 1
                         $0["D"] = 1
                     }
                 }
-                $0
+                $0(BSON.Key.self)
                 {
                     $0["_id"] = 0x4455_6677_8899_AABD
                     $0["type"] = "property theft"
                     $0["supervisor"] = "Barbie"
                     $0["status"] = "closed"
-                    $0["date"]
+                    $0["date"](BSON.Key.self)
                     {
                         $0["Y"] = 2023
                         $0["M"] = 1
                         $0["D"] = 4
                     }
                 }
-                $0
+                $0(BSON.Key.self)
                 {
                     $0["_id"] = 0x4455_6677_8899_AABE
                     $0["type"] = "property damage"
                     $0["supervisor"] = "Midge"
                     $0["status"] = "open"
-                    $0["date"]
+                    $0["date"](BSON.Key.self)
                     {
                         $0["Y"] = 2023
                         $0["M"] = 1
                         $0["D"] = 16
                     }
                 }
-                $0
+                $0(BSON.Key.self)
                 {
                     $0["_id"] = 0x4455_6677_8899_AABF
                     $0["type"] = "assault"
                     $0["supervisor"] = "Raquelle"
                     $0["status"] = "closed"
                     $0["rpi"] = false
-                    $0["date"]
+                    $0["date"](BSON.Key.self)
                     {
                         $0["Y"] = 2023
                         $0["M"] = 1
                         $0["D"] = 22
                     }
                 }
-                $0
+                $0(BSON.Key.self)
                 {
                     $0["_id"] = 0x4455_6677_8899_AAC0
                     $0["type"] = "guest expulsion"
                     $0["supervisor"] = "Barbie"
                     $0["status"] = "closed"
                     $0["rpi"] = true
-                    $0["date"]
+                    $0["date"](BSON.Key.self)
                     {
                         $0["Y"] = 2023
                         $0["M"] = 2
                         $0["D"] = 14
                     }
                 }
-                $0
+                $0(BSON.Key.self)
                 {
                     $0["_id"] = 0x4455_6677_8899_AAC1
                     $0["type"] = "sexual assault"
                     $0["supervisor"] = "Barbie"
                     $0["status"] = "open"
                     $0["rpi"] = false
-                    $0["date"]
+                    $0["date"](BSON.Key.self)
                     {
                         $0["Y"] = 2023
                         $0["M"] = 2

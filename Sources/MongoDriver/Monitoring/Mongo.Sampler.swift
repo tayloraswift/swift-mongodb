@@ -38,17 +38,17 @@ extension Mongo.Sampler
                 let cooldown:Void = Task.sleep(for: interval)
                 let deadline:ContinuousClock.Instant = .now.advanced(by: interval)
 
-                let latency:Duration = try await self.connection.sample(by: deadline)
+                let sampleLatency:Duration = try await self.connection.sample(by: deadline)
                 let sample:Double =
-                    1e-9 * Double.init(latency.components.attoseconds) +
-                    1e+9 * Double.init(latency.components.seconds)
+                    1e-9 * Double.init(sampleLatency.components.attoseconds) +
+                    1e+9 * Double.init(sampleLatency.components.seconds)
 
                 metric = alpha * sample + (1 - alpha) * metric
 
                 let rounded:Nanoseconds = .nanoseconds(Int64.init(metric))
 
-                pool.latency.store(rounded, ordering: .relaxed)
-                pool.log(event: Event.sampled(latency, metric: rounded))
+                pool.updateLatency(with: rounded)
+                pool.log(event: Event.sampled(sampleLatency, metric: rounded))
 
                 try await cooldown
             }

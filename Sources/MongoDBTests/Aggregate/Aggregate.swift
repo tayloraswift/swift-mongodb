@@ -59,18 +59,17 @@ struct Aggregate<Configuration>:MongoTestBattery where Configuration:MongoTestCo
                 command: Mongo.Aggregate<Mongo.Cursor<TagStats>>.init(collection,
                     writeConcern: .majority,
                     readConcern: .majority,
-                    pipeline: .init
+                    stride: 10)
+                {
+                    $0[stage: .project] = .init { $0[Article[.tags]] = 1 }
+                    $0[stage: .unwind] = Article[.tags]
+                    $0[stage: .group] = .init
                     {
-                        $0[stage: .project] = .init { $0[Article[.tags]] = 1 }
-                        $0[stage: .unwind] = Article[.tags]
-                        $0[stage: .group] = .init
-                        {
-                            $0[.id] = Article[.tags]
+                        $0[.id] = Article[.tags]
 
-                            $0[TagStats[.count]] = .init { $0[.sum] = 1 }
-                        }
-                    },
-                    stride: 10),
+                        $0[TagStats[.count]] = .init { $0[.sum] = 1 }
+                    }
+                },
                 against: database)
             {
                 try await $0.reduce(into: []) { $0 += $1 }
@@ -90,21 +89,20 @@ struct Aggregate<Configuration>:MongoTestBattery where Configuration:MongoTestCo
                 command: Mongo.Aggregate<Mongo.Cursor<AuthorStats>>.init(collection,
                     writeConcern: .majority,
                     readConcern: .majority,
-                    pipeline: .init
+                    stride: 10)
+                {
+                    $0[stage: .project] = .init
                     {
-                        $0[stage: .project] = .init
-                        {
-                            $0[Article[.author]] = 1
-                            $0[Article[.views]] = 1
-                        }
-                        $0[stage: .group] = .init
-                        {
-                            $0[.id] = Article[.author]
+                        $0[Article[.author]] = 1
+                        $0[Article[.views]] = 1
+                    }
+                    $0[stage: .group] = .init
+                    {
+                        $0[.id] = Article[.author]
 
-                            $0[Article[.views]] = .init { $0[.sum] = Article[.views] }
-                        }
-                    },
-                    stride: 10),
+                        $0[Article[.views]] = .init { $0[.sum] = Article[.views] }
+                    }
+                },
                 against: database)
             {
                 try await $0.reduce(into: []) { $0 += $1 }

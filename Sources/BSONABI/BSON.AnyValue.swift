@@ -57,7 +57,16 @@ extension BSON
         ///     behavior is not part of the BSON specification, and does not
         ///     affect roundtrippability of BSON documents that are not stored
         ///     in a Mongo database.
-        case uint64(UInt64)
+        case timestamp(BSON.Timestamp)
+    }
+}
+extension BSON.AnyValue
+{
+    @available(*, deprecated, renamed: "timestamp(_:)")
+    @inlinable public static
+    func uint64(_ value:UInt64) -> Self
+    {
+        .timestamp(.init(value))
     }
 }
 extension BSON.AnyValue:Equatable
@@ -89,7 +98,7 @@ extension BSON.AnyValue
         case .pointer:          .pointer
         case .regex:            .regex
         case .string:           .string
-        case .uint64:           .uint64
+        case .timestamp:        .timestamp
         }
     }
     /// The size of this variant value when encoded.
@@ -134,7 +143,7 @@ extension BSON.AnyValue
             regex.size
         case .string(let string):
             string.size
-        case .uint64:
+        case .timestamp:
             8
         }
     }
@@ -182,7 +191,7 @@ extension BSON.AnyValue
     /// -   Returns:
     ///     An integer derived from the payload of this variant
     ///     if it matches one of ``int32(_:)``, ``int64(_:)``, or
-    ///     ``uint64(_:)``, and it can be represented exactly by `T`;
+    ///     ``timestamp(_:)``, and it can be represented exactly by `T`;
     ///     nil otherwise.
     ///
     /// The ``decimal128(_:)``, ``double(_:)``, and ``millisecond(_:)``
@@ -215,14 +224,14 @@ extension BSON.AnyValue
             {
                 throw BSON.IntegerOverflowError<Integer>.int64(int64)
             }
-        case .uint64(let uint64):
-            if let integer:Integer = .init(exactly: uint64)
+        case .timestamp(let timestamp):
+            if let integer:Integer = .init(exactly: timestamp.value)
             {
                 return integer
             }
             else
             {
-                throw BSON.IntegerOverflowError<Integer>.uint64(uint64)
+                throw BSON.IntegerOverflowError<Integer>.uint64(timestamp.value)
             }
         default:
             return nil

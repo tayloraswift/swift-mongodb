@@ -5,7 +5,7 @@ extension Mongo.ConnectionPool
 {
     /// Categorizes and tracks channels by their observed health and
     /// allocation status.
-    struct Allocations
+    struct Allocations:Sendable
     {
         /// Connections that are currently free to be allocated,
         /// and are believed to be healthy.
@@ -21,9 +21,8 @@ extension Mongo.ConnectionPool
         private
         var perished:Set<UInt>
 
-        /// Additional channels that have no other way of being
-        /// represented in this structure. Contributes to the total
-        /// connection ``count``.
+        /// Additional channels that have no other way of being represented in this structure.
+        /// Contributes to the total connection ``count``.
         private
         var pending:Int
 
@@ -31,7 +30,7 @@ extension Mongo.ConnectionPool
         var observers:Mongo.Observers
         /// All requests currently awaiting connections, identified by `UInt`.
         private
-        var requests:[UInt: CheckedContinuation<Mongo.ConnectionPool.Allocation, any Error>]
+        var requests:[UInt: CheckedContinuation<Allocation, any Error>]
         /// The current stage of the pool’s lifecycle. Pools start out in the
         /// “connecting” state, and eventually transition to the “draining” state,
         /// which is terminal. There are no “in-between” states.

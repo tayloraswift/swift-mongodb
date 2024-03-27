@@ -6,11 +6,11 @@ extension Mongo
     struct ClusterTime:Sendable
     {
         public
-        let timestamp:Timestamp
+        let timestamp:BSON.Timestamp
         let signature:BSON.Document
 
         @usableFromInline
-        init(timestamp:Timestamp, signature:BSON.Document)
+        init(timestamp:BSON.Timestamp, signature:BSON.Document)
         {
             self.signature = signature
             self.timestamp = timestamp
@@ -48,7 +48,7 @@ extension Mongo.ClusterTime:BSONDecodable, BSONDocumentDecodable
     @inlinable public
     init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
-        self.init(timestamp: try bson[.clusterTime].decode(to: Mongo.Timestamp.self),
+        self.init(timestamp: try bson[.clusterTime].decode(to: BSON.Timestamp.self),
             signature: try bson[.signature].decode(to: BSON.Document.self))
     }
 }

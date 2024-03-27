@@ -13,14 +13,12 @@ extension Mongo
         public
         let collection:Collection
         public
-        let timeout:MaxTime?
+        let timeout:MaxTime
         public
         let count:Int?
 
         @inlinable public
-        init(cursor:CursorIdentifier, collection:Collection,
-            timeout:MaxTime?,
-            count:Int?)
+        init(cursor:CursorIdentifier, collection:Collection, timeout:MaxTime, count:Int?)
         {
             self.cursor = cursor
             self.collection = collection

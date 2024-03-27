@@ -13,7 +13,7 @@ extension Main.LiteralInference:TestBattery
     func run(tests:TestGroup)
     {
         Self.run(tests / "integer",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["default"] = 1
                 $0["default-long"] = 0x7fff_ffff_ffff_ffff
@@ -33,7 +33,7 @@ extension Main.LiteralInference:TestBattery
             ])
 
         Self.run(tests / "floating-point",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["default"] = 1.0
                 $0["a"] = 1.0 as Double
@@ -45,7 +45,7 @@ extension Main.LiteralInference:TestBattery
             ])
 
         Self.run(tests / "string",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["a"] = "string"
                 $0["b"] = "string"
@@ -61,7 +61,7 @@ extension Main.LiteralInference:TestBattery
             ])
 
         Self.run(tests / "optionals",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["a"] = [1, nil, 3]
                 $0["b"] = [1, nil, 3]
@@ -77,7 +77,7 @@ extension Main.LiteralInference:TestBattery
             ])
 
         Self.run(tests / "list",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["a"] = [1, 2, 3]
                 $0["b"] = [1, 2, 3]
@@ -93,15 +93,15 @@ extension Main.LiteralInference:TestBattery
             ])
 
         Self.run(tests / "document",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
-                $0["a"]
+                $0["a"](BSON.Key.self)
                 {
                     $0["a"] = 1
                     $0["b"] = 2
                     $0["c"] = 3
                 }
-                $0["b"]
+                $0["b"](BSON.Key.self)
                 {
                     $0["a"] = 1
                     $0["b"] = 2

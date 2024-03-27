@@ -15,7 +15,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.Variable where T:MongoMasterCodingModel
+extension Mongo.Variable where T:Mongo.MasterCodingModel
 {
     @inlinable public
     subscript(key:T.CodingKey) -> Mongo.AnyKeyPath

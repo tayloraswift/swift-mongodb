@@ -2,20 +2,15 @@ import BSON
 import Durations
 import MongoCommands
 
-extension Mongo.Cursor
-{
-    @available(*, deprecated, renamed: "Mongo.CursorBatch")
-    public
-    typealias Batch = Mongo.CursorBatch<BatchElement>
-}
 extension Mongo
 {
     public
     struct Cursor<BatchElement> where BatchElement:BSONDecodable & Sendable
     {
-        @usableFromInline internal
+        @usableFromInline
         let iterator:AsyncIterator
 
+        private
         init(iterator:AsyncIterator)
         {
             self.iterator = iterator
@@ -32,10 +27,10 @@ extension Mongo.Cursor
 }
 extension Mongo.Cursor
 {
-    @usableFromInline internal static
+    @usableFromInline static
     func create(preference:Mongo.ReadPreference,
         lifecycle:Mongo.CursorLifecycle,
-        timeout:Milliseconds,
+        timeout:Mongo.NetworkTimeout,
         initial:Mongo.CursorBatch<BatchElement>,
         stride:Int?,
         pinned:
@@ -63,7 +58,7 @@ extension Mongo.Cursor
         }
         return .init(iterator: iterator)
     }
-    @usableFromInline internal
+    @usableFromInline
     func destroy() async
     {
         if  let cursor:Mongo.CursorIterator = self.iterator.cursor

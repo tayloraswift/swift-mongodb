@@ -4,16 +4,16 @@ import MongoWire
 
 extension MongoExecutor
 {
-    /// Encodes the given command to a document, adding the given database
-    /// as a field with the key `"$db"`, sends it over this channel, and
-    /// awaits its reply.
+    /// Encodes the given command to a document, adding the given database as a field with the
+    /// key `"$db"`, sends it over this channel, and awaits its reply.
     ///
-    /// If the deadline passes before this function can start executing, this
-    /// method will not close the channel or send anything over it.
+    /// If the deadline passes before this function can start executing, this method will not
+    /// close the channel or send anything over it. As this method is intended for use by the
+    /// driver itself, **it performs no deadline adjustments** to account for network
+    /// conditions.
     ///
-    /// If the task the caller is running on gets cancelled before this
-    /// function can start executing, this method will not close the channel
-    /// or send anything over it.
+    /// If the task the caller is running on gets cancelled before this function can start
+    /// executing, this method will not close the channel or send anything over it.
     ///
     /// In all other scenarios, the channel will be closed on failure.
     func run<Command>(command:__owned Command,

@@ -13,7 +13,7 @@ extension Main.EncodeList:TestBattery
     func run(tests:TestGroup)
     {
         Self.run(tests,
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["a"] = [] as [Never]
                 $0["b"] = [1]

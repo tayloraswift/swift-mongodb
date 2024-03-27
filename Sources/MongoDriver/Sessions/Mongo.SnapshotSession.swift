@@ -1,10 +1,12 @@
+import BSON
+
 extension Mongo
 {
     public final
     class SnapshotSession:Identifiable
     {
         public private(set)
-        var snapshotTime:Timestamp
+        var snapshotTime:BSON.Timestamp
         public private(set)
         var transaction:TransactionState
         private
@@ -21,7 +23,7 @@ extension Mongo
         let pool:SessionPool
 
         private
-        init(snapshotTime:Timestamp, allocation:SessionPool.Allocation, pool:SessionPool)
+        init(snapshotTime:BSON.Timestamp, allocation:SessionPool.Allocation, pool:SessionPool)
         {
             self.snapshotTime = snapshotTime
             self.transaction = allocation.transaction

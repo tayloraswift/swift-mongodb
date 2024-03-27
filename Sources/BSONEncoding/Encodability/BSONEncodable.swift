@@ -73,12 +73,6 @@ extension BSONEncodable where Self == BSON.Document
         self.init()
         try populate(&self.output[as: BSON.DocumentEncoder<CodingKey>.self])
     }
-    @inlinable public
-    init(with populate:(inout BSON.DocumentEncoder<BSON.Key>) throws -> ()) rethrows
-    {
-        self.init()
-        try populate(&self.output[as: BSON.DocumentEncoder<BSON.Key>.self])
-    }
 }
 extension BSONEncodable where Self == BSON.List
 {
@@ -111,7 +105,7 @@ extension UInt64:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(uint64: self)
+        field.encode(timestamp: .init(self))
     }
 }
 @available(*, deprecated,
@@ -122,6 +116,6 @@ extension UInt:BSONEncodable
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
-        field.encode(uint64: .init(self))
+        field.encode(timestamp: .init(UInt64.init(self)))
     }
 }

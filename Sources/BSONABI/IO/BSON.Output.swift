@@ -115,8 +115,8 @@ extension BSON.Output
         case .int32(let int32):
             self.serialize(integer: int32)
 
-        case .uint64(let uint64):
-            self.serialize(integer: uint64)
+        case .timestamp(let timestamp):
+            self.serialize(integer: timestamp.value)
 
         case .int64(let int64):
             self.serialize(integer: int64)

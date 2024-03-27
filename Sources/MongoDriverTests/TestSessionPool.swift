@@ -1,3 +1,4 @@
+import BSON
 import MongoDriver
 import NIOPosix
 import Testing
@@ -125,7 +126,7 @@ func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
 
                 if !single
                 {
-                    let _:Mongo.Timestamp? = tests.expect(value: b.preconditionTime)
+                    let _:BSON.Timestamp? = tests.expect(value: b.preconditionTime)
                 }
 
                 try await a.refresh()

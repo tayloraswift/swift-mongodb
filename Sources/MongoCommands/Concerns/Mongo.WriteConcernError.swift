@@ -81,7 +81,7 @@ extension Mongo.WriteConcernError:BSONEncodable, BSONDocumentEncodable
             return
         }
 
-        bson[.errorDetails]
+        bson[.errorDetails](BSON.Key.self)
         {
             $0["writeConcern"] = details
         }

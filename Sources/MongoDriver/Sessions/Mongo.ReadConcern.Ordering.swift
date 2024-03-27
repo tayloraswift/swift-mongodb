@@ -1,8 +1,10 @@
+import BSON
+
 extension Mongo.ReadConcern
 {
     enum Ordering:Sendable
     {
-        case after(Mongo.Timestamp)
-        case at(Mongo.Timestamp)
+        case after(BSON.Timestamp)
+        case at(BSON.Timestamp)
     }
 }

@@ -318,6 +318,8 @@ let package:Package = .init(name: "swift-mongodb",
         .executableTarget(name: "MongoDBTests",
             dependencies:
             [
+                .target(name: "MongoDB"),
+                .target(name: "MongoQL"),
                 .target(name: "MongoTesting"),
             ]),
 

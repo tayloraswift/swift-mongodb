@@ -15,7 +15,7 @@ extension Mongo
         }
     }
 }
-extension Mongo.CollectionStats:MongoMasterCodingModel
+extension Mongo.CollectionStats:Mongo.MasterCodingModel
 {
     @frozen public
     enum CodingKey:String, Sendable

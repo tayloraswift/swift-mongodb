@@ -13,7 +13,7 @@ extension Main.FieldDuplication:TestBattery
     func run(tests:TestGroup)
     {
         Self.run(tests / "integer",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["inhabited"] = 5
                 $0["uninhabited"] = nil as Never??

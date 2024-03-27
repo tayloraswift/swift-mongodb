@@ -42,8 +42,8 @@ extension BSON.AnyValue
             "\(regex)"
         case .string(let utf8):
             "\"\(utf8)\""
-        case .uint64(let uint64):
-            "\(uint64) as UInt64"
+        case .timestamp(let timestamp):
+            "\(timestamp)"
         }
     }
 }
@@ -117,7 +117,7 @@ extension BSON.AnyValue
             lhs == rhs
         case (.string       (let lhs), .string      (let rhs)):
             lhs == rhs
-        case (.uint64       (let lhs), .uint64      (let rhs)):
+        case (.timestamp    (let lhs), .timestamp   (let rhs)):
             lhs == rhs
 
         default:
@@ -156,7 +156,7 @@ extension BSON.AnyValue
                 .pointer,
                 .regex,
                 .string,
-                .uint64:
+                .timestamp:
             self
         }
     }
