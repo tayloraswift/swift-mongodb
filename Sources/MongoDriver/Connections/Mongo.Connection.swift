@@ -95,12 +95,13 @@ extension Mongo.Connection
         by deadline:ContinuousClock.Instant) async throws -> Mongo.Reply
         where Command:Mongo.Command
     {
-        let deadline:ContinuousClock.Instant = self.pool.adjust(deadline: deadline)
+        let deadline:Mongo.DeadlineAdjustments = self.pool.adjust(deadline: deadline)
+
         guard
         let command:Mongo.WireMessage.Sections = command.encode(
             database: database,
             labels: labels,
-            by: deadline)
+            by: deadline.logical)
         else
         {
             throw Mongo.DriverTimeoutError.init()
@@ -110,7 +111,9 @@ extension Mongo.Connection
 
         do
         {
-            message = try await self.allocation.request(sections: command, deadline: deadline)
+            message = try await self.allocation.request(
+                sections: command,
+                deadline: deadline.network)
         }
         catch let error
         {

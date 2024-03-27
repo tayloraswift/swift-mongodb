@@ -13,15 +13,15 @@ extension Mongo
 }
 extension Mongo.CursorLifecycle
 {
-    @usableFromInline
-    var timeout:Mongo.MaxTime?
+    @inlinable
+    var timeout:Mongo.MaxTime
     {
         switch self
         {
         //  maxTimeMS can only be sent for tailable
         //  (iteration-based lifecycle) cursors.
-        case .iterable: .auto
-        case .expires:  nil
+        case .iterable: .computed
+        case .expires:  .omitted
         }
     }
 }

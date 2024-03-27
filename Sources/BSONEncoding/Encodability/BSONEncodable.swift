@@ -73,12 +73,6 @@ extension BSONEncodable where Self == BSON.Document
         self.init()
         try populate(&self.output[as: BSON.DocumentEncoder<CodingKey>.self])
     }
-    @inlinable public
-    init(with populate:(inout BSON.DocumentEncoder<BSON.Key>) throws -> ()) rethrows
-    {
-        self.init()
-        try populate(&self.output[as: BSON.DocumentEncoder<BSON.Key>.self])
-    }
 }
 extension BSONEncodable where Self == BSON.List
 {

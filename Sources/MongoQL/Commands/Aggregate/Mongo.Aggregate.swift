@@ -10,19 +10,23 @@ extension Mongo
         public
         let readConcern:ReadConcern?
         public
+        let tailing:Effect.Tailing?
+        public
         let stride:Effect.Stride?
 
         public
         var fields:BSON.Document
 
-        @inlinable internal
+        @inlinable
         init(writeConcern:WriteConcern?,
             readConcern:ReadConcern?,
+            tailing:Effect.Tailing?,
             stride:Effect.Stride?,
             fields:BSON.Document)
         {
             self.writeConcern = writeConcern
             self.readConcern = readConcern
+            self.tailing = tailing
             self.stride = stride
             self.fields = fields
         }
@@ -44,102 +48,94 @@ extension Mongo.Aggregate:Mongo.Command
 }
 extension Mongo.Aggregate
 {
-    @inlinable public
-    init(_ collection:Mongo.Collection,
-        writeConcern:WriteConcern? = nil,
-        readConcern:ReadConcern? = nil,
-        pipeline:Mongo.Pipeline,
-        stride:Effect.Stride?)
+    @frozen @usableFromInline
+    enum BuiltinKey:String, Sendable
     {
-        self.init(
-            writeConcern: writeConcern,
-            readConcern: readConcern,
-            stride: stride,
-            fields: Self.type(collection))
-        ;
-        {
-            $0["pipeline"] = pipeline
-            $0["cursor"]
-            {
-                if  let stride:Effect.Stride = stride
-                {
-                    $0["batchSize"] = stride
-                }
-                else
-                {
-                    $0["batchSize"] = Int.max
-                }
-            }
-        } (&self.fields[BSON.Key.self])
-    }
-    @inlinable public
-    init(_ collection:Mongo.Collection,
-        writeConcern:WriteConcern? = nil,
-        readConcern:ReadConcern? = nil,
-        pipeline:Mongo.Pipeline,
-        stride:Effect.Stride?,
-        with populate:(inout Self) throws -> ()) rethrows
-    {
-        self.init(collection,
-            writeConcern: writeConcern,
-            readConcern: readConcern,
-            pipeline: pipeline,
-            stride: stride)
-        try populate(&self)
+        case pipeline
+        case explain
+
+        case cursor
     }
 }
-extension Mongo.Aggregate where Effect.Stride == Never
+extension Mongo.Aggregate
 {
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
-        pipeline:Mongo.Pipeline)
+        tailing:Effect.Tailing? = nil,
+        stride:Effect.Stride? = nil,
+        pipeline:(inout Mongo.PipelineEncoder) throws -> ()) rethrows
     {
-        self.init(collection,
+        self.init(
             writeConcern: writeConcern,
             readConcern: readConcern,
-            pipeline: pipeline,
-            stride: nil)
+            tailing: tailing,
+            stride: stride,
+            fields: Self.type(collection))
+        try
+        {
+            if  let stride:Effect.Stride = stride
+            {
+                $0[.cursor] = Mongo.CursorOptions<Effect.Stride>.init(batchSize: stride)
+            }
+            else
+            {
+                $0[.cursor] = Mongo.CursorOptions<Int>.init(batchSize: .max)
+            }
+
+            try pipeline(&$0[.pipeline][as: Mongo.PipelineEncoder.self])
+
+        } (&self.fields[BuiltinKey.self])
     }
+
     @inlinable public
     init(_ collection:Mongo.Collection,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
-        pipeline:Mongo.Pipeline,
-        with populate:(inout Self) throws -> ()) rethrows
+        tailing:Effect.Tailing? = nil,
+        stride:Effect.Stride? = nil,
+        pipeline:(inout Mongo.PipelineEncoder) throws -> (),
+        options configure:(inout Self) throws -> ()) rethrows
     {
         try self.init(collection,
             writeConcern: writeConcern,
             readConcern: readConcern,
-            pipeline: pipeline,
-            stride: nil,
-            with: populate)
+            tailing: tailing,
+            stride: stride,
+            pipeline: pipeline)
+        try configure(&self)
     }
 }
 extension Mongo.Aggregate<Mongo.ExplainOnly>
 {
     @inlinable public
-    init(_ collection:Mongo.Collection, pipeline:Mongo.Pipeline)
+    init(_ collection:Mongo.Collection,
+        pipeline:(inout Mongo.PipelineEncoder) throws -> ()) rethrows
     {
         self.init(
             writeConcern: nil,
             readConcern: nil,
+            tailing: nil,
             stride: nil,
             fields: Self.type(collection))
-        ;
+
+        try
         {
-            $0["pipeline"] = pipeline
-            $0["explain"] = true
-        } (&self.fields[BSON.Key.self])
+            try pipeline(&$0[.pipeline][as: Mongo.PipelineEncoder.self])
+
+            $0[.explain] = true
+
+        } (&self.fields[BuiltinKey.self])
     }
+
     @inlinable public
     init(_ collection:Mongo.Collection,
-        pipeline:Mongo.Pipeline,
-        with populate:(inout Self) throws -> ()) rethrows
+        pipeline:(inout Mongo.PipelineEncoder) throws -> (),
+        options configure:(inout Self) throws -> ()) rethrows
     {
-        self.init(collection, pipeline: pipeline)
-        try populate(&self)
+        try self.init(collection, pipeline: pipeline)
+        try configure(&self)
     }
 }
 

@@ -16,8 +16,8 @@ extension Mongo.Command
 }
 extension Mongo.Command
 {
-    /// Encodes this command to a BSON document, adding the given database
-    /// as a field with the key [`"$db"`]().
+    /// Encodes this command to a BSON document, adding the given database as a field with the
+    /// key `"$db"`.
     @usableFromInline __consuming
     func encode(database:Database,
         labels:Mongo.SessionLabels?,
@@ -37,13 +37,12 @@ extension Mongo.Command
             return nil
         }
 
-        let timeout:Milliseconds? = self.timeout.map
+        let timeout:Milliseconds?
+
+        switch self.timeout
         {
-            switch $0
-            {
-            case .auto:
-                .init(truncating: now.duration(to: deadline))
-            }
+        case .computed: timeout = .init(truncating: now.duration(to: deadline))
+        case .omitted:  timeout = nil
         }
 
         let body:BSON.Document = self.body(database: database,

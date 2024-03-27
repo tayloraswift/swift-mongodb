@@ -47,14 +47,14 @@ extension Mongo.ConfigureFailpoint:Mongo.ImplicitSessionCommand, Mongo.Command
 
             case .random(let options, probability: let probability):
                 $0["data"] = options
-                $0["mode"]
+                $0["mode"](BSON.Key.self)
                 {
                     $0["activationProbability"] = probability
                 }
 
             case .times(let options, count: let count):
                 $0["data"] = options
-                $0["mode"]
+                $0["mode"](BSON.Key.self)
                 {
                     $0["times"] = count
                 }

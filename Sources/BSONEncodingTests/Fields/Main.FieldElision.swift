@@ -15,7 +15,7 @@ extension Main.FieldElision:TestBattery
         let _:BSON.Document = [:]
 
         Self.run(tests / "null",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["elided"] = nil as Never??
                 $0["inhabited"] = BSON.Null.init()
@@ -26,7 +26,7 @@ extension Main.FieldElision:TestBattery
             ])
 
         Self.run(tests / "integer",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["elided"] = nil as Int?
                 $0["inhabited"] = 5
@@ -37,7 +37,7 @@ extension Main.FieldElision:TestBattery
             ])
 
         Self.run(tests / "optional",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["elided"] = nil as Int??
                 $0["inhabited"] = (5 as Int?) as Int??

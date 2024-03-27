@@ -2,25 +2,25 @@ import Durations
 
 extension Mongo
 {
-    @usableFromInline internal
-    struct Timeout:Sendable
+    @frozen @usableFromInline
+    struct NetworkTimeout:Sendable
     {
-        public
-        let `default`:Milliseconds
+        @usableFromInline
+        let milliseconds:Milliseconds
 
-        @inlinable public
-        init(default:Milliseconds)
+        @inlinable
+        init(milliseconds:Milliseconds)
         {
-            self.default = `default`
+            self.milliseconds = milliseconds
         }
     }
 }
-extension Mongo.Timeout
+extension Mongo.NetworkTimeout
 {
     @inlinable internal
     func deadline(from start:ContinuousClock.Instant = .now) -> ContinuousClock.Instant
     {
-        start.advanced(by: .milliseconds(self.default))
+        start.advanced(by: .milliseconds(self.milliseconds))
     }
 
     @inlinable internal

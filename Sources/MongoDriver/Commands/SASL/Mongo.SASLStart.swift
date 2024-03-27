@@ -30,7 +30,7 @@ extension Mongo.SASLStart:BSONDocumentEncodable
         bson[.init(Self.type)] = true
         bson["mechanism"] = self.mechanism
         bson["payload"] = self.scram.message.base64
-        bson["options"]
+        bson["options"](BSON.Key.self)
         {
             $0["skipEmptyExchange"] = true
         }

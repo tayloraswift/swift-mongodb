@@ -9,6 +9,7 @@ enum Main:TestMain
     let all:[any TestBattery.Type] =
     [
         Aggregate           <ReplicatedConfiguration>.self,
+        ChangeStreams       <ReplicatedConfiguration>.self,
         Collections         <ReplicatedConfiguration>.self,
         Cursors             <ReplicatedConfiguration>.self,
         Databases           <ReplicatedConfiguration>.self,

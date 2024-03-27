@@ -3,22 +3,22 @@ import MongoQL
 
 func ExampleExpressions()
 {
-    let _:BSON.Document = .init
+    let _:BSON.Document = .init(BSON.Key.self)
     {
         $0["_"] = [] as [Never]
         $0["_"] = [:]
-        $0["_"]
+        $0["_"](BSON.Key.self)
         {
-            $0["_"]
+            $0["_"](BSON.Key.self)
             {
                 $0["_"] = [:]
             }
         }
     }
-    let _:BSON.Document = .init
+    let _:BSON.Document = .init(BSON.Key.self)
     {
         $0["foo"] = "$field"
-        $0["bar"]
+        $0["bar"](BSON.Key.self)
         {
             $0["ccc"] = 56
         }
@@ -27,7 +27,7 @@ func ExampleExpressions()
             $0.append(56)
         }
     }
-    let _:BSON.Document = .init
+    let _:BSON.Document = .init(BSON.Key.self)
     {
         $0["_"] =  nil as            Never??
         $0["_"] = (nil as Never?) as Never??
@@ -39,7 +39,7 @@ func ExampleExpressions()
         {
             $0.append(0)
         }
-        $0["_"]
+        $0["_"](BSON.Key.self)
         {
             $0["_"] = 0
         }
@@ -65,7 +65,7 @@ func ExampleExpressions()
             $0[.abs] = "$field"
         }
     }
-    let _:BSON.Document = .init
+    let _:BSON.Document = .init(BSON.Key.self)
     {
         $0["_"] = .expr
         {
@@ -163,7 +163,7 @@ func ExampleExpressions()
             $0[.trunc] = ("$field", places: 2)
         }
     }
-    let _:BSON.Document = .init
+    let _:BSON.Document = .init(BSON.Key.self)
     {
         $0["_"] = .expr
         {
@@ -194,7 +194,7 @@ func ExampleExpressions()
             $0[.ne] = ("$x", 0)
         }
     }
-    let _:BSON.Document = .init
+    let _:BSON.Document = .init(BSON.Key.self)
     {
         $0["_"] = .expr
         {
@@ -238,7 +238,7 @@ func ExampleExpressions()
             $0[.ne] = ("$x", 0)
         }
     }
-    let _:BSON.Document = .init
+    let _:BSON.Document = .init(BSON.Key.self)
     {
         $0["_"] = .expr
         {

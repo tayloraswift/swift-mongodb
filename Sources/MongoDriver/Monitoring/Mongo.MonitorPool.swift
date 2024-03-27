@@ -147,9 +147,9 @@ extension Mongo.MonitorPool
     private
     func monitor(host:Mongo.Host, generation:UInt, interval:Milliseconds) async -> Replacement
     {
-        let connectionTimeout:Milliseconds = self.deployment.timeout.default
+        let connectorTimeout:Mongo.NetworkTimeout = self.deployment.timeout
         let connector:Mongo.Connector<Never?> = self.connectorFactory(authenticator: nil,
-            timeout: connectionTimeout,
+            timeout: connectorTimeout,
             host: host)
 
         let services:Mongo.MonitorServices
@@ -188,12 +188,12 @@ extension Mongo.MonitorPool
                 bufferingPolicy: .bufferingOldest(1))
             {
                 let pool:Mongo.ConnectionPool = .init(alongside: .init($0),
-                    connectionTimeout: connectionTimeout,
                     connectorFactory: self.connectorFactory,
+                    connectorTimeout: connectorTimeout,
+                    initialLatency: services.initialLatency,
                     authenticator: self.authenticator,
                     generation: generation,
                     settings: self.connectionPoolSettings,
-                    latency: services.initialLatency,
                     logger: self.deployment.logger,
                     host: host)
 

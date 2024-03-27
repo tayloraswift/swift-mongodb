@@ -28,7 +28,7 @@ func ExampleBucketDocuments()
         $0[.boundaries] = .init
         {
             $0.append("$field")
-            $0
+            $0(BSON.Key.self)
             {
                 $0["x"] = "y"
             }

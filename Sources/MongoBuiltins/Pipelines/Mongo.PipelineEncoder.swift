@@ -45,7 +45,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Out.self)
+            self.list(Mongo.Pipeline.Out.self)
             {
                 $0[.out] = value
             }
@@ -65,7 +65,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Out.self)
+            self.list(Mongo.Pipeline.Out.self)
             {
                 $0[.out] = value
             }
@@ -88,7 +88,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Merge.self)
+            self.list(Mongo.Pipeline.Merge.self)
             {
                 $0[.merge] = value
             }
@@ -111,7 +111,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Bucket.self)
+            self.list(Mongo.Pipeline.Bucket.self)
             {
                 $0[.bucket] = value
             }
@@ -134,7 +134,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.BucketAuto.self)
+            self.list(Mongo.Pipeline.BucketAuto.self)
             {
                 $0[.bucketAuto] = value
             }
@@ -156,7 +156,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Count.self)
+            self.list(Mongo.Pipeline.Count.self)
             {
                 $0[.count] = value.stem
             }
@@ -178,7 +178,7 @@ extension Mongo.PipelineEncoder
     {
         mutating get
         {
-            self.list(using: ChangeStream.self)
+            self.list(ChangeStream.self)
             {
                 yield(&$0[with: key][as: Mongo.ChangeStreamEncoder.self])
             }
@@ -201,7 +201,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.CollectionStats.self)
+            self.list(Mongo.Pipeline.CollectionStats.self)
             {
                 $0[.collectionStats] = value
             }
@@ -224,7 +224,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.CurrentOperation.self)
+            self.list(Mongo.Pipeline.CurrentOperation.self)
             {
                 $0[.currentOperation] = value
             }
@@ -257,7 +257,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Documents.self)
+            self.list(Mongo.Pipeline.Documents.self)
             {
                 $0[.documents] = value
             }
@@ -280,7 +280,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Facet.self)
+            self.list(Mongo.Pipeline.Facet.self)
             {
                 $0[.facet] = value
             }
@@ -330,7 +330,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Group.self)
+            self.list(Mongo.Pipeline.Group.self)
             {
                 $0[.group] = value
             }
@@ -353,7 +353,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.IndexStats.self)
+            self.list(Mongo.Pipeline.IndexStats.self)
             {
                 $0[.indexStats] = value
             }
@@ -376,7 +376,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Limit.self)
+            self.list(Mongo.Pipeline.Limit.self)
             {
                 $0[.limit] = value
             }
@@ -417,7 +417,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Lookup.self)
+            self.list(Mongo.Pipeline.Lookup.self)
             {
                 $0[.lookup] = value
             }
@@ -440,7 +440,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Match.self)
+            self.list(Mongo.Pipeline.Match.self)
             {
                 $0[.match] = value
             }
@@ -463,7 +463,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.PlanCacheStats.self)
+            self.list(Mongo.Pipeline.PlanCacheStats.self)
             {
                 $0[.planCacheStats] = value
             }
@@ -486,7 +486,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Project.self)
+            self.list(Mongo.Pipeline.Project.self)
             {
                 $0[.project] = value
             }
@@ -510,7 +510,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Redact.self)
+            self.list(Mongo.Pipeline.Redact.self)
             {
                 $0[.redact] = value
             }
@@ -534,7 +534,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.ReplaceWith.self)
+            self.list(Mongo.Pipeline.ReplaceWith.self)
             {
                 $0[.replaceWith] = value
             }
@@ -554,7 +554,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.ReplaceWith.self)
+            self.list(Mongo.Pipeline.ReplaceWith.self)
             {
                 $0[.replaceWith] = value
             }
@@ -577,7 +577,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Sample.self)
+            self.list(Mongo.Pipeline.Sample.self)
             {
                 $0[.sample] = value
             }
@@ -600,7 +600,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Set.self)
+            self.list(Mongo.Pipeline.Set.self)
             {
                 $0[.set] = value
             }
@@ -641,7 +641,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.ShardedDataDistribution.self)
+            self.list(Mongo.Pipeline.ShardedDataDistribution.self)
             {
                 $0[.shardedDataDistribution] = value
             }
@@ -664,7 +664,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Skip.self)
+            self.list(Mongo.Pipeline.Skip.self)
             {
                 $0[.skip] = value
             }
@@ -687,7 +687,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Sort.self)
+            self.list(Mongo.Pipeline.Sort.self)
             {
                 $0[.sort] = value
             }
@@ -711,7 +711,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.SortByCount.self)
+            self.list(Mongo.Pipeline.SortByCount.self)
             {
                 $0[.sortByCount] = value
             }
@@ -734,7 +734,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.UnionWith.self)
+            self.list(Mongo.Pipeline.UnionWith.self)
             {
                 $0[.unionWith] = value
             }
@@ -757,7 +757,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.UnionWith.self)
+            self.list(Mongo.Pipeline.UnionWith.self)
             {
                 $0[.unionWith] = value
             }
@@ -780,7 +780,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Unset.self)
+            self.list(Mongo.Pipeline.Unset.self)
             {
                 $0[.unset] = value.stem
             }
@@ -799,7 +799,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Unset.self)
+            self.list(Mongo.Pipeline.Unset.self)
             {
                 $0[.unset]
                 {
@@ -828,7 +828,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Unwind.self)
+            self.list(Mongo.Pipeline.Unwind.self)
             {
                 // includes the `$` prefix!
                 $0[.unwind] = value
@@ -849,7 +849,7 @@ extension Mongo.PipelineEncoder
                 return
             }
 
-            self.list(using: Mongo.Pipeline.Unwind.self)
+            self.list(Mongo.Pipeline.Unwind.self)
             {
                 $0[.unwind] = value
             }

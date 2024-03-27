@@ -36,18 +36,23 @@ extension Mongo.ListIndexes:Mongo.Command
     public
     typealias Response = Mongo.CursorBatch<Element>
 }
+extension Mongo.ListIndexes
+{
+    @frozen @usableFromInline
+    enum BuiltinKey:String, Sendable
+    {
+        case cursor
+    }
+}
 extension Mongo.ListIndexes<Mongo.IndexBinding>
 {
     public
     init(_ collection:Mongo.Collection, stride:Int? = nil)
     {
         self.init(stride: stride, fields: Self.type(collection))
-
         if  let stride:Int
         {
-            {
-                $0["cursor"] { $0["batchSize"] = stride }
-            } (&self.fields[BSON.Key.self])
+            self.fields[BuiltinKey.self][.cursor] = Mongo.CursorOptions.init(batchSize: stride)
         }
     }
     @inlinable public

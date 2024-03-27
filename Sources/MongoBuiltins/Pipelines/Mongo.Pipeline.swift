@@ -9,7 +9,7 @@ extension Mongo
         @usableFromInline internal
         var bson:BSON.List
 
-        @inlinable public
+        @inlinable
         init(stages bson:BSON.List)
         {
             self.bson = bson

@@ -25,9 +25,13 @@ extension Mongo
     public final
     actor Deployment
     {
-        /// The default timeout for driver operations.
+        /// The default timeout for driver operations. This is generally understood to represent
+        /// a global network timeout, and is therefore constant across an application.
+        ///
+        /// Some operations (change streams, tailable cursors, etc.) might expect you to supply
+        /// a separate timeout for the operation itself.
         @usableFromInline nonisolated
-        let timeout:Timeout
+        let timeout:NetworkTimeout
         //  Right now, we don’t do anything with this from this type. But other
         //  types use it through their deployment pointers.
         internal nonisolated
@@ -50,7 +54,7 @@ extension Mongo
 
         init(connectionTimeout:Milliseconds, logger:Logger?)
         {
-            self.timeout = .init(default: connectionTimeout)
+            self.timeout = .init(milliseconds: connectionTimeout)
             self.logger = logger
 
             self._clusterTime = .create(nil)

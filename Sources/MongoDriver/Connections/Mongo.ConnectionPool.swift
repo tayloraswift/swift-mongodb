@@ -48,23 +48,19 @@ extension Mongo
         let releasing:UnsafeAtomic<Int>
 
         private nonisolated
-        let _latency:UnsafeAtomic<Nanoseconds>
-
-        nonisolated
-        var latency:UnsafeAtomic<Nanoseconds>
-        {
-            _read { yield self._latency }
-        }
+        let networkLatency:UnsafeAtomic<Nanoseconds>
+        private nonisolated
+        let networkTimeout:NetworkTimeout
 
         /// Avoid setting the maximum pool size to a very large number, because
         /// the pool makes no linting guarantees.
         init(alongside monitor:MonitorDelegate,
-            connectionTimeout:Milliseconds,
             connectorFactory:__shared ConnectorFactory,
+            connectorTimeout:NetworkTimeout,
+            initialLatency:Nanoseconds,
             authenticator:Authenticator,
             generation:UInt,
             settings:ConnectionPoolSettings,
-            latency:Nanoseconds,
             logger:Logger?,
             host:Host)
         {
@@ -76,20 +72,32 @@ extension Mongo
             self.logger = logger
 
             self.allocations = .init(connector: connectorFactory(authenticator: authenticator,
-                timeout: connectionTimeout,
+                timeout: connectorTimeout,
                 host: host))
 
             self.releasing = .create(0)
-            self._latency = .create(latency)
-
+            self.networkLatency = .create(initialLatency)
+            self.networkTimeout = connectorTimeout
         }
         deinit
         {
+            self.networkLatency.destroy()
             self.allocations.destroy()
-
             self.releasing.destroy()
-            self._latency.destroy()
         }
+    }
+}
+extension Mongo.ConnectionPool
+{
+    nonisolated
+    func updateLatency(with nanoseconds:Nanoseconds)
+    {
+        self.networkLatency.store(nanoseconds, ordering: .relaxed)
+    }
+    nonisolated
+    func recentLatency() -> Nanoseconds
+    {
+        self.networkLatency.load(ordering: .relaxed)
     }
 }
 extension Mongo.ConnectionPool
@@ -146,10 +154,13 @@ extension Mongo.ConnectionPool
 {
     /// Adjusts the given deadline to account for round-trip latency, as
     /// tracked by this pool.
-    public nonisolated
-    func adjust(deadline:ContinuousClock.Instant) -> ContinuousClock.Instant
+    @usableFromInline nonisolated
+    func adjust(deadline:ContinuousClock.Instant) -> Mongo.DeadlineAdjustments
     {
-        deadline - .nanoseconds(self._latency.load(ordering: .relaxed))
+        let logical:ContinuousClock.Instant = deadline - .nanoseconds(self.recentLatency())
+        let network:ContinuousClock.Instant = logical.advanced(
+            by: .milliseconds(self.networkTimeout.milliseconds))
+        return .init(logical: logical, network: network)
     }
 }
 extension Mongo.ConnectionPool

@@ -50,7 +50,7 @@ extension Main.EnumeratedCodingKeys:TestBattery
         }
 
         let expected:Codable = .init(a: 5, b: [5, 6], c: [[5, 6, 7], [8]])
-        let bson:BSON.Document = .init
+        let bson:BSON.Document = .init(BSON.Key.self)
         {
             $0["a"] = 5
             $0["b"] = [5, 6]

@@ -15,7 +15,7 @@ extension Mongo
         public
         var fields:BSON.Document
 
-        @inlinable internal
+        @inlinable
         init(readConcern:ReadConcern?,
             tailing:Effect.Tailing?,
             stride:Effect.Stride?,

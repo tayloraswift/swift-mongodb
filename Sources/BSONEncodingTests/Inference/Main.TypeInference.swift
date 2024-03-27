@@ -13,7 +13,7 @@ extension Main.TypeInference:TestBattery
     func run(tests:TestGroup)
     {
         Self.run(tests / "binary",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["a"] = BSON.BinaryView<[UInt8]>.init(subtype: .generic,
                     bytes: [0xff, 0xff, 0xff])
@@ -25,7 +25,7 @@ extension Main.TypeInference:TestBattery
             ])
 
         Self.run(tests / "max",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["max"] = BSON.Max.init()
             },
@@ -35,7 +35,7 @@ extension Main.TypeInference:TestBattery
             ])
 
         Self.run(tests / "min",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["min"] = BSON.Min.init()
             },
@@ -45,7 +45,7 @@ extension Main.TypeInference:TestBattery
             ])
 
         Self.run(tests / "null",
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["null"] = (nil as Never?) as Never??
             },

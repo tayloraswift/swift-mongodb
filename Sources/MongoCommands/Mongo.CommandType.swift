@@ -47,7 +47,7 @@ extension Mongo.CommandType
     func callAsFunction(_ first:some BSONEncodable,
         then encode:(inout BSON.DocumentEncoder<BSON.Key>) -> () = { _  in }) -> BSON.Document
     {
-        .init
+        .init(BSON.Key.self)
         {
             $0[.init(rawValue: self.rawValue)] = first
             encode(&$0)

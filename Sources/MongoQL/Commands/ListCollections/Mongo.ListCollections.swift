@@ -48,6 +48,15 @@ extension Mongo.ListCollections:Mongo.Command
     public
     typealias Response = Mongo.CursorBatch<Element>
 }
+extension Mongo.ListCollections
+{
+    @frozen @usableFromInline
+    enum BuiltinKey:String, Sendable
+    {
+        case nameOnly
+        case cursor
+    }
+}
 extension Mongo.ListCollections<Mongo.CollectionBinding>
 {
     public
@@ -56,13 +65,11 @@ extension Mongo.ListCollections<Mongo.CollectionBinding>
         self.init(stride: stride, fields: Self.type(1))
         ;
         {
-            $0["cursor"]
-            {
-                $0["batchSize"] = stride
-            }
-            $0["nameOnly"] = true
-        } (&self.fields[BSON.Key.self])
+            $0[.cursor] = Mongo.CursorOptions.init(batchSize: stride)
+            $0[.nameOnly] = true
+        } (&self.fields[BuiltinKey.self])
     }
+
     @inlinable public
     init(stride:Int, with populate:(inout Self) throws -> ()) rethrows
     {
@@ -76,10 +83,7 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
     init(stride:Int)
     {
         self.init(stride: stride, fields: Self.type(1))
-        self.fields[BSON.Key.self]["cursor"]
-        {
-            $0["batchSize"] = stride
-        }
+        self.fields[BuiltinKey.self][.cursor] = Mongo.CursorOptions.init(batchSize: stride)
     }
     @inlinable public
     init(stride:Int, with populate:(inout Self) throws -> ()) rethrows

@@ -31,11 +31,11 @@ extension Mongo.MapDocument
         try .let(variable.name, with: populate)
     }
 
-    @inlinable internal static
+    @inlinable static
     func `let`(_ variable:BSON.Key,
         with populate:(inout Self) throws -> ()) rethrows -> Self
     {
-        var document:Self = .init(.init { $0["as"] = variable })
+        var document:Self = .init(.init(BSON.Key.self) { $0["as"] = variable })
         try populate(&document)
         return document
     }

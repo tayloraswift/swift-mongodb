@@ -32,7 +32,7 @@ extension Mongo
         /// The payload of this command.
         var outline:OutlineVector? { get }
 
-        var timeout:MaxTime? { get }
+        var timeout:MaxTime { get }
 
         /// The opaque fields of this command. Not all conforming types will encode
         /// all of their fields to this property; some may have fields (such as
@@ -61,15 +61,10 @@ extension Mongo.Command
 {
     /// Returns nil.
     @inlinable public
-    var outline:Mongo.OutlineVector?
-    {
-        nil
-    }
+    var outline:Mongo.OutlineVector? { nil }
+    /// Returns ``Mongo.MaxTime/computed``.
     @inlinable public
-    var timeout:Mongo.MaxTime?
-    {
-        .auto
-    }
+    var timeout:Mongo.MaxTime { .computed }
 }
 extension Mongo.Command where ReadConcern == Mongo.ReadConcern
 {

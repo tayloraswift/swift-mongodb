@@ -24,16 +24,16 @@ extension BSON.DocumentEncoder:BSON.Encoder
 extension BSON.DocumentEncoder
 {
     @inlinable public
+    subscript(key:CodingKey) -> BSON.FieldEncoder
+    {
+        _read   { yield  self.output[with: .init(key)] }
+        _modify { yield &self.output[with: .init(key)] }
+    }
+    @inlinable public
     subscript(with key:some RawRepresentable<String>) -> BSON.FieldEncoder
     {
-        _read
-        {
-            yield  self.output[with: .init(key)]
-        }
-        _modify
-        {
-            yield &self.output[with: .init(key)]
-        }
+        _read   { yield  self.output[with: .init(key)] }
+        _modify { yield &self.output[with: .init(key)] }
     }
 }
 extension BSON.DocumentEncoder
@@ -46,17 +46,9 @@ extension BSON.DocumentEncoder
             yield(&self[with: key][as: BSON.ListEncoder.self])
         }
     }
-    @inlinable public
-    subscript(key:CodingKey, yield:(inout BSON.DocumentEncoder<BSON.Key>) -> ()) -> Void
-    {
-        mutating get
-        {
-            yield(&self[with: key][as: BSON.DocumentEncoder<BSON.Key>.self])
-        }
-    }
+
     @inlinable public
     subscript<NestedKey>(key:CodingKey,
-        _:NestedKey.Type = NestedKey.self,
         yield:(inout BSON.DocumentEncoder<NestedKey>) -> ()) -> Void
     {
         mutating get

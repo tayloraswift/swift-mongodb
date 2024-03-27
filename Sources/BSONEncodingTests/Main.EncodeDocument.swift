@@ -13,14 +13,14 @@ extension Main.EncodeDocument:TestBattery
     func run(tests:TestGroup)
     {
         Self.run(tests,
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["a"] = [:]
-                $0["b"]
+                $0["b"](BSON.Key.self)
                 {
                     $0["x"] = 1
                 }
-                $0["c"]
+                $0["c"](BSON.Key.self)
                 {
                     $0["x"] = 1
                     $0["y"] = 2

@@ -243,7 +243,7 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
-    @inlinable internal
+    @inlinable
     func begin<Query>(query:Query,
         against database:Query.Database,
         on preference:Mongo.ReadPreference,
@@ -292,7 +292,7 @@ extension Mongo.Session
             throw Mongo.TransactionInProgressError.init()
         }
     }
-    @inlinable internal
+    @inlinable
     func begin<Query>(query:Query,
         against database:Query.Database,
         over connections:Mongo.ConnectionPool,
@@ -306,7 +306,7 @@ extension Mongo.Session
         return .create(preference: preference,
             lifecycle: query.tailing.map { .iterable($0.timeout) } ??
                 .expires(deadlines.operation),
-            timeout: self.deployment.timeout.default,
+            timeout: self.deployment.timeout,
             initial: try await self.run(command: query,
                 against: database,
                 over: connection,
@@ -461,7 +461,7 @@ extension Mongo.Session
 }
 extension Mongo.Session
 {
-    @inlinable internal
+    @inlinable
     func run<Command>(command:Command, against database:Command.Database,
         over connection:Mongo.Connection,
         on preference:Mongo.ReadPreference,

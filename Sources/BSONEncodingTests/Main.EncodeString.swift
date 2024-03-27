@@ -13,7 +13,7 @@ extension Main.EncodeString:TestBattery
     func run(tests:TestGroup)
     {
         Self.run(tests,
-            encoded: .init
+            encoded: .init(BSON.Key.self)
             {
                 $0["a"] = ""
                 $0["b"] = "foo"
