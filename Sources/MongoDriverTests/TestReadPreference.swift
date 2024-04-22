@@ -1,5 +1,5 @@
 import MongoDriver
-import Testing
+import Testing_
 
 func TestReadPreference(_ tests:TestGroup, members:Mongo.Seedlist,
     bootstrap:Mongo.DriverBootstrap) async

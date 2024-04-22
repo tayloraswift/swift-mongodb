@@ -33,7 +33,7 @@ let package:Package = .init(name: "swift-mongodb",
     dependencies:
     [
         .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
-            from: "0.3.4")),
+            from: "0.4.0")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
             from: "0.5.0")),
 
@@ -42,11 +42,7 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
             from: "1.1.0")),
 
-        /// swift-nio has a low rate of breakage, and can be trusted with a major-only
-        /// version requirement.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.64.0"),
-        /// swift-nio-ssl has a low rate of breakage, and can be trusted with a
-        /// major-only version requirement.
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.26.0"),
     ],
     targets:
@@ -106,7 +102,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "BSON"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .target(name: "BSON_UUID",
@@ -250,7 +246,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDB"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         // the mongo wire protocol. has no awareness of networking or
@@ -268,21 +264,21 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONReflection"),
                 .product(name: "Base16", package: "swift-hash"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONDecodingTests",
             dependencies:
             [
                 .target(name: "BSONDecoding"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONEncodingTests",
             dependencies:
             [
                 .target(name: "BSONEncoding"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONIntegrationTests",
@@ -290,7 +286,7 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSON"),
                 .target(name: "BSONReflection"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONReflectionTests",
@@ -298,21 +294,21 @@ let package:Package = .init(name: "swift-mongodb",
             [
                 .target(name: "BSONReflection"),
                 .target(name: "BSONEncoding"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "OnlineCDFTests",
             dependencies:
             [
                 .target(name: "OnlineCDF"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "MongoClusterTests",
             dependencies:
             [
                 .target(name: "MongoClusters"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "MongoDBTests",
@@ -327,7 +323,7 @@ let package:Package = .init(name: "swift-mongodb",
             dependencies:
             [
                 .target(name: "MongoDriver"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
     ]
 )

@@ -3,7 +3,7 @@
 //  https://github.com/facebook/folly/blob/main/folly/stats/test/TDigestTest.cpp
 
 import OnlineCDF
-import Testing
+import Testing_
 
 @main
 enum Main:TestMain, TestBattery

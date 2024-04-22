@@ -1,6 +1,6 @@
 import MongoDriver
 import NIOPosix
-import Testing
+import Testing_
 
 func TestFailpoints(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap) async
 {

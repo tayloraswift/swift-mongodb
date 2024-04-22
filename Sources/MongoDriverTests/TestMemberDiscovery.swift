@@ -1,5 +1,5 @@
 import MongoDriver
-import Testing
+import Testing_
 
 func TestMemberDiscovery(_ tests:TestGroup,
     members:Mongo.Seedlist,
@@ -13,7 +13,7 @@ func TestMemberDiscovery(_ tests:TestGroup,
         {
             continue
         }
-        
+
         await tests.do
         {
             try await bootstrap.withSessionPool
@@ -29,44 +29,44 @@ func TestMemberDiscovery(_ tests:TestGroup,
                 //  we can’t assert the configuration as a whole, because the
                 //  term will increment on its own.
                 tests.expect(configuration.name ==? "test-set")
-                
+
                 tests.expect(configuration.writeConcernMajorityJournalDefault ==? true)
-                
+
                 tests.expect(configuration.members ..?
                     [
                         .init(id: 0, host: members[0], replica: .init(
                             rights: .init(priority: 2.0),
                             votes: 1,
                             tags: ["priority": "high", "name": "A"])),
-                        
+
                         .init(id: 1, host: members[1], replica: .init(
                             rights: .init(priority: 1.0),
                             votes: 1,
                             tags: ["priority": "low", "name": "B"])),
-                        
+
                         .init(id: 2, host: members[2], replica: .init(
                             rights: .resident,
                             votes: 1,
                             tags: ["priority": "zero", "name": "C"])),
-                        
+
                         .init(id: 3, host: members[3], replica: .init(
                             rights: .resident,
                             votes: 1,
                             tags: ["priority": "zero", "name": "D"])),
-                        
+
                         .init(id: 4, host: members[4], replica: .init(
                             rights: .resident(.init(buildsIndexes: true, delay: 5)),
                             votes: 0,
                             tags: ["priority": "zero", "name": "H"])),
-                        
+
                         .init(id: 5, host: members[5], replica: nil),
-                        
+
                         .init(id: 6, host: members[6], replica: .init(
                             rights: .resident,
                             votes: 0,
                             tags: ["priority": "zero", "name": "E"])),
                     ])
-                
+
                 tests.expect(configuration.version ==? 1)
             }
         }

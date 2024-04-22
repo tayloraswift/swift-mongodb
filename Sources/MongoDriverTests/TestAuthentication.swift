@@ -1,7 +1,7 @@
 import MongoConfiguration
 import MongoDriver
 import NIOPosix
-import Testing
+import Testing_
 
 func TestAuthentication(_ tests:TestGroup,
     executors:MultiThreadedEventLoopGroup,

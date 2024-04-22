@@ -1,5 +1,5 @@
 {
-  "originHash" : "8c35f92b9a371e4ba0dcb6991dafbc76b2fd2da89614d7e264d875b655f6f1bb",
+  "originHash" : "9fae368d23b401c1f10622c0b4b9277df5041cc83c4d6cdeeb0cdda235873fb4",
   "pins" : [
     {
       "identity" : "swift-atomics",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tayloraswift/swift-grammar",
       "state" : {
-        "revision" : "6db3dd8912fc7acb821021cd96677b2e0eeb09f0",
-        "version" : "0.3.4"
+        "revision" : "642d5957896f06b03e35c48fc439488367d3fd21",
+        "version" : "0.4.0"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "fc63f0cf4e55a4597407a9fc95b16a2bc44b4982",
-        "version" : "2.64.0"
+        "revision" : "359c461e5561d22c6334828806cc25d759ca7aa6",
+        "version" : "2.65.0"
       }
     },
     {
