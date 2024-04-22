@@ -1,7 +1,7 @@
 @_spi(testable)
 import MongoDriver
 import NIOPosix
-import Testing
+import Testing_
 
 func TestConnectionPool(_ tests:TestGroup,
     matrix:KeyValuePairs<String, Mongo.DriverBootstrap>) async

@@ -1,7 +1,7 @@
 import BSON
 import MongoDriver
 import NIOPosix
-import Testing
+import Testing_
 
 func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
     single:Bool = false) async

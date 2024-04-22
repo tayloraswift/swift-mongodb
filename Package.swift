@@ -2,15 +2,13 @@
 import PackageDescription
 
 let package:Package = .init(name: "swift-mongodb",
-    platforms:
-    [
+    platforms: [
         //  TODO: this is really the wrong place to declare this, because we don’t
         //  want to restrict availability of the BSON libraries just because of the
         //  other modules that use async/await.
         .macOS(.v14),
     ],
-    products:
-    [
+    products: [
         .library(name: "BSON", targets: ["BSON"]),
         .library(name: "BSONReflection", targets: ["BSONReflection"]),
         .library(name: "BSONTesting", targets: ["BSONTesting"]),
@@ -30,10 +28,9 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "SCRAM", targets: ["SCRAM"]),
         .library(name: "UUID", targets: ["UUID"]),
     ],
-    dependencies:
-    [
+    dependencies: [
         .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
-            from: "0.3.4")),
+            from: "0.4.0")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
             from: "0.5.0")),
 
@@ -42,90 +39,72 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
             from: "1.1.0")),
 
-        /// swift-nio has a low rate of breakage, and can be trusted with a major-only
-        /// version requirement.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.64.0"),
-        /// swift-nio-ssl has a low rate of breakage, and can be trusted with a
-        /// major-only version requirement.
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.26.0"),
     ],
-    targets:
-    [
+    targets: [
         .target(name: "UUID",
-            dependencies:
-            [
+            dependencies: [
                 .product(name: "Base16", package: "swift-hash"),
             ]),
 
         .target(name: "BSON",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSONDecoding"),
                 .target(name: "BSONEncoding"),
             ],
-            exclude:
-            [
+            exclude: [
                 "README.md",
             ]),
 
             .target(name: "BSONABI",
-                exclude:
-                [
+                exclude: [
                     "README.md",
                 ]),
 
             .target(name: "BSONDecoding",
-                dependencies:
-                [
+                dependencies: [
                     .target(name: "BSONABI"),
                     .product(name: "TraceableErrors", package: "swift-grammar"),
                 ],
-                exclude:
-                [
+                exclude: [
                     "README.md",
                 ]),
 
             .target(name: "BSONEncoding",
-                dependencies:
-                [
+                dependencies: [
                     .target(name: "BSONABI"),
                 ],
-                exclude:
-                [
+                exclude: [
                     "README.md",
                 ]),
 
 
         .target(name: "BSONReflection",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
             ]),
 
         .target(name: "BSONTesting",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .target(name: "BSON_UUID",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .target(name: "UUID"),
             ]),
 
         .target(name: "BSON_Durations",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .target(name: "Durations"),
             ]),
 
         .target(name: "BSON_OrderedCollections",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
             ]),
@@ -135,15 +114,13 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "Durations"),
 
         .target(name: "Durations_Atomics",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "Durations"),
                 .product(name: "Atomics", package: "swift-atomics"),
             ]),
 
         .target(name: "SCRAM",
-            dependencies:
-            [
+            dependencies: [
                 .product(name: "Base64", package: "swift-hash"),
                 .product(name: "MessageAuthentication", package: "swift-hash"),
             ]),
@@ -152,21 +129,18 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "Mongo"),
 
         .target(name: "MongoABI",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .target(name: "Mongo"),
             ]),
 
         .target(name: "MongoBuiltins",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoABI"),
             ]),
 
         .target(name: "MongoClusters",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .target(name: "Durations"),
                 .target(name: "Mongo"),
@@ -174,30 +148,26 @@ let package:Package = .init(name: "swift-mongodb",
             ]),
 
         .target(name: "MongoCommands",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "Durations"),
                 .target(name: "MongoABI"),
             ]),
 
         .target(name: "MongoConfiguration",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoClusters"),
                 .target(name: "MongoABI"),
                 .product(name: "NIOCore", package: "swift-nio"),
             ]),
 
         .target(name: "MongoDB",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoQL"),
                 .target(name: "MongoDriver"),
             ]),
 
         .target(name: "MongoDriver",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON_Durations"),
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
@@ -214,29 +184,25 @@ let package:Package = .init(name: "swift-mongodb",
             ]),
 
         .target(name: "MongoExecutor",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoIO"),
             ]),
 
         .target(name: "MongoIO",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "Mongo"),
                 .target(name: "MongoWire"),
                 .product(name: "NIOCore", package: "swift-nio"),
             ]),
 
         .target(name: "MongoLogging",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoClusters"),
                 .product(name: "Atomics", package: "swift-atomics"),
             ]),
 
         .target(name: "MongoQL",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .target(name: "BSONReflection"),
                 .target(name: "BSON_OrderedCollections"),
@@ -247,87 +213,76 @@ let package:Package = .init(name: "swift-mongodb",
 
 
         .target(name: "MongoTesting",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoDB"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         // the mongo wire protocol. has no awareness of networking or
         // driver-level concepts.
         .target(name: "MongoWire",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .target(name: "Mongo"),
                 .product(name: "CRC", package: "swift-hash"),
             ]),
 
         .executableTarget(name: "BSONTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSONReflection"),
                 .product(name: "Base16", package: "swift-hash"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONDecodingTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSONDecoding"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONEncodingTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSONEncoding"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONIntegrationTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSON"),
                 .target(name: "BSONReflection"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONReflectionTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "BSONReflection"),
                 .target(name: "BSONEncoding"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "OnlineCDFTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "OnlineCDF"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "MongoClusterTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoClusters"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "MongoDBTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoDB"),
                 .target(name: "MongoQL"),
                 .target(name: "MongoTesting"),
             ]),
 
         .executableTarget(name: "MongoDriverTests",
-            dependencies:
-            [
+            dependencies: [
                 .target(name: "MongoDriver"),
-                .product(name: "Testing", package: "swift-grammar"),
+                .product(name: "Testing_", package: "swift-grammar"),
             ]),
     ]
 )

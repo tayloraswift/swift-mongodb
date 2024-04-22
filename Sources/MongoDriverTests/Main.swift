@@ -1,7 +1,7 @@
 import MongoConfiguration
 import MongoDriver
 import NIOPosix
-import Testing
+import Testing_
 
 var mongodb:Mongo.URI.Base<Mongo.Guest, Mongo.DirectSeeding> { .init(userinfo: ()) }
 

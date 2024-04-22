@@ -1,6 +1,6 @@
 import MongoDB
 import NIOPosix
-import Testing
+import Testing_
 
 @main
 enum Main:TestMain
