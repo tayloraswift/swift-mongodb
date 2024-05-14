@@ -31,42 +31,8 @@ extension Mongo.UpdateFieldsEncoder:BSON.Encoder
     var type:BSON.AnyType { .document }
 }
 
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Arithmetic>
+extension Mongo.UpdateFieldsEncoder where Operator:Mongo.UpdateValueOperator
 {
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Int?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Double?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
-}
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Assignment>
-{
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
-    {
-        mutating
-        get { yield(&self.bson[with: path][as: Mongo.ExpressionEncoder.self]) }
-    }
-
     @inlinable public
     subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
     {
@@ -78,6 +44,42 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Assignment>
         {
             value?.encode(to: &self.bson[with: path])
         }
+    }
+}
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Arithmetic>
+{
+    @inlinable public
+    subscript(path:Mongo.AnyKeyPath) -> Int?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            value?.encode(to: &self.bson[with: path])
+        }
+    }
+    @inlinable public
+    subscript(path:Mongo.AnyKeyPath) -> Double?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            value?.encode(to: &self.bson[with: path])
+        }
+    }
+}
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Assignment>
+{
+    @inlinable public
+    subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
+    {
+        mutating
+        get { yield(&self.bson[with: path][as: Mongo.ExpressionEncoder.self]) }
     }
 }
 extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Bit>
@@ -95,7 +97,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Bit>
             {
                 {
                     $0[name] = operand
-                } (&self.bson[with: path.stem][
+                } (&self.bson[with: path][
                     as: BSON.DocumentEncoder<Mongo.UpdateBitwiseOperator>.self])
             }
         }
@@ -113,7 +115,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Bit>
             {
                 {
                     $0[name] = operand
-                } (&self.bson[with: path.stem][
+                } (&self.bson[with: path][
                     as: BSON.DocumentEncoder<Mongo.UpdateBitwiseOperator>.self])
             }
         }
@@ -132,7 +134,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.CurrentDate>
         {
             {
                 $0["$type"] = "date"
-            } (&self.bson[with: path.stem][as: BSON.DocumentEncoder<BSON.Key>.self])
+            } (&self.bson[with: path][as: BSON.DocumentEncoder<BSON.Key>.self])
         }
     }
 }
@@ -147,12 +149,13 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Pop>
         }
         set(value)
         {
-            value?.encode(to: &self.bson[with: path.stem])
+            value?.encode(to: &self.bson[with: path])
         }
     }
 }
 extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Pull>
 {
+    @available(*, deprecated, message: "use the streaming subscript instead")
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> Mongo.PredicateOperator?
     {
@@ -162,35 +165,24 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Pull>
         }
         set(value)
         {
-            value?.encode(to: &self.bson[with: path.stem])
+            value?.encode(to: &self.bson[with: path])
         }
     }
+
     @inlinable public
-    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
+    subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.PredicateOperatorEncoder) -> ()) -> Void
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
+        mutating
+        get { yield(&self.bson[with: path][as: Mongo.PredicateOperatorEncoder.self]) }
     }
 }
-extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Reduction>
+extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.ArrayUnion>
 {
     @inlinable public
-    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
+    subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.UpdateArrayEncoder) -> ()) -> Void
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
+        mutating
+        get { yield(&self.bson[with: path][as: Mongo.UpdateArrayEncoder.self]) }
     }
 }
 extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Rename>
