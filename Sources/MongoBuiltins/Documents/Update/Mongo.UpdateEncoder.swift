@@ -52,7 +52,7 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     @frozen public
-    enum Assignment:String, Hashable, Sendable
+    enum Assignment:String, Sendable, Mongo.UpdateValueOperator
     {
         case set = "$set"
         case setOnInsert = "$setOnInsert"
@@ -86,7 +86,7 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     @frozen public
-    enum Bit:String, Hashable, Sendable
+    enum Bit:String, Sendable
     {
         case bit = "$bit"
     }
@@ -104,7 +104,7 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     @frozen public
-    enum CurrentDate:String, Hashable, Sendable
+    enum CurrentDate:String, Sendable
     {
         case currentDate = "$currentDate"
     }
@@ -122,7 +122,7 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     @frozen public
-    enum Pop:String, Hashable, Sendable
+    enum Pop:String, Sendable
     {
         case pop = "$pop"
     }
@@ -140,7 +140,7 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     @frozen public
-    enum Pull:String, Hashable, Sendable
+    enum Pull:String, Sendable, Mongo.UpdateValueOperator
     {
         case pull = "$pull"
     }
@@ -158,9 +158,8 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     @frozen public
-    enum Reduction:String, Hashable, Sendable
+    enum Reduction:String, Sendable, Mongo.UpdateValueOperator
     {
-        case addToSet = "$addToSet"
         case max = "$max"
         case min = "$min"
         //  $pullAll is a reduction, it only accepts field values that form
@@ -181,7 +180,7 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     @frozen public
-    enum Rename:String, Hashable, Sendable
+    enum Rename:String, Sendable
     {
         case rename = "$rename"
     }
@@ -198,11 +197,30 @@ extension Mongo.UpdateEncoder
 }
 extension Mongo.UpdateEncoder
 {
+    @frozen public
+    enum ArrayUnion:String, Sendable, Mongo.UpdateValueOperator
+    {
+        case addToSet = "$addToSet"
+        case push = "$push"
+    }
+
+    @inlinable public
+    subscript(key:ArrayUnion,
+        yield:(inout Mongo.UpdateFieldsEncoder<ArrayUnion>) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: key][as: Mongo.UpdateFieldsEncoder<ArrayUnion>.self])
+        }
+    }
+}
+extension Mongo.UpdateEncoder
+{
     /// Takes a document and removes the specified fields.
     /// Not to be confused with the ``Mongo.Pipeline.Unset/unset``
     /// aggregation pipeline stage, which can take a field path directly.
     @frozen public
-    enum Unset:String, Hashable, Sendable
+    enum Unset:String, Sendable
     {
         case unset = "$unset"
     }
