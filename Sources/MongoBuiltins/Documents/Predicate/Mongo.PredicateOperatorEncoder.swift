@@ -33,7 +33,7 @@ extension Mongo.PredicateOperatorEncoder:BSON.Encoder
 extension Mongo.PredicateOperatorEncoder
 {
     @frozen public
-    enum Binary:String, Hashable, Sendable
+    enum Binary:String, Sendable
     {
         case bitsAllClear   = "$bitsAllClear"
         case bitsAllSet     = "$bitsAllSet"
@@ -67,7 +67,7 @@ extension Mongo.PredicateOperatorEncoder
 extension Mongo.PredicateOperatorEncoder
 {
     @frozen public
-    enum Exists:String, Hashable, Sendable
+    enum Exists:String, Sendable
     {
         case exists = "$exists"
     }
@@ -88,7 +88,7 @@ extension Mongo.PredicateOperatorEncoder
 extension Mongo.PredicateOperatorEncoder
 {
     @frozen public
-    enum Metatype:String, Hashable, Sendable
+    enum Metatype:String, Sendable
     {
         case type = "$type"
     }
@@ -121,7 +121,7 @@ extension Mongo.PredicateOperatorEncoder
 extension Mongo.PredicateOperatorEncoder
 {
     @frozen public
-    enum Mod:String, Hashable, Sendable
+    enum Mod:String, Sendable
     {
         case mod = "$mod"
     }
@@ -154,7 +154,7 @@ extension Mongo.PredicateOperatorEncoder
 extension Mongo.PredicateOperator
 {
     @frozen public
-    enum Recursive:String, Hashable, Sendable
+    enum Recursive:String, Sendable
     {
         case not = "$not"
         case any = "$elemMatch"
@@ -180,7 +180,7 @@ extension Mongo.PredicateOperator
 extension Mongo.PredicateOperatorEncoder
 {
     @frozen public
-    enum Regex:String, Hashable, Sendable
+    enum Regex:String, Sendable
     {
         case regex = "$regex"
     }
@@ -201,7 +201,7 @@ extension Mongo.PredicateOperatorEncoder
 extension Mongo.PredicateOperatorEncoder
 {
     @frozen public
-    enum Variadic:String, Hashable, Sendable
+    enum Variadic:String, Sendable
     {
         case all    = "$all"
         case `in`   = "$in"

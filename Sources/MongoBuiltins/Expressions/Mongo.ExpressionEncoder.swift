@@ -32,7 +32,7 @@ extension Mongo.ExpressionEncoder:BSON.Encoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Unary:String, Hashable, Sendable
+    enum Unary:String, Sendable
     {
         case abs            = "$abs"
         case arrayToObject  = "$arrayToObject"
@@ -69,7 +69,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum UnaryParenthesized:String, Hashable, Sendable
+    enum UnaryParenthesized:String, Sendable
     {
         case isArray            = "$isArray"
         case not                = "$not"
@@ -106,7 +106,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Binary:String, Hashable, Sendable
+    enum Binary:String, Sendable
     {
         case cmp    = "$cmp"
         case eq     = "$eq"
@@ -144,7 +144,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Cond:String, Hashable, Sendable
+    enum Cond:String, Sendable
     {
         case cond = "$cond"
     }
@@ -175,7 +175,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Division:String, Hashable, Sendable
+    enum Division:String, Sendable
     {
         case divide = "$divide"
         case mod    = "$mod"
@@ -205,7 +205,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Element:String, Hashable, Sendable
+    enum Element:String, Sendable
     {
         case element = "$arrayElemAt"
 
@@ -239,7 +239,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum In:String, Hashable, Sendable
+    enum In:String, Sendable
     {
         case `in` = "$in"
     }
@@ -268,7 +268,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Log:String, Hashable, Sendable
+    enum Log:String, Sendable
     {
         case log = "$log"
     }
@@ -297,7 +297,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Pow:String, Hashable, Sendable
+    enum Pow:String, Sendable
     {
         case pow = "$pow"
     }
@@ -326,7 +326,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Quantization:String, Hashable, Sendable
+    enum Quantization:String, Sendable
     {
         case round = "$round"
         case trunc = "$trunc"
@@ -368,7 +368,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Range:String, Hashable, Sendable
+    enum Range:String, Sendable
     {
         case range = "$range"
     }
@@ -410,7 +410,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Slice:String, Hashable, Sendable
+    enum Slice:String, Sendable
     {
         case slice = "$slice"
     }
@@ -452,7 +452,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Subtract:String, Hashable, Sendable
+    enum Subtract:String, Sendable
     {
         case subtract = "$subtract"
     }
@@ -480,7 +480,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Superlative:String, Hashable, Sendable
+    enum Superlative:String, Sendable
     {
         case first  = "$firstN"
         case last   = "$lastN"
@@ -524,7 +524,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Variadic:String, Hashable, Sendable
+    enum Variadic:String, Sendable
     {
         case add                = "$add"
         case and                = "$and"
@@ -627,7 +627,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Filter:String, Hashable, Sendable
+    enum Filter:String, Sendable
     {
         case filter = "$filter"
     }
@@ -648,7 +648,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Map:String, Hashable, Sendable
+    enum Map:String, Sendable
     {
         case map = "$map"
     }
@@ -669,7 +669,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Reduce:String, Hashable, Sendable
+    enum Reduce:String, Sendable
     {
         case reduce = "$reduce"
     }
@@ -690,7 +690,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum SortArray:String, Hashable, Sendable
+    enum SortArray:String, Sendable
     {
         case sortArray = "$sortArray"
     }
@@ -711,7 +711,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Switch:String, Hashable, Sendable
+    enum Switch:String, Sendable
     {
         case `switch` = "$switch"
     }
@@ -732,7 +732,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Zip:String, Hashable, Sendable
+    enum Zip:String, Sendable
     {
         case zip = "$zip"
     }
@@ -754,7 +754,7 @@ extension Mongo.ExpressionEncoder
 extension Mongo.ExpressionEncoder
 {
     @frozen public
-    enum Index:String, Hashable, Sendable
+    enum Index:String, Sendable
     {
         case elementIndex       = "indexOfArray"
         case unicodeScalarIndex = "indexOfCP"
