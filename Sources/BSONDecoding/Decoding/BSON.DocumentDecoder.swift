@@ -84,6 +84,12 @@ extension BSON.DocumentDecoder:Sequence
 }
 extension BSON.DocumentDecoder
 {
+    @inlinable public
+    func contains(_ key:CodingKey) -> Bool
+    {
+        self.index.keys.contains(key)
+    }
+
     @inlinable public consuming
     func single() throws -> BSON.FieldDecoder<CodingKey>
     {

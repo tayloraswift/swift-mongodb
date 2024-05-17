@@ -1,17 +1,19 @@
+import BSON
+
 extension BSON.UnkeyedDecoder
 {
-    struct Index:CodingKey 
+    struct Index:CodingKey
     {
         let value:Int
-        var intValue:Int? 
+        var intValue:Int?
         {
-            self.value 
+            self.value
         }
         var stringValue:String
         {
             "\(self.value)"
         }
-        
+
         init(intValue:Int)
         {
             self.value = intValue
@@ -19,9 +21,9 @@ extension BSON.UnkeyedDecoder
         init?(stringValue:String)
         {
             guard let value:Int = Int.init(stringValue)
-            else 
+            else
             {
-                return nil 
+                return nil
             }
             self.value = value
         }
