@@ -61,7 +61,7 @@ struct Aggregate<Configuration>:MongoTestBattery where Configuration:MongoTestCo
                     readConcern: .majority,
                     stride: 10)
                 {
-                    $0[stage: .project] = .init { $0[Article[.tags]] = 1 }
+                    $0[stage: .project] = .init { $0[Article[.tags]] = true }
                     $0[stage: .unwind] = Article[.tags]
                     $0[stage: .group] = .init
                     {
@@ -93,8 +93,8 @@ struct Aggregate<Configuration>:MongoTestBattery where Configuration:MongoTestCo
                 {
                     $0[stage: .project] = .init
                     {
-                        $0[Article[.author]] = 1
-                        $0[Article[.views]] = 1
+                        $0[Article[.author]] = true
+                        $0[Article[.views]] = true
                     }
                     $0[stage: .group] = .init
                     {

@@ -119,6 +119,32 @@ extension Mongo.FindAndModify
         case fields
     }
 
+    /// Encodes a projection document.
+    @inlinable public
+    subscript(key:Fields, yield:(inout Mongo.ProjectionEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.ProjectionEncoder.self])
+        }
+    }
+
+    /// Encodes a projection document from a model type.
+    @inlinable public
+    subscript<ProjectionDocument>(key:Fields) -> ProjectionDocument?
+        where ProjectionDocument:Mongo.ProjectionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            value?.encode(to: &self.fields[with: key][as: Mongo.ProjectionEncoder.self])
+        }
+    }
+
+    @available(*, deprecated)
     @inlinable public
     subscript(key:Fields) -> Mongo.ProjectionDocument?
     {
