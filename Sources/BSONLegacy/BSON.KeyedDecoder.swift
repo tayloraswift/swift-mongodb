@@ -1,27 +1,24 @@
+import BSON
+
 extension BSON
 {
     struct KeyedDecoder<Key> where Key:CodingKey
     {
         let codingPath:[any CodingKey]
         let allKeys:[Key]
-        let items:[BSON.Key: BSON.AnyValue]
+        let items:BSON.DocumentDecoder<BSON.Key>
 
         init(_ dictionary:BSON.DocumentDecoder<BSON.Key>,
             path:[any CodingKey])
         {
             self.codingPath = path
-            self.items = dictionary.index
-            self.allKeys = self.items.keys.compactMap { .init(stringValue: $0.rawValue) }
+            self.items = dictionary
+            self.allKeys = self.items.compactMap { .init(stringValue: $0.key.rawValue) }
         }
     }
 }
 extension BSON.KeyedDecoder
 {
-    public
-    func contains(_ key:Key) -> Bool
-    {
-        self.items.keys.contains(.init(key))
-    }
     // local `Key` type may be different from the dictionary’s `Key` type
     func diagnose<T>(_ key:some CodingKey,
         _ decode:(BSON.AnyValue) throws -> T?) throws -> T
@@ -30,7 +27,7 @@ extension BSON.KeyedDecoder
         {
             self.codingPath + CollectionOfOne<any CodingKey>.init(key)
         }
-        guard let value:BSON.AnyValue = self.items[.init(key)]
+        guard let value:BSON.AnyValue = self.items[.init(key)]?.value
         else
         {
             let context:DecodingError.Context = .init(codingPath: path,
@@ -60,6 +57,12 @@ extension BSON.KeyedDecoder
 
 extension BSON.KeyedDecoder:KeyedDecodingContainerProtocol
 {
+    public
+    func contains(_ key:Key) -> Bool
+    {
+        self.items.contains(.init(key))
+    }
+
     public
     func decode<T>(_:T.Type, forKey key:Key) throws -> T where T:Decodable
     {

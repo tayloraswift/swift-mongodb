@@ -40,6 +40,16 @@ print(configuration)
 //  ...
 ```
 
+## toolchain requirement
+
+This package requires Swift 5.10 or greater.
+
+
+## license and acknowledgements
+
+This library is Apache 2.0 licensed. It originally began as a re-write of [*MongoKitten*](https://github.com/orlandos-nl/MongoKitten) by [Joannis Orlandos](https://github.com/Joannis) and [Robbert Brandsma](https://github.com/Obbut).
+
+
 ## external dependencies
 
 I have verified that all products depended-upon by this package are Foundation-free when compiled for a linux target. Note that some package dependencies do vend products that import Foundation, but swift links binaries at the product level, and this library does not depend on any such products.
@@ -73,19 +83,3 @@ Other packages:
     Rationale: networking.
 
 > Note: This library depends on the `NIOSSL` product from `swift-nio-ssl`, which imports Foundation on Apple platforms only. `NIOSSL` is Foundation-free on all other platforms.
-
-## toolchain requirement
-
-This package requires swift 5.10 or greater.
-
-## acknowledgements
-
-This library originally started out as a re-write of [Orlandos](https://orlandos.nl/)’s *MongoKitten*; accordingly the `MongoDriver` module retains *MongoKitten*’s original [MIT-license](https://github.com/orlandos-nl/MongoKitten/blob/master/7.0/LICENSE.md).
-
-The [official MongoDB C driver](https://github.com/mongodb/mongo-swift-driver) also served as prior art for this module.
-
-## license
-
-The `MongoDriver` module is MIT-licensed.
-
-The other modules are available under the MPL 2.0 license. This license was chosen as an organizational default, and is not ideological. Please [reach out](https://github.com/tayloraswift/swift-mongodb/discussions) if you have a use-case that requires a more-permissive license!

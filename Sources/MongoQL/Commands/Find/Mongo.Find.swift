@@ -280,6 +280,32 @@ extension Mongo.Find
         case projection
     }
 
+    /// Encodes a projection document.
+    @inlinable public
+    subscript(key:Projection, yield:(inout Mongo.ProjectionEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.ProjectionEncoder.self])
+        }
+    }
+
+    /// Encodes a projection document from a model type.
+    @inlinable public
+    subscript<ProjectionDocument>(key:Projection) -> ProjectionDocument?
+        where ProjectionDocument:Mongo.ProjectionEncodable
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            value?.encode(to: &self.fields[with: key][as: Mongo.ProjectionEncoder.self])
+        }
+    }
+
+    @available(*, deprecated)
     @inlinable public
     subscript(key:Projection) -> Mongo.ProjectionDocument?
     {

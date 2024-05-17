@@ -5,30 +5,15 @@ func ExampleProjectionDocuments()
 {
     let _:Mongo.ProjectionDocument = .init
     {
-        $0["expression"] = .expr
+        $0["expression"] { $0[.abs] = "$field" }
+        $0["key1"] = true
+        $0["key2"] { $0[.literal] = 1 }
+        $0["a"] { $0[.slice] = 1 }
+        $0["b"] { $0[.slice] = (1, 1) }
+        $0["c"] { $0[.meta] = .indexKey }
+        $0["d"]
         {
-            $0[.abs] = "$field"
-        }
-        $0["key1"] = 1
-        $0["key2"] = .expr
-        {
-            $0[.literal] = 1
-        }
-        $0["a"] = .init
-        {
-            $0[.slice] = 1
-        }
-        $0["b"] = .init
-        {
-            $0[.slice] = (1, 1)
-        }
-        $0["c"] = .init
-        {
-            $0[.meta] = .indexKey
-        }
-        $0["d"] = .init
-        {
-            $0[.first] = .init
+            $0[.first]
             {
                 $0[.or]
                 {

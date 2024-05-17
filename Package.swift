@@ -10,6 +10,7 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     products: [
         .library(name: "BSON", targets: ["BSON"]),
+        .library(name: "BSONLegacy", targets: ["BSONLegacy"]),
         .library(name: "BSONReflection", targets: ["BSONReflection"]),
         .library(name: "BSONTesting", targets: ["BSONTesting"]),
         .library(name: "BSONABI", targets: ["BSONABI"]),
@@ -57,28 +58,32 @@ let package:Package = .init(name: "swift-mongodb",
                 "README.md",
             ]),
 
-            .target(name: "BSONABI",
-                exclude: [
-                    "README.md",
-                ]),
+        .target(name: "BSONABI",
+            exclude: [
+                "README.md",
+            ]),
 
-            .target(name: "BSONDecoding",
-                dependencies: [
-                    .target(name: "BSONABI"),
-                    .product(name: "TraceableErrors", package: "swift-grammar"),
-                ],
-                exclude: [
-                    "README.md",
-                ]),
+        .target(name: "BSONDecoding",
+            dependencies: [
+                .target(name: "BSONABI"),
+                .product(name: "TraceableErrors", package: "swift-grammar"),
+            ],
+            exclude: [
+                "README.md",
+            ]),
 
-            .target(name: "BSONEncoding",
-                dependencies: [
-                    .target(name: "BSONABI"),
-                ],
-                exclude: [
-                    "README.md",
-                ]),
+        .target(name: "BSONEncoding",
+            dependencies: [
+                .target(name: "BSONABI"),
+            ],
+            exclude: [
+                "README.md",
+            ]),
 
+        .target(name: "BSONLegacy",
+            dependencies: [
+                .target(name: "BSON"),
+            ]),
 
         .target(name: "BSONReflection",
             dependencies: [
