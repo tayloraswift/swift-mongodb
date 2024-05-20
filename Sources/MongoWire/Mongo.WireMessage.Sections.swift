@@ -46,8 +46,7 @@ extension Mongo.WireMessage.Sections
                 body = try input.parse(as: BSON.Document.self)
 
             case .sequence:
-                var sequence:BSON.Input = .init(try input.parse(
-                    Mongo.WireSequenceFrame.self))
+                var sequence:BSON.Input = .init(try input.parse(Mongo.WireSequenceFrame.self))
 
                 let id:String = try sequence.parse(as: String.self)
 

@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     public
-    enum WireSequenceFrame:BSON.BufferFrame
+    enum WireSequenceFrame:BSON.BufferFrameType
     {
         @inlinable public static
         var skipped:Int { -4 }

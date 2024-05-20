@@ -147,7 +147,7 @@ extension BSON.Input
 
     @inlinable public mutating
     func parse<Frame>(_:Frame.Type) throws -> ArraySlice<UInt8>
-        where Frame:BSON.BufferFrame
+        where Frame:BSON.BufferFrameType
     {
         let header:Int = .init(try self.parse(as: Int32.self))
         let stride:Int = header + Frame.skipped
