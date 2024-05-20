@@ -23,7 +23,7 @@ extension BSON
         }
     }
 }
-extension BSON.List:BSON.FrameTraversable
+extension BSON.List:BSON.BufferTraversable
 {
     public
     typealias Frame = BSON.DocumentFrame

@@ -1,7 +1,7 @@
 extension BSON
 {
     @frozen public
-    struct HeaderError<Frame>:Equatable, Error where Frame:FrameType
+    struct HeaderError<Frame>:Equatable, Error where Frame:BufferFrame
     {
         public
         let length:Int

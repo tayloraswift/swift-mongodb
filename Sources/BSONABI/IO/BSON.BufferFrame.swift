@@ -1,10 +1,16 @@
 extension BSON
 {
+    @available(*, deprecated, renamed: "BufferFrame")
+    public
+    typealias FrameType = BufferFrame
+}
+extension BSON
+{
     /// A type that specifies the layout of a variable-length BSON view.
     /// Parsers use conforming types to decide how to interpret BSON
     /// length headers read from input data.
     public
-    protocol FrameType
+    protocol BufferFrame
     {
         /// The number of (conceptual) bytes in the frame prefix of the type
         /// this frame type is associated with.
@@ -19,7 +25,7 @@ extension BSON
         var trailer:UInt8? { get }
     }
 }
-extension BSON.FrameType
+extension BSON.BufferFrame
 {
     /// The number of (conceptual) bytes in the frame suffix of the type
     /// this frame type is associated with. This is 0 if ``trailer`` is

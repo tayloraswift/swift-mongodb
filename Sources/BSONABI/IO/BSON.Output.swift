@@ -206,7 +206,7 @@ extension BSON.Output
         }
     }
     @inlinable internal
-    subscript(in frame:(some BSON.FrameType).Type) -> Self
+    subscript(in frame:(some BSON.BufferFrame).Type) -> Self
     {
         get
         {

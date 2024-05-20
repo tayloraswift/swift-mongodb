@@ -38,8 +38,8 @@ External users should avoid importing this module directly. Instead, import ``/B
 
 ### Binary interface
 
--   ``BSON.FrameTraversable``
--   ``BSON.FrameType``
+-   ``BSON.BufferTraversable``
+-   ``BSON.BufferFrame``
 
 ### Binary frame types
 

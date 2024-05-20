@@ -34,7 +34,7 @@ extension BSON.BinaryView:Equatable
         lhs.bytes.elementsEqual(rhs.bytes)
     }
 }
-extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.FrameTraversable
+extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.BufferTraversable
 {
     public
     typealias Frame = BSON.BinaryFrame

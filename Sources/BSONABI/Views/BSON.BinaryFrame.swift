@@ -3,7 +3,7 @@ extension BSON
     /// Specifies the interpretation of a length header attached to a ``BSON.AnyType/binary``
     /// array.
     @frozen public
-    enum BinaryFrame:FrameType
+    enum BinaryFrame:BufferFrame
     {
         /// A binary array header starts its count after skipping the interceding
         /// subtype byte.
