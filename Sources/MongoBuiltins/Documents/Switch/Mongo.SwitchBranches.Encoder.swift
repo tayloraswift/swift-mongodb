@@ -27,7 +27,7 @@ extension Mongo.SwitchBranches.Encoder:BSON.Encoder
     func move() -> BSON.Output { self.list.move() }
 
     @inlinable public static
-    var type:BSON.AnyType { .list }
+    var frame:BSON.DocumentFrame { .list }
 }
 extension Mongo.SwitchBranches.Encoder
 {

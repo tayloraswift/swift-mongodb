@@ -152,44 +152,8 @@ extension BSON.Output
 }
 extension BSON.Output
 {
-    /// Temporarily rebinds this output’s storage buffer to an encoder of
-    /// the specified type, bracketing it with the appropriate headers or
-    /// trailers, if performing a mutation.
-    ///
-    /// -   See also: ``subscript(as:)``.
-    @inlinable public
-    subscript<Encoder>(as _:Encoder.Type, in frame:BSON.DocumentFrame.Type) -> Encoder
-        where Encoder:BSON.Encoder
-    {
-        get
-        {
-            self[in: frame][as: Encoder.self]
-        }
-        _modify
-        {
-            yield &self[in: frame][as: Encoder.self]
-        }
-    }
-    /// Temporarily rebinds this output’s storage buffer to an encoder of
-    /// the specified type. This function does not add any headers or trailers;
-    /// to emit a complete BSON frame, mutate through ``subscript(as:in:)``.
-    ///
-    /// -   See also: ``subscript(with:)``.
-    @inlinable public
-    subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSON.Encoder
-    {
-        _read
-        {
-            let encoder:Encoder = .init(self)
-            yield encoder
-        }
-        _modify
-        {
-            var encoder:Encoder = .init(consume self)
-            defer { self = encoder.move() }
-            yield &encoder
-        }
-    }
+    /// Temporarily rebinds this output’s storage buffer to a field encoder. Field encoding is
+    /// always lazy, so the getter has no effects.
     @inlinable public
     subscript(with key:BSON.Key) -> BSON.FieldEncoder
     {
@@ -205,16 +169,87 @@ extension BSON.Output
             yield &field
         }
     }
-    @inlinable internal
-    subscript(in frame:(some BSON.BufferFrame).Type) -> Self
+}
+extension BSON.Output
+{
+    /// Temporarily rebinds this output’s storage buffer to an encoder of the specified type,
+    /// bracketing it with the appropriate headers or trailers.
+    ///
+    /// -   See also: ``subscript(as:)``.
+    @inlinable public
+    subscript<Encoder>(as _:Encoder.Type, in frame:BSON.DocumentFrame.Type) -> Encoder
+        where Encoder:BSON.Encoder
     {
-        get
+        mutating _read
         {
-            self
+            yield  self[in: frame][as: Encoder.self]
         }
         _modify
         {
-            let start:Int = self.destination.endIndex
+            yield &self[in: frame][as: Encoder.self]
+        }
+    }
+    /// Temporarily rebinds this output’s storage buffer to an encoder of the specified type.
+    /// This function does not add any headers or trailers; to emit a complete BSON frame,
+    /// mutate through ``subscript(as:in:)``.
+    ///
+    /// Some encoders may write on ``BSON.Encoder/init(_:)`` to preserve application-level
+    /// invariants, so type rebinding can have mutating effects even if the coroutine performs
+    /// no writes.
+    ///
+    /// -   See also: ``subscript(with:)``.
+    @inlinable public
+    subscript<Encoder>(as _:Encoder.Type) -> Encoder where Encoder:BSON.Encoder
+    {
+        mutating _read
+        {
+            let encoder:Encoder = .init(consume self)
+            defer { self = encoder.move() }
+            yield encoder
+        }
+        _modify
+        {
+            var encoder:Encoder = .init(consume self)
+            defer { self = encoder.move() }
+            yield &encoder
+        }
+    }
+
+    @inlinable
+    subscript(in frame:(some BSON.BufferFrame).Type) -> Self
+    {
+        mutating _read
+        {
+            let header:Int = self.destination.endIndex
+
+            self.append(0x00)
+            self.append(0x00)
+            self.append(0x00)
+            self.append(0x00)
+
+            defer
+            {
+                let written:Int
+
+                if  let trailer:UInt8 = frame.trailer
+                {
+                    self.append(trailer)
+                    written = 1
+                }
+                else
+                {
+                    written = 0
+                }
+
+                self.update(length: written - frame.skipped - 4, at: header)
+            }
+
+            yield self
+        }
+
+        _modify
+        {
+            let header:Int = self.destination.endIndex
 
             // make room for the length header
             self.append(0x00)
@@ -224,30 +259,39 @@ extension BSON.Output
 
             defer
             {
-                assert(self.destination.index(start, offsetBy: 4) <= self.destination.endIndex)
+                /// Make sure the caller has not cleared the buffer.
+                assert(self.destination.index(header, offsetBy: 4) <= self.destination.endIndex)
 
-                if let trailer:UInt8 = frame.trailer
+                if  let trailer:UInt8 = frame.trailer
                 {
                     self.append(trailer)
                 }
 
-                let written:Int = self.destination.distance(from: start,
+                let written:Int = self.destination.distance(from: header,
                     to: self.destination.endIndex)
 
-                let length:Int32 = .init(written - frame.skipped - 4)
-
-                withUnsafeBytes(of: length.littleEndian)
-                {
-                    var index:Int = start
-                    for byte:UInt8 in $0
-                    {
-                        self.destination[index] = byte
-                        self.destination.formIndex(after: &index)
-                    }
-                }
+                self.update(length: written - frame.skipped - 4, at: header)
             }
 
             yield &self
+        }
+    }
+}
+extension BSON.Output
+{
+    /// Updates the length header at the specified `header` position to contain the given
+    /// `length` value, encoding it to the output stream in little-endian byte order.
+    @inlinable mutating
+    func update(length:Int, at header:Int)
+    {
+        withUnsafeBytes(of: Int32.init(length).littleEndian)
+        {
+            var index:Int = header
+            for byte:UInt8 in $0
+            {
+                self.destination[index] = byte
+                self.destination.formIndex(after: &index)
+            }
         }
     }
 }

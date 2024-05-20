@@ -19,7 +19,7 @@ extension BSON.DocumentEncoder:BSON.Encoder
     func move() -> BSON.Output { self.output }
 
     @inlinable public static
-    var type:BSON.AnyType { .document }
+    var frame:BSON.DocumentFrame { .document }
 }
 extension BSON.DocumentEncoder
 {

@@ -12,17 +12,21 @@ extension BSON
     public
     protocol BufferFrame
     {
+        /// The BSON metatype value this buffer frame is associated with.
+        var type:AnyType { get }
+
+        /// A trailing byte to append, if any.
+        static
+        var trailer:UInt8? { get }
+
         /// The number of (conceptual) bytes in the frame prefix of the type
         /// this frame type is associated with.
+        ///
         /// This can be zero if the frame’s length header does not include its
         /// own length, and can be positive if the length header skips additional
         /// bytes before it starts counting.
         static
         var skipped:Int { get }
-
-        /// A trailing byte to append, if any.
-        static
-        var trailer:UInt8? { get }
     }
 }
 extension BSON.BufferFrame

@@ -28,7 +28,7 @@ extension Mongo.UpdateEncoder:BSON.Encoder
     func move() -> BSON.Output { self.bson.move() }
 
     @inlinable public static
-    var type:BSON.AnyType { .document }
+    var frame:BSON.DocumentFrame { .document }
 }
 extension Mongo.UpdateEncoder
 {

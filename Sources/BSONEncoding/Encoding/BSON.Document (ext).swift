@@ -11,6 +11,7 @@ extension BSON.Document
     @inlinable public
     subscript<CodingKey>(_:CodingKey.Type) -> BSON.DocumentEncoder<CodingKey>
     {
+        mutating
         _read   { yield  self.output[as: BSON.DocumentEncoder<CodingKey>.self] }
         _modify { yield &self.output[as: BSON.DocumentEncoder<CodingKey>.self] }
     }
