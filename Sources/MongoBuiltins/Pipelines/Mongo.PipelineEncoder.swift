@@ -28,7 +28,7 @@ extension Mongo.PipelineEncoder:BSON.Encoder
     func move() -> BSON.Output { self.list.move() }
 
     @inlinable public static
-    var type:BSON.AnyType { .list }
+    var frame:BSON.DocumentFrame { .list }
 }
 extension Mongo.PipelineEncoder
 {

@@ -235,6 +235,7 @@ let package:Package = .init(name: "swift-mongodb",
         .executableTarget(name: "BSONTests",
             dependencies: [
                 .target(name: "BSONReflection"),
+                .target(name: "BSON_UUID"),
                 .product(name: "Base16", package: "swift-hash"),
                 .product(name: "Testing_", package: "swift-grammar"),
             ]),

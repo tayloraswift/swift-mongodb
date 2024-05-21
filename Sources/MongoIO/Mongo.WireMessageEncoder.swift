@@ -16,6 +16,12 @@ extension Mongo
 extension Mongo.WireMessageEncoder:BSON.OutputStream
 {
     mutating
+    func reserve(another bytes:Int)
+    {
+        self.buffer.reserveCapacity(minimumWritableBytes: bytes)
+    }
+
+    mutating
     func append(_ byte:UInt8)
     {
         self.buffer.writeInteger(byte)

@@ -1,10 +1,10 @@
 import BSON
 import UUID
 
-extension UUID:BSONDecodable, BSONBinaryViewDecodable
+extension UUID:BSONBinaryDecodable
 {
     @inlinable public
-    init(bson:BSON.BinaryView<ArraySlice<UInt8>>) throws
+    init(bson:BSON.BinaryDecoder) throws
     {
         try bson.subtype.expect(.uuid)
         try bson.shape.expect(length: 16)
@@ -12,11 +12,13 @@ extension UUID:BSONDecodable, BSONBinaryViewDecodable
         self.init(bson.bytes)
     }
 }
-extension UUID:BSONEncodable
+extension UUID:BSONBinaryEncodable
 {
     @inlinable public
-    func encode(to field:inout BSON.FieldEncoder)
+    func encode(to bson:inout BSON.BinaryEncoder)
     {
-        field.encode(binary: BSON.BinaryView<Self>.init(subtype: .uuid, bytes: self))
+        bson.subtype = .uuid
+        bson.reserve(another: 16)
+        bson += self
     }
 }

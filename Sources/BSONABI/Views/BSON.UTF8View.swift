@@ -28,7 +28,7 @@ extension BSON
 extension BSON.UTF8View:Sendable where Bytes:Sendable
 {
 }
-extension BSON.UTF8View<ArraySlice<UInt8>>:BSON.FrameTraversable
+extension BSON.UTF8View<ArraySlice<UInt8>>:BSON.BufferTraversable
 {
     public
     typealias Frame = BSON.UTF8Frame

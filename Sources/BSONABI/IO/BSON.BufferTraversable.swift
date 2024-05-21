@@ -1,19 +1,25 @@
 extension BSON
 {
+    @available(*, deprecated, renamed: "BufferTraversable")
+    public
+    typealias FrameTraversable = BufferTraversable
+}
+extension BSON
+{
     /// A framed type that BSON parsers can traverse in constant time.
     ///
     /// BSON parsers typically parse conforming types by reading a length
     /// header from raw input data, and using it to slice the input,
     /// ideally without copying backing storage. The interpretation of the
-    /// length header is specified by the ``FrameTraversable/Frame`` type requirement, and
+    /// length header is specified by the ``BufferTraversable/Frame`` type requirement, and
     /// the exact slicing behavior is determined by the implementation’s
     /// ``init(slicing:)`` witness.
     public
-    protocol FrameTraversable
+    protocol BufferTraversable
     {
         /// The type specifying how parsers should interpret the conforming
         /// type’s inline frame header when it appears in raw input data.
-        associatedtype Frame:FrameType
+        associatedtype Frame:BufferFrame
 
         /// Receives a collection of bytes encompassing the bytes backing
         /// this value, after stripping the length header and frame suffix,
@@ -30,7 +36,7 @@ extension BSON
         var bytes:ArraySlice<UInt8> { get }
     }
 }
-extension BSON.FrameTraversable
+extension BSON.BufferTraversable
 {
     @available(*, deprecated, renamed: "bytes")
     @inlinable public

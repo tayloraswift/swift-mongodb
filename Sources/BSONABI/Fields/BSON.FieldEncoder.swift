@@ -25,143 +25,141 @@ extension BSON
 }
 extension BSON.FieldEncoder
 {
+    /// Writes the given metatype value and ``key`` to the output buffer.
+    @inlinable mutating
+    func begin(_ type:BSON.AnyType)
+    {
+        self.output.serialize(type: type)
+        self.output.serialize(cString: self.key.rawValue)
+    }
+}
+extension BSON.FieldEncoder
+{
     @inlinable public mutating
     func encode(double:Double)
     {
-        self[.double].serialize(integer: double.bitPattern)
+        self.begin(.double)
+        self.output.serialize(integer: double.bitPattern)
     }
     @inlinable public mutating
     func encode(id:BSON.Identifier)
     {
-        self[.id].serialize(id: id)
+        self.begin(.id)
+        self.output.serialize(id: id)
     }
     @inlinable public mutating
     func encode(bool:Bool)
     {
-        self[.bool].append(bool ? 1 : 0)
+        self.begin(.bool)
+        self.output.append(bool ? 1 : 0)
     }
     @inlinable public mutating
     func encode(millisecond:BSON.Millisecond)
     {
-        self[.millisecond].serialize(integer: millisecond.value)
+        self.begin(.millisecond)
+        self.output.serialize(integer: millisecond.value)
     }
     @inlinable public mutating
     func encode(regex:BSON.Regex)
     {
-        {
-            $0.serialize(cString: regex.pattern)
-            $0.serialize(cString: regex.options.description)
-        } (&self[.regex])
+        self.begin(.regex)
+        self.output.serialize(cString: regex.pattern)
+        self.output.serialize(cString: regex.options.description)
     }
     @inlinable public mutating
     func encode(int32:Int32)
     {
-        self[.int32].serialize(integer: int32)
+        self.begin(.int32)
+        self.output.serialize(integer: int32)
     }
     @inlinable public mutating
     func encode(timestamp:BSON.Timestamp)
     {
-        self[.timestamp].serialize(integer: timestamp.value)
+        self.begin(.timestamp)
+        self.output.serialize(integer: timestamp.value)
     }
     @inlinable public mutating
     func encode(int64:Int64)
     {
-        self[.int64].serialize(integer: int64)
+        self.begin(.int64)
+        self.output.serialize(integer: int64)
     }
     @inlinable public mutating
     func encode(decimal128:BSON.Decimal128)
     {
-        {
-            $0.serialize(integer: decimal128.low)
-            $0.serialize(integer: decimal128.high)
-        } (&self[.decimal128])
+        self.begin(.decimal128)
+        self.output.serialize(integer: decimal128.low)
+        self.output.serialize(integer: decimal128.high)
     }
     @inlinable public mutating
     func encode(max:BSON.Max)
     {
-        self[.max] as Void
+        self.begin(.max)
     }
     @inlinable public mutating
     func encode(min:BSON.Min)
     {
-        self[.min] as Void
+        self.begin(.min)
     }
     @inlinable public mutating
     func encode(null:BSON.Null)
     {
-        self[.null] as Void
+        self.begin(.null)
     }
 
     @inlinable public mutating
     func encode(binary:BSON.BinaryView<some RandomAccessCollection<UInt8>>)
     {
-        self[.binary].serialize(binary: binary)
+        self.begin(.binary)
+        self.output.serialize(binary: binary)
     }
 
     @inlinable public mutating
     func encode(document:BSON.Document)
     {
-        self[.document].serialize(document: document)
+        self.begin(.document)
+        self.output.serialize(document: document)
     }
     @inlinable public mutating
     func encode(list:BSON.List)
     {
-        self[.list].serialize(list: list)
+        self.begin(.list)
+        self.output.serialize(list: list)
     }
 
     @inlinable public mutating
     func encode(string:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
-        self[.string].serialize(utf8: string)
+        self.begin(.string)
+        self.output.serialize(utf8: string)
     }
     @inlinable public mutating
     func encode(javascript:BSON.UTF8View<some BidirectionalCollection<UInt8>>)
     {
-        self[.javascript].serialize(utf8: javascript)
-    }
-}
-extension BSON.FieldEncoder
-{
-    @inlinable internal
-    subscript(type:BSON.AnyType) -> Void
-    {
-        mutating get
-        {
-            self.output.serialize(type: type)
-            self.output.serialize(cString: self.key.rawValue)
-        }
-    }
-    @inlinable internal
-    subscript(type:BSON.AnyType) -> BSON.Output
-    {
-        mutating get
-        {
-            self[type] as Void
-            return self.output
-        }
-        _modify
-        {
-            self[type] as Void
-            yield &self.output
-        }
+        self.begin(.javascript)
+        self.output.serialize(utf8: javascript)
     }
 }
 extension BSON.FieldEncoder
 {
     /// Writes the stored type code and ``key`` to the output buffer, temporarily rebinds
     /// the output’s storage buffer to an encoder of the specified type, and brackets any
-    /// newly-written bytes with the appropriate headers or trailers, if performing a
-    /// mutation. The getter has no effect.
+    /// newly-written bytes with the appropriate headers or trailers.
+    ///
+    /// A complete frame will always be written to the output buffer, even if the coroutine
+    /// performs no writes.
     @inlinable public
     subscript<Encoder>(as _:Encoder.Type = Encoder.self) -> Encoder where Encoder:BSON.Encoder
     {
-        get
+        mutating _read
         {
-            self.output[in: BSON.DocumentFrame.self][as: Encoder.self]
+            self.begin(Encoder.frame.type)
+            yield  self.output[in: Encoder.Frame.self][as: Encoder.self]
         }
         _modify
         {
-            yield &self[Encoder.type][in: BSON.DocumentFrame.self][as: Encoder.self]
+            self.begin(Encoder.frame.type)
+            yield &self.output[in: Encoder.Frame.self][as: Encoder.self]
         }
     }
 }

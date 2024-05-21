@@ -27,7 +27,7 @@ extension BSON.ListEncoder:BSON.Encoder
     func move() -> BSON.Output { self.output }
 
     @inlinable public static
-    var type:BSON.AnyType { .list }
+    var frame:BSON.DocumentFrame { .list }
 }
 extension BSON.ListEncoder
 {
