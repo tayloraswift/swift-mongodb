@@ -94,13 +94,3 @@ extension BSON.BinaryView
         5 + self.bytes.count
     }
 }
-
-extension BSON.BinaryView
-{
-    @available(*, deprecated, renamed: "init(subtype:bytes:)")
-    @inlinable public
-    init(subtype:BSON.BinarySubtype, slice:Bytes)
-    {
-        self.init(subtype: subtype, bytes: slice)
-    }
-}

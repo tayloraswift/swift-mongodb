@@ -331,6 +331,10 @@ extension Main.ValidBSON:TestBattery
                 expected: ["x": .binary(.init(subtype: .function,
                     bytes: Base16.decode("ffff")))])
 
+            Self.run(tests / "function2",
+                canonical: "0F0000000578000200000001FFFF00",
+                expected: ["x": .binary(.init { $0.subtype = .function ; $0 += [0xff, 0xff] })])
+
             Self.run(tests / "uuid",
                 canonical: "1D000000057800100000000473FFD26444B34C6990E8E7D1DFC035D400",
                 expected: ["x": .binary(.init(subtype: .uuid,

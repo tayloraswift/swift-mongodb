@@ -30,6 +30,12 @@ extension BSON.BinaryEncoder
             self.output.destination[self.first] = value.rawValue
         }
     }
+
+    @inlinable
+    var bytes:ArraySlice<UInt8>
+    {
+        self.output.destination[self.output.destination.index(after: self.first)...]
+    }
 }
 extension BSON.BinaryEncoder:BSON.Encoder
 {
