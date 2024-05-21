@@ -151,13 +151,3 @@ extension BSON.UTF8View
         5 + self.bytes.count
     }
 }
-
-extension BSON.UTF8View
-{
-    @available(*, deprecated, renamed: "init(bytes:)")
-    @inlinable public
-    init(slice:Bytes)
-    {
-        self.init(bytes: slice)
-    }
-}

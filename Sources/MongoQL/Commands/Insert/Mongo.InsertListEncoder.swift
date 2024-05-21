@@ -2,10 +2,6 @@ import BSON
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "InsertListEncoder")
-    public
-    typealias InsertEncoder = InsertListEncoder
-
     @frozen public
     struct InsertListEncoder
     {

@@ -1,9 +1,5 @@
 extension BSON
 {
-    @available(*, deprecated, message: "BSON.DocumentView has been merged with BSON.Document")
-    public
-    typealias DocumentView = Document
-
     /// The `Document` type models the “universal” BSON DSL.
     ///
     /// It is expected that more-specialized BSON DSLs will wrap an
@@ -177,20 +173,13 @@ extension BSON.Document
     @inlinable public
     init(_ bson:Self)
     {
-        self.init(bson: bson)
+        self = bson
     }
 
     @available(*, deprecated, message: "BSON.Document is already a BSON.Document")
     @inlinable public
     init(bson:Self)
     {
-        self.init(bytes: bson.slice)
-    }
-
-    @available(*, deprecated, renamed: "init(bytes:)")
-    @inlinable public
-    init(slice:ArraySlice<UInt8>)
-    {
-        self.init(bytes: slice)
+        self = bson
     }
 }

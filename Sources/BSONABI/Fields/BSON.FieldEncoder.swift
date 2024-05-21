@@ -1,11 +1,5 @@
 extension BSON
 {
-    @available(*, deprecated, renamed: "FieldEncoder")
-    public
-    typealias Field = BSON.FieldEncoder
-}
-extension BSON
-{
     /// A type that can serialize any BSON container element.
     @frozen public
     struct FieldEncoder

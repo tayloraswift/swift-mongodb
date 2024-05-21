@@ -103,36 +103,3 @@ extension Mongo.ProjectionEncoder
         }
     }
 }
-@available(*, deprecated)
-extension Mongo.ProjectionEncoder
-{
-    /// Encodes a ``ProjectionOperator``.
-    ///
-    /// This does not require `@_disfavoredOverload`, because ``ProjectionOperator`` has no
-    /// subscripts that accept string literals, so it will never conflict with
-    /// ``BSON.Document``.
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Mongo.ProjectionOperator?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
-    @inlinable public
-    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
-}

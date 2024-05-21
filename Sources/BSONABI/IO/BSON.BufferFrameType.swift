@@ -1,11 +1,5 @@
 extension BSON
 {
-    @available(*, deprecated, renamed: "BufferFrameType")
-    public
-    typealias FrameType = BufferFrameType
-}
-extension BSON
-{
     /// A type that specifies the layout of a variable-length BSON view.
     /// Parsers use conforming types to decide how to interpret BSON
     /// length headers read from input data.

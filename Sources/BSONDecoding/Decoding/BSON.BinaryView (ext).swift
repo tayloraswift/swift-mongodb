@@ -1,10 +1,3 @@
-extension BSON.BinaryView
-{
-    @available(*, deprecated)
-    @inlinable public
-    var shape:BSON.Shape { .init(length: self.bytes.count) }
-}
-
 extension BSON.BinaryView<ArraySlice<UInt8>>:BSONDecodable
 {
     @inlinable public

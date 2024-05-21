@@ -1,9 +1,5 @@
 import BSON
 
-@available(*, deprecated, renamed: "Mongo.Expression")
-public
-typealias MongoExpression = Mongo.Expression
-
 extension Mongo
 {
     @frozen public

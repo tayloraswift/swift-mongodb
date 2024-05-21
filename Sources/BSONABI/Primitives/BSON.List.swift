@@ -1,9 +1,5 @@
 extension BSON
 {
-    @available(*, deprecated, message: "BSON.ListView has been merged with BSON.List")
-    public
-    typealias ListView = List
-
     @frozen public
     struct List:Sendable
     {
@@ -58,10 +54,6 @@ extension BSON.List
     /// itself.
     @inlinable public
     var size:Int { 5 + self.bytes.count }
-
-    @available(*, deprecated, renamed: "BSON.Document.init(list:)")
-    @inlinable public
-    var document:BSON.Document { .init(list: self) }
 }
 extension BSON.List:Equatable
 {
@@ -149,20 +141,13 @@ extension BSON.List
     @inlinable public
     init(_ bson:Self)
     {
-        self.init(bson: bson)
+        self = bson
     }
 
     @available(*, deprecated, message: "BSON.List is already a BSON.List")
     @inlinable public
     init(bson:Self)
     {
-        self.init(bytes: bson.bytes)
-    }
-
-    @available(*, deprecated, renamed: "init(bytes:)")
-    @inlinable public
-    init(slice:ArraySlice<UInt8>)
-    {
-        self.init(bytes: slice)
+        self = bson
     }
 }

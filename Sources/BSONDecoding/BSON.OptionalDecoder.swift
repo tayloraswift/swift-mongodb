@@ -1,11 +1,5 @@
 extension BSON
 {
-    @available(*, deprecated, renamed: "OptionalDecoder")
-    public
-    typealias ImplicitField = OptionalDecoder
-}
-extension BSON
-{
     /// A field that may or may not exist in a document. This type is
     /// the return value of ``Dictionary``’s non-optional subscript, and
     /// is useful for obtaining structured diagnostics for “key-not-found”

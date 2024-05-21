@@ -59,16 +59,3 @@ extension BSON.Key:ExpressibleByStringLiteral, ExpressibleByStringInterpolation
         self.init(rawValue: stringLiteral)
     }
 }
-extension BSON.Key
-{
-    /// Creates a key (path) by joining two keys with a `.` character.
-    ///
-    /// Some applications that use BSON, such as MongoDB, consider `.`
-    /// characters significant.
-    @available(*, deprecated, message: "Prefer 'Mongo.AnyKeyPath' instead.")
-    @inlinable public static
-    func / (self:Self, next:Self) -> Self
-    {
-        .init(rawValue: "\(self).\(next)")
-    }
-}

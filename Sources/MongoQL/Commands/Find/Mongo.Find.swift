@@ -160,20 +160,6 @@ extension Mongo.Find
             yield(&self.fields[with: key][as: Mongo.PredicateEncoder.self])
         }
     }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Filter) -> Mongo.PredicateDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
 }
 extension Mongo.Find
 {
@@ -236,20 +222,6 @@ extension Mongo.Find
             yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
         }
     }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Hint) -> Mongo.SortDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
 }
 extension Mongo.Find
 {
@@ -304,20 +276,6 @@ extension Mongo.Find
             value?.encode(to: &self.fields[with: key][as: Mongo.ProjectionEncoder.self])
         }
     }
-
-    @available(*, deprecated)
-    @inlinable public
-    subscript(key:Projection) -> Mongo.ProjectionDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
 }
 extension Mongo.Find
 {
@@ -355,20 +313,6 @@ extension Mongo.Find
         mutating get
         {
             yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
-        }
-    }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Sort) -> Mongo.SortDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
         }
     }
 }

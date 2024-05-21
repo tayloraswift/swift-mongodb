@@ -69,27 +69,6 @@ extension Mongo.PredicateEncoder
             yield(&self.bson[with: path][as: Mongo.PredicateEncoder.self])
         }
     }
-
-    @available(*, deprecated, message: "Use the functional subscript instead.")
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Mongo.PredicateOperator?
-    {
-        get { nil }
-        set (value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
-    @available(*, deprecated, message: "Use the functional subscript instead.")
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Mongo.PredicateDocument?
-    {
-        get { nil }
-        set (value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
 }
 extension Mongo.PredicateEncoder
 {
@@ -124,27 +103,6 @@ extension Mongo.PredicateEncoder
         mutating get
         {
             yield(&self.bson[with: key][as: Mongo.PredicateListEncoder.self])
-        }
-    }
-
-    @available(*, deprecated, message: "Use the functional subscript instead.")
-    @inlinable public
-    subscript(key:Branch) -> Mongo.PredicateList?
-    {
-        get { nil }
-        set (value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @available(*, deprecated)
-    @inlinable public
-    subscript(key:Branch) -> [Mongo.PredicateDocument]
-    {
-        get { [ ] }
-        set (value)
-        {
-            value.encode(to: &self.bson[with: key])
         }
     }
 }
@@ -185,17 +143,6 @@ extension Mongo.PredicateEncoder
 
     @inlinable public
     subscript<Encodable>(key:Expr) -> Encodable? where Encodable:BSONEncodable
-    {
-        get { nil }
-        set (value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-
-    @available(*, deprecated, message: "Use the functional subscript instead.")
-    @inlinable public
-    subscript(key:Expr) -> Mongo.Expression?
     {
         get { nil }
         set (value)

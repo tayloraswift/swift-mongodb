@@ -1,11 +1,5 @@
 extension BSON
 {
-    @available(*, deprecated, renamed: "FieldDecoder")
-    public
-    typealias ExplicitField = FieldDecoder
-}
-extension BSON
-{
     @frozen public
     struct FieldDecoder<Key> where Key:Sendable
     {

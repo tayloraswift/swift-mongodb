@@ -155,20 +155,6 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Pop>
 }
 extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Pull>
 {
-    @available(*, deprecated, message: "use the streaming subscript instead")
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Mongo.PredicateOperator?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path])
-        }
-    }
-
     @inlinable public
     subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.PredicateOperatorEncoder) -> ()) -> Void
     {

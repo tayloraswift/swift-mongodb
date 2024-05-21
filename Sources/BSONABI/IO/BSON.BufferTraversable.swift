@@ -1,11 +1,5 @@
 extension BSON
 {
-    @available(*, deprecated, renamed: "BufferTraversable")
-    public
-    typealias FrameTraversable = BufferTraversable
-}
-extension BSON
-{
     /// A framed type that BSON parsers can traverse in constant time.
     ///
     /// BSON parsers typically parse conforming types by reading a length
@@ -35,10 +29,4 @@ extension BSON
         /// cover the entirety of the argument originally passed to ``init(slicing:)``.
         var bytes:ArraySlice<UInt8> { get }
     }
-}
-extension BSON.BufferTraversable
-{
-    @available(*, deprecated, renamed: "bytes")
-    @inlinable public
-    var slice:ArraySlice<UInt8> { self.bytes }
 }

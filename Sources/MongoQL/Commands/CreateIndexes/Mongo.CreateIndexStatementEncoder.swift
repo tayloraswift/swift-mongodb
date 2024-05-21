@@ -194,18 +194,4 @@ extension Mongo.CreateIndexStatementEncoder
             value?.encode(to: &self.bson[with: key][as: Mongo.ProjectionEncoder.self])
         }
     }
-
-    @available(*, deprecated)
-    @inlinable public
-    subscript(key:WildcardProjection) -> Mongo.ProjectionDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
 }

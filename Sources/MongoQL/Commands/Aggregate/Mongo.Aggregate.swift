@@ -211,20 +211,6 @@ extension Mongo.Aggregate
             yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
         }
     }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Hint) -> Mongo.SortDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
 }
 extension Mongo.Aggregate
 {

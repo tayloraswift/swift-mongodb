@@ -31,12 +31,6 @@ extension BSON
 }
 extension BSON.AnyType
 {
-    @available(*, deprecated, renamed: "timestamp")
-    @inlinable public static
-    var uint64:BSON.AnyType { .timestamp }
-}
-extension BSON.AnyType
-{
     /// Calls ``init(rawValue:)``, but throws a ``TypeError`` instead of returning
     /// nil.
     @inlinable public

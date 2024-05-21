@@ -90,18 +90,4 @@ extension Mongo.SortEncoder
             yield(&self.bson[with: path.stem][as: Mongo.SortOperatorEncoder.self])
         }
     }
-
-    @available(*, deprecated, message: "Use the functional subscript instead.")
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Mongo.SortOperator?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
 }

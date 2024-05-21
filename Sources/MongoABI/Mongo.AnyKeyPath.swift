@@ -2,10 +2,6 @@ import BSON
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "AnyKeyPath")
-    public
-    typealias KeyPath = AnyKeyPath
-
     @frozen public
     struct AnyKeyPath:Equatable, Hashable, Sendable
     {

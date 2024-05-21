@@ -2,10 +2,6 @@ import BSON
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "DeleteStatementEncoder")
-    public
-    typealias DeleteStatement = DeleteStatementEncoder
-
     @frozen public
     struct DeleteStatementEncoder<Effect> where Effect:Mongo.WriteEffect
     {

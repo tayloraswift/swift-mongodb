@@ -1,9 +1,5 @@
 import BSON
 
-@available(*, deprecated, renamed: "Mongo.WireVersion")
-public
-typealias MongoWire = Mongo.WireVersion
-
 extension Mongo
 {
     /// A MongoDB wire protocol version. This is not the same thing as a server version.

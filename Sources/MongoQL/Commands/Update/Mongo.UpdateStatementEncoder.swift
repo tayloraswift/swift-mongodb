@@ -2,10 +2,6 @@ import BSON
 
 extension Mongo
 {
-    @available(*, deprecated, renamed: "UpdateStatementEncoder")
-    public
-    typealias UpdateStatement = UpdateStatementEncoder
-
     @frozen public
     struct UpdateStatementEncoder<Effect>:Sendable where Effect:Mongo.WriteEffect
     {
@@ -85,22 +81,6 @@ extension Mongo.UpdateStatementEncoder
     enum U:String, Hashable, Sendable
     {
         case u
-    }
-
-    @available(*, deprecated, message: "Use the functional subscript instead.")
-    @inlinable public
-    subscript(key:U) -> Mongo.UpdateDocument?
-    {
-        get { nil }
-        set (value) { value?.encode(to: &self.bson[with: key]) }
-    }
-
-    @available(*, deprecated, message: "Use the functional subscript instead.")
-    @inlinable public
-    subscript(key:U) -> Mongo.Pipeline?
-    {
-        get { nil }
-        set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 
     @inlinable public

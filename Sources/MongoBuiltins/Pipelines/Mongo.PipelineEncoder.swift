@@ -620,14 +620,6 @@ extension Mongo.PipelineEncoder
 
 extension Mongo.PipelineEncoder
 {
-    @available(*, deprecated, renamed: "subscript(stage:)")
-    @inlinable public
-    subscript(key:Mongo.Pipeline.ShardedDataDistribution) -> [String: Never]?
-    {
-        get { nil }
-        set (value) { self[stage: key] = value }
-    }
-
     @inlinable public
     subscript(stage key:Mongo.Pipeline.ShardedDataDistribution) -> [String: Never]?
     {

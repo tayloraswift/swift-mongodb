@@ -1,7 +1,3 @@
-@available(*, deprecated, renamed: "Mongo.MasterCodingModel")
-public
-typealias MongoMasterCodingModel = Mongo.MasterCodingModel
-
 extension Mongo
 {
     /// A type that serves as a master coding model for a type of document in a MongoDB

@@ -61,20 +61,6 @@ extension Mongo.ProjectionOperatorEncoder
             value?.encode(to: &self.bson[with: key][as: Mongo.PredicateEncoder.self])
         }
     }
-
-    @available(*, deprecated)
-    @inlinable public
-    subscript(key:First) -> Mongo.PredicateDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
 }
 extension Mongo.ProjectionOperatorEncoder
 {

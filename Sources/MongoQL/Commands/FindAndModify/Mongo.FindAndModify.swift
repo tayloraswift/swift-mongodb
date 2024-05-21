@@ -143,20 +143,6 @@ extension Mongo.FindAndModify
             value?.encode(to: &self.fields[with: key][as: Mongo.ProjectionEncoder.self])
         }
     }
-
-    @available(*, deprecated)
-    @inlinable public
-    subscript(key:Fields) -> Mongo.ProjectionDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
 }
 extension Mongo.FindAndModify
 {
@@ -185,20 +171,6 @@ extension Mongo.FindAndModify
         mutating get
         {
             yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
-        }
-    }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Hint) -> Mongo.SortDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
         }
     }
 }
@@ -239,20 +211,6 @@ extension Mongo.FindAndModify
             yield(&self.fields[with: key][as: Mongo.PredicateEncoder.self])
         }
     }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Query) -> Mongo.PredicateDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
 }
 extension Mongo.FindAndModify
 {
@@ -268,20 +226,6 @@ extension Mongo.FindAndModify
         mutating get
         {
             yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
-        }
-    }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Sort) -> Mongo.SortDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
         }
     }
 }
@@ -302,40 +246,12 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
         }
     }
 
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Update) -> Mongo.UpdateDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
-
     @inlinable public
     subscript(key:Update, yield:(inout Mongo.PipelineEncoder) -> ()) -> Void
     {
         mutating get
         {
             yield(&self.fields[with: key][as: Mongo.PipelineEncoder.self])
-        }
-    }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:Update) -> Mongo.Pipeline?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
         }
     }
 
@@ -367,34 +283,6 @@ extension Mongo.FindAndModify where Effect.Upsert == Bool
         mutating get
         {
             yield(&self.fields[with: key][as: Mongo.PredicateListEncoder.self])
-        }
-    }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:ArrayFilters) -> Mongo.PredicateList?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
-    }
-
-    @available(*, deprecated, message: "use the functional subscript instead")
-    @inlinable public
-    subscript(key:ArrayFilters) -> [Mongo.PredicateDocument]
-    {
-        get
-        {
-            []
-        }
-        set(value)
-        {
-            value.encode(to: &self.fields[with: key])
         }
     }
 }

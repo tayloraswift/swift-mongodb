@@ -1,11 +1,5 @@
 import BSON
 
-extension Mongo.Replica
-{
-    @available(*, deprecated, renamed: "Mongo.ReplicaTimings")
-    public
-    typealias Timings = Mongo.ReplicaTimings
-}
 extension Mongo
 {
     /// The time when metadata for a server was last updated, and the time of the last write

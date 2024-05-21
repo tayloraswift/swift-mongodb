@@ -2,7 +2,7 @@ extension BSON
 {
     /// Any BSON value.
     @frozen public
-    enum AnyValue:Sendable
+    enum AnyValue:Equatable, Sendable
     {
         /// A general embedded document.
         case document(BSON.Document)
@@ -59,18 +59,6 @@ extension BSON
         ///     in a Mongo database.
         case timestamp(BSON.Timestamp)
     }
-}
-extension BSON.AnyValue
-{
-    @available(*, deprecated, renamed: "timestamp(_:)")
-    @inlinable public static
-    func uint64(_ value:UInt64) -> Self
-    {
-        .timestamp(.init(value))
-    }
-}
-extension BSON.AnyValue:Equatable
-{
 }
 extension BSON.AnyValue
 {
@@ -335,21 +323,6 @@ extension BSON.AnyValue
 }
 extension BSON.AnyValue
 {
-    /// Attempts to load an explicit ``null`` from this variant.
-    ///
-    /// -   Returns:
-    ///     nil in the inner optional if this variant is ``null``,
-    //      nil in the outer optional otherwise.
-    @available(*, deprecated, message: "Use the BSON.Null overload instead.")
-    @inlinable public
-    func `as`(_:Never?.Type) -> Never??
-    {
-        switch self
-        {
-        case .null: (nil as Never?) as Never??
-        default:    nil            as Never??
-        }
-    }
     /// Attempts to load an explicit ``null`` from this variant.
     ///
     /// -   Returns:

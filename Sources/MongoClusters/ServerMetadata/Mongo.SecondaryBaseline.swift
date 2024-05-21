@@ -1,12 +1,6 @@
 import BSON
 import Durations
 
-extension Mongo.Replica
-{
-    @available(*, deprecated, renamed: "Mongo.SecondaryBaseline")
-    public
-    typealias SecondaryBaseline = Mongo.SecondaryBaseline
-}
 extension Mongo
 {
     /// The time when metadata for a secondary was last updated, and
