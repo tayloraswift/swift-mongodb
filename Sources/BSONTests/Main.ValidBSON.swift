@@ -1,6 +1,8 @@
 import Base16
 import BSON
 import BSONReflection
+import BSON_UUID
+import UUID
 import Testing_
 
 extension Main
@@ -14,6 +16,13 @@ extension Main.ValidBSON:TestBattery
     static
     func run(tests:TestGroup)
     {
+        enum TestKey:String
+        {
+            case a
+            case b
+            case x
+        }
+
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/multi-type.json
         // cannot use this test, because it encodes a deprecated binary subtype, which is
         // (intentionally) impossible to construct with swift-bson.
@@ -58,6 +67,13 @@ extension Main.ValidBSON:TestBattery
             Self.run(tests / "false",
                 canonical: "090000000862000000",
                 expected: ["b": false])
+
+            Self.run(tests / "true2",
+                canonical: "090000000862000100",
+                expected: .init(TestKey.self) { $0[.b] = true })
+            Self.run(tests / "false2",
+                canonical: "090000000862000000",
+                expected: .init(TestKey.self) { $0[.b] = false })
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/int32.json
@@ -319,6 +335,12 @@ extension Main.ValidBSON:TestBattery
                 canonical: "1D000000057800100000000473FFD26444B34C6990E8E7D1DFC035D400",
                 expected: ["x": .binary(.init(subtype: .uuid,
                     bytes: Base16.decode("73ffd26444b34c6990e8e7d1dfc035d4")))])
+            Self.run(tests / "uuid2",
+                canonical: "1D000000057800100000000473FFD26444B34C6990E8E7D1DFC035D400",
+                expected: .init(TestKey.self)
+                {
+                    $0[.x] = UUID.init(0x73ffd26444b34c69, 0x90e8e7d1dfc035d4)
+                })
 
             Self.run(tests / "md5",
                 canonical: "1D000000057800100000000573FFD26444B34C6990E8E7D1DFC035D400",
@@ -588,7 +610,7 @@ extension Main.ValidBSON
         tests.expect(document.header ==? size)
 
         tests.expect(true: expected ~~ document)
-        tests.expect(true: expected == document)
+        tests.expect(expected ==? document)
 
         if  let degenerate:String
         {

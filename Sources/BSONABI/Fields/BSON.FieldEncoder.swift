@@ -154,12 +154,12 @@ extension BSON.FieldEncoder
         mutating _read
         {
             self.begin(Encoder.frame.type)
-            yield  self.output[in: BSON.DocumentFrame.self][as: Encoder.self]
+            yield  self.output[in: Encoder.Frame.self][as: Encoder.self]
         }
         _modify
         {
             self.begin(Encoder.frame.type)
-            yield &self.output[in: BSON.DocumentFrame.self][as: Encoder.self]
+            yield &self.output[in: Encoder.Frame.self][as: Encoder.self]
         }
     }
 }
