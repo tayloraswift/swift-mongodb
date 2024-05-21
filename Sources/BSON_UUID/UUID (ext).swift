@@ -1,10 +1,10 @@
 import BSON
 import UUID
 
-extension UUID:BSONDecodable, BSONBinaryViewDecodable
+extension UUID:BSONDecodable, BSONBinaryDecodable
 {
     @inlinable public
-    init(bson:BSON.BinaryView<ArraySlice<UInt8>>) throws
+    init(bson:BSON.BinaryDecoder) throws
     {
         try bson.subtype.expect(.uuid)
         try bson.shape.expect(length: 16)

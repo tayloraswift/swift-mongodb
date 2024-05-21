@@ -70,7 +70,7 @@ extension Main.DecodeList:TestBattery
         {
             try $0["four"].decode
             {
-                try $0.shape.expect(multipleOf: 2)
+                _ = try $0.shape.expect(multipleOf: 2)
                 return try $0.map { try $0.decode(to: String.self) }
             }
         }

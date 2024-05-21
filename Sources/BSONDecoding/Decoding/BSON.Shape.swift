@@ -28,17 +28,26 @@ extension BSON.Shape
             throw BSON.ShapeError.init(invalid: self.length, expected: .length(length))
         }
     }
-    /// Throws an ``ShapeError`` if the number of elements in the
-    /// relevant collection is not a multiple of the specified stride.
+    /// Returns the quotient if the number of elements in the relevant collection is a multiple
+    /// of the specified stride, or throws a ``ShapeError`` otherwise.
+    /// If the stride is zero, this method also throws a ``ShapeError``, unless the length is
+    /// zero as well.
     @inlinable public
-    func expect(multipleOf stride:Int) throws
+    func expect(multipleOf stride:Int) throws -> Int
     {
-        guard self.length.isMultiple(of: stride)
+        if  self.length == 0
+        {
+            return 0
+        }
+
+        guard stride > 0,
+        case (let count, remainder: 0) = self.length.quotientAndRemainder(dividingBy: stride)
         else
         {
-            throw BSON.ShapeError.init(invalid: self.length,
-                expected: .multiple(of: stride))
+            throw BSON.ShapeError.init(invalid: self.length, expected: .multiple(of: stride))
         }
+
+        return count
     }
     /// Converts a boolean status code into a thrown ``ShapeError``.
     /// To raise an error, return false from the closure.

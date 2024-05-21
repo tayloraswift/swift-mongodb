@@ -4,6 +4,9 @@ extension BSON
     protocol OutputStream
     {
         mutating
+        func reserve(another bytes:Int)
+
+        mutating
         func append(_ byte:UInt8)
         mutating
         func append(_ bytes:some Sequence<UInt8>)

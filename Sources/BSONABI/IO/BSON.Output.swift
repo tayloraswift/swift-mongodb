@@ -30,6 +30,14 @@ extension BSON
 }
 extension BSON.Output:BSON.OutputStream
 {
+    /// Reserves another `bytes` worth of capacity in the output destination, in addition to the
+    /// bytes already present.
+    @inlinable public mutating
+    func reserve(another bytes:Int)
+    {
+        self.destination.reserveCapacity(self.destination.count + bytes)
+    }
+
     /// Appends a single byte to the output destination.
     @inlinable public mutating
     func append(_ byte:UInt8)

@@ -15,12 +15,10 @@
 public
 protocol BSONListEncodable:BSONEncodable
 {
-    /// Creates a list from this instance by encoding to
-    /// the parameter.
+    /// Populates a list from this instance by encoding to the parameter.
     ///
-    /// The implementation must not assume the encoding container
-    /// is initially empty, because it may be the owner of the
-    /// final output buffer.
+    /// The implementation must not assume the encoding container is initially empty, because it
+    /// may be the owner of the final output buffer.
     func encode(to bson:inout BSON.ListEncoder)
 }
 extension BSONListEncodable
