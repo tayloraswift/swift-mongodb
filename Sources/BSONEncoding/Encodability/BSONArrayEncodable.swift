@@ -12,6 +12,11 @@ extension BSONArrayEncodable where Self:RandomAccessCollection<CodingElement>
     @inlinable public
     func encode(to bson:inout BSON.BinaryEncoder)
     {
-        bson.copyDensely(from: self, count: self.count)
+        bson.reserve(another: count * MemoryLayout<CodingElement>.size)
+
+        for trivial:CodingElement in self
+        {
+            withUnsafeBytes(of: trivial) { bson += $0 }
+        }
     }
 }

@@ -53,26 +53,21 @@ extension BSON.BinaryEncoder:BSON.Encoder
 }
 extension BSON.BinaryEncoder
 {
-    @inlinable public mutating
-    func copy(from bytes:UnsafeRawBufferPointer)
+    @inlinable public static
+    func += (self:inout Self, bytes:some Sequence<UInt8>)
     {
-        self.output.reserve(another: bytes.count)
         self.output.append(bytes)
     }
 
-    /// Encodes the elements of the sequence to this binary encoder by densely copying each
-    /// element’s raw memory representation, without any padding.
     @inlinable public mutating
-    func copyDensely<Trivial>(from elements:some Sequence<Trivial>, count:Int)
+    func append(_ byte:UInt8)
     {
-        self.output.reserve(another: count * MemoryLayout<Trivial>.size)
+        self.output.append(byte)
+    }
 
-        for trivial:Trivial in elements
-        {
-            withUnsafeBytes(of: trivial)
-            {
-                self.output.append($0)
-            }
-        }
+    @inlinable public mutating
+    func reserve(another bytes:Int)
+    {
+        self.output.reserve(another: bytes)
     }
 }
