@@ -3,7 +3,7 @@ import MongoABI
 
 extension Mongo.Change
 {
-    /// You probably do not want to use this type directly; use ``ChangeUpdate`` instead.
+    /// You probably do not want to use this type directly; use ``Update`` instead.
     @frozen @usableFromInline
     struct UpdateDescription
     {
