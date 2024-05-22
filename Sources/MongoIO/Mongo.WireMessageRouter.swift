@@ -87,7 +87,7 @@ extension Mongo.WireMessageRouter:ChannelInboundHandler
     func channelInactive(context:ChannelHandlerContext)
     {
         self.perish(throwing: Mongo.NetworkError.init(
-            underlying: Mongo.WireProtocolError.init()))
+            underlying: Mongo.WireProtocolError.interrupted))
 
         context.fireChannelInactive()
     }
@@ -126,7 +126,8 @@ extension Mongo.WireMessageRouter:ChannelOutboundHandler
             switch self.state
             {
             case .perished:
-                caller.fail(Mongo.NetworkError.init(underlying: Mongo.WireProtocolError.init()))
+                caller.fail(Mongo.NetworkError.init(
+                    underlying: Mongo.WireProtocolError.interruptedAlready))
                 return
 
             case .awaiting(_?):

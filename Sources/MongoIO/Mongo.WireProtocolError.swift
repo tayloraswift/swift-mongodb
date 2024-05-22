@@ -1,11 +1,21 @@
 extension Mongo
 {
     @frozen public
-    struct WireProtocolError:Equatable, Error
+    enum WireProtocolError:Equatable, Error
     {
-        @inlinable public
-        init()
+        case interrupted
+        case interruptedAlready
+    }
+}
+extension Mongo.WireProtocolError:CustomStringConvertible
+{
+    public
+    var description:String
+    {
+        switch self
         {
+        case .interrupted:          "Connection interrupted"
+        case .interruptedAlready:   "Connection interrupted already"
         }
     }
 }
