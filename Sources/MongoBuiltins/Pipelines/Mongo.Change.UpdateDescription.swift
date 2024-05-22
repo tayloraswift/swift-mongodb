@@ -1,23 +1,23 @@
 import BSON
 import MongoABI
 
-extension Mongo
+extension Mongo.Change
 {
     /// You probably do not want to use this type directly; use ``ChangeUpdate`` instead.
-    @frozen public
-    struct ChangeUpdateDescription<DocumentDelta> where DocumentDelta:MasterCodingDelta
+    @frozen @usableFromInline
+    struct UpdateDescription
     {
-        public
-        var updatedFields:DocumentDelta?
-        public
-        var removedFields:[DocumentDelta.CodingKey]
-        public
-        var truncatedArrays:[ChangeTruncatedArray<DocumentDelta.CodingKey>]
+        @usableFromInline
+        var updatedFields:Delta?
+        @usableFromInline
+        var removedFields:[Delta.Model.CodingKey]
+        @usableFromInline
+        var truncatedArrays:[Mongo.ChangeTruncatedArray<Delta.Model.CodingKey>]
 
-        @inlinable public
-        init(updatedFields:DocumentDelta? = nil,
-            removedFields:[DocumentDelta.CodingKey] = [],
-            truncatedArrays:[ChangeTruncatedArray<DocumentDelta.CodingKey>] = [])
+        @inlinable
+        init(updatedFields:Delta? = nil,
+            removedFields:[Delta.Model.CodingKey] = [],
+            truncatedArrays:[Mongo.ChangeTruncatedArray<Delta.Model.CodingKey>] = [])
         {
             self.updatedFields = updatedFields
             self.removedFields = removedFields
@@ -25,13 +25,13 @@ extension Mongo
         }
     }
 }
-extension Mongo.ChangeUpdateDescription:Sendable
-    where DocumentDelta:Sendable, DocumentDelta.CodingKey:Sendable
+extension Mongo.Change.UpdateDescription:Sendable
+    where Delta:Sendable, Delta.Model.CodingKey:Sendable
 {
 }
-extension Mongo.ChangeUpdateDescription:BSONDecodable, BSONDocumentDecodable
+extension Mongo.Change.UpdateDescription:BSONDecodable, BSONDocumentDecodable
 {
-    @frozen public
+    @frozen @usableFromInline
     enum CodingKey:String, Hashable, Sendable
     {
         case updatedFields
@@ -40,7 +40,7 @@ extension Mongo.ChangeUpdateDescription:BSONDecodable, BSONDocumentDecodable
         case disambiguatedPaths
     }
 
-    @inlinable public
+    @inlinable
     init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
         let _:Mongo.EmptyDocument? = try bson[.disambiguatedPaths]?.decode()

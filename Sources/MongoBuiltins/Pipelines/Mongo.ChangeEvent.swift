@@ -1,35 +1,38 @@
 import BSON
+import MongoABI
 
 extension Mongo
 {
     @frozen public
-    struct ChangeEvent<Document, DocumentUpdate>:Sendable
-        where Document:Sendable, DocumentUpdate:Sendable
+    struct ChangeEvent<Delta> where Delta:MasterCodingDelta, Delta.Model:Identifiable
     {
         public
         let id:ChangeEventIdentifier
         public
         let clusterTime:BSON.Timestamp
         public
-        let operation:ChangeOperation<Document, DocumentUpdate>
+        let change:Change<Delta>
 
         @inlinable public
         init(id:ChangeEventIdentifier,
             clusterTime:BSON.Timestamp,
-            operation:ChangeOperation<Document, DocumentUpdate>)
+            change:Change<Delta>)
         {
             self.id = id
             self.clusterTime = clusterTime
-            self.operation = operation
+            self.change = change
         }
     }
 }
-extension Mongo.ChangeEvent:Equatable where Document:Equatable, DocumentUpdate:Equatable
+extension Mongo.ChangeEvent:Equatable where Mongo.Change<Delta>:Equatable
+{
+}
+extension Mongo.ChangeEvent:Sendable where Mongo.Change<Delta>:Sendable
 {
 }
 extension Mongo.ChangeEvent:BSONDocumentDecodable, BSONDecodable where
-    Document:BSONDecodable,
-    DocumentUpdate:Mongo.ChangeUpdateRepresentation
+    Delta.Model.ID:BSONDecodable,
+    Delta.Model:BSONDecodable
 {
     @frozen public
     enum CodingKey:String, Sendable
@@ -46,34 +49,34 @@ extension Mongo.ChangeEvent:BSONDocumentDecodable, BSONDecodable where
     @inlinable public
     init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
-        let operation:Mongo.ChangeOperation<Document, DocumentUpdate>
+        let change:Mongo.Change<Delta>
 
         switch try bson[.operationType].decode(to: Mongo.ChangeOperationType.self)
         {
         case .insert:
-            operation = .insert(try bson[.fullDocument].decode())
+            change = .insert(try bson[.fullDocument].decode())
 
         case .delete:
-            operation = .delete(.init(.init(), in: try bson[.documentKey].decode()))
+            change = .delete(.init(.init(), in: try bson[.documentKey].decode()))
 
         case .update:
-            operation = .update(.init(try bson[.updateDescription].decode(),
+            change = .update(.init(try bson[.updateDescription].decode(),
                     in: try bson[.documentKey].decode()),
                 before: try bson[.fullDocumentBeforeChange]?.decode(),
                 after: try bson[.fullDocument]?.decode())
 
         case .replace:
-            operation = .replace(.init(.init(),
+            change = .replace(.init(.init(),
                     in: try bson[.documentKey].decode()),
                 before: try bson[.fullDocumentBeforeChange]?.decode(),
                 after: try bson[.fullDocument].decode())
 
         default:
-            operation = ._unimplemented
+            change = ._unimplemented
         }
 
         self.init(id: try bson[.id].decode(),
             clusterTime: try bson[.clusterTime].decode(),
-            operation: operation)
+            change: change)
     }
 }
