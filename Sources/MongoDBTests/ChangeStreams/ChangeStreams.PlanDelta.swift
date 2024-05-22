@@ -17,7 +17,7 @@ extension ChangeStreams
 }
 extension ChangeStreams.PlanDelta:Mongo.MasterCodingDelta
 {
-    typealias CodingKey = ChangeStreams.Plan.CodingKey
+    typealias Model = ChangeStreams.Plan
 }
 extension ChangeStreams.PlanDelta:BSONDocumentDecodable
 {

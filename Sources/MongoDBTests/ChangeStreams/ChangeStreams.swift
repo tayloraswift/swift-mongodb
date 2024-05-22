@@ -11,9 +11,6 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
 
         await tests.do
         {
-            typealias ChangeEvent = Mongo.ChangeEvent<Plan, Mongo.ChangeUpdate<PlanDelta, Int>>
-            typealias Change = Mongo.ChangeOperation<Plan, Mongo.ChangeUpdate<PlanDelta, Int>>
-
             let session:Mongo.Session = try await .init(from: pool)
 
             let state:(Plan, Plan, Plan) =
@@ -22,7 +19,7 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
                 .init(id: 1, owner: "a", level: "y"),
                 .init(id: 1, owner: "b", level: "y")
             )
-            var changes:[Change] = [
+            var changes:[Mongo.Change<PlanDelta>] = [
                 .insert(state.0),
                 .update(.init(updatedFields: .init(owner: nil, level: "y"),
                         id: state.0.id),
@@ -38,7 +35,8 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
             changes.reverse()
 
             try await session.run(
-                command: Mongo.Aggregate<Mongo.Cursor<ChangeEvent>>.init(collection,
+                command: Mongo.Aggregate<Mongo.Cursor<
+                    Mongo.ChangeEvent<PlanDelta>>>.init(collection,
                     writeConcern: .majority,
                     readConcern: .majority,
                     //  This is always needed, otherwise the cursor will die after a fixed
@@ -54,7 +52,7 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
                 by: .now.advanced(by: .seconds(2)))
             {
                 var poll:Int = 0
-                for try await batch:[ChangeEvent] in $0
+                for try await batch:[Mongo.ChangeEvent<PlanDelta>] in $0
                 {
                     defer
                     {
@@ -119,17 +117,17 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
 
                     //  It is rare, but MongoDB does occasionally coalesce multiple changes into
                     //  one cursor batch.
-                    for event:ChangeEvent in batch
+                    for event:Mongo.ChangeEvent<PlanDelta> in batch
                     {
                         guard
-                        let expected:Change = changes.popLast()
+                        let expected:Mongo.Change<PlanDelta> = changes.popLast()
                         else
                         {
                             tests.expect(nil: event)
                             return
                         }
 
-                        tests.expect(event.operation ==? expected)
+                        tests.expect(event.change ==? expected)
 
                         if  changes.isEmpty
                         {

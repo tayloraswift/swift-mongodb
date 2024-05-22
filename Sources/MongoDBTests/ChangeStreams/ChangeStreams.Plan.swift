@@ -3,7 +3,7 @@ import MongoQL
 
 extension ChangeStreams
 {
-    struct Plan:Equatable, Sendable
+    struct Plan:Identifiable, Equatable, Sendable
     {
         let id:Int
         var owner:String

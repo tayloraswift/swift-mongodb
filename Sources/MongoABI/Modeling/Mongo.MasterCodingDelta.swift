@@ -6,8 +6,8 @@ extension Mongo
     /// different implied constraints, because you generally only ever decode a delta you
     /// receive from elsewhere.
     public
-    protocol MasterCodingDelta<CodingKey>:BSONDecodable
+    protocol MasterCodingDelta<Model>:BSONDecodable
     {
-        associatedtype CodingKey:BSONDecodable
+        associatedtype Model:MasterCodingModel where Model.CodingKey:BSONDecodable
     }
 }
