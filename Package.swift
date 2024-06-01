@@ -33,7 +33,7 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
             from: "0.4.0")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
-            from: "0.5.0")),
+            from: "0.6.0")),
 
         .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(
             from: "1.2.0")),
