@@ -428,6 +428,7 @@ extension Mongo.PipelineEncoder
 
 extension Mongo.PipelineEncoder
 {
+    @available(*, unavailable)
     @inlinable public
     subscript(stage key:Mongo.Pipeline.Match) -> Mongo.PredicateDocument?
     {
@@ -444,6 +445,33 @@ extension Mongo.PipelineEncoder
             self.list(Mongo.Pipeline.Match.self)
             {
                 $0[.match] = value
+            }
+        }
+    }
+
+    @inlinable public
+    subscript(stage match:Mongo.Pipeline.Match,
+        yield:(inout Mongo.PredicateEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.list(Mongo.Pipeline.Match.self)
+            {
+                yield(&$0[with: match][as: Mongo.PredicateEncoder.self])
+            }
+        }
+    }
+
+    @inlinable public
+    subscript<Predicate>(stage match:Mongo.Pipeline.Match) -> Predicate?
+        where Predicate:Mongo.PredicateEncodable
+    {
+        get { nil }
+        set (value)
+        {
+            if  let value:Predicate
+            {
+                self[stage: match, value.encode(to:)]
             }
         }
     }
