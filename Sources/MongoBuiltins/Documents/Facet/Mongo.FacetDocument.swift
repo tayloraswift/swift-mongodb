@@ -4,7 +4,7 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct FacetDocument:Mongo.EncodableDocument, Sendable
+    struct FacetDocument<CodingKey>:Sendable where CodingKey:RawRepresentable<String>
     {
         public
         var bson:BSON.Document
@@ -16,18 +16,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.FacetDocument
+extension Mongo.FacetDocument:Mongo.EncodableDocument
 {
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Mongo.Pipeline?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
+    public
+    typealias Encoder = Mongo.FacetEncoder<CodingKey>
 }

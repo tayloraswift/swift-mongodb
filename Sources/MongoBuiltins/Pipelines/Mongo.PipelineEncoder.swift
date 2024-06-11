@@ -267,22 +267,23 @@ extension Mongo.PipelineEncoder
 
 extension Mongo.PipelineEncoder
 {
+    @available(*, unavailable)
     @inlinable public
-    subscript(stage key:Mongo.Pipeline.Facet) -> Mongo.FacetDocument?
+    subscript(stage key:Mongo.Pipeline.Facet) -> Mongo.FacetDocument<Mongo.AnyKeyPath>?
     {
-        get { nil }
-        set (value)
-        {
-            guard
-            let value:Mongo.FacetDocument
-            else
-            {
-                return
-            }
+        nil
+    }
 
+    @inlinable public
+    subscript<FacetKey>(stage facet:Mongo.Pipeline.Facet,
+        using key:FacetKey.Type = FacetKey.self,
+        yield:(inout Mongo.FacetEncoder<FacetKey>) -> ()) -> Void
+    {
+        mutating get
+        {
             self.list(Mongo.Pipeline.Facet.self)
             {
-                $0[.facet] = value
+                yield(&$0[with: facet][as: Mongo.FacetEncoder<FacetKey>.self])
             }
         }
     }
