@@ -1,10 +1,9 @@
 import BSON
-import MongoABI
 
 extension Mongo
 {
     @frozen public
-    struct SetDocument:Mongo.EncodableDocument, Sendable
+    struct SetDocument<CodingKey>:Sendable where CodingKey:RawRepresentable<String>
     {
         public
         var bson:BSON.Document
@@ -16,18 +15,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.SetDocument
+extension Mongo.SetDocument:Mongo.EncodableDocument
 {
-    @inlinable public
-    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable? where Encodable:BSONEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path])
-        }
-    }
+    public
+    typealias Encoder = Mongo.SetEncoder<CodingKey>
 }

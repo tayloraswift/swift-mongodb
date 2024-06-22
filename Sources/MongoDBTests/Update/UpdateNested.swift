@@ -82,8 +82,7 @@ struct UpdateNested<Configuration>:MongoTestBattery where Configuration:MongoTes
                             {
                                 $0[.set]
                                 {
-                                    $0["food"] = Ape.Food.init(expires: nil,
-                                            type: "Watermelon")
+                                    $0["food"] = Ape.Food.init(expires: nil, type: "Watermelon")
                                 }
                             }
                         }
@@ -123,13 +122,13 @@ struct UpdateNested<Configuration>:MongoTestBattery where Configuration:MongoTes
                         {
                             $0[.q]
                             {
-                                $0["name"] = "Harambe"
+                                $0[Ape[.name]] = "Harambe"
                             }
                             $0[.u]
                             {
-                                $0[stage: .set] = .init
+                                $0[stage: .set, using: Ape.CodingKey.self]
                                 {
-                                    $0["food"] = Ape.Food.init(expires: nil, type: "Banana")
+                                    $0[.food] = Ape.Food.init(expires: nil, type: "Banana")
                                 }
                             }
                         }
@@ -171,9 +170,9 @@ struct UpdateNested<Configuration>:MongoTestBattery where Configuration:MongoTes
                             }
                             $0[.u]
                             {
-                                $0[stage: .set] = .init
+                                $0[stage: .set, using: Ape.CodingKey.self]
                                 {
-                                    $0["food"] = .expr
+                                    $0[.food]
                                     {
                                         $0[.literal] = Ape.Food.init(expires: nil,
                                             type: "Watermelon")

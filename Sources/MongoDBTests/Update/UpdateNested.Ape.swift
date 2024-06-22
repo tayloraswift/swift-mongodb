@@ -1,4 +1,5 @@
 import BSON
+import MongoQL
 
 extension UpdateNested
 {
@@ -16,7 +17,7 @@ extension UpdateNested
         }
     }
 }
-extension UpdateNested.Ape
+extension UpdateNested.Ape:Mongo.MasterCodingModel
 {
     enum CodingKey:String, Sendable
     {
