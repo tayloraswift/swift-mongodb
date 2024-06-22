@@ -405,6 +405,7 @@ extension Mongo.PipelineEncoder
 
 extension Mongo.PipelineEncoder
 {
+    @available(*, unavailable)
     @inlinable public
     subscript(stage key:Mongo.Pipeline.Lookup) -> Mongo.LookupDocument?
     {
@@ -421,6 +422,19 @@ extension Mongo.PipelineEncoder
             self.list(Mongo.Pipeline.Lookup.self)
             {
                 $0[.lookup] = value
+            }
+        }
+    }
+
+    @inlinable public
+    subscript(stage lookup:Mongo.Pipeline.Lookup,
+        yield:(inout Mongo.LookupEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.list(Mongo.Pipeline.Lookup.self)
+            {
+                yield(&$0[with: lookup][as: Mongo.LookupEncoder.self])
             }
         }
     }
