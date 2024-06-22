@@ -273,10 +273,10 @@ struct Update<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                             $0[.q] = [:]
                             $0[.u]
                             {
-                                $0[stage: .set] = .init
+                                $0[stage: .set, using: Member.CodingKey.self]
                                 {
-                                    $0["status"] = "Modified"
-                                    $0["comments"] = ["$misc1", "$misc2"]
+                                    $0[.status] = "Modified"
+                                    $0[.comments] = ["$misc1", "$misc2"]
                                 }
                                 $0[stage: .unset] = ["misc1", "misc2"]
                             }

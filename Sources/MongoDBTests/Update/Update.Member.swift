@@ -1,4 +1,5 @@
 import BSON
+import MongoQL
 
 extension Update
 {
@@ -29,17 +30,6 @@ extension Update
             self.misc2 = misc2
         }
 
-        enum CodingKey:String, Sendable
-        {
-            case id = "_id"
-            case member
-            case status
-            case points
-            case comments
-            case misc1
-            case misc2
-        }
-
         init(bson:BSON.DocumentDecoder<CodingKey>) throws
         {
             self.init(id: try bson[.id].decode(),
@@ -61,5 +51,18 @@ extension Update
             bson[.misc1] = self.misc1
             bson[.misc2] = self.misc2
         }
+    }
+}
+extension Update.Member:Mongo.MasterCodingModel
+{
+    enum CodingKey:String, Sendable
+    {
+        case id = "_id"
+        case member
+        case status
+        case points
+        case comments
+        case misc1
+        case misc2
     }
 }
