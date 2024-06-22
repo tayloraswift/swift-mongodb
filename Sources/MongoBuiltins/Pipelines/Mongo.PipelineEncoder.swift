@@ -563,8 +563,29 @@ extension Mongo.PipelineEncoder
 
 extension Mongo.PipelineEncoder
 {
+    @available(*, unavailable)
     @inlinable public
-    subscript<Document>(stage key:Mongo.Pipeline.ReplaceWith) -> Document?
+    subscript(stage key:Mongo.Pipeline.ReplaceWith) -> Mongo.SetDocument<Mongo.AnyKeyPath>?
+    {
+        nil
+    }
+
+    @inlinable public
+    subscript<CodingKey>(stage replaceWith:Mongo.Pipeline.ReplaceWith,
+        using key:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SetEncoder<CodingKey>) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.list(Mongo.Pipeline.ReplaceWith.self)
+            {
+                yield(&$0[with: replaceWith][as: Mongo.SetEncoder<CodingKey>.self])
+            }
+        }
+    }
+
+    @inlinable public
+    subscript<Document>(stage replaceWith:Mongo.Pipeline.ReplaceWith) -> Document?
         where Document:BSONEncodable
     {
         get { nil }
@@ -579,27 +600,7 @@ extension Mongo.PipelineEncoder
 
             self.list(Mongo.Pipeline.ReplaceWith.self)
             {
-                $0[.replaceWith] = value
-            }
-        }
-    }
-
-    @inlinable public
-    subscript(stage key:Mongo.Pipeline.ReplaceWith) -> Mongo.SetDocument?
-    {
-        get { nil }
-        set (value)
-        {
-            guard
-            let value:Mongo.SetDocument
-            else
-            {
-                return
-            }
-
-            self.list(Mongo.Pipeline.ReplaceWith.self)
-            {
-                $0[.replaceWith] = value
+                $0[replaceWith] = value
             }
         }
     }
@@ -630,22 +631,23 @@ extension Mongo.PipelineEncoder
 
 extension Mongo.PipelineEncoder
 {
+    @available(*, unavailable)
     @inlinable public
-    subscript(stage key:Mongo.Pipeline.Set) -> Mongo.SetDocument?
+    subscript(stage key:Mongo.Pipeline.Set) -> Mongo.SetDocument<Mongo.AnyKeyPath>?
     {
-        get { nil }
-        set (value)
-        {
-            guard
-            let value:Mongo.SetDocument
-            else
-            {
-                return
-            }
+        nil
+    }
 
+    @inlinable public
+    subscript<CodingKey>(stage set:Mongo.Pipeline.Set,
+        using key:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SetEncoder<CodingKey>) -> ()) -> Void
+    {
+        mutating get
+        {
             self.list(Mongo.Pipeline.Set.self)
             {
-                $0[.set] = value
+                yield(&$0[with: set][as: Mongo.SetEncoder<CodingKey>.self])
             }
         }
     }
