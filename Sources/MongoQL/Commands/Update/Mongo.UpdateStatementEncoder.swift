@@ -156,10 +156,10 @@ extension Mongo.UpdateStatementEncoder
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.UpdateStatementEncoder
+extension Mongo.UpdateStatementEncoder:Mongo.HintableEncoder
 {
     @frozen public
-    enum Hint:String, Hashable, Sendable
+    enum Hint:String, Sendable
     {
         case hint
     }
@@ -172,10 +172,14 @@ extension Mongo.UpdateStatementEncoder
     }
 
     @inlinable public
-    subscript(key:Hint) -> Mongo.SortDocument?
+    subscript<CodingKey>(key:Hint,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SortEncoder<CodingKey>) -> ()) -> Void
     {
-        get { nil }
-        set (value) { value?.encode(to: &self.bson[with: key]) }
+        mutating get
+        {
+            yield(&self.bson[with: key][as: Mongo.SortEncoder<CodingKey>.self])
+        }
     }
 }
 extension Mongo.UpdateStatementEncoder

@@ -134,9 +134,9 @@ struct Delete<Configuration>:MongoTestBattery where Configuration:MongoTestConfi
                         .init
                         {
                             $0[.name] = "points_index"
-                            $0[.key] = .init
+                            $0[.key, using: Cake.CodingKey.self]
                             {
-                                $0["points"] = (+)
+                                $0[.points] = (+)
                             }
                         },
                     ]),

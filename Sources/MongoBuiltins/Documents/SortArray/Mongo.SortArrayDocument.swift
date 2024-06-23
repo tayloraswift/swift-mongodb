@@ -1,4 +1,5 @@
 import BSON
+import MongoABI
 
 extension Mongo
 {
@@ -17,8 +18,14 @@ extension Mongo
 }
 extension Mongo.SortArrayDocument
 {
+    @frozen public
+    enum Input:String, Sendable
+    {
+        case input
+    }
+
     @inlinable public
-    subscript<Encodable>(key:Mongo.SortDocument.Input) -> Encodable?
+    subscript<Encodable>(key:Input) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
@@ -30,16 +37,22 @@ extension Mongo.SortArrayDocument
             value?.encode(to: &self.bson[with: key])
         }
     }
+
     @inlinable public
-    subscript(key:Mongo.SortDocument.By) -> Mongo.SortDocument?
+    subscript<CodingKey>(key:Mongo.SortBy,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SortEncoder<CodingKey>) -> ()) -> Void
     {
-        get
+        mutating get
         {
-            nil
+            yield(&self.bson[with: key][as: Mongo.SortEncoder<CodingKey>.self])
         }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
+    }
+
+    @available(*, unavailable)
+    @inlinable public
+    subscript(key:Mongo.SortBy) -> Mongo.SortDocument<Mongo.AnyKeyPath>?
+    {
+        nil
     }
 }

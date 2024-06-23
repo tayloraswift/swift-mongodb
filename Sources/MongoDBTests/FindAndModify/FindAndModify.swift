@@ -186,9 +186,9 @@ struct FindAndModify<Configuration>:MongoTestBattery where Configuration:MongoTe
                         writeConcern: .majority,
                         returning: .deleted)
                         {
-                            $0[.sort]
+                            $0[.sort, using: Ruler.CodingKey.self]
                             {
-                                $0["since"] = (+)
+                                $0[.since] = (+)
                             }
                         },
                     against: database)

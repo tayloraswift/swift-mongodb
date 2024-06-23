@@ -182,10 +182,10 @@ extension Mongo.Aggregate
         }
     }
 }
-extension Mongo.Aggregate
+extension Mongo.Aggregate:Mongo.HintableEncoder
 {
     @frozen public
-    enum Hint:String, Hashable, Sendable
+    enum Hint:String, Sendable
     {
         case hint
     }
@@ -193,22 +193,18 @@ extension Mongo.Aggregate
     @inlinable public
     subscript(key:Hint) -> String?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.fields[with: key]) }
     }
 
     @inlinable public
-    subscript(key:Hint, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    subscript<IndexKey>(key:Hint,
+        using _:IndexKey.Type = IndexKey.self,
+        yield:(inout Mongo.SortEncoder<IndexKey>) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+            yield(&self.fields[with: key][as: Mongo.SortEncoder<IndexKey>.self])
         }
     }
 }

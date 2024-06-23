@@ -1,4 +1,5 @@
 import BSON
+import MongoQL
 
 struct Letter:Hashable, Sendable
 {
@@ -11,7 +12,7 @@ extension Letter:ExpressibleByUnicodeScalarLiteral
         self.init(id: unicodeScalarLiteral)
     }
 }
-extension Letter
+extension Letter:Mongo.MasterCodingModel
 {
     enum CodingKey:String, Sendable
     {

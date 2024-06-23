@@ -82,11 +82,13 @@ extension Mongo.UpdateArrayEncoder
     }
 
     @inlinable public
-    subscript(key:Sort, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    subscript<CodingKey>(key:Sort,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SortEncoder<CodingKey>) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.bson[with: key][as: Mongo.SortEncoder.self])
+            yield(&self.bson[with: key][as: Mongo.SortEncoder<CodingKey>.self])
         }
     }
 }

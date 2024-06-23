@@ -17,36 +17,48 @@ extension Mongo.Accumulator
 }
 extension Mongo.Accumulator.SuperlativeSortDocument
 {
+    @available(*, unavailable)
     @inlinable public
-    subscript(key:Mongo.SortDocument.By) -> Mongo.SortDocument?
+    subscript(key:Mongo.SortBy) -> Mongo.SortDocument<Mongo.AnyKeyPath>?
     {
-        get
+        nil
+    }
+
+    @inlinable public
+    subscript<CodingKey>(key:Mongo.SortBy,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SortEncoder<CodingKey>) -> ()) -> Void
+    {
+        mutating get
         {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
+            yield(&self.bson[with: key][as: Mongo.SortEncoder<CodingKey>.self])
         }
     }
+}
+extension Mongo.Accumulator.SuperlativeSortDocument
+{
+    @frozen public
+    enum Output:String, Hashable, Sendable
+    {
+        case output
+    }
+
     @inlinable public
-    subscript<Encodable>(key:Mongo.SortDocument.Output) -> Encodable?
+    subscript<Encodable>(key:Output) -> Encodable?
         where Encodable:BSONEncodable
     {
-        get
-        {
-            nil
-        }
-        set(value)
+        get { nil }
+        set (value)
         {
             value?.encode(to: &self.bson[with: key])
         }
     }
 }
-extension Mongo.Accumulator.SuperlativeSortDocument<Mongo.SortDocument.Count>
+extension Mongo.Accumulator.SuperlativeSortDocument<Mongo.Accumulator.N>
 {
+
     @inlinable public
-    subscript<Encodable>(key:Mongo.SortDocument.Count) -> Encodable?
+    subscript<Encodable>(key:Mongo.Accumulator.N) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
