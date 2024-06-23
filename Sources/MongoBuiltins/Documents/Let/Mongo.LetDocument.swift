@@ -4,7 +4,7 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct LetDocument:Mongo.EncodableDocument, Sendable
+    struct LetDocument:Sendable
     {
         public
         var bson:BSON.Document
@@ -16,32 +16,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.LetDocument
+extension Mongo.LetDocument:Mongo.EncodableDocument
 {
-    @inlinable public
-    subscript<Encodable>(path:Mongo.AnyKeyPath) -> Encodable?
-        where Encodable:BSONEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
-    @inlinable public
-    subscript<Encodable>(`let` binding:Mongo.Variable<some Any>) -> Encodable?
-        where Encodable:BSONEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: binding.name])
-        }
-    }
+    public
+    typealias Encoder = Mongo.LetEncoder
 }
