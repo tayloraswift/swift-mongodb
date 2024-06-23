@@ -47,10 +47,19 @@ extension Mongo.UpdateStatementEncoder
     }
 
     @inlinable public
+    subscript(key:C, yield:(inout Mongo.LetEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: key][as: Mongo.LetEncoder.self])
+        }
+    }
+
+    @available(*, unavailable)
+    @inlinable public
     subscript(key:C) -> Mongo.LetDocument?
     {
-        get { nil }
-        set (value) { value?.encode(to: &self.bson[with: key]) }
+        nil
     }
 }
 extension Mongo.UpdateStatementEncoder

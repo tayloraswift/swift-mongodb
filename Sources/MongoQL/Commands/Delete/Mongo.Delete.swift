@@ -92,21 +92,24 @@ extension Mongo.Delete
 extension Mongo.Delete
 {
     @frozen public
-    enum Let:String, Equatable, Hashable, Sendable
+    enum Let:String, Sendable
     {
         case `let`
     }
 
     @inlinable public
+    subscript(key:Let, yield:(inout Mongo.LetEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.fields[with: key][as: Mongo.LetEncoder.self])
+        }
+    }
+
+    @available(*, unavailable)
+    @inlinable public
     subscript(key:Let) -> Mongo.LetDocument?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
+        nil
     }
 }
