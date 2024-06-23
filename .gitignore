@@ -1,3 +1,5 @@
 .build
 .vscode
 .github/mongonet/data*
+
+/Snippets/_Experiments
