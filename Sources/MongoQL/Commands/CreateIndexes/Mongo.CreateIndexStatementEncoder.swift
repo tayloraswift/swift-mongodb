@@ -95,6 +95,19 @@ extension Mongo.CreateIndexStatementEncoder:Mongo.SortableEncoder
             yield(&self.bson[with: key][as: Mongo.SortEncoder<IndexKey>.self])
         }
     }
+
+    @inlinable public
+    subscript(key:Key) -> Mongo.SortDocument<Mongo.AnyKeyPath>?
+    {
+        get
+        {
+            nil
+        }
+        set(value)
+        {
+            value?.encode(to: &self.bson[with: key])
+        }
+    }
 }
 extension Mongo.CreateIndexStatementEncoder
 {
