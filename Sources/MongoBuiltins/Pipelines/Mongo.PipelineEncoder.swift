@@ -517,23 +517,33 @@ extension Mongo.PipelineEncoder
 extension Mongo.PipelineEncoder
 {
     @inlinable public
-    subscript(stage key:Mongo.Pipeline.Project) -> Mongo.ProjectionDocument?
+    subscript<CodingKey>(stage project:Mongo.Pipeline.Project,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.ProjectionEncoder<CodingKey>) -> ()) -> Void
     {
-        get { nil }
-        set (value)
+        mutating get
         {
-            guard
-            let value:Mongo.ProjectionDocument
-            else
-            {
-                return
-            }
-
             self.list(Mongo.Pipeline.Project.self)
             {
-                $0[.project] = value
+                yield(&$0[with: project][as: Mongo.ProjectionEncoder<CodingKey>.self])
             }
         }
+    }
+
+    @inlinable public
+    subscript<ProjectionDocument>(stage project:Mongo.Pipeline.Project) -> ProjectionDocument?
+        where ProjectionDocument:Mongo.ProjectionEncodable
+    {
+        get { nil }
+        set (value) { value.map { self[stage: project, $0.encode(to:)] } }
+    }
+
+    @available(*, unavailable)
+    @inlinable public
+    subscript(stage key:Mongo.Pipeline.Project) -> Mongo.ProjectionDocument<Mongo.AnyKeyPath>?
+    {
+        get { nil }
+        set {     }
     }
 }
 

@@ -186,11 +186,13 @@ extension Mongo.CreateIndexStatementEncoder
 
     /// Encodes a projection document.
     @inlinable public
-    subscript(key:WildcardProjection, yield:(inout Mongo.ProjectionEncoder) -> ()) -> Void
+    subscript<CodingKey>(key:WildcardProjection,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.ProjectionEncoder<CodingKey>) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.bson[with: key][as: Mongo.ProjectionEncoder.self])
+            yield(&self.bson[with: key][as: Mongo.ProjectionEncoder<CodingKey>.self])
         }
     }
 
@@ -199,13 +201,7 @@ extension Mongo.CreateIndexStatementEncoder
     subscript<ProjectionDocument>(key:WildcardProjection) -> ProjectionDocument?
         where ProjectionDocument:Mongo.ProjectionEncodable
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key][as: Mongo.ProjectionEncoder.self])
-        }
+        get { nil }
+        set (value) { value.map { self[key, $0.encode(to:)] } }
     }
 }

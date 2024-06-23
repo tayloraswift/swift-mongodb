@@ -253,11 +253,13 @@ extension Mongo.Find
 
     /// Encodes a projection document.
     @inlinable public
-    subscript(key:Projection, yield:(inout Mongo.ProjectionEncoder) -> ()) -> Void
+    subscript<CodingKey>(key:Projection,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.ProjectionEncoder<CodingKey>) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.fields[with: key][as: Mongo.ProjectionEncoder.self])
+            yield(&self.fields[with: key][as: Mongo.ProjectionEncoder<CodingKey>.self])
         }
     }
 
@@ -266,14 +268,8 @@ extension Mongo.Find
     subscript<ProjectionDocument>(key:Projection) -> ProjectionDocument?
         where ProjectionDocument:Mongo.ProjectionEncodable
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key][as: Mongo.ProjectionEncoder.self])
-        }
+        get { nil }
+        set (value) { value.map { self[key, $0.encode(to:)] } }
     }
 }
 extension Mongo.Find

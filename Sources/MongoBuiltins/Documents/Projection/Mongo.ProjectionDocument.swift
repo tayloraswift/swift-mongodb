@@ -4,7 +4,7 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct ProjectionDocument:Sendable
+    struct ProjectionDocument<CodingKey>:Sendable where CodingKey:RawRepresentable<String>
     {
         public
         var bson:BSON.Document
@@ -19,5 +19,5 @@ extension Mongo
 extension Mongo.ProjectionDocument:Mongo.EncodableDocument
 {
     public
-    typealias Encoder = Mongo.ProjectionEncoder
+    typealias Encoder = Mongo.ProjectionEncoder<CodingKey>
 }
