@@ -1,8 +1,10 @@
 extension Mongo
 {
     public
-    protocol ProjectionEncodable
+    protocol ProjectionEncodable<CodingKey>
     {
-        func encode(to projection:inout ProjectionEncoder)
+        associatedtype CodingKey:RawRepresentable<String>
+
+        func encode(to projection:inout ProjectionEncoder<CodingKey>)
     }
 }

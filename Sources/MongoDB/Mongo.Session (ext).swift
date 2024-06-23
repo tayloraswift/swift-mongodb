@@ -15,13 +15,15 @@ extension Mongo.Session
 
             //  A typical collection stats output document contains a huge amount of
             //  data, most of which is redundant.
-            $0[stage: .project] = .init
+            $0[stage: .project, using: Mongo.CollectionStats.CodingKey.self]
             {
-                for key:Mongo.CollectionStats.Storage.CodingKey
-                    in Mongo.CollectionStats.Storage.CodingKey.allCases
+                $0[.storage]
                 {
-                    $0[Mongo.CollectionStats[.storage] /
-                        Mongo.CollectionStats.Storage[key]] = true
+                    for key:Mongo.CollectionStats.Storage.CodingKey
+                        in Mongo.CollectionStats.Storage.CodingKey.allCases
+                    {
+                        $0[key] = true
+                    }
                 }
             }
         }

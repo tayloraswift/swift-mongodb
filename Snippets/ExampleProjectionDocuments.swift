@@ -3,7 +3,7 @@ import MongoQL
 
 func ExampleProjectionDocuments()
 {
-    let _:Mongo.ProjectionDocument = .init
+    let _:Mongo.ProjectionDocument<Mongo.AnyKeyPath> = .init
     {
         $0["expression"] { $0[.abs] = "$field" }
         $0["key1"] = true

@@ -153,10 +153,10 @@ struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfigu
                     command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10)
                     {
-                        $0[.projection]
+                        $0[.projection, using: Record<Int64>.CodingKey.self]
                         {
-                            $0["_id"] = true
-                            $0["value"] { $0[.add] = ("$value", 5) }
+                            $0[.id] = true
+                            $0[.value] { $0[.add] = ("$value", 5) }
                         }
                     },
                     against: database)

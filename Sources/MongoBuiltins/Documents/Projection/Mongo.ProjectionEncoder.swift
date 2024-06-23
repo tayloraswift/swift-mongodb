@@ -4,13 +4,13 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct ProjectionEncoder:Sendable
+    struct ProjectionEncoder<CodingKey>:Sendable where CodingKey:RawRepresentable<String>
     {
         @usableFromInline
-        var bson:BSON.DocumentEncoder<Mongo.AnyKeyPath>
+        var bson:BSON.DocumentEncoder<CodingKey>
 
         @inlinable internal
-        init(bson:BSON.DocumentEncoder<Mongo.AnyKeyPath>)
+        init(bson:BSON.DocumentEncoder<CodingKey>)
         {
             self.bson = bson
         }
@@ -32,44 +32,43 @@ extension Mongo.ProjectionEncoder
 {
     @available(*, unavailable, message: "Use the boolean subscript instead.")
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Int?
+    subscript(path:CodingKey) -> Int?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path])
-        }
+        get { nil }
+        set {     }
     }
 
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Bool?
+    subscript(path:CodingKey) -> Bool?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path])
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.bson[with: path]) }
     }
 
     /// Encodes a nested projection document.
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.ProjectionEncoder) -> ()) -> Void
+    subscript<NestedKey>(path:CodingKey,
+        using _:NestedKey.Type = NestedKey.self,
+        yield:(inout Mongo.ProjectionEncoder<NestedKey>) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.bson[with: path][as: Mongo.ProjectionEncoder.self])
+            yield(&self.bson[with: path][as: Mongo.ProjectionEncoder<NestedKey>.self])
         }
+    }
+
+    /// Encodes a nested projection document from a model type.
+    @inlinable public
+    subscript<ProjectionDocument>(path:CodingKey) -> ProjectionDocument?
+        where ProjectionDocument:Mongo.ProjectionEncodable
+    {
+        get { nil }
+        set (value) { value.map { self[path, $0.encode(to:)] } }
     }
 
     /// Encodes a projection expression.
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
+    subscript(path:CodingKey, yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
     {
         mutating get
         {
@@ -79,7 +78,7 @@ extension Mongo.ProjectionEncoder
 
     /// Encodes a projection operator.
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath,
+    subscript(path:CodingKey,
         yield:(inout Mongo.ProjectionOperatorEncoder) -> ()) -> Void
     {
         mutating get
@@ -90,7 +89,7 @@ extension Mongo.ProjectionEncoder
 
     /// Encodes a projection operator from a model type.
     @inlinable public
-    subscript<Operator>(path:Mongo.AnyKeyPath) -> Operator?
+    subscript<Operator>(path:CodingKey) -> Operator?
         where Operator:Mongo.ProjectionOperatorEncodable
     {
         get
