@@ -1,12 +1,12 @@
-extension Mongo.SortDocument
+extension Mongo
 {
     @frozen public
-    enum By:String, Hashable, Sendable
+    enum SortBy:String, Hashable, Sendable
     {
         case by = "sortBy"
     }
 }
-extension Mongo.SortDocument.By
+extension Mongo.SortBy
 {
     @available(*, unavailable, renamed: "by")
     public static

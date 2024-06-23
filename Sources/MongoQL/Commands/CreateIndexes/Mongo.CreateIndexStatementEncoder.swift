@@ -74,8 +74,11 @@ extension Mongo.CreateIndexStatementEncoder
         }
     }
 }
-extension Mongo.CreateIndexStatementEncoder
+extension Mongo.CreateIndexStatementEncoder:Mongo.SortableEncoder
 {
+    public
+    typealias Sort = Key
+
     @frozen public
     enum Key:String, Hashable, Sendable
     {
@@ -83,7 +86,18 @@ extension Mongo.CreateIndexStatementEncoder
     }
 
     @inlinable public
-    subscript(key:Key) -> Mongo.SortDocument?
+    subscript<IndexKey>(key:Key,
+        using _:IndexKey.Type = IndexKey.self,
+        yield:(inout Mongo.SortEncoder<IndexKey>) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: key][as: Mongo.SortEncoder<IndexKey>.self])
+        }
+    }
+
+    @inlinable public
+    subscript(key:Key) -> Mongo.SortDocument<Mongo.AnyKeyPath>?
     {
         get
         {

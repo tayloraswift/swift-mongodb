@@ -193,10 +193,10 @@ extension Mongo.Find
         }
     }
 }
-extension Mongo.Find
+extension Mongo.Find:Mongo.HintableEncoder
 {
     @frozen public
-    enum Hint:String, Hashable, Sendable
+    enum Hint:String, Sendable
     {
         case hint
     }
@@ -204,22 +204,18 @@ extension Mongo.Find
     @inlinable public
     subscript(key:Hint) -> String?
     {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.fields[with: key])
-        }
+        get { nil }
+        set (value) { value?.encode(to: &self.fields[with: key]) }
     }
 
     @inlinable public
-    subscript(key:Hint, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    subscript<IndexKey>(key:Hint,
+        using _:IndexKey.Type = IndexKey.self,
+        yield:(inout Mongo.SortEncoder<IndexKey>) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+            yield(&self.fields[with: key][as: Mongo.SortEncoder<IndexKey>.self])
         }
     }
 }
@@ -302,20 +298,22 @@ extension Mongo.Find
         }
     }
 }
-extension Mongo.Find
+extension Mongo.Find:Mongo.SortableEncoder
 {
     @frozen public
-    enum Sort:String, Hashable, Sendable
+    enum Sort:String, Sendable
     {
         case sort
     }
 
     @inlinable public
-    subscript(key:Sort, yield:(inout Mongo.SortEncoder) -> ()) -> Void
+    subscript<CodingKey>(key:Sort,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SortEncoder<CodingKey>) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.fields[with: key][as: Mongo.SortEncoder.self])
+            yield(&self.fields[with: key][as: Mongo.SortEncoder<CodingKey>.self])
         }
     }
 }

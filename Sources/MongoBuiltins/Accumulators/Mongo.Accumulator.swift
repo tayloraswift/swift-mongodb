@@ -81,7 +81,7 @@ extension Mongo.Accumulator
     }
     @_disfavoredOverload
     @inlinable public
-    subscript(key:SuperlativeSort) -> SuperlativeSortDocument<Mongo.SortDocument.Count>?
+    subscript(key:SuperlativeSort) -> SuperlativeSortDocument<N>?
     {
         get
         {

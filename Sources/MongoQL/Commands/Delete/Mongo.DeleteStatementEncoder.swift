@@ -75,10 +75,10 @@ extension Mongo.DeleteStatementEncoder
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.DeleteStatementEncoder
+extension Mongo.DeleteStatementEncoder:Mongo.HintableEncoder
 {
     @frozen public
-    enum Hint:String, Hashable, Sendable
+    enum Hint:String, Sendable
     {
         case hint
     }
@@ -91,9 +91,13 @@ extension Mongo.DeleteStatementEncoder
     }
 
     @inlinable public
-    subscript(key:Hint) -> Mongo.SortDocument?
+    subscript<IndexKey>(key:Hint,
+        using _:IndexKey.Type = IndexKey.self,
+        yield:(inout Mongo.SortEncoder<IndexKey>) -> ()) -> Void
     {
-        get { nil }
-        set (value) { value?.encode(to: &self.bson[with: key]) }
+        mutating get
+        {
+            yield(&self.bson[with: key][as: Mongo.SortEncoder<IndexKey>.self])
+        }
     }
 }

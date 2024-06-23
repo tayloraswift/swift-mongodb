@@ -61,22 +61,22 @@ struct Indexes<Configuration>:MongoTestBattery where Configuration:MongoTestConf
                             {
                                 $0[.unique] = true
                                 $0[.name] = "item_manufacturer_model"
-                                $0[.key] = .init
+                                $0[.key, using: Product.CodingKey.self]
                                 {
-                                    $0["item"] = (+)
-                                    $0["manufacturer"] = (+)
-                                    $0["model"] = (+)
+                                    $0[.item] = (+)
+                                    $0[.manufacturer] = (+)
+                                    $0[.model] = (+)
                                 }
                             },
                             .init
                             {
                                 $0[.unique] = true
                                 $0[.name] = "item_supplier_model"
-                                $0[.key] = .init
+                                $0[.key, using: Product.CodingKey.self]
                                 {
-                                    $0["item"] = (+)
-                                    $0["supplier"] = (+)
-                                    $0["model"] = (+)
+                                    $0[.item] = (+)
+                                    $0[.supplier] = (+)
+                                    $0[.model] = (+)
                                 }
                             },
                         ]),
@@ -102,11 +102,11 @@ struct Indexes<Configuration>:MongoTestBattery where Configuration:MongoTestConf
                             {
                                 $0[.unique] = true
                                 $0[.name] = "item_supplier_model"
-                                $0[.key] = .init
+                                $0[.key, using: Product.CodingKey.self]
                                 {
-                                    $0["item"] = (+)
-                                    $0["supplier"] = (+)
-                                    $0["model"] = (+)
+                                    $0[.item] = (+)
+                                    $0[.supplier] = (+)
+                                    $0[.model] = (+)
                                 }
                             },
                         ]),

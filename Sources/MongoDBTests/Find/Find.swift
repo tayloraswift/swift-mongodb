@@ -56,9 +56,9 @@ struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfigu
                         limit: 5,
                         skip: 10)
                     {
-                        $0[.hint]
+                        $0[.hint, using: Record<Int64>.CodingKey.self]
                         {
-                            $0["_id"] = (+)
+                            $0[.id] = (+)
                         }
                     },
                     against: database)
@@ -75,9 +75,9 @@ struct Find<Configuration>:MongoTestBattery where Configuration:MongoTestConfigu
                         limit: 5,
                         skip: 10)
                     {
-                        $0[.sort]
+                        $0[.sort, using: Record<Int64>.CodingKey.self]
                         {
-                            $0["value"] = (-)
+                            $0[.value] = (-)
                         }
                     },
                     against: database)

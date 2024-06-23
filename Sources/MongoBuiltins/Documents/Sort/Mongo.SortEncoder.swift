@@ -4,13 +4,13 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct SortEncoder:Sendable
+    struct SortEncoder<CodingKey>:Sendable where CodingKey:RawRepresentable<String>
     {
         @usableFromInline
-        var bson:BSON.DocumentEncoder<Mongo.AnyKeyPath>
+        var bson:BSON.DocumentEncoder<CodingKey>
 
         @inlinable internal
-        init(bson:BSON.DocumentEncoder<Mongo.AnyKeyPath>)
+        init(bson:BSON.DocumentEncoder<CodingKey>)
         {
             self.bson = bson
         }
@@ -36,7 +36,7 @@ extension Mongo.SortEncoder
         pass the `(+)` or `(-)` operator functions to specify sort direction.
         """)
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Int?
+    subscript(path:CodingKey) -> Int?
     {
         get { nil }
         set {     }
@@ -67,7 +67,7 @@ extension Mongo.SortEncoder
 extension Mongo.SortEncoder
 {
     @inlinable public
-    subscript<Direction>(path:Mongo.AnyKeyPath) -> ((Direction) -> Never)?
+    subscript<Direction>(path:CodingKey) -> ((Direction) -> Never)?
         where Direction:Mongo.SortDirection
     {
         get { nil }
@@ -75,7 +75,7 @@ extension Mongo.SortEncoder
         {
             if  case _? = value
             {
-                Direction.code.encode(to: &self.bson[with: path.stem])
+                Direction.code.encode(to: &self.bson[with: path])
             }
         }
     }
@@ -83,11 +83,11 @@ extension Mongo.SortEncoder
 extension Mongo.SortEncoder
 {
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath, yield:(inout Mongo.SortOperatorEncoder) -> ()) -> Void
+    subscript(path:CodingKey, yield:(inout Mongo.SortOperatorEncoder) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.bson[with: path.stem][as: Mongo.SortOperatorEncoder.self])
+            yield(&self.bson[with: path][as: Mongo.SortOperatorEncoder.self])
         }
     }
 }

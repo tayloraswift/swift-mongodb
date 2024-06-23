@@ -174,9 +174,9 @@ struct CausalConsistency<Configuration>:MongoTestBattery
                 command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10)
                 {
-                    $0[.sort]
+                    $0[.sort, using: Letter.CodingKey.self]
                     {
-                        $0["_id"] = (+)
+                        $0[.id] = (+)
                     }
                 },
                 against: database,
@@ -214,9 +214,9 @@ struct CausalConsistency<Configuration>:MongoTestBattery
                 command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10)
                 {
-                    $0[.sort]
+                    $0[.sort, using: Letter.CodingKey.self]
                     {
-                        $0["_id"] = (+)
+                        $0[.id] = (+)
                     }
                 },
                 against: database,

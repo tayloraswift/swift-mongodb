@@ -368,7 +368,7 @@ func ExampleExpressions()
             $0[.sortArray] = .init
             {
                 $0[.input] = "$field"
-                $0[.by] = .init
+                $0[.by, using: Mongo.AnyKeyPath.self]
                 {
                     $0["x"] = (+)
                     $0["y"] = (-)

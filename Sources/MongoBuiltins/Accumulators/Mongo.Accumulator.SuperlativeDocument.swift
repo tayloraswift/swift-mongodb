@@ -17,8 +17,14 @@ extension Mongo.Accumulator
 }
 extension Mongo.Accumulator.SuperlativeDocument
 {
+    @frozen public
+    enum Input:String, Sendable
+    {
+        case input
+    }
+
     @inlinable public
-    subscript<Encodable>(key:Mongo.SortDocument.Input) -> Encodable?
+    subscript<Encodable>(key:Input) -> Encodable?
         where Encodable:BSONEncodable
     {
         get
@@ -30,8 +36,11 @@ extension Mongo.Accumulator.SuperlativeDocument
             value?.encode(to: &self.bson[with: key])
         }
     }
+}
+extension Mongo.Accumulator.SuperlativeDocument
+{
     @inlinable public
-    subscript<Encodable>(key:Mongo.SortDocument.Count) -> Encodable?
+    subscript<Encodable>(key:Mongo.Accumulator.N) -> Encodable?
         where Encodable:BSONEncodable
     {
         get

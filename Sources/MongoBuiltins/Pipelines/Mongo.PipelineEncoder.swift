@@ -712,23 +712,24 @@ extension Mongo.PipelineEncoder
 extension Mongo.PipelineEncoder
 {
     @inlinable public
-    subscript(stage key:Mongo.Pipeline.Sort) -> Mongo.SortDocument?
+    subscript<CodingKey>(stage sort:Mongo.Pipeline.Sort,
+        using _:CodingKey.Type = CodingKey.self,
+        yield:(inout Mongo.SortEncoder<CodingKey>) -> ()) -> Void
     {
-        get { nil }
-        set (value)
+        mutating get
         {
-            guard
-            let value:Mongo.SortDocument
-            else
-            {
-                return
-            }
-
             self.list(Mongo.Pipeline.Sort.self)
             {
-                $0[.sort] = value
+                yield(&$0[with: sort][as: Mongo.SortEncoder<CodingKey>.self])
             }
         }
+    }
+
+    @available(*, unavailable)
+    @inlinable public
+    subscript(stage key:Mongo.Pipeline.Sort) -> Mongo.SortDocument<Mongo.AnyKeyPath>?
+    {
+        nil
     }
 }
 
