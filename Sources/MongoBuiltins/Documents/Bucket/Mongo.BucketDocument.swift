@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct BucketDocument:Mongo.EncodableDocument, Sendable
+    struct BucketDocument:Sendable
     {
         public
         var bson:BSON.Document
@@ -15,42 +15,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.BucketDocument
+extension Mongo.BucketDocument:Mongo.EncodableDocument
 {
-    @inlinable public
-    subscript<Encodable>(key:Argument) -> Encodable? where Encodable:BSONEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript<Encodable>(key:By) -> Encodable? where Encodable:BSONEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
-    @inlinable public
-    subscript(key:Output) -> Mongo.BucketOutputDocument?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
-        }
-    }
+    public
+    typealias Encoder = Mongo.BucketEncoder
 }
