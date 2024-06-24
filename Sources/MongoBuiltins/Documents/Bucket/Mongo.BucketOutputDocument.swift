@@ -4,7 +4,7 @@ import MongoABI
 extension Mongo
 {
     @frozen public
-    struct BucketOutputDocument:Mongo.EncodableDocument, Sendable
+    struct BucketOutputDocument:Sendable
     {
         public
         var bson:BSON.Document
@@ -16,18 +16,8 @@ extension Mongo
         }
     }
 }
-extension Mongo.BucketOutputDocument
+extension Mongo.BucketOutputDocument:Mongo.EncodableDocument
 {
-    @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> Mongo.Accumulator?
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: path.stem])
-        }
-    }
+    public
+    typealias Encoder = Mongo.BucketOutputEncoder
 }

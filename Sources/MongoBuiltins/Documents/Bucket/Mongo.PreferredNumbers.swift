@@ -14,7 +14,7 @@ extension Mongo
 
         case i125 = "1-2-5"
 
-        case powersOfTwo = "POWERSOF2"
+        case powersOf2 = "POWERSOF2"
 
         case r5 = "R5"
         case r10 = "R10"

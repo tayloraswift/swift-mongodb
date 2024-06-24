@@ -99,46 +99,48 @@ extension Mongo.PipelineEncoder
 extension Mongo.PipelineEncoder
 {
     @inlinable public
+    subscript(stage bucket:Mongo.Pipeline.Bucket,
+        yield:(inout Mongo.BucketEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.list(Mongo.Pipeline.Bucket.self)
+            {
+                yield(&$0[with: bucket][as: Mongo.BucketEncoder.self])
+            }
+        }
+    }
+
+    @available(*, unavailable)
+    @inlinable public
     subscript(stage key:Mongo.Pipeline.Bucket) -> Mongo.BucketDocument?
     {
         get { nil }
-        set (value)
-        {
-            guard
-            let value:Mongo.BucketDocument
-            else
-            {
-                return
-            }
-
-            self.list(Mongo.Pipeline.Bucket.self)
-            {
-                $0[.bucket] = value
-            }
-        }
+        set (value) {}
     }
 }
 
 extension Mongo.PipelineEncoder
 {
     @inlinable public
+    subscript(stage bucketAuto:Mongo.Pipeline.BucketAuto,
+        yield:(inout Mongo.BucketAutoEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.list(Mongo.Pipeline.BucketAuto.self)
+            {
+                yield(&$0[with: bucketAuto][as: Mongo.BucketAutoEncoder.self])
+            }
+        }
+    }
+
+    @available(*, unavailable)
+    @inlinable public
     subscript(stage key:Mongo.Pipeline.BucketAuto) -> Mongo.BucketAutoDocument?
     {
         get { nil }
-        set (value)
-        {
-            guard
-            let value:Mongo.BucketAutoDocument
-            else
-            {
-                return
-            }
-
-            self.list(Mongo.Pipeline.BucketAuto.self)
-            {
-                $0[.bucketAuto] = value
-            }
-        }
+        set (value) {}
     }
 }
 extension Mongo.PipelineEncoder
