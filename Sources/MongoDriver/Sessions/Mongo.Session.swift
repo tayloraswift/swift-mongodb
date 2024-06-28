@@ -16,7 +16,7 @@ extension Mongo
     /// on a database, you want each task to checkout its own session from a
     /// ``SessionPool``, which is ``Sendable``.
     ///
-    /// Create a session by calling ``init(from:forking:by:)`` with a session pool.
+    /// Create a session by calling ``init(from:by:)`` with a session pool.
     ///
     /// ```swift
     /// bootstrap.withSessionPool
