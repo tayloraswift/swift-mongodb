@@ -120,7 +120,7 @@ func TestSessionPool(_ tests:TestGroup, bootstrap:Mongo.DriverBootstrap,
 
                 try await a.refresh()
 
-                let b:Mongo.Session = try await .init(from: $0, forking: a)
+                let b:Mongo.Session = try await a.fork()
 
                 tests.expect(await $0.count ==? 2)
 

@@ -48,7 +48,7 @@ struct Cursors<Configuration>:MongoTestBattery where Configuration:CursorTestCon
             {
                 //  We should be using a session that is causally-consistent with the
                 //  insertion operation at the beginning of this test.
-                let session:Mongo.Session = try await .init(from: pool, forking: initializer)
+                let session:Mongo.Session = try await initializer.fork()
                 //  We should be reusing session identifiers.
                 tests.expect(await pool.count ==? 2)
                 //  We should be able to query the collection for results in batches of
@@ -161,8 +161,7 @@ struct Cursors<Configuration>:MongoTestBattery where Configuration:CursorTestCon
                 {
                     //  We should be using a session that is causally-consistent with the
                     //  insertion operation at the beginning of this test.
-                    let session:Mongo.Session = try await .init(from: pool,
-                        forking: initializer)
+                    let session:Mongo.Session = try await initializer.fork()
                     let cursor:Mongo.CursorIdentifier? =
                         try await session.run(
                             command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
@@ -224,7 +223,7 @@ struct Cursors<Configuration>:MongoTestBattery where Configuration:CursorTestCon
 
             await tests.do
             {
-                let session:Mongo.Session = try await .init(from: pool, forking: initializer)
+                let session:Mongo.Session = try await initializer.fork()
                 try await session.run(
                     command: Mongo.Find<Mongo.Cursor<Record<Int64>>>.init(collection,
                         stride: 10),

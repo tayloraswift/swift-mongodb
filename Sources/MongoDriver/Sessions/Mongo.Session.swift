@@ -71,10 +71,11 @@ extension Mongo
         private
         init(allocation:SessionPool.Allocation,
             pool:SessionPool,
-            fork:__shared Mongo.Session?)
+            preconditionTime:BSON.Timestamp? = nil,
+            notarizedTime:ClusterTime? = nil)
         {
-            self.preconditionTime = fork?.preconditionTime
-            self.notarizedTime = fork?.notarizedTime
+            self.preconditionTime = preconditionTime
+            self.notarizedTime = notarizedTime
 
             self.transaction = allocation.transaction
             self.touched = allocation.touched
@@ -99,24 +100,37 @@ extension Mongo.Session
     /// Creates a session from a session pool. Do not escape the session
     /// from the scope that yielded the pool, because doing so will prevent
     /// the pool from draining on scope exit.
-    ///
-    /// If `original` is non-nil, operations on the newly-created session will
-    /// reflect writes performed using the original session at the time of
-    /// session creation, but the two sessions will be otherwise unrelated.
-    ///
-    /// If `original` is non-nil, calling this initializer is roughly
-    /// equivalent to creating an unforked session and immediately calling
-    /// ``synchronize(with:)``.
     public convenience
-    init(from pool:Mongo.SessionPool, forking original:__shared Mongo.Session? = nil,
+    init(from pool:Mongo.SessionPool,
         by deadline:ContinuousClock.Instant? = nil) async throws
     {
         self.init(allocation: await pool.create(
                 capabilities: try await pool.deployment.capabilities(
                     by: deadline ?? pool.deployment.timeout.deadline())),
-            pool: pool,
-            fork: original)
+            pool: pool)
     }
+
+    /// Forks this session, returning a new session. Operations on the newly-created session
+    /// will reflect writes performed using the original session at the time of session
+    /// creation, but the two sessions will be otherwise unrelated.
+    ///
+    /// Calling this initializer is roughly equivalent to creating an unforked session and
+    /// immediately calling ``synchronize(with:)``, although the unforked session will not
+    /// gossip the cluster time from the original session.
+    ///
+    /// Do not escape the session from the scope that yielded the pool the original session was
+    /// created in, because doing so will prevent the pool from draining on scope exit.
+    public
+    func fork(by deadline:ContinuousClock.Instant? = nil) async throws -> Self
+    {
+        .init(allocation: await self.pool.create(
+                capabilities: try await self.pool.deployment.capabilities(
+                    by: deadline ?? self.pool.deployment.timeout.deadline())),
+            pool: self.pool,
+            preconditionTime: self.preconditionTime,
+            notarizedTime: self.notarizedTime)
+    }
+
     /// Fast-forwards this session’s precondition time to the other session’s
     /// precondition time, if it is non-nil and greater than this
     /// session’s precondition time. The other session’s precondition time
@@ -125,6 +139,15 @@ extension Mongo.Session
     func synchronize(with other:Mongo.Session)
     {
         other.preconditionTime?.combine(into: &self.preconditionTime)
+    }
+
+    /// Similar to ``synchronize(with:)``, but accepts a ``BSON.Timestamp`` instead of a full
+    /// session instance. This is useful for synchronizing sessions across concurrency domains,
+    /// as sessions themselves are non-``Sendable``.
+    public
+    func synchronize(to preconditionTime:BSON.Timestamp)
+    {
+        preconditionTime.combine(into: &self.preconditionTime)
     }
 }
 @available(*, unavailable, message: "sessions have reference semantics")
