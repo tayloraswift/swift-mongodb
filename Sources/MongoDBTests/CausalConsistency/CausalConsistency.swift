@@ -41,7 +41,7 @@ struct CausalConsistency<Configuration>:MongoTestBattery
             tests.expect(response ==? .init(inserted: 1))
         }
 
-        let other:Mongo.Session = try await .init(from: pool, forking: session)
+        let other:Mongo.Session = try await session.fork()
 
         //  We should be able to observe a precondition time after performing the
         //  initialization.
@@ -267,7 +267,7 @@ struct CausalConsistency<Configuration>:MongoTestBattery
         //  current session, however.
         await (tests ! "timeout-forked").do(catching: AnyTimeoutError.self)
         {
-            let forked:Mongo.Session = try await .init(from: pool, forking: session)
+            let forked:Mongo.Session = try await session.fork()
 
             //  A forked session should initially share the same precondition
             //  time as the session it was forked from.
