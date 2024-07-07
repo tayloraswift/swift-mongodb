@@ -1,5 +1,5 @@
 import BSON
-import Durations
+import UnixTime
 
 extension Mongo
 {
@@ -11,10 +11,10 @@ extension Mongo
         public
         let update:ContinuousClock.Instant
         public
-        let write:BSON.Millisecond
+        let write:UnixMillisecond
 
         @inlinable public
-        init(update:ContinuousClock.Instant, write:BSON.Millisecond)
+        init(update:ContinuousClock.Instant, write:UnixMillisecond)
         {
             self.update = update
             self.write = write
@@ -43,14 +43,14 @@ extension Mongo.PrimaryBaseline:Mongo.ReplicaTimingBaseline
         //  (candidate.update - candidate.write) - (self.update - self.write)
         //
         //  but we cannot measure the duration between a
-        //  ``ContinuousClock.Instant`` and a ``BSON.Millisecond``.
+        //  ``ContinuousClock.Instant`` and a ``UnixMillisecond``.
         //  so we rearrange terms to get:
         //
         //  ==  candidate.update - candidate.write - self.update + self.write
         //  ==  candidate.update - self.update - candidate.write + self.write
         //  == (candidate.update - self.update) - (candidate.write - self.write)
         let a:Milliseconds = .init(truncating: candidate.update - self.update)
-        let b:Milliseconds = .init(rawValue: candidate.write.value - self.write.value)
+        let b:Milliseconds = candidate.write - self.write
         return a - b
     }
 }

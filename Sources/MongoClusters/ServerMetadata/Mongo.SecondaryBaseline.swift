@@ -1,5 +1,5 @@
 import BSON
-import Durations
+import UnixTime
 
 extension Mongo
 {
@@ -10,10 +10,10 @@ extension Mongo
     struct SecondaryBaseline:Sendable
     {
         public
-        let write:BSON.Millisecond
+        let write:UnixMillisecond
 
         @inlinable public
-        init(write:BSON.Millisecond)
+        init(write:UnixMillisecond)
         {
             self.write = write
         }
@@ -40,6 +40,6 @@ extension Mongo.SecondaryBaseline:Mongo.ReplicaTimingBaseline
         //  we get rid of the “update” terms.
         //
         //      (0 - candidate.write) - (0 - self.write)
-        .init(rawValue: self.write.value - candidate.write.value)
+        self.write - candidate.write
     }
 }

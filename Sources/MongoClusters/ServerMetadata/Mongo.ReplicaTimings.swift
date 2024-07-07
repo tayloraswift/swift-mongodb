@@ -1,4 +1,5 @@
 import BSON
+import UnixTime
 
 extension Mongo
 {
@@ -11,10 +12,10 @@ extension Mongo
         public
         let update:ContinuousClock.Instant
         public
-        let write:BSON.Millisecond
+        let write:UnixMillisecond
 
         @inlinable public
-        init(write:BSON.Millisecond)
+        init(write:UnixMillisecond)
         {
             self.update = .now
             self.write = write
@@ -26,6 +27,6 @@ extension Mongo.ReplicaTimings:BSONDocumentDecodable
     @inlinable public
     init(bson:BSON.DocumentDecoder<BSON.Key>) throws
     {
-        self.init(write: try bson["lastWriteDate"].decode(to: BSON.Millisecond.self))
+        self.init(write: try bson["lastWriteDate"].decode(to: UnixMillisecond.self))
     }
 }

@@ -55,7 +55,7 @@ func TestMemberDiscovery(_ tests:TestGroup,
                             tags: ["priority": "zero", "name": "D"])),
 
                         .init(id: 4, host: members[4], replica: .init(
-                            rights: .resident(.init(buildsIndexes: true, delay: 5)),
+                            rights: .resident(.init(buildsIndexes: true, delay: .seconds(5))),
                             votes: 0,
                             tags: ["priority": "zero", "name": "H"])),
 

@@ -18,18 +18,18 @@ struct UpdateNested<Configuration>:MongoTestBattery where Configuration:MongoTes
         [
             .init(id: 1,
                 name: "Harambe",
-                food: .init(expires: .init(123), type: "Banana")),
+                food: .init(expires: .init(index: 123), type: "Banana")),
 
             .init(id: 2,
                 name: "George",
-                food: .init(expires: .init(456), type: "Watermelon")),
+                food: .init(expires: .init(index: 456), type: "Watermelon")),
         ]
 
         states.1 =
         [
             .init(id: 1,
                 name: "Harambe",
-                food: .init(expires: .init(123), type: "Banana")),
+                food: .init(expires: .init(index: 123), type: "Banana")),
 
             .init(id: 2,
                 name: "George",

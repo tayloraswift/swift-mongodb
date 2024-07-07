@@ -1,4 +1,4 @@
-import Durations
+import UnixTime
 
 extension Mongo
 {
@@ -27,7 +27,7 @@ extension Mongo.Sampler
     {
         do
         {
-            let interval:Duration = .milliseconds(self.interval)
+            let interval:Duration = .init(self.interval)
 
             var metric:Double = .init(seed.rawValue)
             let alpha:Double = 0.2

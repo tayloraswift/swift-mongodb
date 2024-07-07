@@ -1,5 +1,4 @@
 import BSON
-import Durations
 import MongoABI
 import MongoCommands
 
@@ -73,7 +72,7 @@ extension Mongo.CursorIterator
         switch self.lifecycle
         {
         case .iterable(let timeout):
-            return .now.advanced(by: .milliseconds(timeout ?? self.timeout.milliseconds))
+            return .now.advanced(by: .init(timeout ?? self.timeout.milliseconds))
 
         case .expires(let deadline):
             return deadline
@@ -125,6 +124,6 @@ extension Mongo.CursorIterator
             over: self.pinned.connection,
             on: self.preference,
             //  ``KillCursors`` always refreshes the timeout
-            by: .now.advanced(by: .milliseconds(self.timeout.milliseconds)))
+            by: .now.advanced(by: .init(self.timeout.milliseconds)))
     }
 }

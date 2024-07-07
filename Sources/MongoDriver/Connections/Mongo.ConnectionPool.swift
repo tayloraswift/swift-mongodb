@@ -1,7 +1,7 @@
 import Atomics
-import Durations
-import Durations_Atomics
 import MongoClusters
+import UnixTime
+import UnixTime_Atomics
 
 extension Mongo
 {
@@ -157,9 +157,9 @@ extension Mongo.ConnectionPool
     @usableFromInline nonisolated
     func adjust(deadline:ContinuousClock.Instant) -> Mongo.DeadlineAdjustments
     {
-        let logical:ContinuousClock.Instant = deadline - .nanoseconds(self.recentLatency())
+        let logical:ContinuousClock.Instant = deadline - .init(self.recentLatency())
         let network:ContinuousClock.Instant = logical.advanced(
-            by: .milliseconds(self.networkTimeout.milliseconds))
+            by: .init(self.networkTimeout.milliseconds))
         return .init(logical: logical, network: network)
     }
 }

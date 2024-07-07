@@ -1,5 +1,4 @@
 import BSON
-import Durations
 import MongoCommands
 
 extension Mongo

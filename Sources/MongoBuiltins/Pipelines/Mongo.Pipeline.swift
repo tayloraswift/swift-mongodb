@@ -1,5 +1,6 @@
 import BSON
 import MongoABI
+import UnixTime
 
 extension Mongo
 {
@@ -55,7 +56,7 @@ extension Mongo.Pipeline
     var CLUSTER_TIME:Mongo.Variable<UInt64> { .init(name: "CLUSTER_TIME") }
 
     @inlinable public static
-    var NOW:Mongo.Variable<BSON.Millisecond> { .init(name: "NOW") }
+    var NOW:Mongo.Variable<UnixMillisecond> { .init(name: "NOW") }
 
     @inlinable public static
     var CURRENT:Mongo.Variable<Any> { .init(name: "CURRENT") }

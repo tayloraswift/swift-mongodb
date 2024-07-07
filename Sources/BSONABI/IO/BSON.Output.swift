@@ -1,3 +1,5 @@
+import UnixTime
+
 extension BSON
 {
     @frozen public
@@ -101,7 +103,7 @@ extension BSON.Output
             self.append(bool ? 1 : 0)
 
         case .millisecond(let millisecond):
-            self.serialize(integer: millisecond.value)
+            self.serialize(integer: millisecond.index)
 
         case .regex(let regex):
             self.serialize(cString: regex.pattern)

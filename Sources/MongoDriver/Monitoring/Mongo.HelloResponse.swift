@@ -1,7 +1,6 @@
 import BSON
-import BSON_Durations
-import Durations
 import MongoWire
+import UnixTime
 
 extension Mongo
 {
@@ -17,11 +16,11 @@ extension Mongo
         /// Returns the local server time in UTC. This value is an
         /// [ISO
         /// date](https://www.mongodb.com/docs/manual/reference/glossary/#std-term-ISODate).
-        let localTime:BSON.Millisecond
+        let localTime:UnixMillisecond
 
         init(topologyVersion:TopologyVersion,
             topologyUpdate:TopologyUpdate,
-            localTime:BSON.Millisecond)
+            localTime:UnixMillisecond)
         {
             self.topologyVersion = topologyVersion
             self.topologyUpdate = topologyUpdate
@@ -121,6 +120,6 @@ extension Mongo.HelloResponse:BSONDocumentDecodable
                 to: Mongo.TopologyVersion.self),
             topologyUpdate: topologyUpdate,
             localTime: try bson["localTime"].decode(
-                to: BSON.Millisecond.self))
+                to: UnixMillisecond.self))
     }
 }

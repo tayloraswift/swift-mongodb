@@ -16,9 +16,9 @@ External users should avoid importing this module directly. Instead, import ``/B
 -   ``BSON.Min``
 -   ``BSON.Max``
 -   ``BSON.Identifier``
--   ``BSON.Millisecond``
 -   ``BSON.Decimal128``
 -   ``BSON.Regex``
+-   ``UnixMillisecond``
 
 ### String-like types
 

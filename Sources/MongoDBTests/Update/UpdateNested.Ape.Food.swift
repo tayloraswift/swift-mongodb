@@ -1,13 +1,14 @@
 import BSON
+import UnixTime
 
 extension UpdateNested.Ape
 {
     struct Food:Equatable, Hashable
     {
-        let expires:BSON.Millisecond?
+        let expires:UnixMillisecond?
         let type:String
 
-        init(expires:BSON.Millisecond?, type:String)
+        init(expires:UnixMillisecond?, type:String)
         {
             self.expires = expires
             self.type = type

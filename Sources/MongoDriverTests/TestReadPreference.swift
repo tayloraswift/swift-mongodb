@@ -93,7 +93,7 @@ func TestReadPreference(_ tests:TestGroup, members:Mongo.Seedlist,
                 //  zero staleness by definition.)
                 (
                     "nearest-staleness-zero",
-                    .nearest(maxStaleness: 0)
+                    .nearest(maxStaleness: .zero)
                 ),
                 //  We should be able to select any replica with
                 //  secondary-preferred read preference.
@@ -186,7 +186,7 @@ func TestReadPreference(_ tests:TestGroup, members:Mongo.Seedlist,
                 await tests.do(
                     catching: Mongo.DeploymentStateError<Mongo.ReadPreferenceError>.self)
                 {
-                    try await session.refresh(on: .secondary(maxStaleness: 0))
+                    try await session.refresh(on: .secondary(maxStaleness: .zero))
                 }
             }
         }

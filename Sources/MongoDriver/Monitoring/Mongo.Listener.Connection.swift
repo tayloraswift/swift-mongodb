@@ -1,4 +1,3 @@
-import Durations
 import MongoExecutor
 import NIOCore
 
@@ -30,7 +29,7 @@ extension Mongo.Listener.Connection
     }
     func run(hello:__owned Mongo.AwaitableHello) async throws -> Mongo.HelloResponse
     {
-        let time:Duration = .milliseconds(hello.milliseconds)
+        let time:Duration = .init(hello.milliseconds)
         return try .init(bson: try await self.run(command: hello, against: .admin,
             by: .now.advanced(by: time * 1.5))())
     }

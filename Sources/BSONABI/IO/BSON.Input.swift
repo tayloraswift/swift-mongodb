@@ -1,3 +1,5 @@
+import UnixTime
+
 extension BSON
 {
     /// A type for managing BSON parsing state. Most users of this module
@@ -109,9 +111,9 @@ extension BSON.Input
         return .init(high: high, low: low)
     }
     @inlinable public mutating
-    func parse(as _:BSON.Millisecond.Type = BSON.Millisecond.self) throws -> BSON.Millisecond
+    func parse(as _:UnixMillisecond.Type = UnixMillisecond.self) throws -> UnixMillisecond
     {
-        .init(try self.parse(as: Int64.self))
+        .init(index: try self.parse(as: Int64.self))
     }
     @inlinable public mutating
     func parse(as _:BSON.Regex.Type = BSON.Regex.self) throws -> BSON.Regex
@@ -239,7 +241,7 @@ extension BSON.Input
             return .bool(try self.parse(as: Bool.self))
 
         case .millisecond:
-            return .millisecond(try self.parse(as: BSON.Millisecond.self))
+            return .millisecond(try self.parse(as: UnixMillisecond.self))
 
         case .regex:
             return .regex(try self.parse(as: BSON.Regex.self))

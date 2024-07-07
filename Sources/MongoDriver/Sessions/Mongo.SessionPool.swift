@@ -1,9 +1,9 @@
 import Atomics
 import DequeModule
-import Durations
 import MongoClusters
 import MongoCommands
 import MongoLogging
+import UnixTime
 
 extension Mongo
 {

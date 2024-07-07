@@ -1,4 +1,4 @@
-import Durations
+import UnixTime
 
 extension Mongo.DeploymentCapabilities
 {
@@ -27,8 +27,5 @@ extension Mongo.DeploymentCapabilities.Sessions
     /// [`refreshSessions`](https://www.mongodb.com/docs/manual/reference/command/refreshSessions/#mongodb-dbcommand-dbcmd.refreshSessions)
     /// within this threshold are cleared from the cache. State associated with
     /// an expired session may be cleaned up by the server at any time.
-    var ttl:Minutes
-    {
-        .init(rawValue: Int64.init(self.rawValue))
-    }
+    var ttl:Minutes { .minutes(Int64.init(self.rawValue)) }
 }
