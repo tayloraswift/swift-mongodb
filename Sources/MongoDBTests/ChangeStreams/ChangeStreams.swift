@@ -41,7 +41,7 @@ struct ChangeStreams<Configuration>:MongoTestBattery where Configuration:MongoTe
                     readConcern: .majority,
                     //  This is always needed, otherwise the cursor will die after a fixed
                     //  amount of time.
-                    tailing: .init(timeout: 4_000, awaits: true),
+                    tailing: .init(timeout: .milliseconds(4_000), awaits: true),
                     stride: 10)
                 {
                     $0[stage: .changeStream] { _ in }

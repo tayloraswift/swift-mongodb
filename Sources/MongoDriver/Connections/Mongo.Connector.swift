@@ -1,6 +1,6 @@
-import Durations
 import NIOCore
 import NIOPosix
+import UnixTime
 
 extension Mongo
 {
@@ -56,7 +56,7 @@ extension Mongo.Connector<Never?>
         //  doing so would make monitoring checks more expensive for the server.
         //  '''
         let deadline:ContinuousClock.Instant = .now.advanced(
-            by: .milliseconds(self.timeout.milliseconds))
+            by: .init(self.timeout.milliseconds))
         let hello:Mongo.Hello = .init(client: self.client, user: nil)
 
         let listener:Mongo.Listener.Connection = .init(
@@ -100,14 +100,12 @@ extension Mongo.Connector<Mongo.Authenticator>
     func connect(id:UInt) async throws -> Mongo.ConnectionPool.Allocation
     {
         let deadline:ContinuousClock.Instant = .now.advanced(
-            by: .milliseconds(self.timeout.milliseconds))
+            by: .init(self.timeout.milliseconds))
         let connection:Mongo.ConnectionPool.Allocation = .init(
             channel: try await self.channel(),
             id: id)
 
-        switch await self.authenticator.establish(connection,
-            client: self.client,
-            by: deadline)
+        switch await self.authenticator.establish(connection, client: self.client, by: deadline)
         {
         case .success(_):
             return connection

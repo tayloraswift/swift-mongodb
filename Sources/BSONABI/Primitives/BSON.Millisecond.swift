@@ -1,31 +1,24 @@
+import UnixTime
+
 extension BSON
 {
-    /// A number of UTC milliseconds since the Unix epoch.
-    ///
-    /// This library does not have access to calender-aware facilities. When using this type’s
-    /// ``Equatable``, ``Hashable``, or ``Comparable`` features, keep in mind that a
-    /// `Millisecond` is just a number, and is only as meaningful as the clock (if any) that
-    /// produced it.
-    @frozen public
-    struct Millisecond:Hashable, Equatable, Sendable
-    {
-        public
-        let value:Int64
-
-        @inlinable public
-        init(_ value:Int64)
-        {
-            self.value = value
-        }
-    }
+    @available(*, deprecated, renamed: "UnixMillisecond")
+    public
+    typealias Millisecond = UnixMillisecond
 }
-extension BSON.Millisecond:Comparable
+extension UnixMillisecond
 {
-    @inlinable public static
-    func < (a:Self, b:Self) -> Bool { a.value < b.value }
+    @available(*, unavailable, renamed: "init(index:)")
+    @inlinable public
+    init(_ index:Int64) { self.init(index: index) }
+
+    @available(*, unavailable, renamed: "index")
+    @inlinable public
+    var value:Int64 { self.index }
 }
-extension BSON.Millisecond:ExpressibleByIntegerLiteral
+@available(*, unavailable)
+extension UnixMillisecond:ExpressibleByIntegerLiteral
 {
     @inlinable public
-    init(integerLiteral:Int64) { self.init(integerLiteral) }
+    init(integerLiteral:Int64) { self.init(index: integerLiteral) }
 }

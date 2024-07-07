@@ -36,7 +36,7 @@ extension Main.ReplicaSets:TestBattery
                 maxWriteBatchCount: 1,
                 maxDocumentSize: 1,
                 maxMessageSize: 1),
-            timings: .init(write: .init(0)),
+            timings: .init(write: .zero),
             tags: [:])
 
         if  let tests:TestGroup = tests / "PrimaryRenameWithoutHint"

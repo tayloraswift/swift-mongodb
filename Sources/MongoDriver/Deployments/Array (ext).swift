@@ -1,16 +1,16 @@
 import BSON
-import Durations
+import UnixTime
 
 extension [Mongo.Server<Mongo.ReplicaQuality>]
 {
     func select(by eligibility:Mongo.ReadPreference.Eligibility) -> Mongo.ConnectionPool?
     {
         let fresh:[Mongo.Server<Mongo.ReplicaQuality>]
-        if let maxStaleness:Milliseconds = eligibility.maxStaleness?.milliseconds
+        if let maxStaleness:Seconds = eligibility.maxStaleness
         {
             fresh = self.filter
             {
-                $0.metadata.staleness <= maxStaleness
+                $0.metadata.staleness <= Milliseconds.init(maxStaleness)
             }
         }
         else

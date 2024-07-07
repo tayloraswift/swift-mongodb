@@ -1,5 +1,5 @@
-import Durations
 import MongoClusters
+import UnixTime
 
 extension Mongo.ServerTable
 {
@@ -74,8 +74,8 @@ extension Mongo.ServerTable.Replicated
         else if
             let secondary:Mongo.Server<Mongo.Replica> = secondaries.max(by:
             {
-                $0.metadata.timings.write.value <
-                $1.metadata.timings.write.value
+                $0.metadata.timings.write <
+                $1.metadata.timings.write
             })
         {
             let freshest:Mongo.SecondaryBaseline = .init(secondary.metadata.timings)

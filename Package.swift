@@ -15,18 +15,15 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "BSONTesting", targets: ["BSONTesting"]),
         .library(name: "BSONABI", targets: ["BSONABI"]),
 
-        .library(name: "BSON_Durations", targets: ["BSON_Durations"]),
         .library(name: "BSON_OrderedCollections", targets: ["BSON_OrderedCollections"]),
         .library(name: "BSON_UUID", targets: ["BSON_UUID"]),
-
-        .library(name: "Durations", targets: ["Durations"]),
-        .library(name: "Durations_Atomics", targets: ["Durations_Atomics"]),
 
         .library(name: "MongoDB", targets: ["MongoDB"]),
         .library(name: "MongoQL", targets: ["MongoQL"]),
         .library(name: "MongoTesting", targets: ["MongoTesting"]),
 
         .library(name: "SCRAM", targets: ["SCRAM"]),
+        .library(name: "UnixTime_Atomics", targets: ["UnixTime_Atomics"]),
         .library(name: "UUID", targets: ["UUID"]),
     ],
     dependencies: [
@@ -34,6 +31,8 @@ let package:Package = .init(name: "swift-mongodb",
             from: "0.4.0")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
             from: "0.6.0")),
+        .package(url: "https://github.com/tayloraswift/swift-unixtime", .upToNextMinor(
+            from: "0.1.0")),
 
         .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(
             from: "1.2.0")),
@@ -59,6 +58,9 @@ let package:Package = .init(name: "swift-mongodb",
             ]),
 
         .target(name: "BSONABI",
+            dependencies: [
+                .product(name: "UnixTime", package: "swift-unixtime"),
+            ],
             exclude: [
                 "README.md",
             ]),
@@ -102,12 +104,6 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "UUID"),
             ]),
 
-        .target(name: "BSON_Durations",
-            dependencies: [
-                .target(name: "BSON"),
-                .target(name: "Durations"),
-            ]),
-
         .target(name: "BSON_OrderedCollections",
             dependencies: [
                 .target(name: "BSON"),
@@ -115,14 +111,6 @@ let package:Package = .init(name: "swift-mongodb",
             ]),
 
         .target(name: "OnlineCDF"),
-
-        .target(name: "Durations"),
-
-        .target(name: "Durations_Atomics",
-            dependencies: [
-                .target(name: "Durations"),
-                .product(name: "Atomics", package: "swift-atomics"),
-            ]),
 
         .target(name: "SCRAM",
             dependencies: [
@@ -147,15 +135,15 @@ let package:Package = .init(name: "swift-mongodb",
         .target(name: "MongoClusters",
             dependencies: [
                 .target(name: "BSON"),
-                .target(name: "Durations"),
                 .target(name: "Mongo"),
                 .product(name: "TraceableErrors", package: "swift-grammar"),
+                .product(name: "UnixTime", package: "swift-unixtime"),
             ]),
 
         .target(name: "MongoCommands",
             dependencies: [
-                .target(name: "Durations"),
                 .target(name: "MongoABI"),
+                .product(name: "UnixTime", package: "swift-unixtime"),
             ]),
 
         .target(name: "MongoConfiguration",
@@ -173,15 +161,14 @@ let package:Package = .init(name: "swift-mongodb",
 
         .target(name: "MongoDriver",
             dependencies: [
-                .target(name: "BSON_Durations"),
                 .target(name: "BSON_OrderedCollections"),
                 .target(name: "BSON_UUID"),
-                .target(name: "Durations_Atomics"),
                 .target(name: "MongoCommands"),
                 .target(name: "MongoConfiguration"),
                 .target(name: "MongoExecutor"),
                 .target(name: "MongoLogging"),
                 .target(name: "SCRAM"),
+                .target(name: "UnixTime_Atomics"),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "SHA2", package: "swift-hash"),
                 .product(name: "NIOPosix", package: "swift-nio"),
@@ -230,6 +217,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "BSON"),
                 .target(name: "Mongo"),
                 .product(name: "CRC", package: "swift-hash"),
+            ]),
+
+        .target(name: "UnixTime_Atomics",
+            dependencies: [
+                .product(name: "Atomics", package: "swift-atomics"),
+                .product(name: "UnixTime", package: "swift-unixtime"),
             ]),
 
         .executableTarget(name: "BSONTests",

@@ -1,8 +1,8 @@
-import Durations
 import MongoIO
 import NIOCore
 import NIOPosix
 import NIOSSL
+import UnixTime
 
 extension Mongo
 {

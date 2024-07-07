@@ -1,4 +1,6 @@
-extension BSON.Millisecond:BSONDecodable
+import UnixTime
+
+extension UnixMillisecond:BSONDecodable
 {
     @inlinable public
     init(bson:BSON.AnyValue) throws

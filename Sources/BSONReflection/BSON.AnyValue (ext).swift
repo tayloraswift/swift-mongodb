@@ -1,4 +1,5 @@
 import BSON
+import UnixTime
 
 extension BSON.AnyValue
 {
@@ -31,7 +32,7 @@ extension BSON.AnyValue
         case .max:
             "max"
         case .millisecond(let millisecond):
-            "\(millisecond.value) as BSON.Millisecond"
+            "\(millisecond.index) as UnixMillisecond"
         case .min:
             "min"
         case .null:
@@ -106,7 +107,7 @@ extension BSON.AnyValue
         case (.max,                     .max):
             true
         case (.millisecond  (let lhs), .millisecond (let rhs)):
-            lhs.value == rhs.value
+            lhs.index == rhs.index
         case (.min,                     .min):
             true
         case (.null,                    .null):

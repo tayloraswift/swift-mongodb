@@ -1,4 +1,4 @@
-import Durations
+import UnixTime
 
 extension Mongo
 {
@@ -20,7 +20,7 @@ extension Mongo.NetworkTimeout
     @inlinable internal
     func deadline(from start:ContinuousClock.Instant = .now) -> ContinuousClock.Instant
     {
-        start.advanced(by: .milliseconds(self.milliseconds))
+        start.advanced(by: .init(self.milliseconds))
     }
 
     @inlinable internal

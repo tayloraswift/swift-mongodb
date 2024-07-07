@@ -1,3 +1,5 @@
+import UnixTime
+
 extension BSON
 {
     /// A type that can serialize any BSON container element.
@@ -48,10 +50,10 @@ extension BSON.FieldEncoder
         self.output.append(bool ? 1 : 0)
     }
     @inlinable public mutating
-    func encode(millisecond:BSON.Millisecond)
+    func encode(millisecond:UnixMillisecond)
     {
         self.begin(.millisecond)
-        self.output.serialize(integer: millisecond.value)
+        self.output.serialize(integer: millisecond.index)
     }
     @inlinable public mutating
     func encode(regex:BSON.Regex)

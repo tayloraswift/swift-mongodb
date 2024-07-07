@@ -1,5 +1,5 @@
-import Durations
 import MongoLogging
+import UnixTime
 
 extension Mongo.Sampler
 {

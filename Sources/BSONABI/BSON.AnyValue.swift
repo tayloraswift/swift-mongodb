@@ -1,3 +1,5 @@
+import UnixTime
+
 extension BSON
 {
     /// Any BSON value.
@@ -33,7 +35,7 @@ extension BSON
         /// The MongoDB max-key.
         case max
         /// UTC milliseconds since the Unix epoch.
-        case millisecond(BSON.Millisecond)
+        case millisecond(UnixMillisecond)
         /// The MongoDB min-key.
         case min
         /// An explicit null.
@@ -273,13 +275,13 @@ extension BSON.AnyValue
             nil
         }
     }
-    /// Attempts to load an instance of ``Millisecond`` from this variant.
+    /// Attempts to load an instance of ``UnixMillisecond`` from this variant.
     ///
     /// -   Returns:
     ///     The payload of this variant if it matches ``millisecond(_:)``,
     ///     nil otherwise.
     @inlinable public
-    func `as`(_:BSON.Millisecond.Type) -> BSON.Millisecond?
+    func `as`(_:UnixMillisecond.Type) -> UnixMillisecond?
     {
         switch self
         {

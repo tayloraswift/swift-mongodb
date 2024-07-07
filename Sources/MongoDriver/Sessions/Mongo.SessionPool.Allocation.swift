@@ -1,4 +1,4 @@
-import Durations
+import UnixTime
 
 extension Mongo.SessionPool
 {
@@ -29,6 +29,6 @@ extension Mongo.SessionPool.Allocation
     {
         //  use one-minute buffer:
         //  https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst#algorithm-to-acquire-a-serversession-instance-from-the-server-session-pool
-        self.touched.advanced(by: .minutes(ttl - 1))
+        self.touched.advanced(by: .init(ttl - .minutes(1)))
     }
 }

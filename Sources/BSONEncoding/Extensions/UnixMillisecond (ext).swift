@@ -1,4 +1,6 @@
-extension BSON.Millisecond:BSONEncodable
+import UnixTime
+
+extension UnixMillisecond:BSONEncodable
 {
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)

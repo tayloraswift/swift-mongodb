@@ -41,7 +41,7 @@ extension Mongo.FailCommand:BSONEncodable, BSONDocumentEncodable
         switch self.behavior
         {
         case .blockConnection(for: let milliseconds, then: let mode)?:
-            if  milliseconds > 0
+            if  milliseconds > .zero
             {
                 bson["blockConnection"] = true
                 bson["blockTimeMS"] = milliseconds

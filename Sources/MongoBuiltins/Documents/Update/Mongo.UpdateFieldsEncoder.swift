@@ -1,5 +1,6 @@
 import BSON
 import MongoABI
+import UnixTime
 
 extension Mongo
 {
@@ -124,7 +125,7 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Bit>
 extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.CurrentDate>
 {
     @inlinable public
-    subscript(path:Mongo.AnyKeyPath) -> BSON.Millisecond.Type?
+    subscript(path:Mongo.AnyKeyPath) -> UnixMillisecond.Type?
     {
         get
         {

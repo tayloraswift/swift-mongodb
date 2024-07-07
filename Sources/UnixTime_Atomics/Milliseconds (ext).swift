@@ -1,5 +1,5 @@
 import Atomics
-import Durations
+import UnixTime
 
 extension Milliseconds:AtomicValue
 {

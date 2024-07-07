@@ -2,6 +2,7 @@ import Base16
 import BSON
 import BSONReflection
 import BSON_UUID
+import UnixTime
 import UUID
 import Testing_
 
@@ -225,23 +226,23 @@ extension Main.ValidBSON:TestBattery
         {
             Self.run(tests / "epoch",
                 canonical: "10000000096100000000000000000000",
-                expected: ["a": .millisecond(0)])
+                expected: ["a": .millisecond(.init(index: 0))])
 
             Self.run(tests / "positive",
                 canonical: "10000000096100C5D8D6CC3B01000000",
-                expected: ["a": .millisecond(1356351330501)])
+                expected: ["a": .millisecond(.init(index: 1356351330501))])
 
             Self.run(tests / "negative",
                 canonical: "10000000096100C33CE7B9BDFFFFFF00",
-                expected: ["a": .millisecond(-284643869501)])
+                expected: ["a": .millisecond(.init(index: -284643869501))])
 
             Self.run(tests / "positive-2",
                 canonical: "1000000009610000DC1FD277E6000000",
-                expected: ["a": .millisecond(253402300800000)])
+                expected: ["a": .millisecond(.init(index: 253402300800000))])
 
             Self.run(tests / "positive-3",
                 canonical: "10000000096100D1D6D6CC3B01000000",
-                expected: ["a": .millisecond(1356351330001)])
+                expected: ["a": .millisecond(.init(index: 1356351330001))])
         }
 
         // https://github.com/mongodb/specifications/blob/master/source/bson-corpus/tests/double.json

@@ -1,11 +1,11 @@
-import Durations
+import UnixTime
 
 extension Mongo.FailCommand
 {
     @frozen public
     enum Behavior:Equatable, Sendable
     {
-        case blockConnection(for:Milliseconds = 0, then:Action)
+        case blockConnection(for:Milliseconds = .zero, then:Action)
         case closeConnection
     }
 }
