@@ -1,5 +1,5 @@
 {
-  "originHash" : "8616f911fad55688e7a9cae8f4b5b28286194fa451ee96757fbae066b9a7dd21",
+  "originHash" : "f1c0be8cc202c8cfa58adb939d799c19202bcb7b68b38a012bab1b08da2d6770",
   "pins" : [
     {
       "identity" : "swift-atomics",
@@ -62,6 +62,15 @@
       "state" : {
         "revision" : "025bcb1165deab2e20d4eaba79967ce73013f496",
         "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "swift-unixtime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tayloraswift/swift-unixtime",
+      "state" : {
+        "revision" : "4fcd9a7234483e852eed5ab7942b9fcf9b700a5b",
+        "version" : "0.1.4"
       }
     }
   ],
