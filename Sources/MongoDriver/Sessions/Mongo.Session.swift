@@ -42,7 +42,7 @@ extension Mongo
 
         var notarizedTime:ClusterTime?
         /// The current transaction state of this session.
-        public private(set)
+        public
         var transaction:TransactionState
         /// The local time when the last (successful) command was sent on this
         /// session.
