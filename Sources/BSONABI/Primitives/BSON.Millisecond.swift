@@ -16,9 +16,3 @@ extension UnixMillisecond
     @inlinable public
     var value:Int64 { self.index }
 }
-@available(*, unavailable)
-extension UnixMillisecond:ExpressibleByIntegerLiteral
-{
-    @inlinable public
-    init(integerLiteral:Int64) { self.init(index: integerLiteral) }
-}
