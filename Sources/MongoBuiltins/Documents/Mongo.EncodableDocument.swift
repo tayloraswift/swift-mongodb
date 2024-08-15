@@ -2,7 +2,7 @@ import BSON
 
 extension Mongo
 {
-    /// An `EncodableDocument` is nothing more than a type that supports an ``init(with:)``
+    /// An `EncodableDocument` is nothing more than a type that supports an `init(with:)`
     /// builder API.
     ///
     /// The specific encoding API vended and encodability protocol used is up to the conforming

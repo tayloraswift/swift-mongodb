@@ -33,14 +33,14 @@ extension Mongo.UpdateListEncoder
 }
 extension Mongo.UpdateListEncoder
 {
-    /// A shorthand for ``update(_:upsert:)`` with `upsert` set to false.
+    /// Update with upsertions disabled.
     @inlinable public mutating
     func replace(
         _ element:some BSONDocumentEncodable & Identifiable<some BSONEncodable>)
     {
         self.update(element, upsert: false)
     }
-    /// A shorthand for ``update(_:upsert:)`` with `upsert` set to true.
+    /// Update with upsertions enabled.
     @inlinable public mutating
     func upsert(
         _ element:some BSONDocumentEncodable & Identifiable<some BSONEncodable>)

@@ -9,8 +9,8 @@ extension Mongo
     /// `mongod` or `mongos` host, services connection requests, and serves
     /// as a delegate for a server monitoring task.
     ///
-    /// Create (or await) a connection with ``create(by:)``. Destroy a connection
-    /// with ``destroy(_:)``, which returns it to the pool and (possibly) makes
+    /// Create (or await) a connection with `create(by:)`. Destroy a connection
+    /// with `destroy(_:)`, which returns it to the pool and (possibly) makes
     /// it available to other tasks.
     ///
     /// Typically, a monitoring task will create a connection pool alongside a
@@ -142,8 +142,8 @@ extension Mongo.ConnectionPool
     /// The number of non-perished connections, including pending connections,
     /// currently in the pool.
     ///
-    /// Connection count is regulated by the pool’s ``Parameters/size`` and
-    /// ``Parameters/rate`` parameters.
+    /// Connection count is regulated by the pool’s ``ConnectionPoolSettings/size`` and
+    /// ``ConnectionPoolSettings/rate`` parameters.
     public
     var count:Int
     {

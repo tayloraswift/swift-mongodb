@@ -217,7 +217,7 @@ extension Mongo.UpdateEncoder
 extension Mongo.UpdateEncoder
 {
     /// Takes a document and removes the specified fields.
-    /// Not to be confused with the ``Mongo.Pipeline.Unset/unset``
+    /// Not to be confused with the ``Mongo.PipelineEncoder.Unset/unset``
     /// aggregation pipeline stage, which can take a field path directly.
     @frozen public
     enum Unset:String, Sendable

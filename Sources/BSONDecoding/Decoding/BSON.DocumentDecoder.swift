@@ -1,7 +1,7 @@
 extension BSON
 {
     /// A thin wrapper around a native Swift dictionary providing an efficient decoding
-    /// interface for a ``BSON/DocumentView``.
+    /// interface for a ``BSON/Document``.
     @frozen public
     struct DocumentDecoder<CodingKey>
         where   CodingKey:RawRepresentable<String>,
@@ -24,7 +24,7 @@ extension BSON.DocumentDecoder:BSON.Decoder
     ///
     /// - Returns:
     ///     A document decoder derived from the payload of this variant if it matches
-    ///     ``document(_:)`` **or** ``list(_:)``, nil otherwise.
+    ///     ``AnyValue/document(_:) [case]`` **or** ``AnyValue/list(_:) [case]``, nil otherwise.
     @inlinable public
     init(parsing bson:borrowing BSON.AnyValue) throws
     {
@@ -43,7 +43,7 @@ extension BSON.DocumentDecoder
     ///
     /// Key duplication can interact with unicode normalization in unexpected
     /// ways. Because BSON is defined in UTF-8, other BSON encoders may not align
-    /// with the behavior of ``String.==(_:_:)``, since that operator
+    /// with the behavior of ``String.==(_:_:) [9812Z]``, since that operator
     /// compares grapheme clusters and not UTF-8 code units.
     ///
     /// For example, if a document vends separate keys for [`"\u{E9}"`]() ([`"é"`]()) and
@@ -52,7 +52,7 @@ extension BSON.DocumentDecoder
     /// comparison would drop one of the values.
     ///
     /// To get a plain array of key-value pairs with no decoding interface, call the
-    /// document view’s ``BSON.Document/parse()`` method instead.
+    /// document view’s ``BSON.Document/parse(_:)`` method instead.
     ///
     /// >   Complexity:
     ///     O(*n*), where *n* is the number of fields in the source document.

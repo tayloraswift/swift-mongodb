@@ -67,7 +67,7 @@ extension BSON.List
 {
     /// Parses this list into key-value pairs in order, yielding each value to the
     /// provided closure. Parsing a list is slightly faster than parsing a general
-    /// ``DocumentView``, because this method ignores the document keys.
+    /// ``Document``, because this method ignores the document keys.
     ///
     /// This method does *not* perform any key validation.
     ///
@@ -100,7 +100,7 @@ extension BSON.List
 
     /// Splits this list’s inline key-value pairs into an array containing the
     /// values only. Parsing a list is slightly faster than parsing a general
-    /// ``DocumentView``, because this method ignores the document keys.
+    /// ``Document``, because this method ignores the document keys.
     ///
     /// This method does *not* perform any key validation.
     ///

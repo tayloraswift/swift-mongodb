@@ -40,10 +40,10 @@ extension BSON.BinaryView<ArraySlice<UInt8>>:BSON.BufferTraversable
     typealias Frame = BSON.BinaryFrame
 
     /// Removes the first element of the argument, attempts to cast it to a
-    /// ``BinarySubtype``, and stores the remainder in ``slice``.
+    /// ``BinarySubtype``, and stores the remainder in ``bytes``.
     ///
     /// If the subtype is the deprecated generic subtype (code [`0x02`]()),
-    /// the inner length header will be stripped from ``slice`` and ignored.
+    /// the inner length header will be stripped from ``bytes`` and ignored.
     ///
     /// >   Complexity: O(1)
     @inlinable public

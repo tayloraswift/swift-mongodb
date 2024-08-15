@@ -52,7 +52,7 @@ extension BSONEncodable where Self == BSON.Null
     message: "UInt64 is not recommended for BSON that will be handled by MongoDB.")
 extension UInt64:BSONEncodable
 {
-    /// Encodes this integer as a value of type ``BSON.AnyType/uint64``.
+    /// Encodes this integer as a value of type ``BSON.AnyType/timestamp``.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {
@@ -63,7 +63,7 @@ extension UInt64:BSONEncodable
     message: "UInt is not recommended for BSON that will be handled by MongoDB.")
 extension UInt:BSONEncodable
 {
-    /// Encodes this integer as a value of type ``BSON.AnyType/uint64``.
+    /// Encodes this integer as a value of type ``BSON.AnyType/timestamp``.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {

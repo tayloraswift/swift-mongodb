@@ -2,7 +2,7 @@ import Atomics
 
 extension Mongo
 {
-    /// A `Logger` instance is a handle to some ``Mongo.LoggingTarget`` with a thread-safe
+    /// A `Logger` instance is a handle to some ``Mongo.LogTarget`` with a thread-safe
     /// interface for dynamically configuring the logging level. This enables logging targets
     /// to not have to worry about filtering events.
     public final

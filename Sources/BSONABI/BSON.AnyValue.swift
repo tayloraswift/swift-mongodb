@@ -143,7 +143,7 @@ extension BSON.AnyValue
     /// Promotes a nil result to a thrown ``TypecastError``.
     ///
     /// If `T` conforms to ``BSONDecodable``, prefer calling its throwing
-    /// ``BSONDecodable/init(bson:) [7O4O3]`` to calling this method directly.
+    /// ``BSONDecodable/init(bson:) [3CURP]`` to calling this method directly.
     ///
     /// >   Throws: A ``TypecastError`` if the given curried method returns nil.
     @inline(__always)

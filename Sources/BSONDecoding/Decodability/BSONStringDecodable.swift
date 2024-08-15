@@ -11,7 +11,7 @@ protocol BSONStringDecodable:BSONDecodable
 extension BSONStringDecodable
 {
     /// Attempts to cast the given variant value to a string, and then
-    /// delegates to this type’s ``init(bson:) [6DO67]`` witness.
+    /// delegates to this type’s ``init(bson:) [3WSG]`` witness.
     @inlinable public
     init(bson:BSON.AnyValue) throws
     {
@@ -21,7 +21,7 @@ extension BSONStringDecodable
 extension BSONStringDecodable where Self:LosslessStringConvertible
 {
     /// Attempts to cast the given variant value to a string, and then
-    /// delegates to this type’s ``init(_:)`` witness.
+    /// delegates to this type’s ``LosslessStringConvertible/init(_:)`` witness.
     ///
     /// This default implementation is provided on an extension on a
     /// dedicated protocol rather than an extension on ``BSONDecodable``

@@ -12,7 +12,7 @@ extension Mongo
         /// This is called `setVersion` in the server reply.
         ///
         /// All set members, including slave members, receive a set version
-        /// in their ``Hello`` response, but it is only meaningful for
+        /// in their ``CommandType/hello`` response, but it is only meaningful for
         /// the primary member
         /// ([rationale](https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst#ignore-setversion-unless-the-server-is-primary)).
         public

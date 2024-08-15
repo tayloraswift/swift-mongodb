@@ -1,7 +1,7 @@
 extension BSON
 {
     /// A thin wrapper around a native Swift array providing an efficient decoding
-    /// interface for a ``BSON/ListView``.
+    /// interface for a ``BSON/List``.
     @frozen public
     struct ListDecoder
     {
@@ -24,7 +24,7 @@ extension BSON.ListDecoder:BSON.Decoder
     ///
     /// -   Returns:
     ///     The payload of the variant, parsed to a list decoder, if it matches
-    ///     ``case list(_:)`` and could be successfully parsed, nil otherwise.
+    ///     ``AnyValue/list(_:) [case]`` and could be successfully parsed, nil otherwise.
     ///
     /// >   Complexity:
     //      O(*n*), where *n* is the number of elements in the source list.
@@ -38,7 +38,7 @@ extension BSON.ListDecoder
 {
     /// Attempts to create a list decoder from the given list.
     ///
-    /// To get a plain array with no decoding interface, call the list’s ``parse``
+    /// To get a plain array with no decoding interface, call the list’s ``List/parse``
     /// method instead. Alternatively, you can use this function and access the
     /// ``elements`` property afterwards.
     ///
