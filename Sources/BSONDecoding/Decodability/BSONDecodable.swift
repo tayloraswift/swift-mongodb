@@ -1,10 +1,7 @@
 import BSONABI
+
 /// A type that can be decoded from a BSON variant value backed by
 /// some type of storage not particular to the decoded type.
-///
-/// This protocol is parallel and unrelated to ``BSON.FrameView`` to
-/// emphasize the performance characteristics of types that conform to
-/// this protocol and not ``BSON.FrameView``.
 public
 protocol BSONDecodable
 {

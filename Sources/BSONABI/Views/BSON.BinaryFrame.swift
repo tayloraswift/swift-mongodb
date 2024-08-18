@@ -24,7 +24,7 @@ extension BSON.BinaryFrame:BSON.BufferFrame
     var trailer:UInt8? { nil }
 
     /// A binary array header starts its count after skipping the interceding
-    /// ``subtype`` byte.
+    /// ``BinaryView/subtype`` byte.
     @inlinable public static
     var skipped:Int { 1 }
 }

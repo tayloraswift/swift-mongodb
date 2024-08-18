@@ -1,6 +1,6 @@
 extension BSON.Timestamp:BSONEncodable
 {
-    /// Encodes this timestamp as a ``BSON.AnyValue/uint64(_:)``.
+    /// Encodes this timestamp as a ``BSON.AnyValue/timestamp(_:) [case]``.
     @inlinable public
     func encode(to field:inout BSON.FieldEncoder)
     {

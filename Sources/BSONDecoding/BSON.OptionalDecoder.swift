@@ -39,7 +39,7 @@ extension BSON.OptionalDecoder
 {
     /// Gets the value of this key, throwing a ``BSON.DocumentKeyError``
     /// if it is nil. This is a distinct condition from an explicit
-    /// ``BSON.null`` value, which will be returned without throwing an error.
+    /// ``BSON/AnyValue/null`` value, which will be returned without throwing an error.
     @inlinable public
     func decode() throws -> BSON.AnyValue
     {

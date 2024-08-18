@@ -28,7 +28,6 @@ External users should avoid importing this module directly. Instead, import ``/B
 ### Container types
 
 -   ``BSON.List``
--   ``BSON.ListView``
 -   ``BSON.Document``
 
 ### Container fields
