@@ -58,6 +58,5 @@ jobs:
             -   name: Validate documentation
                 run: |
                     unidoc compile -I .. \
-                    --swift-toolchain $SWIFT_INSTALLATION \
                     --ci fail-on-errors \
                     --package-name swift-mongodb
