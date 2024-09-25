@@ -32,14 +32,14 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
             from: "0.6.0")),
         .package(url: "https://github.com/tayloraswift/swift-unixtime", .upToNextMinor(
-            from: "0.1.0")),
+            from: "0.1.5")),
 
         .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMinor(
             from: "1.2.0")),
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
             from: "1.1.0")),
 
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.72.0"),
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.26.0"),
     ],
     targets: [

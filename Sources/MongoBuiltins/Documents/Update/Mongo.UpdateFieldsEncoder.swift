@@ -189,6 +189,26 @@ extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Rename>
 }
 extension Mongo.UpdateFieldsEncoder<Mongo.UpdateEncoder.Unset>
 {
+    /// Unsets the field at the given path, if true. The getter always returns false.
+    @inlinable public
+    subscript(path:Mongo.AnyKeyPath) -> Bool
+    {
+        get
+        {
+            false
+        }
+        set(value)
+        {
+            if  value
+            {
+                BSON.Null.init().encode(to: &self.bson[with: path.stem])
+            }
+        }
+    }
+
+    @available(*, deprecated, message: """
+        This operator does not respect nil assignment, use the boolean subscript instead
+        """)
     @inlinable public
     subscript(path:Mongo.AnyKeyPath) -> Void?
     {

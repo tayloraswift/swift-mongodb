@@ -184,35 +184,37 @@ extension Mongo.MonitorPool
         {
             (tasks:inout TaskGroup<Void>) in
 
-            let services:AsyncStream<Mongo.MonitorService> = .init(
+            let exitHandle:AsyncStream<Mongo.MonitorService>.Continuation
+            let exitEvents:AsyncStream<Mongo.MonitorService>
+
+            (exitEvents, exitHandle) = AsyncStream<Mongo.MonitorService>.makeStream(
                 bufferingPolicy: .bufferingOldest(1))
+
+            let pool:Mongo.ConnectionPool = .init(alongside: .init(exitHandle),
+                connectorFactory: self.connectorFactory,
+                connectorTimeout: connectorTimeout,
+                initialLatency: services.initialLatency,
+                authenticator: self.authenticator,
+                generation: generation,
+                settings: self.connectionPoolSettings,
+                logger: self.deployment.logger,
+                host: host)
+
+            monitor.yield(.init(
+                topology: services.initialTopologyUpdate,
+                canary: .init(pool: pool)))
+
+            tasks.addTask
             {
-                let pool:Mongo.ConnectionPool = .init(alongside: .init($0),
-                    connectorFactory: self.connectorFactory,
-                    connectorTimeout: connectorTimeout,
-                    initialLatency: services.initialLatency,
-                    authenticator: self.authenticator,
-                    generation: generation,
-                    settings: self.connectionPoolSettings,
-                    logger: self.deployment.logger,
-                    host: host)
-
-                monitor.yield(.init(
-                    topology: services.initialTopologyUpdate,
-                    canary: .init(pool: pool)))
-
-                tasks.addTask
-                {
-                    await services.listener.start(alongside: pool, updating: monitor)
-                }
-                tasks.addTask
-                {
-                    await services.sampler.start(alongside: pool)
-                }
-                tasks.addTask
-                {
-                    await pool.start()
-                }
+                await services.listener.start(alongside: pool, updating: monitor)
+            }
+            tasks.addTask
+            {
+                await services.sampler.start(alongside: pool)
+            }
+            tasks.addTask
+            {
+                await pool.start()
             }
 
             async
@@ -220,7 +222,7 @@ extension Mongo.MonitorPool
                 generation: generation,
                 host: host)
 
-            for await _:Mongo.MonitorService in services
+            for await _:Mongo.MonitorService in exitEvents
             {
                 break
             }

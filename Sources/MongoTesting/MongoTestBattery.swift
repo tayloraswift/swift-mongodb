@@ -22,13 +22,7 @@ extension MongoTestBattery
     {
         await tests.do
         {
-            let executors:MultiThreadedEventLoopGroup = .init(numberOfThreads: 2)
-            defer
-            {
-                try? executors.syncShutdownGracefully()
-            }
-
-            let bootstrap:Mongo.DriverBootstrap = Configuration.bootstrap(on: executors)
+            let bootstrap:Mongo.DriverBootstrap = Configuration.bootstrap(on: .singleton)
             let logger:Mongo.Logger = .init(level: Self.logging)
 
             try await bootstrap.withSessionPool(logger: logger)

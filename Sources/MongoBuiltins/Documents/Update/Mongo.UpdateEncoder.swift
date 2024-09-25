@@ -40,8 +40,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Arithmetic,
-        yield:(inout Mongo.UpdateFieldsEncoder<Arithmetic>) -> ()) -> Void
+    subscript(key:Arithmetic, yield:(inout Mongo.UpdateFieldsEncoder<Arithmetic>) -> ()) -> Void
     {
         mutating get
         {
@@ -74,8 +73,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Assignment,
-        yield:(inout Mongo.UpdateFieldsEncoder<Assignment>) -> ()) -> Void
+    subscript(key:Assignment, yield:(inout Mongo.UpdateFieldsEncoder<Assignment>) -> ()) -> Void
     {
         mutating get
         {
@@ -92,8 +90,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Bit,
-        yield:(inout Mongo.UpdateFieldsEncoder<Bit>) -> ()) -> Void
+    subscript(key:Bit, yield:(inout Mongo.UpdateFieldsEncoder<Bit>) -> ()) -> Void
     {
         mutating get
         {
@@ -128,8 +125,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Pop,
-        yield:(inout Mongo.UpdateFieldsEncoder<Pop>) -> ()) -> Void
+    subscript(key:Pop, yield:(inout Mongo.UpdateFieldsEncoder<Pop>) -> ()) -> Void
     {
         mutating get
         {
@@ -146,8 +142,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Pull,
-        yield:(inout Mongo.UpdateFieldsEncoder<Pull>) -> ()) -> Void
+    subscript(key:Pull, yield:(inout Mongo.UpdateFieldsEncoder<Pull>) -> ()) -> Void
     {
         mutating get
         {
@@ -168,8 +163,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Reduction,
-        yield:(inout Mongo.UpdateFieldsEncoder<Reduction>) -> ()) -> Void
+    subscript(key:Reduction, yield:(inout Mongo.UpdateFieldsEncoder<Reduction>) -> ()) -> Void
     {
         mutating get
         {
@@ -186,8 +180,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Rename,
-        yield:(inout Mongo.UpdateFieldsEncoder<Rename>) -> ()) -> Void
+    subscript(key:Rename, yield:(inout Mongo.UpdateFieldsEncoder<Rename>) -> ()) -> Void
     {
         mutating get
         {
@@ -205,8 +198,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:ArrayUnion,
-        yield:(inout Mongo.UpdateFieldsEncoder<ArrayUnion>) -> ()) -> Void
+    subscript(key:ArrayUnion, yield:(inout Mongo.UpdateFieldsEncoder<ArrayUnion>) -> ()) -> Void
     {
         mutating get
         {
@@ -226,8 +218,7 @@ extension Mongo.UpdateEncoder
     }
 
     @inlinable public
-    subscript(key:Unset,
-        yield:(inout Mongo.UpdateFieldsEncoder<Unset>) -> ()) -> Void
+    subscript(key:Unset, yield:(inout Mongo.UpdateFieldsEncoder<Unset>) -> ()) -> Void
     {
         mutating get
         {
