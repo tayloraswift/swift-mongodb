@@ -15,19 +15,14 @@ jobs:
         name: Ubuntu
 
         steps:
-            #   Important! We install an Ubuntu 22.04 Swift toolchain, and not the 24.04 one
-            #   because the 24.04 toolchain for some reason is built with assertions enabled,
-            #   which causes the Swift compiler to crash when building the package.
             -   name: Install Swift
                 uses: tayloraswift/swift-install-action@master
                 with:
-                    swift-prefix: "swift-5.10.1-release/ubuntu2204/swift-5.10.1-RELEASE"
-                    swift-id: "swift-5.10.1-RELEASE-ubuntu22.04"
+                    swift-prefix: "swift-6.0.1-release/ubuntu2404/swift-6.0.1-RELEASE"
+                    swift-id: "swift-6.0.1-RELEASE-ubuntu24.04"
 
             -   name: Install Unidoc
                 uses: tayloraswift/swift-unidoc-action@master
-                with:
-                    unidoc-version: "master"
 
             #   This clobbers everything in the current directory!
             -   name: Checkout repository
@@ -41,16 +36,11 @@ jobs:
                     --package-name swift-mongodb
 
     macos:
-        runs-on: macos-14
+        runs-on: macos-15
         name: macOS
-        env:
-            DEVELOPER_DIR: "/Applications/Xcode_15.3.app/Contents/Developer"
-
         steps:
             -   name: Install Unidoc
                 uses: tayloraswift/swift-unidoc-action@master
-                with:
-                    unidoc-version: "master"
 
             -   name: Checkout repository
                 uses: actions/checkout@v3
