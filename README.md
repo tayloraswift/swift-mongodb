@@ -43,7 +43,7 @@ print(configuration)
 
 ## toolchain requirement
 
-This package requires Swift 5.10 or greater.
+This package requires Swift 6.0 or greater.
 
 
 ## license and acknowledgements
