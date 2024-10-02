@@ -30,10 +30,10 @@ jobs:
 
             -   name: Validate documentation
                 run: |
-                    unidoc compile -I .. \
+                    unidoc compile \
                     --swift-toolchain $SWIFT_INSTALLATION \
                     --ci fail-on-errors \
-                    --package-name swift-mongodb
+                    --project-path .
 
     macos:
         runs-on: macos-15
@@ -47,6 +47,6 @@ jobs:
 
             -   name: Validate documentation
                 run: |
-                    unidoc compile -I .. \
+                    unidoc compile \
                     --ci fail-on-errors \
-                    --package-name swift-mongodb
+                    --project-path .
