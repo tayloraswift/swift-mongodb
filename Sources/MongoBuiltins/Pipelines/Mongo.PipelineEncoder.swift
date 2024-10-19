@@ -715,6 +715,22 @@ extension Mongo.PipelineEncoder
         nil
     }
 
+    /// Replaces the root document with a new document computed by an ``Expression``, usually a
+    /// ``Mongo.ExpressionEncoder.Variadic/mergeObjects`` expression.
+    @inlinable public
+    subscript(stage replaceWith:ReplaceWith,
+        yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            self.list(ReplaceWith.self)
+            {
+                yield(&$0[with: replaceWith][as: Mongo.ExpressionEncoder.self])
+            }
+        }
+    }
+
+    /// Replaces the root document with a new document using the specified schema.
     @inlinable public
     subscript<CodingKey>(stage replaceWith:ReplaceWith,
         using key:CodingKey.Type = CodingKey.self,
