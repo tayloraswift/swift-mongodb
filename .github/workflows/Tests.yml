@@ -1,4 +1,4 @@
-name: test
+name: tests
 
 on:
     push:
@@ -31,7 +31,7 @@ jobs:
                         -v $PWD:/swift-mongodb \
                         -w /swift-mongodb \
                         swift:6.0-noble \
-                        /bin/bash .github/pipeline
+                        /bin/bash Scripts/TestAll
 
     macos:
         runs-on: macos-15

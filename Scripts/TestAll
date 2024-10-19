@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 swift --version
+swift test -c release
 swift build -c release
 for f in .build/release/*Tests; do
   $f

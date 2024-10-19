@@ -534,6 +534,8 @@ extension Mongo.ExpressionEncoder
         case or                 = "$or"
         case zip                = "$zip"
 
+        case mergeObjects       = "$mergeObjects"
+
         case setEquals          = "$setEquals"
         case setIntersection    = "$setIntersection"
         case setUnion           = "$setUnion"
@@ -549,6 +551,15 @@ extension Mongo.ExpressionEncoder
         mutating get
         {
             yield(&self.bson[with: key][as: BSON.ListEncoder.self])
+        }
+    }
+
+    @inlinable public
+    subscript(key:Variadic, yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: key][as: Mongo.ExpressionEncoder.self])
         }
     }
 
