@@ -233,10 +233,9 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
-        .executableTarget(name: "BSONDecodingTests",
+        .testTarget(name: "BSONDecodingTests",
             dependencies: [
                 .target(name: "BSONDecoding"),
-                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .executableTarget(name: "BSONEncodingTests",
