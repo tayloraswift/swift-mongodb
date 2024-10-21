@@ -48,7 +48,7 @@ extension Mongo.SetListEncoder
     }
 
     @inlinable public mutating
-    func callAsFunction(_:Int.Type,
+    func callAsFunction(_:Int.Type = Int.self,
         _ yield:(inout Mongo.SetListEncoder) -> ())
     {
         self.list.append { yield(&$0[as: Mongo.SetListEncoder.self]) }

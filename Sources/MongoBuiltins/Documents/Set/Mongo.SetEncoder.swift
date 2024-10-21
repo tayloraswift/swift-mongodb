@@ -66,7 +66,7 @@ extension Mongo.SetEncoder
 
     @inlinable public
     subscript(path:CodingKey,
-        using:Int.Type,
+        using:Int.Type = Int.self,
         yield:(inout Mongo.SetListEncoder) -> ()) -> Void
     {
         mutating get
