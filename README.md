@@ -1,6 +1,6 @@
 <div align="center">
 
-***`mongodb`***<br>`0.23`
+***`mongodb`***<br>`0.24`
 
 [![ci status](https://github.com/tayloraswift/swift-mongodb/actions/workflows/Tests.yml/badge.svg)](https://github.com/tayloraswift/swift-mongodb/actions/workflows/Tests.yml)
 [![ci status](https://github.com/tayloraswift/swift-mongodb/actions/workflows/Documentation.yml/badge.svg)](https://github.com/tayloraswift/swift-mongodb/actions/workflows/Documentation.yml)
