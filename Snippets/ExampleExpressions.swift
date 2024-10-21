@@ -22,9 +22,9 @@ func ExampleExpressions()
         {
             $0["ccc"] = 56
         }
-        $0["qux"]
+        $0["qux"](Int.self)
         {
-            $0.append(56)
+            $0[+] = 56
         }
     }
     let _:BSON.Document = .init(BSON.Key.self)
@@ -35,9 +35,9 @@ func ExampleExpressions()
         $0["_"] = true
         $0["_"] = [] as [Never]
         $0["_"] = [:]
-        $0["_"]
+        $0["_"](Int.self)
         {
-            $0.append(0)
+            $0[+] = 0
         }
         $0["_"](BSON.Key.self)
         {
@@ -47,7 +47,7 @@ func ExampleExpressions()
         {
             $0[.in] = (0, .init
             {
-                $0.append(0)
+                $0[+] = 0
             })
         }
         $0["_"] = .expr
@@ -91,7 +91,7 @@ func ExampleExpressions()
         {
             $0[.add] = .init
             {
-                $0.append("$a")
+                $0[+] = "$a"
             }
         }
         $0["_"] = .expr
@@ -202,9 +202,9 @@ func ExampleExpressions()
         }
         $0["_"] = .expr
         {
-            $0[.or] = .init
+            $0[.or]
             {
-                $0.expr
+                $0
                 {
                     $0[.and] = ("$x", .expr
                     {
@@ -397,8 +397,8 @@ func ExampleExpressions()
             {
                 $0[.inputs] = ("$x", .init
                 {
-                    $0.append(1)
-                    $0.append(2)
+                    $0[+] = 1
+                    $0[+] = 2
                 })
                 $0[.defaults] = [0, 0]
             }

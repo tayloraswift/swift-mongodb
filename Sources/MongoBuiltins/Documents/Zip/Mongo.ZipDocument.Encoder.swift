@@ -67,8 +67,8 @@ extension Mongo.ZipDocument.Encoder
         set(value)
         {
             {
-                $0.push(value.0)
-                $0.push(value.1)
+                $0[+] = value.0
+                $0[+] = value.1
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
@@ -85,9 +85,9 @@ extension Mongo.ZipDocument.Encoder
         set(value)
         {
             {
-                $0.push(value.0)
-                $0.push(value.1)
-                $0.push(value.2)
+                $0[+] = value.0
+                $0[+] = value.1
+                $0[+] = value.2
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
@@ -105,10 +105,10 @@ extension Mongo.ZipDocument.Encoder
         set(value)
         {
             {
-                $0.push(value.0)
-                $0.push(value.1)
-                $0.push(value.2)
-                $0.push(value.3)
+                $0[+] = value.0
+                $0[+] = value.1
+                $0[+] = value.2
+                $0[+] = value.3
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }

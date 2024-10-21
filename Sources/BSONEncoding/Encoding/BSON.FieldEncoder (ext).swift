@@ -7,4 +7,11 @@ extension BSON.FieldEncoder
     {
         yield(&self[as: BSON.DocumentEncoder<CodingKey>.self])
     }
+    /// A shorthand for binding this field encoder to a ``ListEncoder``.
+    @inlinable public mutating
+    func callAsFunction(_:Int.Type,
+        yield:(inout BSON.ListEncoder) -> ()) -> Void
+    {
+        yield(&self[as: BSON.ListEncoder.self])
+    }
 }

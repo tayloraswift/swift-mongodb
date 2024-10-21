@@ -122,11 +122,8 @@ extension Mongo.ProjectionOperatorEncoder
             }
 
             {
-                if let index:Int = value.at
-                {
-                    $0.append(index)
-                }
-                $0.append(count)
+                $0[+] = value.at
+                $0[+] = count
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }

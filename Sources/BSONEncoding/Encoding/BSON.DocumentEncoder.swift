@@ -38,27 +38,6 @@ extension BSON.DocumentEncoder
 }
 extension BSON.DocumentEncoder
 {
-    @inlinable public
-    subscript(key:CodingKey, yield:(inout BSON.ListEncoder) -> ()) -> Void
-    {
-        mutating get
-        {
-            yield(&self[with: key][as: BSON.ListEncoder.self])
-        }
-    }
-
-    @inlinable public
-    subscript<NestedKey>(key:CodingKey,
-        yield:(inout BSON.DocumentEncoder<NestedKey>) -> ()) -> Void
-    {
-        mutating get
-        {
-            yield(&self[with: key][as: BSON.DocumentEncoder<NestedKey>.self])
-        }
-    }
-}
-extension BSON.DocumentEncoder
-{
     /// Appends the given key-value pair to this document builder, encoding the
     /// value as the field value using its ``BSONEncodable`` implementation.
     ///

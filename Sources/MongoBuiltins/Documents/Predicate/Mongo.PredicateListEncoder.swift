@@ -31,10 +31,12 @@ extension Mongo.PredicateListEncoder:BSON.Encoder
 }
 extension Mongo.PredicateListEncoder
 {
-    @inlinable public mutating
-    func append(_ predicate:Mongo.PredicateDocument)
+    @inlinable public
+    subscript<Encodable>(_:(BSON.ListEncoder.Index) -> Void) -> Encodable?
+        where Encodable:BSONEncodable
     {
-        self.list.append(predicate)
+        get { nil }
+        set (value) { self.list[+] = value }
     }
 
     @inlinable public mutating

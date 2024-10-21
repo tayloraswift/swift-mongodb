@@ -32,14 +32,8 @@ extension Mongo.SwitchBranches.Encoder:BSON.Encoder
 extension Mongo.SwitchBranches.Encoder
 {
     @inlinable public mutating
-    func append(_ branch:Mongo.SwitchBranch)
-    {
-        self.list.append(branch)
-    }
-
-    @inlinable public mutating
     func branch(with populate:(inout Mongo.SwitchBranch) throws -> ()) rethrows
     {
-        self.append(try .init(with: populate))
+        self.list[+] = try Mongo.SwitchBranch.init(with: populate)
     }
 }

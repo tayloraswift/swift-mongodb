@@ -40,30 +40,31 @@ extension BSON.ListEncoder
 }
 extension BSON.ListEncoder
 {
-    @inlinable public mutating
+    @inlinable mutating
     func append(_ value:some BSONEncodable)
     {
         self.append(with: value.encode(to:))
     }
-    /// Encodes and appends the given value if it is non-`nil`, does
-    /// nothing otherwise.
-    @inlinable public mutating
-    func push(_ element:(some BSONEncodable)?)
-    {
-        element.map
-        {
-            self.append($0)
-        }
-    }
-    @available(*, deprecated, message: "use append(_:) for non-optional values")
-    public mutating
-    func push(_ element:some BSONEncodable)
-    {
-        self.push(element as _?)
-    }
 }
 extension BSON.ListEncoder
 {
+    /// Appends a value to the list if non-nil, does nothing otherwise.
+    ///
+    /// Why a subscript and not an `append` method? Because we often want to optionally append a
+    /// value while building a list, and the subscript syntax is more convenient for that.
+    @inlinable public
+    subscript<Encodable>(_:(Index) -> Void) -> Encodable? where Encodable:BSONEncodable
+    {
+        get { nil }
+        set (value)
+        {
+            if  let value:Encodable
+            {
+                self.append(value)
+            }
+        }
+    }
+
     @inlinable public mutating
     func callAsFunction(_ yield:(inout BSON.ListEncoder) -> ())
     {
