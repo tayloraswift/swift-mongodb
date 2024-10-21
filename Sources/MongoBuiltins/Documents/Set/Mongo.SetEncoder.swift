@@ -52,4 +52,26 @@ extension Mongo.SetEncoder
             yield(&self.bson[with: path][as: Mongo.ExpressionEncoder.self])
         }
     }
+
+    @inlinable public
+    subscript<NestedKey>(path:CodingKey,
+        using:NestedKey.Type,
+        yield:(inout Mongo.SetEncoder<NestedKey>) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: path][as: Mongo.SetEncoder<NestedKey>.self])
+        }
+    }
+
+    @inlinable public
+    subscript(path:CodingKey,
+        using:Int.Type,
+        yield:(inout Mongo.SetListEncoder) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: path][as: Mongo.SetListEncoder.self])
+        }
+    }
 }

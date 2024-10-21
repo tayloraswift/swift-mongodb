@@ -97,7 +97,7 @@ extension Mongo.ExpressionEncoder
             if  let value:Encodable
             {
                 {
-                    $0.append(value)
+                    $0[+] = value
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -134,8 +134,8 @@ extension Mongo.ExpressionEncoder
             if  case (let first?, let second?) = value
             {
                 {
-                    $0.append(first)
-                    $0.append(second)
+                    $0[+] = first
+                    $0[+] = second
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -164,9 +164,9 @@ extension Mongo.ExpressionEncoder
             if  case (if: let predicate?, then: let first?, else: let second?) = value
             {
                 {
-                    $0.append(predicate)
-                    $0.append(first)
-                    $0.append(second)
+                    $0[+] = predicate
+                    $0[+] = first
+                    $0[+] = second
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -195,8 +195,8 @@ extension Mongo.ExpressionEncoder
             if  case (let dividend?, by: let divisor?) = value
             {
                 {
-                    $0.append(dividend)
-                    $0.append(divisor)
+                    $0[+] = dividend
+                    $0[+] = divisor
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -229,8 +229,8 @@ extension Mongo.ExpressionEncoder
             if  case (of: let array?, at: let index?) = value
             {
                 {
-                    $0.append(array)
-                    $0.append(index)
+                    $0[+] = array
+                    $0[+] = index
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -258,8 +258,8 @@ extension Mongo.ExpressionEncoder
             if  case (let element?, in: let array?) = value
             {
                 {
-                    $0.append(element)
-                    $0.append(array)
+                    $0[+] = element
+                    $0[+] = array
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -287,8 +287,8 @@ extension Mongo.ExpressionEncoder
             if  case (base: let base?, of: let exponential?) = value
             {
                 {
-                    $0.append(base)
-                    $0.append(exponential)
+                    $0[+] = base
+                    $0[+] = exponential
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -316,8 +316,8 @@ extension Mongo.ExpressionEncoder
             if  case (base: let base?, to: let exponent?) = value
             {
                 {
-                    $0.append(base)
-                    $0.append(exponent)
+                    $0[+] = base
+                    $0[+] = exponent
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -358,8 +358,8 @@ extension Mongo.ExpressionEncoder
             if  case (let fraction?, let places) = value
             {
                 {
-                    $0.append(fraction)
-                    $0.push(places)
+                    $0[+] = fraction
+                    $0[+] = places
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -386,9 +386,9 @@ extension Mongo.ExpressionEncoder
             if  case (from: let start?, to: let end?, by: let step) = value
             {
                 {
-                    $0.append(start)
-                    $0.append(end)
-                    $0.push(step)
+                    $0[+] = start
+                    $0[+] = end
+                    $0[+] = step
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -428,9 +428,9 @@ extension Mongo.ExpressionEncoder
             if  case (let array?, at: let index, distance: let distance?) = value
             {
                 {
-                    $0.append(array)
-                    $0.push(index)
-                    $0.append(distance)
+                    $0[+] = array
+                    $0[+] = index
+                    $0[+] = distance
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -470,8 +470,8 @@ extension Mongo.ExpressionEncoder
             if  case (let minuend?, minus: let difference?) = value
             {
                 {
-                    $0.append(minuend)
-                    $0.append(difference)
+                    $0[+] = minuend
+                    $0[+] = difference
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -514,8 +514,8 @@ extension Mongo.ExpressionEncoder
             if  case (let count?, of: let array?) = value
             {
                 {
-                    $0.append(count)
-                    $0.append(array)
+                    $0[+] = count
+                    $0[+] = array
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }
         }
@@ -546,11 +546,13 @@ extension Mongo.ExpressionEncoder
     }
 
     @inlinable public
-    subscript(key:Variadic, yield:(inout BSON.ListEncoder) -> ()) -> Void
+    subscript(key:Variadic,
+        using:Int.Type = Int.self,
+        yield:(inout Mongo.SetListEncoder) -> ()) -> Void
     {
         mutating get
         {
-            yield(&self.bson[with: key][as: BSON.ListEncoder.self])
+            yield(&self.bson[with: key][as: Mongo.SetListEncoder.self])
         }
     }
 
@@ -588,8 +590,8 @@ extension Mongo.ExpressionEncoder
         set(value)
         {
             {
-                $0.push(value.0)
-                $0.push(value.1)
+                $0[+] = value.0
+                $0[+] = value.1
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
@@ -606,9 +608,9 @@ extension Mongo.ExpressionEncoder
         set(value)
         {
             {
-                $0.push(value.0)
-                $0.push(value.1)
-                $0.push(value.2)
+                $0[+] = value.0
+                $0[+] = value.1
+                $0[+] = value.2
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
@@ -626,10 +628,10 @@ extension Mongo.ExpressionEncoder
         set(value)
         {
             {
-                $0.push(value.0)
-                $0.push(value.1)
-                $0.push(value.2)
-                $0.push(value.3)
+                $0[+] = value.0
+                $0[+] = value.1
+                $0[+] = value.2
+                $0[+] = value.3
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }
@@ -800,13 +802,13 @@ extension Mongo.ExpressionEncoder
             if  case (in: let sequence?, of: let element?, let start, let end) = value
             {
                 {
-                    $0.append(sequence)
-                    $0.append(element)
+                    $0[+] = sequence
+                    $0[+] = element
 
                     if  let start:Start
                     {
-                        $0.append(start)
-                        $0.push(end)
+                        $0[+] = start
+                        $0[+] = end
                     }
                 } (&self.bson[with: key][as: BSON.ListEncoder.self])
             }

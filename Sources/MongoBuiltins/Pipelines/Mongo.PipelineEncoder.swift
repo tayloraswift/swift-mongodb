@@ -1055,11 +1055,11 @@ extension Mongo.PipelineEncoder
 
             self.list(Unset.self)
             {
-                $0[unset]
+                $0[unset](Int.self)
                 {
                     for path:Mongo.AnyKeyPath in value
                     {
-                        $0.append(path.stem)
+                        $0[+] = path.stem
                     }
                 }
             }

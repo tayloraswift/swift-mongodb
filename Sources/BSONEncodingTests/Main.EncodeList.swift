@@ -17,11 +17,11 @@ extension Main.EncodeList:TestBattery
             {
                 $0["a"] = [] as [Never]
                 $0["b"] = [1]
-                $0["c"]
+                $0["c"](Int.self)
                 {
-                    $0.append(1)
-                    $0.append("x")
-                    $0.append(5.5)
+                    $0[+] = 1
+                    $0[+] = "x"
+                    $0[+] = 5.5
                 }
             },
             literal:

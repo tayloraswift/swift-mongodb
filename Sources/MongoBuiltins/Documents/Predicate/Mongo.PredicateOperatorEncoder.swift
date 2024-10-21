@@ -145,8 +145,8 @@ extension Mongo.PredicateOperatorEncoder
             }
 
             {
-                $0.append(divisor)
-                $0.append(remainder)
+                $0[+] = divisor
+                $0[+] = remainder
             } (&self.bson[with: key][as: BSON.ListEncoder.self])
         }
     }

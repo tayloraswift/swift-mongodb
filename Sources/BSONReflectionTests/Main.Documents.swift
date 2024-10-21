@@ -27,7 +27,7 @@ extension Main.Documents:TestBattery
             $0["supervisors"] = ["Barbie", "Midge", "Raquelle"]
             $0["notes"] = [] as [Never]
             $0["campaigns"] = [:]
-            $0["complaints"]
+            $0["complaints"](Int.self)
             {
                 $0(BSON.Key.self)
                 {
