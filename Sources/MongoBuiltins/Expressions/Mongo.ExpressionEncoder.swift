@@ -53,16 +53,18 @@ extension Mongo.ExpressionEncoder
     }
 
     @inlinable public
-    subscript<Encodable>(key:Unary) -> Encodable?
-        where Encodable:BSONEncodable
+    subscript<Encodable>(key:Unary) -> Encodable? where Encodable:BSONEncodable
     {
-        get
+        get { nil }
+        set (value) { value?.encode(to: &self.bson[with: key]) }
+    }
+
+    @inlinable public
+    subscript(key:Unary, yield:(inout Mongo.ExpressionEncoder) -> ()) -> Void
+    {
+        mutating get
         {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key])
+            yield(&self.bson[with: key][as: Mongo.ExpressionEncoder.self])
         }
     }
 }
