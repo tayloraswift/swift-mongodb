@@ -36,8 +36,8 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(
             from: "1.1.0")),
 
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.72.0"),
-        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.26.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.75.0"),
+        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.28.0"),
     ],
     targets: [
         .target(name: "UUID",
