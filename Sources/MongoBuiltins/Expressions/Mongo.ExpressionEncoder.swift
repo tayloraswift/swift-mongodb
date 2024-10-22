@@ -150,8 +150,26 @@ extension Mongo.ExpressionEncoder
     enum Cond:String, Sendable
     {
         case cond = "$cond"
+
+        @frozen public
+        enum Clause:String, Sendable
+        {
+            case `if`
+            case  then
+            case `else`
+        }
     }
 
+    @inlinable public
+    subscript(key:Cond, yield:(inout Mongo.SetEncoder<Cond.Clause>) -> ()) -> Void
+    {
+        mutating get
+        {
+            yield(&self.bson[with: key][as: Mongo.SetEncoder<Cond.Clause>.self])
+        }
+    }
+
+    @available(*, deprecated, message: "Use subscript(_:_:) instead.")
     @inlinable public
     subscript<Predicate, Then, Else>(key:Cond) -> (if:Predicate?, then:Then?, else:Else?)
         where   Predicate:BSONEncodable,
