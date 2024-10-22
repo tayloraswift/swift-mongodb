@@ -37,6 +37,7 @@ extension Mongo.ExpressionEncoder
         case abs            = "$abs"
         case arrayToObject  = "$arrayToObject"
         case binarySize     = "$binarySize"
+        case bitNot         = "$bitNot"
         case objectSize     = "$bsonSize"
         case objectToArray  = "$objectToArray"
         case ceil           = "$ceil"
@@ -541,6 +542,10 @@ extension Mongo.ExpressionEncoder
         case setEquals          = "$setEquals"
         case setIntersection    = "$setIntersection"
         case setUnion           = "$setUnion"
+
+        case bitAnd             = "$bitAnd"
+        case bitOr              = "$bitOr"
+        case bitXor             = "$bitXor"
 
         @available(*, unavailable, renamed: "coalesce")
         public static
