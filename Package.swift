@@ -3,10 +3,7 @@ import PackageDescription
 
 let package:Package = .init(name: "swift-mongodb",
     platforms: [
-        //  TODO: this is really the wrong place to declare this, because we don’t
-        //  want to restrict availability of the BSON libraries just because of the
-        //  other modules that use async/await.
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(name: "BSON", targets: ["BSON"]),
