@@ -1,12 +1,7 @@
 import MongoDB
 import Testing
 
-extension Tag
-{
-    @Tag static var cursors:Self
-}
-
-@Suite(.tags(.cursors))
+@Suite
 struct Cursors
 {
     let collection:Mongo.Collection = "Ordinals"
