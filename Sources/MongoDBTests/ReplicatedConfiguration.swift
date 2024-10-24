@@ -23,7 +23,7 @@ enum ReplicatedConfiguration:MongoTestConfiguration
         options.connectionTimeout = .milliseconds(1000)
     }
 }
-extension ReplicatedConfiguration:CursorTestConfiguration
+extension ReplicatedConfiguration
 {
     static
     let servers:[Mongo.ReadPreference] =

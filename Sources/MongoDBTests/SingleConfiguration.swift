@@ -18,7 +18,7 @@ enum SingleConfiguration:MongoTestConfiguration
         options.authentication = .sasl(.sha256)
     }
 }
-extension SingleConfiguration:CursorTestConfiguration
+extension SingleConfiguration
 {
     static
     let servers:[Mongo.ReadPreference] = [.primary]
