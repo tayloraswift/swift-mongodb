@@ -134,7 +134,7 @@ struct Indexes:Mongo.TestBattery
         }
 
         try await session.run(
-            command: Mongo.DropIndexes(self.collection, writeConcern: .majority)
+            command: Mongo.DropIndexes.init(self.collection, writeConcern: .majority)
             {
                 $0[.index] = ["item_manufacturer_model", "item_supplier_model"]
             },
