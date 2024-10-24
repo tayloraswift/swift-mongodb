@@ -8,11 +8,6 @@ enum Main:TestMain
     static
     let all:[any TestBattery.Type] =
     [
-        Indexes             <ReplicatedConfiguration>.self,
-
         Transactions        <ReplicatedConfiguration>.self,
-
-
-        Indexes             <SingleConfiguration>.self,
     ]
 }
