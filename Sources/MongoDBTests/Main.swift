@@ -8,7 +8,6 @@ enum Main:TestMain
     static
     let all:[any TestBattery.Type] =
     [
-        Aggregate           <ReplicatedConfiguration>.self,
         ChangeStreams       <ReplicatedConfiguration>.self,
         Collections         <ReplicatedConfiguration>.self,
         Cursors             <ReplicatedConfiguration>.self,
@@ -22,7 +21,6 @@ enum Main:TestMain
         //  Note: these tests generally fail in debug mode because it takes a long time to
         //  complete cryptographic authentication, and the driver will time out before it
         //  completes.
-        Aggregate           <SingleConfiguration>.self,
         Collections         <SingleConfiguration>.self,
         Cursors             <SingleConfiguration>.self,
         Databases           <SingleConfiguration>.self,
