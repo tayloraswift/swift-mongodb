@@ -1,23 +1,20 @@
 import BSON
 import MongoQL
 
-extension UpdateNested
+struct Ape:Equatable, Hashable
 {
-    struct Ape:Equatable, Hashable
-    {
-        let id:Int
-        let name:String
-        let food:Food?
+    let id:Int
+    let name:String
+    let food:Food?
 
-        init(id:Int, name:String, food:Food?)
-        {
-            self.id = id
-            self.name = name
-            self.food = food
-        }
+    init(id:Int, name:String, food:Food?)
+    {
+        self.id = id
+        self.name = name
+        self.food = food
     }
 }
-extension UpdateNested.Ape:Mongo.MasterCodingModel
+extension Ape:Mongo.MasterCodingModel
 {
     enum CodingKey:String, Sendable
     {
@@ -26,7 +23,7 @@ extension UpdateNested.Ape:Mongo.MasterCodingModel
         case food
     }
 }
-extension UpdateNested.Ape:BSONDocumentEncodable
+extension Ape:BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
@@ -35,7 +32,7 @@ extension UpdateNested.Ape:BSONDocumentEncodable
         bson[.food] = self.food
     }
 }
-extension UpdateNested.Ape:BSONDocumentDecodable
+extension Ape:BSONDocumentDecodable
 {
     init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {

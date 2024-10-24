@@ -1,7 +1,7 @@
 import BSON
 import UnixTime
 
-extension UpdateNested.Ape
+extension Ape
 {
     struct Food:Equatable, Hashable
     {
@@ -15,7 +15,7 @@ extension UpdateNested.Ape
         }
     }
 }
-extension UpdateNested.Ape.Food
+extension Ape.Food
 {
     enum CodingKey:String, Sendable
     {
@@ -23,7 +23,7 @@ extension UpdateNested.Ape.Food
         case type
     }
 }
-extension UpdateNested.Ape.Food:BSONDocumentEncodable
+extension Ape.Food:BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
@@ -31,7 +31,7 @@ extension UpdateNested.Ape.Food:BSONDocumentEncodable
         bson[.type] = self.type
     }
 }
-extension UpdateNested.Ape.Food:BSONDocumentDecodable
+extension Ape.Food:BSONDocumentDecodable
 {
     init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {

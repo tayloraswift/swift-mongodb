@@ -15,8 +15,6 @@ enum Main:TestMain
         Databases           <ReplicatedConfiguration>.self,
         Fsync               <ReplicatedConfiguration>.self,
         Indexes             <ReplicatedConfiguration>.self,
-        Update              <ReplicatedConfiguration>.self,
-        UpdateNested        <ReplicatedConfiguration>.self,
 
         Transactions        <ReplicatedConfiguration>.self,
         CausalConsistency   <ReplicatedConfigurationWithLongerTimeout>.self,
@@ -30,7 +28,5 @@ enum Main:TestMain
         Databases           <SingleConfiguration>.self,
         Fsync               <SingleConfiguration>.self,
         Indexes             <SingleConfiguration>.self,
-        Update              <SingleConfiguration>.self,
-        UpdateNested        <SingleConfiguration>.self,
     ]
 }
