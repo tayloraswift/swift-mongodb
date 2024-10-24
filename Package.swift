@@ -274,6 +274,12 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoTesting"),
             ]),
 
+        .testTarget(name: "MongoDBTests2",
+            dependencies: [
+                .target(name: "MongoDB"),
+                .target(name: "MongoQL"),
+            ]),
+
         .executableTarget(name: "MongoDriverTests",
             dependencies: [
                 .target(name: "MongoDriver"),
