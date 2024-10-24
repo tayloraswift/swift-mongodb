@@ -200,11 +200,9 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoCommands"),
             ]),
 
-
         .target(name: "MongoTesting",
             dependencies: [
                 .target(name: "MongoDB"),
-                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         // the mongo wire protocol. has no awareness of networking or
@@ -270,7 +268,7 @@ let package:Package = .init(name: "swift-mongodb",
         .testTarget(name: "MongoDBTests",
             dependencies: [
                 .target(name: "MongoDB"),
-                .target(name: "MongoQL"),
+                .target(name: "MongoTesting"),
             ]),
 
         .executableTarget(name: "MongoDriverTests",

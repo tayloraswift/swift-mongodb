@@ -16,7 +16,7 @@ extension Mongo.SessionPool
     ///     references it.
     public nonisolated
     func withTemporaryDatabase(_ database:Mongo.Database,
-        run body:() async throws -> ()) async throws
+        run body:(Mongo.SessionPool) async throws -> ()) async throws
     {
         guard case true? = database.name.first?.isUppercase
         else
@@ -42,7 +42,7 @@ extension Mongo.SessionPool
                 """)
         }
 
-        try await body()
+        try await body(self)
 
         try await self.run(command: Mongo.DropDatabase.init(), against: database)
 

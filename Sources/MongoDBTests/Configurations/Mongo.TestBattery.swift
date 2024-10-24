@@ -1,4 +1,5 @@
 import MongoDB
+import MongoTesting
 
 extension Mongo
 {
