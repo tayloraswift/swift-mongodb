@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 swift --version
+
+# Note: these tests generally fail in debug mode because it takes a long time to
+# complete cryptographic authentication, and the driver will time out before it
+# completes.
 swift test -c release \
     --no-parallel \
     --explicit-target-dependency-import-check=error

@@ -7,9 +7,6 @@ struct Find:Mongo.TestBattery
     let collection:Mongo.Collection = "Ordinals"
     let database:Mongo.Database = "Find"
 
-    private
-    let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
-
     @Test(arguments: [.single, .replicated] as [any Mongo.TestConfiguration])
     func find(_ configuration:any Mongo.TestConfiguration) async throws
     {
@@ -18,6 +15,8 @@ struct Find:Mongo.TestBattery
 
     func run(with pool:Mongo.SessionPool) async throws
     {
+        let ordinals:Ordinals = .init(identifiers: 0 ..< 100)
+
         do
         {
             let expected:Mongo.InsertResponse = .init(inserted: 100)
