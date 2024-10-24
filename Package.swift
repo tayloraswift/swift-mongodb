@@ -267,7 +267,7 @@ let package:Package = .init(name: "swift-mongodb",
                 .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
-        .testTarget(name: "MongoDBTests2",
+        .testTarget(name: "MongoDBTests",
             dependencies: [
                 .target(name: "MongoDB"),
                 .target(name: "MongoQL"),
