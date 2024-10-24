@@ -1,8 +1,13 @@
 #!/bin/bash
 set -e
 swift --version
-swift test -c release --explicit-target-dependency-import-check=error
-swift build -c release --explicit-target-dependency-import-check=error
+swift test -c release \
+    --no-parallel \
+    --explicit-target-dependency-import-check=error
+
+swift build -c release \
+    --explicit-target-dependency-import-check=error
+
 for f in .build/release/*Tests; do
-  $f
+    $f
 done

@@ -15,7 +15,6 @@ enum Main:TestMain
         Indexes             <ReplicatedConfiguration>.self,
 
         Transactions        <ReplicatedConfiguration>.self,
-        CausalConsistency   <ReplicatedConfigurationWithLongerTimeout>.self,
 
         //  Note: these tests generally fail in debug mode because it takes a long time to
         //  complete cryptographic authentication, and the driver will time out before it

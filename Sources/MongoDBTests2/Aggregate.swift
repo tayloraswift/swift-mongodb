@@ -7,8 +7,6 @@ struct Aggregate:Mongo.TestBattery
     let collection:Mongo.Collection = "Articles"
     let database:Mongo.Database = "Aggregate"
 
-    //  This test is based on the tutorial from:
-    //  https://www.mongodb.com/docs/manual/reference/command/update/#examples
     @Test(arguments: [.single, .replicated] as [any Mongo.TestConfiguration])
     func aggregate(_ configuration:any Mongo.TestConfiguration) async throws
     {

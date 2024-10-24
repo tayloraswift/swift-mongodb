@@ -1,26 +1,35 @@
 import BSON
 import MongoDB
-import MongoTesting
+import Testing
 
-struct CausalConsistency<Configuration>:MongoTestBattery
-    where Configuration:MongoTestConfiguration
+/// This test cannot run concurrently with any other test suites! This is because it modifies
+/// the deployment itself, and expects the deployment to be in specific states at specific
+/// times.
+@Suite
+struct CausalConsistency:Mongo.TestBattery
 {
-    static
+    let database:Mongo.Database = "CausalConsistency"
     var logging:Mongo.LogSeverity { .debug }
 
-    static
-    func run(tests:TestGroup, pool:Mongo.SessionPool, database:Mongo.Database) async throws
+    //  This test only makes sense in a replicated topology.
+    @Test(arguments: [.replicatedWithLongerTimeout] as [any Mongo.TestConfiguration])
+    func causalConsistency(_ configuration:any Mongo.TestConfiguration) async throws
+    {
+        try await self.run(under: configuration)
+    }
+
+    func run(with pool:Mongo.SessionPool) async throws
     {
         let session:Mongo.Session = try await .init(from: pool)
 
-        let collection:Mongo.Collection = "letters"
+        let collection:Mongo.Collection = "Letters"
         let a:Letter = "a"
         let b:Letter = "b"
         let c:Letter = "c"
         let d:Letter = "d"
 
         //  A new session should have no precondition time.
-        tests.expect(nil: session.preconditionTime)
+        #expect(nil == session.preconditionTime)
 
         //  We should have a test deployment with seven members, including one
         //  arbiter, one (non-voting) hidden replica, and five visible
@@ -28,46 +37,40 @@ struct CausalConsistency<Configuration>:MongoTestBattery
         //
         //  Therefore, writes must propogate to at least three replicas
         //  (besides the hidden replica) to pass a `majority` write concern.
-        await (tests ! "initialize").do
+        do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection,
                     writeConcern: .acknowledged(by: 5, journaled: true),
                     encoding: [a]),
                     //  We should ensure the write propogates to all five visible replicas.
-                against: database,
+                against: self.database,
                 on: .primary)
 
-            tests.expect(response ==? .init(inserted: 1))
+            #expect(response == .init(inserted: 1))
         }
 
         let other:Mongo.Session = try await session.fork()
 
         //  We should be able to observe a precondition time after performing the
         //  initialization.
-        guard var head:BSON.Timestamp = tests.expect(value: session.preconditionTime)
-        else
-        {
-            return
-        }
+        var head:BSON.Timestamp = try #require(session.preconditionTime)
 
-        //  We should be able to choose this specific secondary/slave, which
-        //  we know will always be a secondary/slave, because it is not a
-        //  citizen. It was configured with zero votes, so no other secondaries
-        //  should be replicating from it.
+        //  We should be able to choose this specific slave, which we know will
+        //  always be a slave, because it is not a citizen. It was configured
+        //  with zero votes, so no other secondaries should be replicating from it.
         let secondary:Mongo.ReadPreference = .secondary(
             tagSets: [["priority": "zero", "name": "E"]])
 
-        //  We should be able to lock this secondary/slave, without removing
-        //  it from quorum. Until this secondary is unlocked, writes must
-        //  propogate to all three of the other (non-hidden) replicas to pass
-        //  a `majority` write concern.
+        //  We should be able to lock this slave, without removing it from quorum.
+        //  Until this slave is unlocked, writes must propogate to all three of
+        //  the other (non-hidden) replicas to pass a `majority` write concern.
         var lock:Mongo.FsyncLock = try await session.run(
             command: Mongo.Fsync.init(lock: true),
             against: .admin,
             on: secondary)
 
-        tests.expect(lock.count ==? 1)
+        #expect(lock.count == 1)
 
         //  We should be able to fix the test deployment if a previous run
         //  of this test got interrupted.
@@ -77,88 +80,96 @@ struct CausalConsistency<Configuration>:MongoTestBattery
                 against: .admin,
                 on: secondary)
 
-            tests.expect(lock.count ==? count)
+            #expect(lock.count == count)
         }
 
-        //  We should be able to read the `a`, because this secondary/slave
-        //  acknowledged the write that added it to the collection before we
-        //  locked it.
-        await (tests ! "before").do
+        //  We should be able to read the `a`, because this slave acknowledged
+        //  the write that added it to the collection before we locked it.
+        do
         {
             let letters:[Letter] = try await session.run(
                 command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10),
-                against: database,
+                against: self.database,
                 on: secondary)
-            tests.expect(letters ..? [a])
+
+            #expect(letters == [a])
         }
         //  We should be able to insert a letter `b` into the collection (on
-        //  the primary/master), using a majority write concern. We should
-        //  succeed because there are still three unlocked members able to
-        //  acknowledge the write.
-        await (tests ! "insert-b").do
+        //  the master), using a majority write concern. We should succeed
+        //  because there are still three unlocked members able to acknowledge
+        //  the write.
+        do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection,
                     writeConcern: .majority(journaled: true),
                     encoding: [b]),
-                against: database,
+                against: self.database,
                 on: .primary)
 
-            tests.expect(response ==? .init(inserted: 1))
+            #expect(response == .init(inserted: 1))
         }
 
         //  We should still be able to observe a precondition time, and the
         //  value of that time should be greater than it was before we inserted
         //  the letter `b` into the collection.
-        if let time:BSON.Timestamp = tests.expect(value: session.preconditionTime)
+        do
         {
-            tests.expect(true: head < time)
+            let time:BSON.Timestamp = try #require(session.preconditionTime)
+
+            #expect(head < time)
+
             head = time
         }
 
         //  We should be able to insert a letter `c` into the collection (on
-        //  the primary/master), using an acknowledgement count write concern.
+        //  the master), using an acknowledgement count write concern.
         //  We should succeed because three acknowledgements is currently the
         //  threshold needed to pass a majority write concern.
-        await (tests ! "insert-c").do
+        do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection,
                     writeConcern: .acknowledged(by: 3, journaled: true),
                     encoding: [c]),
-                against: database,
+                against: self.database,
                 on: .primary)
 
-            tests.expect(response ==? .init(inserted: 1))
+            #expect(response == .init(inserted: 1))
         }
 
-        if let time:BSON.Timestamp = tests.expect(value: session.preconditionTime)
+        do
         {
-            tests.expect(true: head < time)
+            let time:BSON.Timestamp = try #require(session.preconditionTime)
+
+            #expect(head < time)
+
             head = time
         }
 
         //  We should be able to insert a letter `d` into the collection (on the
-        //  primary/master), using an acknowledgement count write concern that
-        //  is lower than the current majority threshold. We should succeed
-        //  because this insertion should also have been able to pass a majority
-        //  write concern.
-        await (tests ! "insert-d").do
+        //  master), using an acknowledgement count write concern that is lower
+        //  than the current majority threshold. We should succeed because this
+        //  insertion should also have been able to pass a majority write concern.
+        do
         {
             let response:Mongo.InsertResponse = try await session.run(
                 command: Mongo.Insert.init(collection,
                     writeConcern: .acknowledged(by: 2, journaled: true),
                     encoding: [d]),
-                against: database,
+                against: self.database,
                 on: .primary)
 
-            tests.expect(response ==? .init(inserted: 1))
+            #expect(response == .init(inserted: 1))
         }
 
-        if let time:BSON.Timestamp = tests.expect(value: session.preconditionTime)
+        do
         {
-            tests.expect(true: head < time)
+            let time:BSON.Timestamp = try #require(session.preconditionTime)
+
+            #expect(head < time)
+
             head = time
         }
 
@@ -179,22 +190,20 @@ struct CausalConsistency<Configuration>:MongoTestBattery
                         $0[.id] = (+)
                     }
                 },
-                against: database,
+                against: self.database,
                 on: secondary,
                 by: .now.advanced(by: .milliseconds(500)))
         }
 
         //  We should receive a timeout error if we try to read from the locked
-        //  secondary/slave from the current session, because sessions are
-        //  causally-consistent.
+        //  slave from the current session, because sessions are causally-consistent.
         //
-        //  When we used the session to write to the primary/master, we should
-        //  have updated the session’s precondition time to the operation time
-        //  reported by the primary/master. When we try to read from the locked
-        //  secondary, we should be asking it for data from a time in its future
-        //  that it doesn’t have. We should have prevented it from getting the
-        //  new data by locking it earlier.
-        await (tests ! "timeout").do(catching: AnyTimeoutError.self)
+        //  When we used the session to write to the master, we should have updated
+        //  the session’s precondition time to the operation time reported by the
+        //  master. When we try to read from the locked slave, we should be asking it
+        //  for data from a time in its future that it doesn’t have. We should have
+        //  prevented it from getting the new data by locking it earlier.
+        await #expect(throws: AnyTimeoutError.self)
         {
             do
             {
@@ -207,8 +216,8 @@ struct CausalConsistency<Configuration>:MongoTestBattery
         }
 
         //  We should be able to read all four writes from a different,
-        //  unlocked secondary/slave.
-        await (tests ! "bystander").do
+        //  unlocked slave.
+        do
         {
             let letters:[Letter] = try await session.run(
                 command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
@@ -219,16 +228,16 @@ struct CausalConsistency<Configuration>:MongoTestBattery
                         $0[.id] = (+)
                     }
                 },
-                against: database,
+                against: self.database,
                 on: .secondary(tagSets: [["name": "D"]]))
 
-            tests.expect(letters ..? [a, b, c, d])
+            #expect(letters == [a, b, c, d])
         }
 
         //  We should still receive a timeout error if we try to read from the
-        //  locked secondary from the current session, because running the last
+        //  locked slave from the current session, because running the last
         //  command didn’t lower the precondition time.
-        await (tests ! "timeout-again").do(catching: AnyTimeoutError.self)
+        await #expect(throws: AnyTimeoutError.self)
         {
             do
             {
@@ -239,46 +248,42 @@ struct CausalConsistency<Configuration>:MongoTestBattery
                 throw AnyTimeoutError.init(error) ?? error
             }
         }
-        //  We should still be able to read from the locked secondary/slave from
-        //  a different session. Because that session’s timeline should have no
+        //  We should still be able to read from the locked slave from a
+        //  different session. Because that session’s timeline should have no
         //  relationship with the current session’s timeline, the read should
         //  succeed, and return the stale data from before the last three writes.
-        await (tests ! "non-causal").do
+        do
         {
             let letters:[Letter] = try await other.run(
                 command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                     limit: 10),
-                against: database,
+                against: self.database,
                 on: secondary)
 
-            guard let time:BSON.Timestamp = tests.expect(value: other.preconditionTime)
-            else
-            {
-                return
-            }
+            let time:BSON.Timestamp = try #require(other.preconditionTime)
             //  The data returned should be stale. We should be able to verify
             //  this both from the parallel session’s precondition time, and
             //  the returned data.
-            tests.expect(true: time < head)
-            tests.expect(letters ..? [a])
+            #expect(time < head)
+            #expect(letters == [a])
         }
         //  We should still receive a timeout error if we try to read from the
-        //  locked secondary/slave using a session that was forked from the
-        //  current session, however.
-        await (tests ! "timeout-forked").do(catching: AnyTimeoutError.self)
+        //  locked slave using a session that was forked from the current
+        //  session, however.
+        await #expect(throws: AnyTimeoutError.self)
         {
             let forked:Mongo.Session = try await session.fork()
 
             //  A forked session should initially share the same precondition
             //  time as the session it was forked from.
-            tests.expect(forked.preconditionTime ==? head)
+            #expect(forked.preconditionTime == head)
 
             do
             {
                 let _:[Letter] = try await forked.run(
                     command: Mongo.Find<Mongo.SingleBatch<Letter>>.init(collection,
                         limit: 10),
-                    against: database,
+                    against: self.database,
                     on: secondary)
             }
             catch let error
@@ -287,16 +292,16 @@ struct CausalConsistency<Configuration>:MongoTestBattery
             }
         }
 
-        //  We should be able to unlock the secondary/slave.
+        //  We should be able to unlock the slave.
         lock = try await session.run(command: Mongo.FsyncUnlock.init(),
             against: .admin,
             on: secondary)
-        //  We should have unlocked the secondary/slave all the way.
-        tests.expect(lock.count ==? 0)
 
-        //  We should be able to read all four writes from the unlocked
-        //  secondary/slave, because it has caught up to the session’s
-        //  precondition time.
-        tests.expect(try await ReadLetters() ..? [a, b, c, d])
+        //  We should have unlocked the slave all the way.
+        #expect(lock.count == 0)
+
+        //  We should be able to read all four writes from the unlocked slave,
+        //  because it has caught up to the session’s precondition time.
+        #expect(try await ReadLetters() == [a, b, c, d])
     }
 }
