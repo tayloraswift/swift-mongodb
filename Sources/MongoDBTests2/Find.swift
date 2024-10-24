@@ -4,7 +4,7 @@ import Testing
 @Suite
 struct Find:Mongo.TestBattery
 {
-    let collection:Mongo.Collection = "ordinals"
+    let collection:Mongo.Collection = "Ordinals"
     let database:Mongo.Database = "Find"
 
     private

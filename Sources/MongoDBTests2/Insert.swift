@@ -4,7 +4,7 @@ import Testing
 @Suite
 struct Insert:Mongo.TestBattery
 {
-    let collection:Mongo.Collection = "ordinals"
+    let collection:Mongo.Collection = "Ordinals"
     let database:Mongo.Database = "Insert"
 
     @Test(arguments: [.single, .replicated] as [any Mongo.TestConfiguration])
