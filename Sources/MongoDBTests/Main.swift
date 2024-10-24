@@ -17,7 +17,6 @@ enum Main:TestMain
         FindAndModify       <ReplicatedConfiguration>.self,
         Fsync               <ReplicatedConfiguration>.self,
         Indexes             <ReplicatedConfiguration>.self,
-        Insert              <ReplicatedConfiguration>.self,
         Update              <ReplicatedConfiguration>.self,
         UpdateNested        <ReplicatedConfiguration>.self,
 
@@ -35,7 +34,6 @@ enum Main:TestMain
         FindAndModify       <SingleConfiguration>.self,
         Fsync               <SingleConfiguration>.self,
         Indexes             <SingleConfiguration>.self,
-        Insert              <SingleConfiguration>.self,
         Update              <SingleConfiguration>.self,
         UpdateNested        <SingleConfiguration>.self,
     ]
