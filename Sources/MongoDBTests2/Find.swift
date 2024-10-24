@@ -2,11 +2,9 @@ import MongoDB
 import Testing
 
 @Suite
-struct Find
+struct Find:Mongo.TestBattery
 {
-    private
     let collection:Mongo.Collection = "ordinals"
-    private
     let database:Mongo.Database = "Find"
 
     private
@@ -15,16 +13,9 @@ struct Find
     @Test(arguments: [.single, .replicated] as [any Mongo.TestConfiguration])
     func find(_ configuration:any Mongo.TestConfiguration) async throws
     {
-        let bootstrap:Mongo.DriverBootstrap = configuration.bootstrap(on: .singleton)
-        try await bootstrap.withSessionPool(logger: .init(level: .error))
-        {
-            (pool:Mongo.SessionPool) in
-
-            try await pool.withTemporaryDatabase(self.database, run: self.run(with:))
-        }
+        try await self.run(under: configuration)
     }
 
-    private
     func run(with pool:Mongo.SessionPool) async throws
     {
         do

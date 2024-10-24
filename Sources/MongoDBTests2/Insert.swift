@@ -2,26 +2,17 @@ import MongoDB
 import Testing
 
 @Suite
-struct Insert
+struct Insert:Mongo.TestBattery
 {
-    private
     let collection:Mongo.Collection = "ordinals"
-    private
     let database:Mongo.Database = "Insert"
 
     @Test(arguments: [.single, .replicated] as [any Mongo.TestConfiguration])
     func insert(_ configuration:any Mongo.TestConfiguration) async throws
     {
-        let bootstrap:Mongo.DriverBootstrap = configuration.bootstrap(on: .singleton)
-        try await bootstrap.withSessionPool(logger: .init(level: .error))
-        {
-            (pool:Mongo.SessionPool) in
-
-            try await pool.withTemporaryDatabase(self.database, run: self.run(with:))
-        }
+        try await self.run(under: configuration)
     }
 
-    private
     func run(with pool:Mongo.SessionPool) async throws
     {
         let session:Mongo.Session = try await .init(from: pool)
