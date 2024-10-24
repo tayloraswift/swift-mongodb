@@ -8,7 +8,6 @@ enum Main:TestMain
     static
     let all:[any TestBattery.Type] =
     [
-        ChangeStreams       <ReplicatedConfiguration>.self,
         Cursors             <ReplicatedConfiguration>.self,
         Fsync               <ReplicatedConfiguration>.self,
         Indexes             <ReplicatedConfiguration>.self,

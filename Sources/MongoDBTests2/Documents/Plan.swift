@@ -1,23 +1,20 @@
 import BSON
 import MongoQL
 
-extension ChangeStreams
+struct Plan:Identifiable, Equatable, Sendable
 {
-    struct Plan:Identifiable, Equatable, Sendable
-    {
-        let id:Int
-        var owner:String
-        var level:String
+    let id:Int
+    var owner:String
+    var level:String
 
-        init(id:Int, owner:String, level:String)
-        {
-            self.id = id
-            self.owner = owner
-            self.level = level
-        }
+    init(id:Int, owner:String, level:String)
+    {
+        self.id = id
+        self.owner = owner
+        self.level = level
     }
 }
-extension ChangeStreams.Plan:Mongo.MasterCodingModel
+extension Plan:Mongo.MasterCodingModel
 {
     enum CodingKey:String, BSONDecodable, Sendable
     {
@@ -26,7 +23,7 @@ extension ChangeStreams.Plan:Mongo.MasterCodingModel
         case level = "L"
     }
 }
-extension ChangeStreams.Plan:BSONDocumentEncodable
+extension Plan:BSONDocumentEncodable
 {
     func encode(to bson:inout BSON.DocumentEncoder<CodingKey>)
     {
@@ -35,7 +32,7 @@ extension ChangeStreams.Plan:BSONDocumentEncodable
         bson[.level] = self.level
     }
 }
-extension ChangeStreams.Plan:BSONDocumentDecodable
+extension Plan:BSONDocumentDecodable
 {
     init(bson:BSON.DocumentDecoder<CodingKey>) throws
     {
