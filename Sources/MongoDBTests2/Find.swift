@@ -1,5 +1,4 @@
 import MongoDB
-import MongoTesting
 import Testing
 
 @Suite
