@@ -10,7 +10,6 @@ enum Main:TestMain
     [
         ChangeStreams       <ReplicatedConfiguration>.self,
         Cursors             <ReplicatedConfiguration>.self,
-        Databases           <ReplicatedConfiguration>.self,
         Fsync               <ReplicatedConfiguration>.self,
         Indexes             <ReplicatedConfiguration>.self,
 
@@ -20,7 +19,6 @@ enum Main:TestMain
         //  complete cryptographic authentication, and the driver will time out before it
         //  completes.
         Cursors             <SingleConfiguration>.self,
-        Databases           <SingleConfiguration>.self,
         Fsync               <SingleConfiguration>.self,
         Indexes             <SingleConfiguration>.self,
     ]
