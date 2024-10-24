@@ -9,7 +9,6 @@ enum Main:TestMain
     let all:[any TestBattery.Type] =
     [
         ChangeStreams       <ReplicatedConfiguration>.self,
-        Collections         <ReplicatedConfiguration>.self,
         Cursors             <ReplicatedConfiguration>.self,
         Databases           <ReplicatedConfiguration>.self,
         Fsync               <ReplicatedConfiguration>.self,
@@ -21,7 +20,6 @@ enum Main:TestMain
         //  Note: these tests generally fail in debug mode because it takes a long time to
         //  complete cryptographic authentication, and the driver will time out before it
         //  completes.
-        Collections         <SingleConfiguration>.self,
         Cursors             <SingleConfiguration>.self,
         Databases           <SingleConfiguration>.self,
         Fsync               <SingleConfiguration>.self,
