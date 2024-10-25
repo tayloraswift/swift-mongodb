@@ -42,8 +42,8 @@ struct Transactions:Mongo.TestBattery
             //  transaction result.
             switch result
             {
-            case .abortion(_, .cancelled):  #expect(true)
-            case _:                         #expect(false as Bool)
+            case .abortion(_, .cancelled):  break
+            case _:                         Issue.record()
             }
 
             //  Because the transaction was empty, the session’s transaction number
@@ -113,8 +113,8 @@ struct Transactions:Mongo.TestBattery
             //  transaction result.
             switch result
             {
-            case .abortion(_, .aborted):    #expect(true)
-            case _:                         #expect(false as Bool)
+            case .abortion(_, .aborted):    break
+            case _:                         Issue.record()
             }
             //  We should be able to observe that the session’s transaction number
             //  was incremented, because the transaction was not empty.
@@ -149,8 +149,8 @@ struct Transactions:Mongo.TestBattery
             //  transaction result.
             switch result
             {
-            case .commit(_, .cancelled):    #expect(true)
-            case _:                         #expect(false as Bool)
+            case .commit(_, .cancelled):    break
+            case _:                         Issue.record()
             }
 
             //  We should be able to observe that the session’s transaction number
@@ -204,8 +204,8 @@ struct Transactions:Mongo.TestBattery
             //  transaction result.
             switch result
             {
-            case .commit(_, .committed):    #expect(true)
-            case _:                         #expect(false as Bool)
+            case .commit(_, .committed):    break
+            case _:                         Issue.record()
             }
             //  We should be able to observe that the session’s transaction number
             //  was incremented, because the transaction was not empty.

@@ -1,19 +1,28 @@
 import MongoConfiguration
 import MongoDriver
 import NIOPosix
-import Testing_
+import Testing
 
-func TestAuthentication(_ tests:TestGroup,
-    executors:MultiThreadedEventLoopGroup,
-    seedlist:Mongo.Seedlist,
-    username:String,
-    password:String) async
+@Suite struct Authentication
 {
-    await (tests / "authentication" / "defaulted")?.do
+    static var username:String { "root" }
+    static var password:String { "80085" }
+
+    let seedlist:Mongo.Seedlist
+
+    init()
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, password) * seedlist /?
+        self.seedlist = .standalone
+    }
+
+    static var login:(String, String) { (Self.username, Self.password) }
+
+    @Test
+    func defaulted() async throws
+    {
+        let bootstrap:Mongo.DriverBootstrap = mongodb / Self.login * self.seedlist /?
         {
-            $0.executors = .shared(executors)
+            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
         }
         try await bootstrap.withSessionPool
         {
@@ -22,12 +31,13 @@ func TestAuthentication(_ tests:TestGroup,
         }
     }
 
-    await (tests / "authentication" / "scram-sha256")?.do
+    @Test
+    func scramSHA256() async throws
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, password) * seedlist /?
+        let bootstrap:Mongo.DriverBootstrap = mongodb / Self.login * self.seedlist /?
         {
             $0.authentication = .sasl(.sha256)
-            $0.executors = .shared(executors)
+            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
         }
         try await bootstrap.withSessionPool
         {
@@ -36,19 +46,20 @@ func TestAuthentication(_ tests:TestGroup,
         }
     }
 
-    if  let tests:TestGroup = tests / "authentication-unsupported"
+    @Test
+    func unsupported() async throws
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, password) * seedlist /?
+        let bootstrap:Mongo.DriverBootstrap = mongodb / Self.login * self.seedlist /?
         {
             $0.connectionTimeout = .milliseconds(500)
             $0.authentication = .x509
-            $0.executors = .shared(executors)
+            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
         }
-        await tests.do(catching: Mongo.ConnectionPoolDrainedError.init(
+        await #expect(throws: Mongo.ConnectionPoolDrainedError.init(
             because: Mongo.AuthenticationError.init(
                     Mongo.AuthenticationUnsupportedError.init(.x509),
                 credentials: bootstrap.credentials!),
-            host: seedlist[0]))
+            host: self.seedlist[0]))
         {
             try await bootstrap.withSessionPool
             {
@@ -58,19 +69,21 @@ func TestAuthentication(_ tests:TestGroup,
         }
     }
 
-    if  let tests:TestGroup = tests / "authentication-wrong-password"
+    @Test
+    func wrongPassword() async throws
     {
-        let bootstrap:Mongo.DriverBootstrap = mongodb / (username, "1234") * seedlist /?
+        let bootstrap:Mongo.DriverBootstrap =
+            mongodb / (Self.username, "1234") * self.seedlist /?
         {
             $0.connectionTimeout = .milliseconds(500)
             $0.authentication = .sasl(.sha256)
-            $0.executors = .shared(executors)
+            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
         }
-        await tests.do(catching: Mongo.ConnectionPoolDrainedError.init(
+        await #expect(throws: Mongo.ConnectionPoolDrainedError.init(
             because: Mongo.AuthenticationError.init(Mongo.ServerError.init(18,
                     message: "Authentication failed."),
                 credentials: bootstrap.credentials!),
-            host: seedlist[0]))
+            host: self.seedlist[0]))
         {
             try await bootstrap.withSessionPool
             {
