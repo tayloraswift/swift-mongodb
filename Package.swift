@@ -271,10 +271,9 @@ let package:Package = .init(name: "swift-mongodb",
                 .target(name: "MongoTesting"),
             ]),
 
-        .executableTarget(name: "MongoDriverTests",
+        .testTarget(name: "MongoDriverTests",
             dependencies: [
                 .target(name: "MongoDriver"),
-                .product(name: "Testing_", package: "swift-grammar"),
             ]),
     ]
 )
