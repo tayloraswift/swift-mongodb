@@ -144,7 +144,7 @@ extension Mongo.Find
         }
     }
 }
-extension Mongo.Find
+extension Mongo.Find:Mongo.PredicateConfigurable
 {
     @frozen public
     enum Filter:String, Hashable, Sendable
@@ -153,7 +153,7 @@ extension Mongo.Find
     }
 
     @inlinable public
-    subscript(key:Filter, yield:(inout Mongo.PredicateEncoder) -> ()) -> Void
+    subscript(key:Filter, yield:(inout Mongo.PredicateEncoder) -> () = { _ in }) -> Void
     {
         mutating get
         {
