@@ -28,7 +28,7 @@ extension Mongo.ProjectionOperatorEncoder:BSON.Encoder
     var frame:BSON.DocumentFrame { .document }
 }
 
-extension Mongo.ProjectionOperatorEncoder
+extension Mongo.ProjectionOperatorEncoder:Mongo.PredicateConfigurable
 {
     @frozen public
     enum First:String, Sendable
@@ -41,24 +41,11 @@ extension Mongo.ProjectionOperatorEncoder
     }
 
     @inlinable public
-    subscript(key:First, yield:(inout Mongo.PredicateEncoder) -> ()) -> Void
+    subscript(key:First, yield:(inout Mongo.PredicateEncoder) -> () = { _ in }) -> Void
     {
         mutating get
         {
             yield(&self.bson[with: key][as: Mongo.PredicateEncoder.self])
-        }
-    }
-
-    @inlinable public
-    subscript<Predicate>(key:First) -> Predicate? where Predicate:Mongo.PredicateEncodable
-    {
-        get
-        {
-            nil
-        }
-        set(value)
-        {
-            value?.encode(to: &self.bson[with: key][as: Mongo.PredicateEncoder.self])
         }
     }
 }

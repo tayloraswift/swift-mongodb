@@ -190,7 +190,7 @@ extension Mongo.FindAndModify
         nil
     }
 }
-extension Mongo.FindAndModify
+extension Mongo.FindAndModify:Mongo.PredicateConfigurable
 {
     @frozen public
     enum Query:String, Hashable, Sendable

@@ -38,19 +38,12 @@ extension Mongo.DeleteStatementEncoder
         set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 }
-extension Mongo.DeleteStatementEncoder
+extension Mongo.DeleteStatementEncoder:Mongo.PredicateConfigurable
 {
     @frozen public
     enum Q:String, Hashable, Sendable
     {
         case q
-    }
-
-    @inlinable public
-    subscript(key:Q) -> Mongo.PredicateDocument?
-    {
-        get { nil }
-        set (value) { value?.encode(to: &self.bson[with: key]) }
     }
 
     @inlinable public

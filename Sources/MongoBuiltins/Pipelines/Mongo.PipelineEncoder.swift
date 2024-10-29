@@ -569,14 +569,6 @@ extension Mongo.PipelineEncoder
         case match = "$match"
     }
 
-    @available(*, unavailable)
-    @inlinable public
-    subscript(stage key:Match) -> Mongo.PredicateDocument?
-    {
-        get { nil }
-        set (value) {}
-    }
-
     @inlinable public
     subscript(stage match:Match, yield:(inout Mongo.PredicateEncoder) -> ()) -> Void
     {
