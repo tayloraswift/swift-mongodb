@@ -1,3 +1,0 @@
-extension BSON.Key:BSONDecodable
-{
-}
