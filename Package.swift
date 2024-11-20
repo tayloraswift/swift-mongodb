@@ -147,16 +147,14 @@ let package:Package = .init(name: "swift-mongodb",
             ]),
 
 
-        .executableTarget(name: "OnlineCDFTests",
+        .testTarget(name: "OnlineCDFTests",
             dependencies: [
                 .target(name: "OnlineCDF"),
-                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
-        .executableTarget(name: "MongoClusterTests",
+        .testTarget(name: "MongoClusterTests",
             dependencies: [
                 .target(name: "MongoClusters"),
-                .product(name: "Testing_", package: "swift-grammar"),
             ]),
 
         .testTarget(name: "MongoDBTests",

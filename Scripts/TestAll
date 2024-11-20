@@ -13,7 +13,3 @@ swift test -c release \
     --skip-build \
     --no-parallel \
     --explicit-target-dependency-import-check=error
-
-for f in .build/release/*Tests; do
-    $f
-done
