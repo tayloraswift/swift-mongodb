@@ -5,7 +5,7 @@ import Testing
 struct ReplicaSets
 {
     final
-    class Void
+    class Void:Sendable
     {
         init() {}
     }
