@@ -5,7 +5,7 @@ import Testing
 struct ReplicaSets
 {
     final
-    class Void:Sendable
+    class Canary:Sendable
     {
         init() {}
     }
@@ -47,13 +47,13 @@ struct ReplicaSets
     @Test
     func PrimaryRenameWithoutHint() throws
     {
-        var topology:Mongo.Topology<Void> = .init(from: [self.localhost], hint: nil)
+        var topology:Mongo.Topology<Canary> = .init(from: [self.localhost], hint: nil)
         let update:Mongo.TopologyUpdateResult = topology.combine(
             update: .primary(.init(replica: filler, term: .init(
                     election: .init(0, 0, 0),
                     version: 1)),
                 peerlist),
-            owner: Void.init(),
+            owner: Canary.init(),
             host: self.localhost)
         {
             _ in
@@ -80,7 +80,7 @@ struct ReplicaSets
     @Test
     func PrimaryRenameWithHint() throws
     {
-        var topology:Mongo.Topology<Void> = .init(from: [self.localhost],
+        var topology:Mongo.Topology<Canary> = .init(from: [self.localhost],
             hint: .replicated(set: self.setName))
 
         let update:Mongo.TopologyUpdateResult = topology.combine(
@@ -88,7 +88,7 @@ struct ReplicaSets
                     election: .init(0, 0, 0),
                     version: 1)),
                 peerlist),
-            owner: Void.init(),
+            owner: Canary.init(),
             host: self.localhost)
         {
             _ in
@@ -115,7 +115,7 @@ struct ReplicaSets
     @Test
     func GHOSTED() throws
     {
-        var topology:Mongo.Topology<Void> = .init(from: [self.primary],
+        var topology:Mongo.Topology<Canary> = .init(from: [self.primary],
             hint: .replicated(set: self.setName))
 
         let update:Mongo.TopologyUpdateResult = topology.combine(
@@ -123,7 +123,7 @@ struct ReplicaSets
                     election: .init(0, 0, 0),
                     version: 2)),
                 peerlist),
-            owner: Void.init(),
+            owner: Canary.init(),
             host: self.primary)
         {
             _ in
@@ -136,7 +136,7 @@ struct ReplicaSets
                     election: .init(0, 0, 0),
                     version: 1)),
                 peerlist),
-            owner: Void.init(),
+            owner: Canary.init(),
             host: self.primary)
         {
             _ in
