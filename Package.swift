@@ -15,7 +15,7 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     dependencies: [
         .package(url: "https://github.com/tayloraswift/swift-bson", .upToNextMinor(
-            from: "0.1.0")),
+            from: "0.3.0")),
         .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
             from: "0.4.0")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
