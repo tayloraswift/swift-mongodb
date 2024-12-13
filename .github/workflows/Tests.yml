@@ -30,7 +30,7 @@ jobs:
                         --user root \
                         -v $PWD:/swift-mongodb \
                         -w /swift-mongodb \
-                        swift:6.0-noble \
+                        swift:6.0.3-noble \
                         /bin/bash Scripts/TestAll
 
     macos:
