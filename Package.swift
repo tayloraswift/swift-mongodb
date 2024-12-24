@@ -15,7 +15,7 @@ let package:Package = .init(name: "swift-mongodb",
     ],
     dependencies: [
         .package(url: "https://github.com/tayloraswift/swift-bson", .upToNextMinor(
-            from: "0.3.0")),
+            from: "0.4.0")),
         .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
             from: "0.4.0")),
         .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
@@ -34,6 +34,12 @@ let package:Package = .init(name: "swift-mongodb",
             from: "2.28.0"),
     ],
     targets: [
+        .target(name: "BSON_OrderedCollections",
+            dependencies: [
+                .product(name: "BSON", package: "swift-bson"),
+                .product(name: "OrderedCollections", package: "swift-collections"),
+            ]),
+
         .target(name: "OnlineCDF"),
 
         .target(name: "SCRAM",
@@ -84,13 +90,13 @@ let package:Package = .init(name: "swift-mongodb",
 
         .target(name: "MongoDriver",
             dependencies: [
+                .target(name: "BSON_OrderedCollections"),
                 .target(name: "MongoCommands"),
                 .target(name: "MongoConfiguration"),
                 .target(name: "MongoExecutor"),
                 .target(name: "MongoLogging"),
                 .target(name: "SCRAM"),
                 .target(name: "UnixTime_Atomics"),
-                .product(name: "BSON_OrderedCollections", package: "swift-bson"),
                 .product(name: "BSON_UUID", package: "swift-bson"),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "SHA2", package: "swift-hash"),
@@ -118,11 +124,11 @@ let package:Package = .init(name: "swift-mongodb",
 
         .target(name: "MongoQL",
             dependencies: [
+                .target(name: "BSON_OrderedCollections"),
                 .target(name: "MongoBuiltins"),
                 .target(name: "MongoCommands"),
                 .product(name: "BSON", package: "swift-bson"),
                 .product(name: "BSONReflection", package: "swift-bson"),
-                .product(name: "BSON_OrderedCollections", package: "swift-bson"),
                 .product(name: "BSON_UUID", package: "swift-bson"),
             ]),
 
