@@ -14,14 +14,14 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "UnixTime_Atomics", targets: ["UnixTime_Atomics"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tayloraswift/swift-bson", .upToNextMinor(
-            from: "0.4.0")),
-        .package(url: "https://github.com/tayloraswift/swift-grammar", .upToNextMinor(
-            from: "0.4.0")),
-        .package(url: "https://github.com/tayloraswift/swift-hash", .upToNextMinor(
-            from: "0.7.0")),
-        .package(url: "https://github.com/tayloraswift/swift-unixtime", .upToNextMinor(
-            from: "0.1.5")),
+        .package(url: "https://github.com/tayloraswift/swift-bson",
+            from: "0.5.0"),
+        .package(url: "https://github.com/tayloraswift/swift-grammar",
+            from: "0.4.0"),
+        .package(url: "https://github.com/tayloraswift/swift-hash",
+            from: "0.7.0"),
+        .package(url: "https://github.com/tayloraswift/swift-unixtime",
+            from: "0.1.5"),
 
         .package(url: "https://github.com/apple/swift-atomics", .upToNextMinor(
             from: "1.2.0")),
