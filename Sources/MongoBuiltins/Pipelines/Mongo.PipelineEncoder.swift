@@ -440,13 +440,13 @@ extension Mongo.PipelineEncoder
     }
 
     @inlinable public
-    subscript(stage indexStats:IndexStats) -> [String: Never]?
+    subscript(stage indexStats:IndexStats) -> [BSON.Key: Never]?
     {
         get { nil }
         set (value)
         {
             guard
-            let value:[String: Never]
+            let value:[BSON.Key: Never]
             else
             {
                 return
@@ -599,13 +599,13 @@ extension Mongo.PipelineEncoder
     }
 
     @inlinable public
-    subscript(stage planCacheStats:PlanCacheStats) -> [String: Never]?
+    subscript(stage planCacheStats:PlanCacheStats) -> [BSON.Key: Never]?
     {
         get { nil }
         set (value)
         {
             guard
-            let value:[String: Never]
+            let value:[BSON.Key: Never]
             else
             {
                 return
@@ -847,13 +847,13 @@ extension Mongo.PipelineEncoder
     }
 
     @inlinable public
-    subscript(stage shardedDataDistribution:ShardedDataDistribution) -> [String: Never]?
+    subscript(stage shardedDataDistribution:ShardedDataDistribution) -> [BSON.Key: Never]?
     {
         get { nil }
         set (value)
         {
             guard
-            let value:[String: Never]
+            let value:[BSON.Key: Never]
             else
             {
                 return

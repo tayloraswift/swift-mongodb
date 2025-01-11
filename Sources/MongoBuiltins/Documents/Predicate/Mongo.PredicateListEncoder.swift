@@ -42,6 +42,6 @@ extension Mongo.PredicateListEncoder
     @inlinable public mutating
     func callAsFunction(with encode:(inout Mongo.PredicateEncoder) -> ())
     {
-        self.list.append { encode(&$0[as: Mongo.PredicateEncoder.self]) }
+        encode(&self.list[+][as: Mongo.PredicateEncoder.self])
     }
 }

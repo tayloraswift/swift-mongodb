@@ -44,20 +44,20 @@ extension Mongo.SetListEncoder
     func callAsFunction(
         _ yield:(inout Mongo.ExpressionEncoder) -> ())
     {
-        self.list.append { yield(&$0[as: Mongo.ExpressionEncoder.self]) }
+        yield(&self.list[+][as: Mongo.ExpressionEncoder.self])
     }
 
     @inlinable public mutating
     func callAsFunction(_:Int.Type = Int.self,
         _ yield:(inout Mongo.SetListEncoder) -> ())
     {
-        self.list.append { yield(&$0[as: Mongo.SetListEncoder.self]) }
+        yield(&self.list[+][as: Mongo.SetListEncoder.self])
     }
 
     @inlinable public mutating
     func callAsFunction<CodingKey>(_:CodingKey.Type,
         _ yield:(inout Mongo.SetEncoder<CodingKey>) -> ())
     {
-        self.list.append { yield(&$0[as: Mongo.SetEncoder<CodingKey>.self]) }
+        yield(&self.list[+][as: Mongo.SetEncoder<CodingKey>.self])
     }
 }
