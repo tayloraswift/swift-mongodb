@@ -49,7 +49,10 @@ let package:Package = .init(name: "swift-mongodb",
             ]),
 
 
-        .target(name: "Mongo"),
+        .target(name: "Mongo",
+            exclude: [
+                "README.md",
+            ]),
 
         .target(name: "MongoABI",
             dependencies: [
