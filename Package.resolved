@@ -1,5 +1,5 @@
 {
-  "originHash" : "8c44e2fe889b1e231c18eb51a673ca375905104db7cb7e847df2c63d04812c69",
+  "originHash" : "49d33290488b606cd48aa68da8870f6efb5f65a36c5349f1514f67c2c698a6f9",
   "pins" : [
     {
       "identity" : "swift-atomics",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tayloraswift/swift-bson",
       "state" : {
-        "revision" : "9884bb7ed0b951cd0fa456fb3416f413e958b72c",
-        "version" : "0.7.0"
+        "revision" : "4023790d67868497fb85c87894ffb06c08048164",
+        "version" : "0.7.1"
       }
     },
     {

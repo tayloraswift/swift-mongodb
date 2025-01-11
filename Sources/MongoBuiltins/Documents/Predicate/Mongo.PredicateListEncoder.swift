@@ -32,8 +32,7 @@ extension Mongo.PredicateListEncoder:BSON.Encoder
 extension Mongo.PredicateListEncoder
 {
     @inlinable public
-    subscript<Encodable>(_:(BSON.ListEncoder.Index) -> Void) -> Encodable?
-        where Encodable:BSONEncodable
+    subscript<Encodable>(_:(BSON.EndIndex) -> Void) -> Encodable? where Encodable:BSONEncodable
     {
         get { nil }
         set (value) { self.list[+] = value }
