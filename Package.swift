@@ -29,8 +29,7 @@ let package:Package = .init(name: "swift-mongodb",
         .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(
             from: "1.1.0")),
 
-        .package(url: "https://github.com/apple/swift-nio",
-            from: "2.75.0"),
+        .package(url: "https://github.com/apple/swift-nio", "2.75.0" ..< "2.78.0"),
         .package(url: "https://github.com/apple/swift-nio-ssl",
             from: "2.28.0"),
     ],
@@ -186,7 +185,6 @@ for target:PackageDescription.Target in package.targets
         var settings:[PackageDescription.SwiftSetting] = $0 ?? []
 
         settings.append(.enableUpcomingFeature("ExistentialAny"))
-        settings.append(.enableExperimentalFeature("StrictConcurrency"))
 
         $0 = settings
     } (&target.swiftSettings)
