@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.Accumulator
 {
     @inlinable public
-    subscript(key:Count) -> [BSON.Key: Never]?
+    subscript(key:Count) -> Mongo.EmptyDocument?
     {
         get
         {

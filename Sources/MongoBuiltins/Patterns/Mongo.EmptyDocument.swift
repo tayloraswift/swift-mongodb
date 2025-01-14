@@ -13,14 +13,25 @@ extension Mongo
         }
     }
 }
-extension Mongo.EmptyDocument:BSONDocumentDecodable
+extension Mongo.EmptyDocument:ExpressibleByDictionaryLiteral
 {
     @inlinable public
-    init(bson:BSON.DocumentDecoder<BSON.Key>) throws
+    init(dictionaryLiteral _:(Never, Never)...) {}
+}
+extension Mongo.EmptyDocument:BSONEncodable, BSONDocumentEncodable
+{
+    @inlinable public
+    func encode(to _:inout BSON.DocumentEncoder<BSON.Key>)
     {
-        for unexpected:BSON.FieldDecoder<BSON.Key> in bson
+    }
+}
+extension Mongo.EmptyDocument:BSONDecodable, BSONKeyspaceDecodable
+{
+    @inlinable public
+    init(bson:consuming BSON.KeyspaceDecoder<BSON.Key>) throws
+    {
+        while let _:Never = try bson[+]?.decode(to: Never.self)
         {
-            try unexpected.decode(to: Never.self)
         }
     }
 }

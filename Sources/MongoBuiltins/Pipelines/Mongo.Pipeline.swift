@@ -22,7 +22,7 @@ extension Mongo.Pipeline
     @inlinable public
     init(with populate:(inout Mongo.PipelineEncoder) throws -> ()) rethrows
     {
-        self.init(stages: [])
+        self.init(stages: BSON.List.init())
         try populate(&self.bson.output[as: Mongo.PipelineEncoder.self])
     }
 }
@@ -47,7 +47,7 @@ extension Mongo.Pipeline:ExpressibleByArrayLiteral
     @inlinable public
     init(arrayLiteral:Never...)
     {
-        self.init(stages: [])
+        self.init(stages: BSON.List.init())
     }
 }
 extension Mongo.Pipeline

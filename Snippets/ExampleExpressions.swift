@@ -11,12 +11,12 @@ func ExampleExpressions()
     let _:BSON.Document = .init(Alphabet.self)
     {
         $0[.a] = [] as [Never]
-        $0[.b] = [:]
+        $0[.b] = [:] as Mongo.EmptyDocument
         $0[.c](Alphabet.self)
         {
             $0[.a](BSON.Key.self)
             {
-                $0["_"] = [:]
+                $0["_"] = [:] as Mongo.EmptyDocument
             }
         }
     }
@@ -39,7 +39,7 @@ func ExampleExpressions()
         $0[.c] = false
         $0[.d] = true
         $0[.e] = [] as [Never]
-        $0[.f] = [:]
+        $0[.f] = [:] as Mongo.EmptyDocument
         $0[.g](Int.self)
         {
             $0[+] = 0

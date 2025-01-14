@@ -18,7 +18,7 @@ extension Mongo
 extension Mongo.CollectionStatsDocument
 {
     @inlinable public
-    subscript(key:Keyword) -> [BSON.Key: Never]?
+    subscript(key:Keyword) -> Mongo.EmptyDocument?
     {
         get
         {

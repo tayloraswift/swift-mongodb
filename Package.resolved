@@ -1,5 +1,5 @@
 {
-  "originHash" : "49d33290488b606cd48aa68da8870f6efb5f65a36c5349f1514f67c2c698a6f9",
+  "originHash" : "9765d64920778ccf8de51cb0250af9aa349f74ba1ac64283ff4111741cb9eba6",
   "pins" : [
     {
       "identity" : "swift-atomics",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tayloraswift/swift-bson",
       "state" : {
-        "revision" : "4023790d67868497fb85c87894ffb06c08048164",
-        "version" : "0.7.1"
+        "revision" : "247461a7ec458592cb428d1cfa36a413babeb62f",
+        "version" : "0.8.0"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio",
       "state" : {
-        "revision" : "dca6594f65308c761a9c409e09fbf35f48d50d34",
-        "version" : "2.77.0"
+        "revision" : "27c839f4700069928196cd0e9fa03b22f297078a",
+        "version" : "2.78.0"
       }
     },
     {
