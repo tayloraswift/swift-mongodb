@@ -8,12 +8,12 @@ func ExampleConnectionStrings()
 
     let _ = MongoDB.SRV / ["example.com": 53] /?
     {
-        $0.executors = .createNew
+        $0.executors = nil
     }
 
     let _ = MongoDB.SRV / ("root", password: "password") * ["example.com": 53] /?
     {
-        $0.executors = .createNew
+        $0.executors = nil
     }
 
     let _ = MongoDB / ["mongo-0"]
