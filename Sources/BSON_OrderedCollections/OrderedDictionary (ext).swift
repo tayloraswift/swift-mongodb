@@ -1,39 +1,33 @@
 import BSON
 import OrderedCollections
 
-extension OrderedDictionary:@retroactive BSONDecodable
-    where Key == BSON.Key, Value:BSONDecodable
+extension OrderedDictionary:@retroactive BSONEncodable, @retroactive BSONDocumentEncodable
+    where Key:BSON.Keyspace, Value:BSONEncodable
 {
     @inlinable public
-    init(bson:BSON.AnyValue) throws
-    {
-        try self.init(bson: try .init(bson: consume bson))
-    }
-    @inlinable public
-    init(bson:BSON.Document) throws
-    {
-        self.init()
-        try bson.parse
-        {
-            (field:BSON.FieldDecoder<BSON.Key>) in
-
-            if  case _? = self.updateValue(try field.decode(to: Value.self),
-                forKey: field.key)
-            {
-                throw BSON.DocumentKeyError<BSON.Key>.duplicate(field.key)
-            }
-        }
-    }
-}
-extension OrderedDictionary:@retroactive BSONDocumentEncodable, @retroactive BSONEncodable
-    where Key == BSON.Key, Value:BSONEncodable
-{
-    @inlinable public
-    func encode(to bson:inout BSON.DocumentEncoder<BSON.Key>)
+    func encode(to bson:inout BSON.DocumentEncoder<Key>)
     {
         for (key, value):(Key, Value) in self.elements
         {
-            bson[key] = value
+            value.encode(to: &bson[key])
+        }
+    }
+}
+extension OrderedDictionary:@retroactive BSONDecodable, @retroactive BSONKeyspaceDecodable
+    where Key:BSON.Keyspace, Value:BSONDecodable
+{
+    @inlinable public
+    init(bson:consuming BSON.KeyspaceDecoder<Key>) throws
+    {
+        self.init()
+        while let field:BSON.FieldDecoder<Key> = try bson[+]
+        {
+            guard
+            case nil = self.updateValue(try field.decode(to: Value.self), forKey: field.key)
+            else
+            {
+                throw BSON.DocumentKeyError<Key>.duplicate(field.key)
+            }
         }
     }
 }
