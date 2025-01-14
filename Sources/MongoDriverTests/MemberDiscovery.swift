@@ -10,7 +10,7 @@ import Testing
     {
         let bootstrap:Mongo.DriverBootstrap = mongodb / .replicated(i ... i) /?
         {
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
         }
         //  We should be able to connect to the master using any seed
         try await bootstrap.withSessionPool

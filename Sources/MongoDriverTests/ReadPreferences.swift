@@ -12,7 +12,7 @@ import Testing
         let bootstrap:Mongo.DriverBootstrap = mongodb / members /?
         {
             $0.connectionTimeout = .milliseconds(250)
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
         }
 
         try await bootstrap.withSessionPool

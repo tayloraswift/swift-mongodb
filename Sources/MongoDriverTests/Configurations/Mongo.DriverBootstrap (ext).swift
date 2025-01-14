@@ -8,7 +8,7 @@ extension Mongo.DriverBootstrap
     {
         mongodb / Authentication.login * .standalone /?
         {
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
         }
     }
 
@@ -17,7 +17,7 @@ extension Mongo.DriverBootstrap
         mongodb / .replicated /?
         {
             $0.connectionTimeout = .milliseconds(2000)
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
             $0.appname = "MongoDriverTests"
         }
     }

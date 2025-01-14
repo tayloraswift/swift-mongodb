@@ -33,7 +33,7 @@ extension Mongo.TestConfiguration<Mongo.Guest>
     {
         MongoDB / self.members /?
         {
-            $0.executors = .shared(threads)
+            $0.executors = threads
             configure(options: &$0)
         }
     }
@@ -44,7 +44,7 @@ extension Mongo.TestConfiguration<Mongo.User>
     {
         MongoDB / self.userinfo * self.members /?
         {
-            $0.executors = .shared(threads)
+            $0.executors = threads
             configure(options: &$0)
         }
     }

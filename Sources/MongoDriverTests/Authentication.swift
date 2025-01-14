@@ -22,7 +22,7 @@ import Testing
     {
         let bootstrap:Mongo.DriverBootstrap = mongodb / Self.login * self.seedlist /?
         {
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
         }
         try await bootstrap.withSessionPool
         {
@@ -37,7 +37,7 @@ import Testing
         let bootstrap:Mongo.DriverBootstrap = mongodb / Self.login * self.seedlist /?
         {
             $0.authentication = .sasl(.sha256)
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
         }
         try await bootstrap.withSessionPool
         {
@@ -53,7 +53,7 @@ import Testing
         {
             $0.connectionTimeout = .milliseconds(500)
             $0.authentication = .x509
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
         }
         await #expect(throws: Mongo.ConnectionPoolDrainedError.init(
             because: Mongo.AuthenticationError.init(
@@ -77,7 +77,7 @@ import Testing
         {
             $0.connectionTimeout = .milliseconds(500)
             $0.authentication = .sasl(.sha256)
-            $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+            $0.executors = MultiThreadedEventLoopGroup.singleton
         }
         await #expect(throws: Mongo.ConnectionPoolDrainedError.init(
             because: Mongo.AuthenticationError.init(Mongo.ServerError.init(18,

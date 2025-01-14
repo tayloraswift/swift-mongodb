@@ -18,13 +18,13 @@ import Testing
             {
                 $0.connectionTimeout = .milliseconds(2000)
                 $0.connectionPoolSize = 2 ... 50
-                $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+                $0.executors = MultiThreadedEventLoopGroup.singleton
             },
             mongodb / .standalone /?
             {
                 $0.connectionTimeout = .milliseconds(2000)
                 $0.connectionPoolSize = 2 ... 50
-                $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+                $0.executors = MultiThreadedEventLoopGroup.singleton
             },
 
             //  Preconnections (small)
@@ -32,13 +32,13 @@ import Testing
             {
                 $0.connectionTimeout = .milliseconds(2000)
                 $0.connectionPoolSize = 0 ... 10
-                $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+                $0.executors = MultiThreadedEventLoopGroup.singleton
             },
             mongodb / .standalone /?
             {
                 $0.connectionTimeout = .milliseconds(2000)
                 $0.connectionPoolSize = 0 ... 10
-                $0.executors = .shared(MultiThreadedEventLoopGroup.singleton)
+                $0.executors = MultiThreadedEventLoopGroup.singleton
             },
         ]
     }
