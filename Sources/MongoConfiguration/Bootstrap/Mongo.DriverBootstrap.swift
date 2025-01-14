@@ -14,7 +14,7 @@ extension Mongo
         let seeding:SeedingMethod
 
         public
-        let executors:NIOEventLoopGroupProvider
+        let executors:(any EventLoopGroup)?
 
         public
         let appname:String?
@@ -32,7 +32,7 @@ extension Mongo
         public
         let tls:TLS
 
-        @inlinable internal
+        @inlinable
         init<Login>(locator:some Mongo.ServiceLocator<Login>,
             options:DriverOptions<Login.Authentication> = .init())
             where Login:Mongo.LoginMode

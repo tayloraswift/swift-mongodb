@@ -11,7 +11,7 @@ extension Mongo
         var authentication:Authentication?
 
         public
-        var executors:NIOEventLoopGroupProvider
+        var executors:(any EventLoopGroup)?
 
         public
         var appname:String?
@@ -30,7 +30,7 @@ extension Mongo
 
         @inlinable internal
         init(authentication:Authentication? = nil,
-            executors:NIOEventLoopGroupProvider = .createNew,
+            executors:(any EventLoopGroup)? = nil,
             appname:String? = nil,
             connectionTimeout:Milliseconds = .milliseconds(10_000),
             connectionPoolSize:ClosedRange<Int> = 0 ... 100,
