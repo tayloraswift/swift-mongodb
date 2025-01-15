@@ -13,7 +13,7 @@ func ExampleBucketDocuments()
     {
         $0[.groupBy] { $0[.abs] = "$field" }
         $0[.default] = 0
-        $0[.boundaries] = .init
+        $0[.boundaries] = BSON.List.init
         {
             $0[+] = "$field"
             $0(BSON.Key.self)
