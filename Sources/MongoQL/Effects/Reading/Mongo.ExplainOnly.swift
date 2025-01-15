@@ -24,16 +24,16 @@ extension Mongo.ExplainOnly:Mongo.ReadEffect
     {
         var output:String = ""
         let indent:BSON.Indent = "    " + 1
-        for field:BSON.FieldDecoder<BSON.Key> in
-            reply.sorted(by: { $0.key < $1.key })
+        for (key, value):(BSON.Key, BSON.AnyValue) in reply.indexedFields.sorted(
+            by: { $0.key < $1.key })
         {
-            switch field.key
+            switch key
             {
             case "ok", "operationTime", "$clusterTime":
                 continue
 
             case let key:
-                indent.print(key: key, value: field.value, to: &output)
+                indent.print(key: key, value: value, to: &output)
             }
         }
 

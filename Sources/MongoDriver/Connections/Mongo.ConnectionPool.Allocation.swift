@@ -45,8 +45,6 @@ extension Mongo.ConnectionPool.Allocation
             command: command,
             against: .admin,
             by: deadline)()
-        return try bson["saslSupportedMechs"]?.decode(
-            as: Set<Mongo.Authentication.SASL>.UnorderedElements.self,
-            with: \.set)
+        return try bson["saslSupportedMechs"]?.decode()
     }
 }

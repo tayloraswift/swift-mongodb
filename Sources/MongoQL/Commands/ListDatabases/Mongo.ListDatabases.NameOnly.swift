@@ -56,13 +56,13 @@ extension Mongo.ListDatabases.NameOnly:Mongo.Command
     {
         try bson["databases"].decode
         {
-            try $0.map
+            var databases:[Mongo.Database] = []
+            while let next:Mongo.Database = try $0[+]?.decode(
+                with: { try $0["name"].decode(to: Mongo.Database.self) })
             {
-                try $0.decode
-                {
-                    try $0["name"].decode(to: Mongo.Database.self)
-                }
+                databases.append(next)
             }
+            return databases
         }
     }
 }

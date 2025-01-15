@@ -54,7 +54,7 @@ func ExampleExpressions()
     {
         $0[.a]
         {
-            $0[.in] = (0, .init
+            $0[.in] = (0, BSON.List.init
             {
                 $0[+] = 0
             })
@@ -224,7 +224,7 @@ func ExampleExpressions()
         {
             $0[.zip] = .init
             {
-                $0[.inputs] = ("$x", .init
+                $0[.inputs] = ("$x", BSON.List.init
                 {
                     $0[+] = 1
                     $0[+] = 2

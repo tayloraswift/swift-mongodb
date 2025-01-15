@@ -3,7 +3,7 @@ import BSON
 extension Mongo
 {
     @frozen public
-    struct ChangeEventIdentifier:RawRepresentable, Equatable, Sendable
+    struct ChangeEventIdentifier:RawRepresentable, Sendable
     {
         public
         var rawValue:BSON.Document
@@ -14,6 +14,11 @@ extension Mongo
             self.rawValue = rawValue
         }
     }
+}
+extension Mongo.ChangeEventIdentifier:Equatable
+{
+    @inlinable public
+    static func == (a:Self, b:Self) -> Bool { a.rawValue.bytes == b.rawValue.bytes }
 }
 extension Mongo.ChangeEventIdentifier:BSONDecodable, BSONEncodable
 {

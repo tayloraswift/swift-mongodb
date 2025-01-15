@@ -26,7 +26,7 @@ extension Mongo.Command
         // do this first, so we never have to access `self` after reading `self.fields`
         let outlined:[Mongo.WireMessage.Outline]? = self.outline.map
         {
-            [.init(id: $0.type.rawValue, slice: $0.bson.destination[...])]
+            [.init(id: $0.type.rawValue, slice: $0.bson.bytes[...])]
         }
 
         let now:ContinuousClock.Instant = .now
