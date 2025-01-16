@@ -1,5 +1,5 @@
 {
-  "originHash" : "daceeee59031d65a8c33cfb323a21ded2a125f3bdc49c26d3e67bcbc4f71d180",
+  "originHash" : "2a316d3f318f7c8b6ff89b547e013115e2f4b4235e2e139d5b3828f9c599b8c7",
   "pins" : [
     {
       "identity" : "swift-atomics",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tayloraswift/swift-bson",
       "state" : {
-        "revision" : "0fa7c4a61c509c78bcdc239f0185af188d9bc7da",
-        "version" : "0.9.0"
+        "revision" : "0d7c9735b726f931a67da00b836e8fd383f43cb3",
+        "version" : "1.0.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tayloraswift/swift-grammar",
       "state" : {
-        "revision" : "4b47a153732e0b094ef7dd95d891b37b7ae37a69",
-        "version" : "0.4.1"
+        "revision" : "0dac977b50bf677b2c3adabd7d5586a7b6e09b17",
+        "version" : "0.5.0"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio",
       "state" : {
-        "revision" : "dca6594f65308c761a9c409e09fbf35f48d50d34",
-        "version" : "2.77.0"
+        "revision" : "ba72f31e11275fc5bf060c966cf6c1f36842a291",
+        "version" : "2.79.0"
       }
     },
     {
