@@ -14,23 +14,15 @@ let package:Package = .init(name: "swift-mongodb",
         .library(name: "UnixTime_Atomics", targets: ["UnixTime_Atomics"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tayloraswift/swift-bson",
-            from: "0.9.0"),
-        .package(url: "https://github.com/tayloraswift/swift-grammar",
-            from: "0.4.0"),
-        .package(url: "https://github.com/tayloraswift/swift-hash",
-            from: "0.7.0"),
-        .package(url: "https://github.com/tayloraswift/swift-unixtime",
-            from: "0.1.5"),
+        .package(url: "https://github.com/tayloraswift/swift-bson", from: "1.0.0"),
+        .package(url: "https://github.com/tayloraswift/swift-grammar", from: "0.4.0"),
+        .package(url: "https://github.com/tayloraswift/swift-hash", from: "0.7.0"),
+        .package(url: "https://github.com/tayloraswift/swift-unixtime", from: "0.1.5"),
 
-        .package(url: "https://github.com/apple/swift-atomics", .upToNextMinor(
-            from: "1.2.0")),
-        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(
-            from: "1.1.0")),
-
-        .package(url: "https://github.com/apple/swift-nio", "2.75.0" ..< "2.78.0"),
-        .package(url: "https://github.com/apple/swift-nio-ssl",
-            from: "2.28.0"),
+        .package(url: "https://github.com/apple/swift-atomics", from: "1.2.0"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.1.0"),
+        .package(url: "https://github.com/apple/swift-nio", from: "2.79.0"),
+        .package(url: "https://github.com/apple/swift-nio-ssl", from: "2.28.0"),
     ],
     targets: [
         .target(name: "BSON_OrderedCollections",
