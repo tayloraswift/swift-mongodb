@@ -1,4 +1,5 @@
 import BSON
+import MongoABI
 
 extension Mongo
 {
@@ -43,8 +44,23 @@ extension Mongo.CommandType:BSONDecodable, BSONEncodable
 }
 extension Mongo.CommandType
 {
+    /// Encodes the collection name as the subject of the command, or `1` if nil.
     @inlinable public
-    func callAsFunction(_ first:some BSONEncodable,
+    func callAsFunction(_ collection:Mongo.Collection?,
+        then encode:(inout BSON.DocumentEncoder<BSON.Key>) -> () = { _  in }) -> BSON.Document
+    {
+        if  let collection
+        {
+            self(some: collection, then: encode)
+        }
+        else
+        {
+            self(some: 1 as Int32, then: encode)
+        }
+    }
+
+    @inlinable public
+    func callAsFunction(some first:some BSONEncodable,
         then encode:(inout BSON.DocumentEncoder<BSON.Key>) -> () = { _  in }) -> BSON.Document
     {
         .init(BSON.Key.self)

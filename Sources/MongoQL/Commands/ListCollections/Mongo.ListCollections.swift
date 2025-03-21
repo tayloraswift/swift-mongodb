@@ -62,7 +62,7 @@ extension Mongo.ListCollections<Mongo.CollectionBinding>
     public
     init(stride:Int)
     {
-        self.init(stride: stride, fields: Self.type(1))
+        self.init(stride: stride, fields: Self.type(nil))
         ;
         {
             $0[.cursor] = Mongo.CursorOptions.init(batchSize: stride)
@@ -82,7 +82,7 @@ extension Mongo.ListCollections<Mongo.CollectionMetadata>
     public
     init(stride:Int)
     {
-        self.init(stride: stride, fields: Self.type(1))
+        self.init(stride: stride, fields: Self.type(nil))
         self.fields[BuiltinKey.self][.cursor] = Mongo.CursorOptions.init(batchSize: stride)
     }
     @inlinable public

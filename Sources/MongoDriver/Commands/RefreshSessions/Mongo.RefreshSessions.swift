@@ -46,6 +46,6 @@ extension Mongo.RefreshSessions:Mongo.Command, Mongo.ImplicitSessionCommand
     public
     var fields:BSON.Document
     {
-        Self.type(self.sessions)
+        Self.type(some: self.sessions)
     }
 }

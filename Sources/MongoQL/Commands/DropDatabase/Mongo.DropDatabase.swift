@@ -26,6 +26,6 @@ extension Mongo.DropDatabase:Mongo.Command
     public
     var fields:BSON.Document
     {
-        Self.type(1 as Int32)
+        Self.type(nil)
     }
 }

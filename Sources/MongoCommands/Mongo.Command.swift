@@ -43,8 +43,7 @@ extension Mongo
         /// The official name of this command, in the MongoDB specification. It
         /// always begins with a lowercase letter, and usually resembles the name
         /// of the command type.
-        static
-        var type:CommandType { get }
+        static var type:CommandType { get }
 
         /// @import(BSONDecoding)
         /// A hook to decode an untyped server reply to a typed ``Response``.
@@ -53,8 +52,7 @@ extension Mongo
         ///
         /// Commands with responses conforming to ``BSONDocumentDecodable`` will
         /// receive a default implementation for this requirement.
-        static
-        func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
+        static func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
     }
 }
 extension Mongo.Command
@@ -112,16 +110,16 @@ extension Mongo.Command where WriteConcern == Never
 extension Mongo.Command<Void>
 {
     /// Does nothing, ignoring the supplied decoding container.
-    @inlinable public static
-    func decode(reply _:BSON.DocumentDecoder<BSON.Key>)
+    @inlinable public
+    static func decode(reply _:BSON.DocumentDecoder<BSON.Key>)
     {
     }
 }
 extension Mongo.Command where Response:BSONDocumentDecodable<BSON.Key>
 {
     /// Delegates to the ``Response`` type’s ``BSONDocumentDecodable`` conformance.
-    @inlinable public static
-    func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
+    @inlinable public
+    static func decode(reply:BSON.DocumentDecoder<BSON.Key>) throws -> Response
     {
         try .init(bson: reply)
     }

@@ -35,7 +35,7 @@ extension Mongo.RenameCollection
         to new:Mongo.Namespaced<Mongo.Collection>,
         writeConcern:WriteConcern? = nil)
     {
-        self.init(writeConcern: writeConcern, fields: Self.type(old)
+        self.init(writeConcern: writeConcern, fields: Self.type(some: old)
         {
             $0["to"] = new
         })
