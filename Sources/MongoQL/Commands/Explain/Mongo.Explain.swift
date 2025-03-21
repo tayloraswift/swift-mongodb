@@ -27,7 +27,7 @@ extension Mongo.Explain:Mongo.Command
     public
     var fields:BSON.Document
     {
-        Self.type(self.command.fields)
+        Self.type(some: self.command.fields)
         {
             $0["verbosity"] = self.verbosity
         }

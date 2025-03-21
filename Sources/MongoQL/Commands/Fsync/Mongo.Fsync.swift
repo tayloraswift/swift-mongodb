@@ -28,7 +28,7 @@ extension Mongo.Fsync:Mongo.Command
     public
     var fields:BSON.Document
     {
-        Self.type(1 as Int32)
+        Self.type(nil)
         {
             $0["lock"] = self.lock
         }

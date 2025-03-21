@@ -37,7 +37,7 @@ extension Mongo.ConfigureFailpoint:Mongo.ImplicitSessionCommand, Mongo.Command
     public
     var fields:BSON.Document
     {
-        Self.type(Options.name)
+        Self.type(some: Options.name)
         {
             switch self
             {

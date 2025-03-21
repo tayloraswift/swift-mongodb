@@ -38,7 +38,7 @@ extension Mongo.GetMore:Mongo.Command
     public
     var fields:BSON.Document
     {
-        Self.type(self.cursor)
+        Self.type(some: self.cursor)
         {
             $0["collection"] = self.collection
             $0["batchSize"] = self.count

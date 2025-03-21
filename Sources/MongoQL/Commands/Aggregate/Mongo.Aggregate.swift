@@ -60,7 +60,7 @@ extension Mongo.Aggregate
 extension Mongo.Aggregate
 {
     @inlinable public
-    init(_ collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection? = nil,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
         tailing:Effect.Tailing? = nil,
@@ -90,7 +90,7 @@ extension Mongo.Aggregate
     }
 
     @inlinable public
-    init(_ collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection? = nil,
         writeConcern:WriteConcern? = nil,
         readConcern:ReadConcern? = nil,
         tailing:Effect.Tailing? = nil,
@@ -110,7 +110,7 @@ extension Mongo.Aggregate
 extension Mongo.Aggregate<Mongo.ExplainOnly>
 {
     @inlinable public
-    init(_ collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection? = nil,
         pipeline:(inout Mongo.PipelineEncoder) throws -> ()) rethrows
     {
         self.init(
@@ -130,7 +130,7 @@ extension Mongo.Aggregate<Mongo.ExplainOnly>
     }
 
     @inlinable public
-    init(_ collection:Mongo.Collection,
+    init(_ collection:Mongo.Collection? = nil,
         pipeline:(inout Mongo.PipelineEncoder) throws -> (),
         options configure:(inout Self) throws -> ()) rethrows
     {

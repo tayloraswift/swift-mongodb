@@ -18,7 +18,7 @@ extension Mongo
         public
         init()
         {
-            self.fields = Self.type(1 as Int32)
+            self.fields = Self.type(nil)
         }
     }
 }
